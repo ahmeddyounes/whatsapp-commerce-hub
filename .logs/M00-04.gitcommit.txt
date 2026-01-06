@@ -1,58 +1,15 @@
-M00-04: REST API Base Controller & Authentication
+[main 196ed13] M00-04: implement
+ 15 files changed, 1851 insertions(+), 3 deletions(-)
+ create mode 100644 .logs/M00-03.gitcommit.txt
+ create mode 100644 .logs/M00-04.api-usage-guide.md
+ create mode 100644 .logs/M00-04.claude.impl.last.md
+ create mode 100644 .logs/M00-04.claude.impl.raw.txt
+ create mode 100644 .logs/M00-04.gitcommit.txt
+ create mode 100644 .logs/M00-04.implementation.txt
+ create mode 100644 .logs/M00-04.verification.md
+ create mode 100644 .plans/M00-04.md
+ create mode 100644 .t2/handoff/M00-04.md
+ create mode 100644 includes/class-wch-rest-api-test.php
+ create mode 100644 includes/class-wch-rest-api.php
+ create mode 100644 includes/class-wch-rest-controller.php
 
-Create comprehensive REST API infrastructure for WhatsApp Commerce Hub.
-
-Key Features:
-- Abstract WCH_REST_Controller base class extending WP_REST_Controller
-- Authentication: WordPress auth, API key, and webhook signature validation
-- Rate limiting: 100 req/min for admin, 1000 req/min for webhook
-- Phone validation with E.164 format sanitization
-- Standardized error responses with codes and details
-- Pagination headers (X-WP-Total, X-WP-TotalPages, Link)
-- CORS support for cross-origin requests
-- OpenAPI/Swagger compatible structure
-
-Files Added:
-- includes/class-wch-rest-controller.php (369 lines)
-  Abstract base controller with reusable methods
-- includes/class-wch-rest-api.php (159 lines)
-  REST API manager with route registration
-- includes/class-wch-rest-api-test.php (328 lines)
-  Comprehensive test suite
-
-Files Modified:
-- whatsapp-commerce-hub.php
-  Initialize REST API in plugin
-- includes/class-wch-settings.php
-  Add webhook_secret encryption and api_key_hash storage
-
-Security:
-- API keys stored as password hashes
-- Webhook secrets encrypted at rest
-- Timing-safe signature comparison
-- HMAC-SHA256 webhook validation
-- Rate limiting prevents abuse
-
-REST Namespace: wch/v1
-
-Endpoints Defined:
-- /settings (GET/POST) - Settings management
-- /conversations (GET/POST) - Conversations list
-- /conversations/{id} (GET/PATCH) - Single conversation
-- /conversations/{id}/messages (GET/POST) - Messages
-- /customers (GET) - Customers list
-- /customers/{phone} (GET/PATCH) - Single customer
-- /analytics (GET) - Analytics data
-- /broadcasts (GET/POST) - Broadcast campaigns
-- /broadcasts/{id} (GET/PATCH/DELETE) - Single broadcast
-- /webhook (POST) - WhatsApp webhook callback
-
-All acceptance criteria met:
-✓ Authentication required (except webhook uses signature)
-✓ Rate limiting with 429 response
-✓ WP REST API conventions followed
-✓ OpenAPI/Swagger compatible
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>

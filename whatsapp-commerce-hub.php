@@ -46,6 +46,9 @@ function wch_autoloader( $class_name ) {
 
 spl_autoload_register( 'wch_autoloader' );
 
+// Initialize error handler early.
+WCH_Error_Handler::init();
+
 /**
  * Main plugin class using singleton pattern.
  */
@@ -85,6 +88,11 @@ class WCH_Plugin {
 
 		// Check for database migrations on admin init.
 		add_action( 'admin_init', array( $this, 'check_database_migrations' ) );
+
+		// Initialize admin logs viewer.
+		if ( is_admin() ) {
+			WCH_Admin_Logs::init();
+		}
 
 		// Initialize REST API.
 		WCH_REST_API::getInstance();
