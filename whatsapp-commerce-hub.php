@@ -101,6 +101,9 @@ class WCH_Plugin {
 
 		// Initialize background job queue.
 		WCH_Queue::getInstance();
+
+		// Initialize product sync service.
+		WCH_Product_Sync_Service::instance();
 	}
 
 	/**

@@ -30,6 +30,8 @@ class WCH_Queue {
 		'wch_process_webhook_messages',
 		'wch_process_webhook_statuses',
 		'wch_process_webhook_errors',
+		'wch_sync_single_product',
+		'wch_sync_product_batch',
 	);
 
 	/**
@@ -114,6 +116,14 @@ class WCH_Queue {
 
 				case 'wch_process_webhook_errors':
 					add_action( $hook, array( $this, 'process_webhook_errors' ), 10, 1 );
+					break;
+
+				case 'wch_sync_single_product':
+					add_action( $hook, array( 'WCH_Product_Sync_Service', 'process_single_product' ), 10, 1 );
+					break;
+
+				case 'wch_sync_product_batch':
+					add_action( $hook, array( 'WCH_Product_Sync_Service', 'process_product_batch' ), 10, 1 );
 					break;
 			}
 		}

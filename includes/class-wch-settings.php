@@ -345,6 +345,7 @@ class WCH_Settings {
 				'timezone'         => 'string',
 			),
 			'catalog'       => array(
+				'catalog_id'           => 'string',
 				'sync_enabled'         => 'bool',
 				'sync_products'        => 'array',
 				'include_out_of_stock' => 'bool',

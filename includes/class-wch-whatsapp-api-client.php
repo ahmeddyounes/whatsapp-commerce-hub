@@ -771,4 +771,89 @@ class WCH_WhatsApp_API_Client {
 
 		return $response;
 	}
+
+	/**
+	 * Create or update a product in the WhatsApp catalog.
+	 *
+	 * @param string $catalog_id   Catalog ID.
+	 * @param array  $product_data Product data in catalog format.
+	 * @return array Response data with product ID.
+	 * @throws WCH_API_Exception If request fails.
+	 */
+	public function create_catalog_product( $catalog_id, $product_data ) {
+		$endpoint = $catalog_id . '/products';
+
+		$response = $this->request( 'POST', $endpoint, $product_data );
+
+		return $response;
+	}
+
+	/**
+	 * Update a product in the WhatsApp catalog.
+	 *
+	 * @param string $catalog_id      Catalog ID.
+	 * @param string $product_id      Product retailer ID.
+	 * @param array  $product_data    Product data to update.
+	 * @return array Response data.
+	 * @throws WCH_API_Exception If request fails.
+	 */
+	public function update_catalog_product( $catalog_id, $product_id, $product_data ) {
+		$endpoint = $catalog_id . '/products/' . $product_id;
+
+		$response = $this->request( 'POST', $endpoint, $product_data );
+
+		return $response;
+	}
+
+	/**
+	 * Delete a product from the WhatsApp catalog.
+	 *
+	 * @param string $catalog_id Catalog ID.
+	 * @param string $product_id Product retailer ID or catalog item ID.
+	 * @return array Response data.
+	 * @throws WCH_API_Exception If request fails.
+	 */
+	public function delete_catalog_product( $catalog_id, $product_id ) {
+		$endpoint = $catalog_id . '/products/' . $product_id;
+
+		$response = $this->request( 'DELETE', $endpoint );
+
+		return $response;
+	}
+
+	/**
+	 * Get a product from the WhatsApp catalog.
+	 *
+	 * @param string $catalog_id Catalog ID.
+	 * @param string $product_id Product retailer ID.
+	 * @return array Product data.
+	 * @throws WCH_API_Exception If request fails.
+	 */
+	public function get_catalog_product( $catalog_id, $product_id ) {
+		$endpoint = $catalog_id . '/products/' . $product_id;
+
+		$response = $this->request( 'GET', $endpoint );
+
+		return $response;
+	}
+
+	/**
+	 * List products in the WhatsApp catalog.
+	 *
+	 * @param string $catalog_id Catalog ID.
+	 * @param array  $params     Optional query parameters (limit, after, before).
+	 * @return array Products list with paging info.
+	 * @throws WCH_API_Exception If request fails.
+	 */
+	public function list_catalog_products( $catalog_id, $params = array() ) {
+		$endpoint = $catalog_id . '/products';
+
+		if ( ! empty( $params ) ) {
+			$endpoint .= '?' . http_build_query( $params );
+		}
+
+		$response = $this->request( 'GET', $endpoint );
+
+		return $response;
+	}
 }
