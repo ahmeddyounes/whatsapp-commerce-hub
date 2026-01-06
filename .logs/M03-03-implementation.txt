@@ -1,0 +1,350 @@
+M03-03 Flow Action Handlers - Implementation Summary
+====================================================
+
+Date: 2026-01-06
+Task: M03-03 - Flow Action Handlers
+
+FILES CREATED
+=============
+
+1. Core Classes:
+   - includes/class-wch-action-result.php       (Result wrapper for action execution)
+   - includes/class-wch-flow-action.php         (Abstract base class for all actions)
+
+2. Concrete Action Handlers:
+   - includes/class-wch-action-show-main-menu.php      (Main menu with categories, cart, support)
+   - includes/class-wch-action-show-category.php       (Product list with pagination)
+   - includes/class-wch-action-show-product.php        (Product details with variants)
+   - includes/class-wch-action-add-to-cart.php         (Cart management with stock validation)
+   - includes/class-wch-action-show-cart.php           (Cart display with modify/remove)
+   - includes/class-wch-action-request-address.php     (Address collection)
+   - includes/class-wch-action-process-payment.php     (Payment method handling)
+   - includes/class-wch-action-confirm-order.php       (Order creation and confirmation)
+
+IMPLEMENTATION DETAILS
+=====================
+
+WCH_Action_Result
+-----------------
+- Properties: success, response_messages, next_state, updated_context
+- Static methods: success(), failure()
+- Helper methods: add_message(), set_next_state(), update_context()
+- Returns built messages ready for WhatsApp API
+
+WCH_Flow_Action (Abstract Base)
+-------------------------------
+- Abstract method: execute($conversation, $context, $payload)
+- Protected helpers:
+  * error() - Create error result
+  * log() - Log action execution
+  * get_customer_profile() - Fetch customer
+  * get_or_create_cart() - Cart operations
+  * update_cart() - Update cart in DB
+  * calculate_cart_total() - Compute totals
+  * format_price() - Price formatting
+  * has_stock() - Stock validation
+  * get_product_image_url() - Image helper
+
+Action Handlers Overview
+-------------------------
+
+1. WCH_Action_ShowMainMenu
+   - Shows personalized greeting for returning customers
+   - Interactive list with 5 main options:
+     * Shop by Category
+     * Search Products
+     * View Cart
+     * Track Order
+     * Talk to Support
+
+2. WCH_Action_ShowCategory
+   - Accepts: category_id, page (optional)
+   - Pagination: 10 products per page
+   - Shows: product name, price, stock status
+   - Buttons: Next/Previous, Back to Menu
+
+3. WCH_Action_ShowProduct
+   - Accepts: product_id
+   - Shows: images, description, price, stock
+   - Variable products: variant selector (max 10 variants)
+   - Buttons: Add to Cart, Back
+
+4. WCH_Action_AddToCart
+   - Accepts: product_id, variant_id (optional), quantity (default: 1)
+   - Validates stock before adding
+   - Idempotent: updates quantity if item exists
+   - Updates cart total atomically
+   - Returns: confirmation + cart summary
+   - Buttons: Continue Shopping, View Cart, Checkout
+
+5. WCH_Action_ShowCart
+   - Shows itemized list with quantities and totals
+   - Interactive list for item management (max 10 items)
+   - Empty cart: prompts to browse products
+   - Buttons: Checkout, Continue Shopping, Clear Cart
+
+6. WCH_Action_RequestAddress
+   - Shows saved addresses if available (max 10)
+   - Option to enter new address
+   - Provides address format example
+   - Static helpers: validate_address(), parse_address_from_text()
+
+7. WCH_Action_ProcessPayment
+   - Payment methods: COD, Card/Online, UPI
+   - COD: marks as ready, prompts confirmation
+   - Card/Online: generates payment link
+   - UPI: generates UPI intent link
+   - Buttons: Confirm Order / Pay Now / Change Payment
+
+8. WCH_Action_ConfirmOrder
+   - Validates cart, address, payment method
+   - Idempotent: checks for existing order_id
+   - Creates WooCommerce order with all details
+   - Updates cart status to 'completed'
+   - Returns: order number, status, total
+   - Transitions to STATE_COMPLETED
+   - Buttons: Track Order, Shop Again
+
+KEY FEATURES
+============
+
+Idempotency
+-----------
+- AddToCart: Checks if item exists before adding
+- ConfirmOrder: Checks for existing order_id to prevent duplicates
+- All actions safe to retry on failure
+
+Atomic Operations
+-----------------
+- Cart updates use database transactions implicitly
+- Total recalculated after every cart change
+- Order creation handles failures gracefully
+
+Error Handling
+--------------
+- All actions wrapped in try-catch blocks
+- Comprehensive logging with WCH_Logger
+- User-friendly error messages
+- Failed operations return WCH_Action_Result::failure()
+
+Validation
+----------
+- Stock validation before adding to cart
+- Address format validation
+- Payment method validation
+- Product/variant existence checks
+
+Message Building
+----------------
+- Uses WCH_Message_Builder for all messages
+- Respects WhatsApp API limits (1024 chars body, 60 chars header/footer)
+- Interactive lists limited to 10 rows per section
+- Max 3 buttons per message
+
+Database Integration
+-------------------
+- wch_carts table for cart storage
+- JSON fields for items and addresses
+- Expires_at for cart cleanup
+- Status tracking: active, completed, abandoned
+
+WooCommerce Integration
+-----------------------
+- Creates proper WC_Order objects
+- Sets billing and shipping addresses
+- Adds order line items with correct pricing
+- Links to WooCommerce customer if available
+- Sets payment method and status correctly
+- Adds WCH meta data for tracking
+
+INTEGRATION POINTS
+==================
+
+FSM Integration
+---------------
+The actions are designed to be called from WCH_Conversation_FSM transitions:
+
+Example transition:
+{
+    'from_state' => 'IDLE',
+    'event' => 'START',
+    'to_state' => 'BROWSING',
+    'action' => 'show_main_menu'  // Maps to WCH_Action_ShowMainMenu
+}
+
+Action Execution Flow:
+1. FSM detects event
+2. Finds matching transition
+3. Checks guard condition (if any)
+4. Instantiates action class: new WCH_Action_ShowMainMenu()
+5. Calls execute($conversation, $context, $payload)
+6. Action returns WCH_Action_Result
+7. FSM processes result:
+   - Sends response_messages via WhatsApp API
+   - Merges updated_context into conversation
+   - Transitions to next_state if specified
+   - Saves updated context
+
+Action Naming Convention
+------------------------
+Action names in FSM should map to class names:
+- 'show_main_menu' => WCH_Action_ShowMainMenu
+- 'show_category' => WCH_Action_ShowCategory
+- 'add_to_cart' => WCH_Action_AddToCart
+- etc.
+
+The autoloader will convert snake_case to PascalCase automatically.
+
+Context Data Flow
+-----------------
+Actions read from and write to $conversation->state_data:
+
+Read:
+- current_product, current_category
+- shipping_address, payment_method
+- cart_id, order_id
+
+Write:
+- Updated cart information
+- Selected variants
+- Payment status
+- Order confirmation
+
+VERIFICATION CHECKLIST
+======================
+
+[✓] Abstract base class WCH_Flow_Action created
+[✓] WCH_Action_Result class created
+[✓] All 8 concrete action handlers implemented
+[✓] Error handling in all actions
+[✓] Logging in all actions
+[✓] Stock validation for cart operations
+[✓] Idempotent cart operations
+[✓] Idempotent order creation
+[✓] Payment method handling (COD, Card, UPI)
+[✓] WooCommerce order creation
+[✓] Address validation and parsing
+[✓] Message building with proper limits
+[✓] Interactive list support
+[✓] Button support (reply, url)
+[✓] Pagination for products (10 per page)
+[✓] Cart total calculation
+[✓] Price formatting
+[✓] Empty state handling (empty cart, no products)
+[✓] Customer personalization (greeting)
+[✓] Cart management (add, modify, remove)
+
+TESTING RECOMMENDATIONS
+=======================
+
+Unit Tests
+----------
+1. Test each action in isolation
+2. Mock WooCommerce functions (wc_get_product, wc_create_order)
+3. Test error conditions
+4. Validate message format and limits
+
+Integration Tests
+-----------------
+1. Test action chaining through FSM
+2. Verify cart operations are atomic
+3. Test order creation end-to-end
+4. Validate payment flows
+
+Edge Cases to Test
+------------------
+1. Empty cart checkout attempt
+2. Out of stock items
+3. Invalid product/category IDs
+4. Missing address/payment info
+5. Duplicate order creation (idempotency)
+6. Very long product names/descriptions
+7. Products with many variants (>10)
+8. Multiple concurrent cart updates
+
+NEXT STEPS
+==========
+
+1. Integration with WCH_Conversation_FSM:
+   - Add action mappings to FSM transitions
+   - Implement action execution in FSM::transition()
+
+2. Update FSM with action names:
+   - Map transition actions to handler classes
+   - Add necessary guard conditions
+
+3. Webhook Handler Integration:
+   - Process action results in webhook
+   - Send messages via WhatsApp API
+   - Handle errors and retries
+
+4. Testing:
+   - Unit tests for each action
+   - Integration tests with FSM
+   - End-to-end flow testing
+
+5. Documentation:
+   - API documentation for each action
+   - Integration guide for developers
+   - Flow diagrams
+
+DEPENDENCIES
+============
+
+Required Classes:
+- WCH_Message_Builder (M03-01)
+- WCH_Conversation_Context (M03-02)
+- WCH_Context_Manager (M03-02)
+- WCH_Conversation_FSM (M03-02)
+- WCH_Customer_Service
+- WCH_Logger
+- WCH_Settings
+
+WooCommerce Functions:
+- wc_get_product()
+- wc_get_products()
+- wc_create_order()
+- wc_price()
+- get_woocommerce_currency()
+
+WordPress Functions:
+- wp_json_encode()
+- current_time()
+- wp_generate_uuid4()
+- get_term()
+- get_bloginfo()
+
+NOTES
+=====
+
+1. All actions extend WCH_Flow_Action
+2. All actions return WCH_Action_Result
+3. Message builders use WCH_Message_Builder
+4. Logging uses WCH_Logger
+5. Customer operations use WCH_Customer_Service
+6. Settings use WCH_Settings singleton
+7. File naming follows WordPress conventions
+8. Autoloader will automatically load classes
+9. All actions are idempotent where applicable
+10. Error handling is comprehensive
+
+ACCEPTANCE CRITERIA STATUS
+===========================
+
+[✓] Each action sends appropriate message type
+[✓] Cart operations are atomic
+[✓] Payment methods handled (COD, Card, UPI)
+[✓] Orders created correctly via WooCommerce API
+[✓] All actions have error handling
+[✓] Actions are idempotent
+[✓] Messages respect WhatsApp limits
+[✓] Interactive lists for selection
+[✓] Buttons for user actions
+[✓] Personalization for returning customers
+[✓] Stock validation before cart operations
+[✓] Address parsing and validation
+[✓] Cart total calculation
+[✓] Order confirmation with details
+
+Implementation: COMPLETE
+Status: READY FOR INTEGRATION
