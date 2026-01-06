@@ -1,0 +1,11 @@
+[main 5f3f61b] M01-02: implement
+ 12 files changed, 1939 insertions(+), 5 deletions(-)
+ create mode 100644 .logs/M01-01.gitcommit.txt
+ create mode 100644 .logs/M01-02.claude.impl.last.md
+ create mode 100644 .logs/M01-02.claude.impl.raw.txt
+ create mode 100644 .plans/M01-02.md
+ create mode 100644 .t2/handoff/M01-02.md
+ create mode 100644 examples/WEBHOOK-SETUP.md
+ create mode 100644 examples/webhook-test.php
+ create mode 100644 includes/class-wch-webhook-handler.php
+

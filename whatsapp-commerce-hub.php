@@ -89,10 +89,11 @@ class WCH_Plugin {
 		// Check for database migrations on admin init.
 		add_action( 'admin_init', array( $this, 'check_database_migrations' ) );
 
-		// Initialize admin logs viewer.
+		// Initialize admin pages.
 		if ( is_admin() ) {
 			WCH_Admin_Logs::init();
 			WCH_Admin_Jobs::init();
+			WCH_Admin_Templates::init();
 		}
 
 		// Initialize REST API.
