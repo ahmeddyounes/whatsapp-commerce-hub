@@ -104,6 +104,9 @@ class WCH_Plugin {
 
 		// Initialize product sync service.
 		WCH_Product_Sync_Service::instance();
+
+		// Initialize order sync service.
+		WCH_Order_Sync_Service::instance();
 	}
 
 	/**

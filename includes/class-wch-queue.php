@@ -32,6 +32,7 @@ class WCH_Queue {
 		'wch_process_webhook_errors',
 		'wch_sync_single_product',
 		'wch_sync_product_batch',
+		'wch_send_order_notification',
 	);
 
 	/**
@@ -124,6 +125,10 @@ class WCH_Queue {
 
 				case 'wch_sync_product_batch':
 					add_action( $hook, array( 'WCH_Product_Sync_Service', 'process_product_batch' ), 10, 1 );
+					break;
+
+				case 'wch_send_order_notification':
+					add_action( $hook, array( $this, 'send_order_notification' ), 10, 1 );
 					break;
 			}
 		}
@@ -247,6 +252,39 @@ class WCH_Queue {
 		);
 
 		// TODO: Implement actual error handling logic when error handler is available.
+		// This is a placeholder for future implementation.
+	}
+
+	/**
+	 * Send order notification to customer.
+	 *
+	 * @param array $args Arguments containing notification data.
+	 */
+	public function send_order_notification( $args ) {
+		$customer_phone = $args['customer_phone'] ?? '';
+		$template_name = $args['template_name'] ?? '';
+		$order_id = $args['order_id'] ?? 0;
+
+		if ( empty( $customer_phone ) || empty( $template_name ) ) {
+			WCH_Logger::warning(
+				'Missing required parameters for order notification',
+				'queue',
+				$args
+			);
+			return;
+		}
+
+		WCH_Logger::info(
+			'Processing order notification',
+			'queue',
+			array(
+				'customer_phone' => $customer_phone,
+				'template_name' => $template_name,
+				'order_id' => $order_id,
+			)
+		);
+
+		// TODO: Implement actual notification sending when WhatsApp API integration is complete.
 		// This is a placeholder for future implementation.
 	}
 
