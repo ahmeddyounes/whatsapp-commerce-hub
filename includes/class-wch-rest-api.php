@@ -117,8 +117,16 @@ class WCH_REST_API {
 	 * Load controller classes.
 	 */
 	private function load_controllers() {
-		// Controllers will be loaded by autoloader when instantiated.
-		// This method can be used to include additional controller files if needed.
+		// Load built-in controllers.
+		$built_in_controllers = array(
+			'WCH_Webhook_Handler',
+		);
+
+		foreach ( $built_in_controllers as $controller_class ) {
+			if ( class_exists( $controller_class ) ) {
+				$this->controllers[] = new $controller_class();
+			}
+		}
 
 		/**
 		 * Filter to add custom controllers.

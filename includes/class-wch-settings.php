@@ -45,6 +45,7 @@ class WCH_Settings {
 	private $encrypted_fields = array(
 		'api.access_token',
 		'api.webhook_secret',
+		'api.webhook_verify_token',
 		'ai.openai_api_key',
 	);
 

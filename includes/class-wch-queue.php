@@ -27,6 +27,9 @@ class WCH_Queue {
 		'wch_cleanup_expired_carts',
 		'wch_process_abandoned_cart',
 		'wch_retry_failed_message',
+		'wch_process_webhook_messages',
+		'wch_process_webhook_statuses',
+		'wch_process_webhook_errors',
 	);
 
 	/**
@@ -100,6 +103,18 @@ class WCH_Queue {
 				case 'wch_retry_failed_message':
 					add_action( $hook, array( $this, 'retry_failed_message' ), 10, 1 );
 					break;
+
+				case 'wch_process_webhook_messages':
+					add_action( $hook, array( $this, 'process_webhook_messages' ), 10, 1 );
+					break;
+
+				case 'wch_process_webhook_statuses':
+					add_action( $hook, array( $this, 'process_webhook_statuses' ), 10, 1 );
+					break;
+
+				case 'wch_process_webhook_errors':
+					add_action( $hook, array( $this, 'process_webhook_errors' ), 10, 1 );
+					break;
 			}
 		}
 	}
@@ -159,6 +174,70 @@ class WCH_Queue {
 	 */
 	public function get_registered_hooks() {
 		return $this->registered_hooks;
+	}
+
+	/**
+	 * Process webhook messages event.
+	 *
+	 * @param array $args Arguments containing message data.
+	 */
+	public function process_webhook_messages( $args ) {
+		$data = $args['data'] ?? array();
+
+		WCH_Logger::log(
+			'info',
+			'Processing webhook message event',
+			'queue',
+			array(
+				'message_id' => $data['message_id'] ?? '',
+				'from'       => $data['from'] ?? '',
+				'type'       => $data['type'] ?? '',
+			)
+		);
+
+		// TODO: Implement actual message processing logic when conversation handler is available.
+		// This is a placeholder for future implementation.
+	}
+
+	/**
+	 * Process webhook status event.
+	 *
+	 * @param array $args Arguments containing status data.
+	 */
+	public function process_webhook_statuses( $args ) {
+		$data = $args['data'] ?? array();
+
+		WCH_Logger::log(
+			'info',
+			'Processing webhook status event',
+			'queue',
+			array(
+				'message_id' => $data['message_id'] ?? '',
+				'status'     => $data['status'] ?? '',
+			)
+		);
+
+		// TODO: Implement actual status update logic when message handler is available.
+		// This is a placeholder for future implementation.
+	}
+
+	/**
+	 * Process webhook error event.
+	 *
+	 * @param array $args Arguments containing error data.
+	 */
+	public function process_webhook_errors( $args ) {
+		$data = $args['data'] ?? array();
+
+		WCH_Logger::log(
+			'error',
+			'Processing webhook error event',
+			'queue',
+			$data
+		);
+
+		// TODO: Implement actual error handling logic when error handler is available.
+		// This is a placeholder for future implementation.
 	}
 
 	/**
