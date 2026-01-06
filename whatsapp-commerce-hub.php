@@ -94,6 +94,7 @@ class WCH_Plugin {
 			WCH_Admin_Logs::init();
 			WCH_Admin_Jobs::init();
 			WCH_Admin_Templates::init();
+			WCH_Dashboard_Widgets::init();
 		}
 
 		// Initialize REST API.
@@ -107,6 +108,12 @@ class WCH_Plugin {
 
 		// Initialize order sync service.
 		WCH_Order_Sync_Service::instance();
+
+		// Initialize inventory sync handler.
+		WCH_Inventory_Sync_Handler::instance();
+
+		// Schedule inventory discrepancy check.
+		WCH_Inventory_Sync_Handler::schedule_discrepancy_check();
 	}
 
 	/**

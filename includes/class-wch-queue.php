@@ -33,6 +33,8 @@ class WCH_Queue {
 		'wch_sync_single_product',
 		'wch_sync_product_batch',
 		'wch_send_order_notification',
+		'wch_process_stock_sync',
+		'wch_detect_stock_discrepancies',
 	);
 
 	/**
@@ -129,6 +131,14 @@ class WCH_Queue {
 
 				case 'wch_send_order_notification':
 					add_action( $hook, array( $this, 'send_order_notification' ), 10, 1 );
+					break;
+
+				case 'wch_process_stock_sync':
+					add_action( $hook, array( 'WCH_Inventory_Sync_Handler', 'process_stock_sync' ), 10, 1 );
+					break;
+
+				case 'wch_detect_stock_discrepancies':
+					add_action( $hook, array( 'WCH_Inventory_Sync_Handler', 'detect_stock_discrepancies' ), 10, 0 );
 					break;
 			}
 		}

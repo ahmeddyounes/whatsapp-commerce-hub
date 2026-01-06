@@ -367,6 +367,12 @@ class WCH_Settings {
 				'abandoned_cart_reminder'   => 'bool',
 				'abandoned_cart_delay_hours' => 'int',
 			),
+			'inventory'     => array(
+				'enable_realtime_sync'   => 'bool',
+				'low_stock_threshold'    => 'int',
+				'notify_low_stock'       => 'bool',
+				'auto_fix_discrepancies' => 'bool',
+			),
 			'ai'            => array(
 				'enable_ai'        => 'bool',
 				'openai_api_key'   => 'string',
@@ -417,6 +423,12 @@ class WCH_Settings {
 				'shipping_updates'          => false,
 				'abandoned_cart_reminder'   => false,
 				'abandoned_cart_delay_hours' => 24,
+			),
+			'inventory'     => array(
+				'enable_realtime_sync'   => false,
+				'low_stock_threshold'    => 5,
+				'notify_low_stock'       => false,
+				'auto_fix_discrepancies' => false,
 			),
 			'ai'            => array(
 				'enable_ai'        => false,
