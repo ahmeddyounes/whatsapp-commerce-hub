@@ -44,6 +44,7 @@ class WCH_Settings {
 	 */
 	private $encrypted_fields = array(
 		'api.access_token',
+		'api.webhook_secret',
 		'ai.openai_api_key',
 	);
 
@@ -330,6 +331,8 @@ class WCH_Settings {
 				'whatsapp_business_account_id' => 'string',
 				'access_token'                 => 'string',
 				'webhook_verify_token'         => 'string',
+				'webhook_secret'               => 'string',
+				'api_key_hash'                 => 'string',
 				'api_version'                  => 'string',
 			),
 			'general'       => array(

@@ -1,0 +1,18 @@
+[main a62c50b] M00-03: implement
+ 16 files changed, 2629 insertions(+), 3 deletions(-)
+ create mode 100644 .logs/M00-02.gitcommit.txt
+ create mode 100644 .logs/M00-03.claude.impl.last.md
+ create mode 100644 .logs/M00-03.claude.impl.raw.txt
+ create mode 100644 .plans/M00-03.md
+ create mode 100644 .t2/handoff/M00-03.md
+ create mode 100644 IMPLEMENTATION_CHECKLIST.md
+ create mode 100644 M00-03-README.md
+ create mode 100644 SETTINGS_DOCUMENTATION.md
+ create mode 100644 examples/settings-usage.php
+ create mode 100644 includes/class-wch-encryption.php
+ create mode 100644 includes/class-wch-settings-test.php
+ create mode 100644 includes/class-wch-settings.php
+ create mode 100644 standalone-test.php
+ create mode 100644 test-settings.php
+ create mode 100644 verify-implementation.php
+

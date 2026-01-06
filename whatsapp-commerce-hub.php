@@ -85,6 +85,9 @@ class WCH_Plugin {
 
 		// Check for database migrations on admin init.
 		add_action( 'admin_init', array( $this, 'check_database_migrations' ) );
+
+		// Initialize REST API.
+		WCH_REST_API::getInstance();
 	}
 
 	/**

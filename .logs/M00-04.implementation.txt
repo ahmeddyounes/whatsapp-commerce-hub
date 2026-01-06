@@ -1,0 +1,124 @@
+M00-04 Implementation Summary
+============================
+
+COMPLETED: REST API Base Controller & Authentication
+
+Files Created:
+--------------
+1. includes/class-wch-rest-controller.php
+   - Abstract base class extending WP_REST_Controller
+   - Methods implemented:
+     * register_routes() - abstract method for child classes
+     * get_item_schema() - abstract method for child classes
+     * check_admin_permission() - validates manage_woocommerce capability
+     * validate_phone($phone) - sanitizes to E.164 format, returns WP_Error on failure
+     * prepare_response($data, $request) - wraps data in WP_REST_Response with CORS headers
+     * add_pagination_headers($response, $total, $per_page, $page) - adds X-WP-Total, X-WP-TotalPages, and Link headers
+     * check_api_key_permission($request) - validates X-WCH-API-Key header against stored hash
+     * check_webhook_signature($request) - validates X-Hub-Signature-256 header using webhook secret
+     * check_rate_limit($endpoint_type) - implements transient-based rate limiting
+     * prepare_error($code, $message, $details, $status) - standardized error response
+
+2. includes/class-wch-rest-api.php
+   - Singleton class managing REST API initialization
+   - Registers 'wch/v1' namespace in rest_api_init hook
+   - API discovery endpoint at /wch/v1/
+   - Extensible controller system via wch_rest_api_controllers filter
+   - Lists all planned endpoints in API info
+
+3. includes/class-wch-rest-api-test.php
+   - Comprehensive test suite for REST API infrastructure
+   - Tests for:
+     * API initialization
+     * Admin permission checks
+     * Phone validation (valid and invalid cases)
+     * API key authentication (missing, invalid, valid)
+     * Webhook signature validation (missing, invalid, valid)
+     * Rate limiting (100/min for admin, 1000/min for webhook)
+     * Response preparation
+     * Pagination headers
+
+Files Modified:
+---------------
+1. whatsapp-commerce-hub.php
+   - Added WCH_REST_API::getInstance() to plugin initialization
+
+2. includes/class-wch-settings.php
+   - Added 'api.webhook_secret' to encrypted fields
+   - Added 'api.webhook_secret' and 'api.api_key_hash' to schema
+
+Features Implemented:
+--------------------
+1. Authentication:
+   - API Key: X-WCH-API-Key header validated against wp_hash_password stored hash
+   - Webhook Signature: X-Hub-Signature-256 header validated using HMAC-SHA256
+   - WordPress Auth: current_user_can('manage_woocommerce') for admin endpoints
+
+2. Rate Limiting:
+   - Transient-based implementation
+   - Admin endpoints: 100 requests/minute
+   - Webhook endpoint: 1000 requests/minute
+   - Client identified by API key or IP address
+   - Returns 429 status when exceeded
+
+3. Response Standards:
+   - WP REST API conventions followed
+   - CORS headers included
+   - Pagination headers (X-WP-Total, X-WP-TotalPages, Link)
+   - Standardized error responses with code, message, and details
+
+4. Phone Validation:
+   - Strips non-numeric characters
+   - Validates length (10-15 digits)
+   - Returns E.164 format (+prefix)
+   - WP_Error for invalid inputs
+
+5. OpenAPI/Swagger Compatible:
+   - Standard HTTP status codes
+   - JSON responses
+   - RESTful conventions
+   - API discovery endpoint
+
+Endpoint Structure Defined:
+--------------------------
+/wch/v1/ (GET) - API discovery (public)
+/wch/v1/settings (GET/POST) - admin auth
+/wch/v1/conversations (GET/POST) - API key auth
+/wch/v1/conversations/{id} (GET/PATCH) - API key auth
+/wch/v1/conversations/{id}/messages (GET/POST) - API key auth
+/wch/v1/customers (GET) - API key auth
+/wch/v1/customers/{phone} (GET/PATCH) - API key auth
+/wch/v1/analytics (GET) - admin auth
+/wch/v1/broadcasts (GET/POST) - admin auth
+/wch/v1/broadcasts/{id} (GET/PATCH/DELETE) - admin auth
+/wch/v1/webhook (POST) - webhook signature auth
+
+Acceptance Criteria Met:
+------------------------
+✓ All endpoints require authentication except webhook (which requires signature)
+✓ Rate limiting blocks excessive requests with 429 response
+✓ Responses follow WP REST API conventions
+✓ OpenAPI/Swagger compatible structure
+✓ Abstract controller provides reusable functionality
+✓ Standardized error responses
+✓ Security best practices (timing-safe comparison, password hashing)
+
+Security Considerations:
+-----------------------
+- API keys stored as hashed values (wp_hash_password)
+- Webhook secrets encrypted in database
+- Timing-safe signature comparison (hash_equals)
+- HMAC-SHA256 for webhook signatures
+- Rate limiting prevents abuse
+- Input sanitization (phone numbers, headers)
+- CORS headers for cross-origin requests
+- IP detection with proxy support (X-Forwarded-For, X-Real-IP)
+
+Next Steps:
+-----------
+- Implement concrete endpoint controllers
+- Add API key generation UI in admin
+- Add webhook secret configuration UI
+- Implement actual endpoint logic (conversations, customers, etc.)
+- Add request/response logging
+- Add API documentation generation
