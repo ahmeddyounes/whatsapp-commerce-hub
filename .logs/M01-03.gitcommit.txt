@@ -1,0 +1,13 @@
+[main 9261687] M01-03: implement
+ 12 files changed, 2268 insertions(+), 4 deletions(-)
+ create mode 100644 .logs/M01-02.gitcommit.txt
+ create mode 100644 .logs/M01-03.claude.impl.last.md
+ create mode 100644 .logs/M01-03.claude.impl.raw.txt
+ create mode 100644 .plans/M01-03.md
+ create mode 100644 .t2/handoff/M01-03.md
+ create mode 100644 assets/css/admin-templates.css
+ create mode 100644 assets/js/admin-templates.js
+ create mode 100644 includes/class-wch-admin-templates.php
+ create mode 100644 includes/class-wch-message-builder.php
+ create mode 100644 includes/class-wch-template-manager.php
+
