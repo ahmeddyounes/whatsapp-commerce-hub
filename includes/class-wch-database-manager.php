@@ -102,13 +102,18 @@ class WCH_Database_Manager {
 			id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
 			customer_phone VARCHAR(20) NOT NULL,
 			items JSON NULL,
+			total DECIMAL(10,2) NOT NULL DEFAULT 0.00,
 			coupon_code VARCHAR(50) NULL,
 			shipping_address JSON NULL,
+			status ENUM('active', 'completed', 'abandoned') NOT NULL DEFAULT 'active',
+			reminder_sent_at DATETIME NULL,
 			expires_at DATETIME NOT NULL,
 			created_at DATETIME NOT NULL,
 			updated_at DATETIME NOT NULL,
 			PRIMARY KEY (id),
 			UNIQUE KEY customer_phone (customer_phone),
+			KEY status (status),
+			KEY updated_at (updated_at),
 			KEY expires_at (expires_at)
 		) $charset_collate;";
 

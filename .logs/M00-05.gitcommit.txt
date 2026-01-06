@@ -1,0 +1,15 @@
+[main 66cbdb7] M00-05: implement
+ 15 files changed, 2760 insertions(+), 60 deletions(-)
+ create mode 100644 .logs/M00-05.claude.impl.last.md
+ create mode 100644 .logs/M00-05.claude.impl.raw.txt
+ create mode 100644 .logs/M00-05.implementation.txt
+ create mode 100644 .logs/M00-05.usage-guide.md
+ create mode 100644 .logs/M00-05.verification.md
+ create mode 100644 .plans/M00-05.md
+ create mode 100644 .t2/handoff/M00-05.md
+ create mode 100644 includes/class-wch-admin-logs.php
+ create mode 100644 includes/class-wch-error-handler.php
+ create mode 100644 includes/class-wch-exception.php
+ create mode 100644 includes/class-wch-logger.php
+ create mode 100644 test-logging.php
+

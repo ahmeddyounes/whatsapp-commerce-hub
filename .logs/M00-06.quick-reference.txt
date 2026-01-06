@@ -1,0 +1,190 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║            M00-06 BACKGROUND JOB QUEUE - QUICK REFERENCE                     ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📌 KEY CLASSES & USAGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+WCH_Job_Dispatcher (Static Methods)
+────────────────────────────────────
+
+// Dispatch single job
+WCH_Job_Dispatcher::dispatch(
+    'wch_process_sync_job',
+    ['job_id' => '123', 'sync_type' => 'product', 'entity_id' => 456],
+    60  // delay in seconds
+);
+
+// Dispatch batch jobs
+WCH_Job_Dispatcher::dispatch_batch(
+    'wch_send_broadcast_batch',
+    $recipients_array,
+    50,  // batch size
+    1    // delay between batches
+);
+
+// Cancel job
+WCH_Job_Dispatcher::cancel('wch_process_sync_job', ['job_id' => '123']);
+
+// Check if scheduled
+$is_scheduled = WCH_Job_Dispatcher::is_scheduled('wch_cleanup_expired_carts');
+
+// Get pending count
+$count = WCH_Job_Dispatcher::get_pending_count('wch_process_sync_job');
+
+// Get failed jobs
+$failed = WCH_Job_Dispatcher::get_failed_jobs(20);
+
+// Retry failed job
+WCH_Job_Dispatcher::retry_failed_job($action_id);
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+WCH_Broadcast_Job_Handler
+──────────────────────────
+
+// Dispatch broadcast campaign
+$action_ids = WCH_Broadcast_Job_Handler::dispatch_campaign(
+    'campaign_123',
+    'Your message here',
+    ['+1234567890', '+0987654321', ...]
+);
+
+// Get campaign summary
+$summary = WCH_Broadcast_Job_Handler::get_campaign_summary('campaign_123');
+// Returns: ['campaign_id', 'total_sent', 'total_failed', 'batches', ...]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+WCH_Cart_Cleanup_Handler
+─────────────────────────
+
+// Manual trigger
+$result = WCH_Cart_Cleanup_Handler::trigger_cleanup();
+
+// Get statistics
+$active_count = WCH_Cart_Cleanup_Handler::get_active_carts_count();
+$expired_count = WCH_Cart_Cleanup_Handler::get_expired_carts_count();
+$last_result = WCH_Cart_Cleanup_Handler::get_last_cleanup_result();
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+WCH_Abandoned_Cart_Handler
+───────────────────────────
+
+// Schedule reminders for all eligible carts
+WCH_Abandoned_Cart_Handler::schedule_reminders();
+
+// This will:
+// 1. Find carts idle longer than configured hours
+// 2. Skip carts that already received reminders
+// 3. Dispatch individual reminder jobs
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+WCH_Sync_Job_Handler
+─────────────────────
+
+// Get job result
+$result = WCH_Sync_Job_Handler::get_job_result('job_123');
+
+// Job result structure:
+// [
+//     'job_id' => 'job_123',
+//     'status' => 'success|failed',
+//     'result' => [...],
+//     'timestamp' => 1234567890,
+//     'expires_at' => 1234571490
+// ]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 REGISTERED HOOKS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Hook Name                      Handler
+─────────────────────────────  ────────────────────────────────────
+wch_process_sync_job           WCH_Sync_Job_Handler::process()
+wch_send_broadcast_batch       WCH_Broadcast_Job_Handler::process()
+wch_cleanup_expired_carts      WCH_Cart_Cleanup_Handler::process()
+wch_process_abandoned_cart     WCH_Abandoned_Cart_Handler::process()
+wch_retry_failed_message       WCH_Queue::retry_failed_message()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚙️ CONFIGURATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Settings (via WCH_Settings)
+────────────────────────────
+notifications.abandoned_cart_reminder         (bool) Enable/disable reminders
+notifications.abandoned_cart_delay_hours      (int)  Hours before reminder
+
+Constants
+─────────
+WCH_Sync_Job_Handler::MAX_RETRIES        = 3
+WCH_Sync_Job_Handler::RETRY_DELAYS       = [60, 300, 900] seconds
+WCH_Broadcast_Job_Handler::BATCH_SIZE    = 50 recipients
+WCH_Broadcast_Job_Handler::BATCH_DELAY   = 1 second
+WCH_Cart_Cleanup_Handler::CART_EXPIRY_HOURS = 72 hours
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎨 ADMIN UI
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Location: WooCommerce > WCH Jobs
+
+Features:
+  ✓ Pending jobs count by type (table)
+  ✓ Cart statistics (active/expired counts)
+  ✓ Last cleanup result with timestamp
+  ✓ Failed jobs list with:
+    - Job ID, Hook, Scheduled time, Arguments
+    - One-click retry button (with nonce protection)
+  ✓ Manual cart cleanup trigger
+  ✓ Action Scheduler status check
+  ✓ Direct link to Action Scheduler admin
+
+Permissions: manage_woocommerce capability required
+
+Auto-refresh: Every 30 seconds (pauses when page hidden)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔧 DEBUGGING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+View Logs
+─────────
+All job operations are logged via WCH_Logger with context 'queue'
+
+WP Admin > WooCommerce > WCH Logs
+Filter by: context = 'queue'
+
+Action Scheduler Admin
+──────────────────────
+WP Admin > Tools > Action Scheduler
+Filter by group: wch
+
+Check Job Status
+────────────────
+// Get all pending jobs
+$pending = WCH_Job_Dispatcher::get_all_pending_counts();
+print_r($pending);
+
+// Check specific job
+$is_scheduled = WCH_Job_Dispatcher::is_scheduled(
+    'wch_process_sync_job',
+    ['job_id' => '123']
+);
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📝 FILTERS & HOOKS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Abandoned Cart Reminder Message
+────────────────────────────────
+add_filter('wch_abandoned_cart_reminder_message', function($message, $cart) {
+    // Customize the reminder message
+    return "Custom message: " . $message;
+}, 10, 2);
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

@@ -92,10 +92,14 @@ class WCH_Plugin {
 		// Initialize admin logs viewer.
 		if ( is_admin() ) {
 			WCH_Admin_Logs::init();
+			WCH_Admin_Jobs::init();
 		}
 
 		// Initialize REST API.
 		WCH_REST_API::getInstance();
+
+		// Initialize background job queue.
+		WCH_Queue::getInstance();
 	}
 
 	/**
