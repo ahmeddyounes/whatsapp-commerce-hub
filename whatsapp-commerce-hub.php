@@ -82,6 +82,17 @@ class WCH_Plugin {
 	private function init() {
 		// Load text domain for translations.
 		add_action( 'init', array( $this, 'load_textdomain' ) );
+
+		// Check for database migrations on admin init.
+		add_action( 'admin_init', array( $this, 'check_database_migrations' ) );
+	}
+
+	/**
+	 * Check and run database migrations if needed.
+	 */
+	public function check_database_migrations() {
+		$db_manager = new WCH_Database_Manager();
+		$db_manager->run_migrations();
 	}
 
 	/**
@@ -170,8 +181,9 @@ function wch_activate_plugin() {
 		);
 	}
 
-	// Plugin activation tasks can be added here.
-	// For now, just ensure requirements are met.
+	// Run database installation.
+	$db_manager = new WCH_Database_Manager();
+	$db_manager->install();
 }
 
 register_activation_hook( __FILE__, 'wch_activate_plugin' );

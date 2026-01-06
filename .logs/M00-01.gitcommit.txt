@@ -1,0 +1,22 @@
+[main c0e84fc] M00-01: implement
+ 19 files changed, 2977 insertions(+)
+ create mode 100644 .idea/.gitignore
+ create mode 100644 .idea/modules.xml
+ create mode 100644 .idea/php.xml
+ create mode 100644 .idea/vcs.xml
+ create mode 100644 .idea/whatsapp-commerce-hub.iml
+ create mode 100644 .logs/M00-01.claude.impl.last.md
+ create mode 100644 .logs/M00-01.claude.impl.raw.txt
+ create mode 100644 .plans/M00-01.md
+ create mode 100644 .t2/after_prompts/.gitkeep
+ create mode 100644 .t2/config.json
+ create mode 100644 .t2/handoff/M00-01.md
+ create mode 100644 .t2/state.json
+ create mode 100644 README-PLUGIN.md
+ create mode 100644 includes/class-wch-test.php
+ create mode 100644 scripts/agent_csv_runner.py
+ create mode 100644 scripts/agentflow.py
+ create mode 100644 tasks.csv
+ create mode 100755 test-plugin-bootstrap.php
+ create mode 100644 whatsapp-commerce-hub.php
+
