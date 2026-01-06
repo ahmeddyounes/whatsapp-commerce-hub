@@ -374,12 +374,13 @@ class WCH_Settings {
 				'auto_fix_discrepancies' => 'bool',
 			),
 			'ai'            => array(
-				'enable_ai'        => 'bool',
-				'openai_api_key'   => 'string',
-				'ai_model'         => 'string',
-				'ai_temperature'   => 'float',
-				'ai_max_tokens'    => 'int',
-				'ai_system_prompt' => 'string',
+				'enable_ai'          => 'bool',
+				'openai_api_key'     => 'string',
+				'ai_model'           => 'string',
+				'ai_temperature'     => 'float',
+				'ai_max_tokens'      => 'int',
+				'ai_system_prompt'   => 'string',
+				'monthly_budget_cap' => 'float',
 			),
 		);
 	}
@@ -431,11 +432,12 @@ class WCH_Settings {
 				'auto_fix_discrepancies' => false,
 			),
 			'ai'            => array(
-				'enable_ai'        => false,
-				'ai_model'         => 'gpt-4',
-				'ai_temperature'   => 0.7,
-				'ai_max_tokens'    => 500,
-				'ai_system_prompt' => __( 'You are a helpful customer service assistant for an e-commerce store.', 'whatsapp-commerce-hub' ),
+				'enable_ai'          => false,
+				'ai_model'           => 'gpt-4',
+				'ai_temperature'     => 0.7,
+				'ai_max_tokens'      => 500,
+				'ai_system_prompt'   => __( 'You are a helpful customer service assistant for an e-commerce store.', 'whatsapp-commerce-hub' ),
+				'monthly_budget_cap' => 0.0,
 			),
 		);
 

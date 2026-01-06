@@ -1,0 +1,14 @@
+[main f8c5a62] M03-04: implement
+ 12 files changed, 2219 insertions(+), 3 deletions(-)
+ create mode 100644 .logs/M03-03.gitcommit.txt
+ create mode 100644 .logs/M03-04.claude.impl.last.md
+ create mode 100644 .logs/M03-04.claude.impl.raw.txt
+ create mode 100644 .logs/M03-04.implementation.txt
+ create mode 100644 .plans/M03-04.md
+ create mode 100644 .t2/handoff/M03-04.md
+ create mode 100644 docs/intent-classifier.md
+ create mode 100644 examples/intent-classifier-usage.php
+ create mode 100644 includes/class-wch-intent-classifier.php
+ create mode 100644 includes/class-wch-intent.php
+ create mode 100644 test-intent-classifier.php
+
