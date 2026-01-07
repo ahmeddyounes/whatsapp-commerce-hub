@@ -27,7 +27,12 @@ define( 'WCH_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 /**
  * Autoloader for WCH_ prefixed classes.
  *
- * @param string $class_name The class name to load.
+ * Automatically loads class files when a WCH_ prefixed class is referenced.
+ * Supports standard classes in /includes and payment gateway classes in /includes/payments.
+ *
+ * @since 1.0.0
+ * @param string $class_name The fully-qualified class name to load.
+ * @return void
  */
 function wch_autoloader( $class_name ) {
 	// Only autoload classes with WCH_ prefix.
@@ -71,6 +76,18 @@ WCH_Error_Handler::init();
 
 /**
  * Main plugin class using singleton pattern.
+ *
+ * Coordinates all plugin components including:
+ * - REST API initialization
+ * - Admin pages and dashboard
+ * - Background job processing
+ * - Product and order synchronization
+ * - Payment gateway integration
+ * - Abandoned cart recovery
+ * - Customer re-engagement
+ *
+ * @since 1.0.0
+ * @package WhatsApp_Commerce_Hub
  */
 class WCH_Plugin {
 	/**
@@ -83,7 +100,8 @@ class WCH_Plugin {
 	/**
 	 * Get the singleton instance.
 	 *
-	 * @return WCH_Plugin
+	 * @since 1.0.0
+	 * @return WCH_Plugin The singleton instance.
 	 */
 	public static function getInstance() {
 		if ( null === self::$instance ) {
@@ -101,6 +119,11 @@ class WCH_Plugin {
 
 	/**
 	 * Initialize the plugin.
+	 *
+	 * Sets up all core services, admin interfaces, and hooks.
+	 * This method is called automatically when the singleton is instantiated.
+	 *
+	 * @since 1.0.0
 	 */
 	private function init() {
 		// Load text domain for translations.
@@ -164,7 +187,11 @@ class WCH_Plugin {
 	/**
 	 * Track conversions when orders are created.
 	 *
-	 * @param WC_Order $order The order object.
+	 * Hooks into WooCommerce order creation to track conversions
+	 * from WhatsApp conversations to completed purchases.
+	 *
+	 * @since 1.0.0
+	 * @param WC_Order $order The WooCommerce order object.
 	 */
 	public function track_order_conversion( $order ) {
 		$customer_phone = $order->get_billing_phone();
@@ -210,7 +237,13 @@ class WCH_Plugin {
 /**
  * Check plugin dependencies and requirements.
  *
- * @return bool|WP_Error True if all requirements met, WP_Error otherwise.
+ * Validates:
+ * - PHP version >= 8.1
+ * - WordPress version >= 6.0
+ * - WooCommerce is active and >= 8.0
+ *
+ * @since 1.0.0
+ * @return bool|WP_Error True if all requirements met, WP_Error with error messages otherwise.
  */
 function wch_check_requirements() {
 	$errors = array();
@@ -251,6 +284,14 @@ function wch_check_requirements() {
 
 /**
  * Plugin activation hook.
+ *
+ * Runs on plugin activation to:
+ * - Verify system requirements
+ * - Create database tables
+ * - Set up default settings
+ *
+ * @since 1.0.0
+ * @return void
  */
 function wch_activate_plugin() {
 	$requirements = wch_check_requirements();
@@ -278,6 +319,16 @@ register_activation_hook( __FILE__, 'wch_activate_plugin' );
 
 /**
  * Plugin deactivation hook.
+ *
+ * Cleanup tasks on deactivation such as:
+ * - Clearing scheduled cron jobs
+ * - Flushing rewrite rules
+ * - Cleanup temporary data
+ *
+ * Note: Does NOT delete user data or settings.
+ *
+ * @since 1.0.0
+ * @return void
  */
 function wch_deactivate_plugin() {
 	// Cleanup tasks on deactivation.
@@ -290,7 +341,12 @@ register_deactivation_hook( __FILE__, 'wch_deactivate_plugin' );
 
 /**
  * Initialize the plugin after all plugins are loaded.
- * Priority 20 ensures it runs after WooCommerce (priority 10).
+ *
+ * Priority 20 ensures it runs after WooCommerce (priority 10), allowing
+ * us to safely access WooCommerce functionality during initialization.
+ *
+ * @since 1.0.0
+ * @return void
  */
 function wch_init_plugin() {
 	// Check requirements again before initializing.
@@ -310,6 +366,12 @@ add_action( 'plugins_loaded', 'wch_init_plugin', 20 );
 
 /**
  * Display admin notice when requirements are not met.
+ *
+ * Shows a dismissible error notice in the WordPress admin when
+ * plugin requirements (PHP, WordPress, or WooCommerce versions) are not satisfied.
+ *
+ * @since 1.0.0
+ * @return void
  */
 function wch_requirements_notice() {
 	$requirements = wch_check_requirements();
