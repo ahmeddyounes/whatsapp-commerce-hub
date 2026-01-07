@@ -39,23 +39,27 @@ composer test:coverage
 
 ```
 tests/
-├── bootstrap.php                          # Test bootstrap and setup
-├── class-wch-unit-test-case.php          # Base unit test class
-├── class-wch-integration-test-case.php   # Base integration test class
-├── Unit/                                  # Unit tests
+├── bootstrap.php                             # Test bootstrap and setup
+├── class-wch-unit-test-case.php             # Base unit test class
+├── class-wch-integration-test-case.php      # Base integration test class
+├── class-wch-api-mock-server.php            # HTTP mock server for API testing
+├── Unit/                                     # Unit tests
 │   ├── WCH_Settings_Test.php
 │   ├── WCH_Message_Builder_Test.php
 │   ├── WCH_Intent_Classifier_Test.php
 │   ├── WCH_Cart_Manager_Test.php
 │   ├── WCH_Conversation_FSM_Test.php
 │   └── WCH_Customer_Service_Test.php
-├── Integration/                           # Integration tests
+├── Integration/                              # Integration tests
 │   ├── WCH_Product_Sync_Test.php
 │   ├── WCH_Order_Sync_Test.php
 │   ├── WCH_Checkout_Test.php
 │   ├── WCH_Webhook_Test.php
-│   └── WCH_Payment_Test.php
-└── fixtures/                              # Test fixtures
+│   ├── WCH_Payment_Test.php
+│   ├── WCH_WhatsApp_API_Integration_Test.php # NEW: WhatsApp API integration tests
+│   ├── WCH_Webhook_Integration_Test.php      # NEW: Webhook integration tests
+│   └── WCH_WooCommerce_Integration_Test.php  # NEW: WooCommerce integration tests
+└── fixtures/                                 # Test fixtures
     ├── webhook_text_message.json
     ├── webhook_button_reply.json
     ├── webhook_list_reply.json
@@ -86,6 +90,9 @@ Integration tests verify components working together with real database operatio
 - **WCH_Checkout_Test**: Full checkout process
 - **WCH_Webhook_Test**: Webhook payload processing
 - **WCH_Payment_Test**: Payment gateway flows
+- **WCH_WhatsApp_API_Integration_Test**: WhatsApp Cloud API interactions (text messages, interactive lists, templates, rate limits, media upload, catalog sync)
+- **WCH_Webhook_Integration_Test**: Webhook verification, signature validation, message processing, status updates, idempotency
+- **WCH_WooCommerce_Integration_Test**: Product sync, order creation from cart, inventory sync, order notifications, performance benchmarks
 
 ## Writing Tests
 

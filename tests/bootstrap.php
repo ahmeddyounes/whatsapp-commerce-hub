@@ -69,3 +69,4 @@ if ( class_exists( 'Brain\Monkey' ) ) {
 // Load base test case classes.
 require_once __DIR__ . '/class-wch-unit-test-case.php';
 require_once __DIR__ . '/class-wch-integration-test-case.php';
+require_once __DIR__ . '/class-wch-api-mock-server.php';

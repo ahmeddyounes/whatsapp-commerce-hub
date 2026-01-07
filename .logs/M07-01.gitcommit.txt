@@ -1,0 +1,36 @@
+[main 08c02af] M07-01: implement
+ 34 files changed, 4611 insertions(+), 3 deletions(-)
+ create mode 100644 .gitignore
+ create mode 100644 .logs/M06-03.gitcommit.txt
+ create mode 100644 .logs/M07-01.claude.impl.last.md
+ create mode 100644 .logs/M07-01.claude.impl.raw.txt
+ create mode 100644 .plans/M07-01.md
+ create mode 100644 .t2/handoff/M07-01.md
+ create mode 100644 M07-01-IMPLEMENTATION-SUMMARY.md
+ create mode 100755 bin/install-wp-tests.sh
+ create mode 100644 composer.json
+ create mode 100644 phpunit.xml.dist
+ create mode 100644 tests/Integration/WCH_Checkout_Test.php
+ create mode 100644 tests/Integration/WCH_Order_Sync_Test.php
+ create mode 100644 tests/Integration/WCH_Payment_Test.php
+ create mode 100644 tests/Integration/WCH_Product_Sync_Test.php
+ create mode 100644 tests/Integration/WCH_Webhook_Test.php
+ create mode 100644 tests/README.md
+ create mode 100644 tests/Unit/WCH_Cart_Manager_Test.php
+ create mode 100644 tests/Unit/WCH_Conversation_FSM_Test.php
+ create mode 100644 tests/Unit/WCH_Customer_Service_Test.php
+ create mode 100644 tests/Unit/WCH_Intent_Classifier_Test.php
+ create mode 100644 tests/Unit/WCH_Message_Builder_Test.php
+ create mode 100644 tests/Unit/WCH_Settings_Test.php
+ create mode 100644 tests/bootstrap.php
+ create mode 100644 tests/class-wch-integration-test-case.php
+ create mode 100644 tests/class-wch-unit-test-case.php
+ create mode 100644 tests/fixtures/conversation_contexts.json
+ create mode 100644 tests/fixtures/sample_products.json
+ create mode 100644 tests/fixtures/webhook_button_reply.json
+ create mode 100644 tests/fixtures/webhook_image_message.json
+ create mode 100644 tests/fixtures/webhook_list_reply.json
+ create mode 100644 tests/fixtures/webhook_location_message.json
+ create mode 100644 tests/fixtures/webhook_status_update.json
+ create mode 100644 tests/fixtures/webhook_text_message.json
+
