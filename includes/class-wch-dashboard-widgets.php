@@ -35,6 +35,12 @@ class WCH_Dashboard_Widgets {
 			__( 'WhatsApp Inventory Sync Status', 'whatsapp-commerce-hub' ),
 			array( __CLASS__, 'render_inventory_sync_widget' )
 		);
+
+		wp_add_dashboard_widget(
+			'wch_analytics_widget',
+			__( 'WhatsApp Commerce Analytics', 'whatsapp-commerce-hub' ),
+			array( __CLASS__, 'render_analytics_widget' )
+		);
 	}
 
 	/**
@@ -222,6 +228,54 @@ class WCH_Dashboard_Widgets {
 					<?php endif; ?>
 				</div>
 			<?php endif; ?>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render analytics widget.
+	 */
+	public static function render_analytics_widget() {
+		$summary = WCH_Analytics_Data::get_summary( 'week' );
+
+		$total_orders        = $summary['total_orders'] ?? 0;
+		$total_revenue       = $summary['total_revenue'] ?? 0;
+		$active_conversations = $summary['active_conversations'] ?? 0;
+		$conversion_rate     = $summary['conversion_rate'] ?? 0;
+
+		$revenue_class = $total_revenue > 0 ? 'success' : 'neutral';
+		$conversion_class = $conversion_rate >= 5 ? 'success' : ( $conversion_rate >= 2 ? 'warning' : 'neutral' );
+		?>
+		<div class="wch-analytics-widget">
+			<div class="wch-widget-stat">
+				<span class="wch-widget-stat-label"><?php esc_html_e( 'Orders (7 days):', 'whatsapp-commerce-hub' ); ?></span>
+				<span class="wch-widget-stat-value neutral"><?php echo esc_html( $total_orders ); ?></span>
+			</div>
+
+			<div class="wch-widget-stat">
+				<span class="wch-widget-stat-label"><?php esc_html_e( 'Revenue (7 days):', 'whatsapp-commerce-hub' ); ?></span>
+				<span class="wch-widget-stat-value <?php echo esc_attr( $revenue_class ); ?>">
+					<?php echo esc_html( get_woocommerce_currency_symbol() . number_format( $total_revenue, 2 ) ); ?>
+				</span>
+			</div>
+
+			<div class="wch-widget-stat">
+				<span class="wch-widget-stat-label"><?php esc_html_e( 'Active Conversations:', 'whatsapp-commerce-hub' ); ?></span>
+				<span class="wch-widget-stat-value neutral"><?php echo esc_html( $active_conversations ); ?></span>
+			</div>
+
+			<div class="wch-widget-stat">
+				<span class="wch-widget-stat-label"><?php esc_html_e( 'Conversion Rate:', 'whatsapp-commerce-hub' ); ?></span>
+				<span class="wch-widget-stat-value <?php echo esc_attr( $conversion_class ); ?>">
+					<?php echo esc_html( number_format( $conversion_rate, 1 ) . '%' ); ?>
+				</span>
+			</div>
+
+			<div class="wch-widget-timestamp">
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=wch-analytics' ) ); ?>">
+					<?php esc_html_e( 'View Full Analytics →', 'whatsapp-commerce-hub' ); ?>
+				</a>
+			</div>
 		</div>
 		<?php
 	}

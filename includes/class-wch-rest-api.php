@@ -121,6 +121,7 @@ class WCH_REST_API {
 		$built_in_controllers = array(
 			'WCH_Webhook_Handler',
 			'WCH_Payment_Webhook_Handler',
+			'WCH_Analytics_Controller',
 		);
 
 		foreach ( $built_in_controllers as $controller_class ) {
