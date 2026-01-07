@@ -117,6 +117,7 @@ class WCH_Plugin {
 			WCH_Admin_Templates::init();
 			WCH_Admin_Settings::init();
 			WCH_Admin_Analytics::init();
+			WCH_Admin_Catalog_Sync::init();
 			WCH_Dashboard_Widgets::init();
 		}
 
