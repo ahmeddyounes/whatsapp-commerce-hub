@@ -1,0 +1,91 @@
+{
+  "contexts": [
+    {
+      "scenario": "browsing_electronics",
+      "state": "BROWSING",
+      "context_data": {
+        "current_category": "Electronics",
+        "viewed_products": [101, 102, 103],
+        "cart_items": [],
+        "last_intent": "BROWSE"
+      }
+    },
+    {
+      "scenario": "product_in_cart",
+      "state": "CART_REVIEW",
+      "context_data": {
+        "current_category": "Electronics",
+        "current_product": 101,
+        "cart_items": [
+          {
+            "product_id": 101,
+            "quantity": 2,
+            "price": 999.99
+          }
+        ],
+        "last_intent": "ADD_TO_CART"
+      }
+    },
+    {
+      "scenario": "checkout_with_address",
+      "state": "CHECKOUT",
+      "context_data": {
+        "cart_items": [
+          {
+            "product_id": 101,
+            "quantity": 1,
+            "price": 999.99
+          }
+        ],
+        "shipping_address": {
+          "first_name": "John",
+          "last_name": "Doe",
+          "address_1": "123 Main Street",
+          "city": "New York",
+          "state": "NY",
+          "postcode": "10001",
+          "country": "US"
+        },
+        "payment_method": null,
+        "last_intent": "CHECKOUT"
+      }
+    },
+    {
+      "scenario": "awaiting_payment",
+      "state": "AWAITING_PAYMENT",
+      "context_data": {
+        "order_id": 5001,
+        "cart_items": [
+          {
+            "product_id": 101,
+            "quantity": 1,
+            "price": 999.99
+          }
+        ],
+        "shipping_address": {
+          "first_name": "Jane",
+          "last_name": "Smith",
+          "address_1": "456 Oak Avenue",
+          "city": "Los Angeles",
+          "state": "CA",
+          "postcode": "90001",
+          "country": "US"
+        },
+        "payment_method": "stripe",
+        "total_amount": 1049.99,
+        "last_intent": "CONFIRM_PAYMENT"
+      }
+    },
+    {
+      "scenario": "completed_order",
+      "state": "COMPLETED",
+      "context_data": {
+        "order_id": 5002,
+        "payment_status": "paid",
+        "total_amount": 899.99,
+        "tracking_number": "TRACK123456789",
+        "last_intent": "TRACK_ORDER"
+      }
+    }
+  ]
+}

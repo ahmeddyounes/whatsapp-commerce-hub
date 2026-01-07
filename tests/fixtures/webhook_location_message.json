@@ -1,0 +1,42 @@
+{
+  "object": "whatsapp_business_account",
+  "entry": [
+    {
+      "id": "123456789",
+      "changes": [
+        {
+          "value": {
+            "messaging_product": "whatsapp",
+            "metadata": {
+              "display_phone_number": "15551234567",
+              "phone_number_id": "987654321"
+            },
+            "contacts": [
+              {
+                "profile": {
+                  "name": "Carol Davis"
+                },
+                "wa_id": "4445556666"
+              }
+            ],
+            "messages": [
+              {
+                "from": "+4445556666",
+                "id": "wamid.HBgNNDQ0NTU1NjY2NgVAgL5",
+                "timestamp": "1700000400",
+                "type": "location",
+                "location": {
+                  "latitude": 40.7128,
+                  "longitude": -74.0060,
+                  "name": "New York City",
+                  "address": "New York, NY, USA"
+                }
+              }
+            ]
+          },
+          "field": "messages"
+        }
+      ]
+    }
+  ]
+}

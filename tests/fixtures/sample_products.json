@@ -1,0 +1,49 @@
+{
+  "products": [
+    {
+      "name": "iPhone 15 Pro",
+      "sku": "IPHONE-15-PRO-256",
+      "regular_price": "999.99",
+      "description": "Latest iPhone with A17 Pro chip, Titanium design, and advanced camera system",
+      "category": "Electronics",
+      "stock_quantity": 50,
+      "image_url": "https://example.com/images/iphone-15-pro.jpg"
+    },
+    {
+      "name": "Samsung Galaxy S24",
+      "sku": "GALAXY-S24-128",
+      "regular_price": "899.99",
+      "description": "Flagship Samsung smartphone with Galaxy AI and advanced features",
+      "category": "Electronics",
+      "stock_quantity": 35,
+      "image_url": "https://example.com/images/galaxy-s24.jpg"
+    },
+    {
+      "name": "Sony WH-1000XM5",
+      "sku": "SONY-WH1000XM5",
+      "regular_price": "399.99",
+      "description": "Premium noise-canceling wireless headphones",
+      "category": "Audio",
+      "stock_quantity": 75,
+      "image_url": "https://example.com/images/sony-wh1000xm5.jpg"
+    },
+    {
+      "name": "MacBook Pro 14",
+      "sku": "MBP-14-M3-512",
+      "regular_price": "1999.99",
+      "description": "14-inch MacBook Pro with M3 chip and 512GB SSD",
+      "category": "Computers",
+      "stock_quantity": 20,
+      "image_url": "https://example.com/images/macbook-pro-14.jpg"
+    },
+    {
+      "name": "Nike Air Max 90",
+      "sku": "NIKE-AM90-SIZE10",
+      "regular_price": "129.99",
+      "description": "Classic Nike sneakers with Max Air cushioning",
+      "category": "Footwear",
+      "stock_quantity": 100,
+      "image_url": "https://example.com/images/nike-air-max-90.jpg"
+    }
+  ]
+}
