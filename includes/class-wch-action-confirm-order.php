@@ -156,7 +156,7 @@ class WCH_Action_ConfirmOrder extends WCH_Flow_Action {
 			$order->save();
 
 			// Process payment through gateway manager.
-			$payment_method = $context['payment_method'];
+			$payment_method  = $context['payment_method'];
 			$payment_manager = WCH_Payment_Manager::instance();
 
 			$payment_result = $payment_manager->process_order_payment(
@@ -204,8 +204,8 @@ class WCH_Action_ConfirmOrder extends WCH_Flow_Action {
 	/**
 	 * Set order addresses
 	 *
-	 * @param WC_Order                 $order Order object.
-	 * @param array                    $address Address data.
+	 * @param WC_Order                  $order Order object.
+	 * @param array                     $address Address data.
 	 * @param WCH_Customer_Profile|null $customer Customer profile.
 	 */
 	private function set_order_addresses( $order, $address, $customer ) {
@@ -259,7 +259,7 @@ class WCH_Action_ConfirmOrder extends WCH_Flow_Action {
 			. "Status: %s\n"
 			. "Total: %s\n\n"
 			. "We'll send you updates on your order status.\n\n"
-			. "Thank you for shopping with us!",
+			. 'Thank you for shopping with us!',
 			$order->get_order_number(),
 			wc_get_order_status_name( $order->get_status() ),
 			$this->format_price( $order->get_total() )
@@ -301,8 +301,8 @@ class WCH_Action_ConfirmOrder extends WCH_Flow_Action {
 			array( $message ),
 			WCH_Conversation_FSM::STATE_COMPLETED,
 			array(
-				'order_id'       => $order_id,
-				'order_created'  => true,
+				'order_id'      => $order_id,
+				'order_created' => true,
 			)
 		);
 	}

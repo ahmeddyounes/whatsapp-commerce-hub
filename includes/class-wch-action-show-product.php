@@ -56,10 +56,10 @@ class WCH_Action_ShowProduct extends WCH_Flow_Action {
 				$messages,
 				null,
 				array(
-					'current_product'  => $product_id,
-					'product_name'     => $product->get_name(),
-					'product_price'    => $product->get_price(),
-					'has_variations'   => $product->is_type( 'variable' ),
+					'current_product' => $product_id,
+					'product_name'    => $product->get_name(),
+					'product_price'   => $product->get_price(),
+					'has_variations'  => $product->is_type( 'variable' ),
 				)
 			);
 

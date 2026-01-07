@@ -64,11 +64,11 @@ class WCH_Reengagement_Service {
 	 * @var array
 	 */
 	const CAMPAIGN_TYPES = array(
-		'we_miss_you'     => 'Generic re-engagement',
-		'new_arrivals'    => 'New products since last visit',
-		'back_in_stock'   => 'Previously viewed items back in stock',
-		'price_drop'      => 'Price drops on viewed products',
-		'loyalty_reward'  => 'Discount based on lifetime value',
+		'we_miss_you'    => 'Generic re-engagement',
+		'new_arrivals'   => 'New products since last visit',
+		'back_in_stock'  => 'Previously viewed items back in stock',
+		'price_drop'     => 'Price drops on viewed products',
+		'loyalty_reward' => 'Discount based on lifetime value',
 	);
 
 	/**
@@ -88,10 +88,10 @@ class WCH_Reengagement_Service {
 	 */
 	private function __construct() {
 		global $wpdb;
-		$this->wpdb              = $wpdb;
-		$this->settings          = WCH_Settings::getInstance();
-		$this->db_manager        = WCH_Database_Manager::instance();
-		$this->customer_service  = WCH_Customer_Service::instance();
+		$this->wpdb             = $wpdb;
+		$this->settings         = WCH_Settings::getInstance();
+		$this->db_manager       = WCH_Database_Manager::instance();
+		$this->customer_service = WCH_Customer_Service::instance();
 
 		// Initialize API client if needed.
 		add_action( 'init', array( $this, 'init_api_client' ) );
@@ -211,7 +211,7 @@ class WCH_Reengagement_Service {
 		$threshold_date       = gmdate( 'Y-m-d H:i:s', current_time( 'timestamp' ) - ( $inactivity_threshold * DAY_IN_SECONDS ) );
 		$recent_message_date  = gmdate( 'Y-m-d H:i:s', current_time( 'timestamp' ) - ( 7 * DAY_IN_SECONDS ) );
 
-		$profiles_table    = $this->db_manager->get_table_name( 'customer_profiles' );
+		$profiles_table     = $this->db_manager->get_table_name( 'customer_profiles' );
 		$reengagement_table = $this->db_manager->get_table_name( 'reengagement_log' );
 
 		// Find customers with linked WC accounts who are opted in to marketing.
@@ -302,7 +302,7 @@ class WCH_Reengagement_Service {
 		}
 
 		// Check if customer has high lifetime value for loyalty reward.
-		$stats = $this->customer_service->calculate_customer_stats( $customer['phone'] );
+		$stats   = $this->customer_service->calculate_customer_stats( $customer['phone'] );
 		$min_ltv = $this->settings->get( 'reengagement.loyalty_min_ltv', 500 );
 
 		if ( ! empty( $stats['total_spent'] ) && $stats['total_spent'] >= $min_ltv ) {
@@ -441,7 +441,7 @@ class WCH_Reengagement_Service {
 		switch ( $campaign_type ) {
 			case 'we_miss_you':
 				$last_product = $this->get_last_purchased_product( $customer );
-				$text = sprintf(
+				$text         = sprintf(
 					"Hi %s! We haven't seen you in a while and we miss you! 😊\n\nWe have some exciting new products you might love. Check them out: %s",
 					$customer_name,
 					home_url( '/shop' )
@@ -450,7 +450,7 @@ class WCH_Reengagement_Service {
 
 			case 'new_arrivals':
 				$new_products = $this->get_new_arrivals_for_customer( $customer );
-				$text = sprintf(
+				$text         = sprintf(
 					"Hi %s! 🎉 We've added new products based on your interests:\n\n%s\n\nBrowse all new arrivals: %s",
 					$customer_name,
 					$this->format_product_list( $new_products ),
@@ -460,7 +460,7 @@ class WCH_Reengagement_Service {
 
 			case 'back_in_stock':
 				$products = $this->get_back_in_stock_products( $customer->phone );
-				$text = sprintf(
+				$text     = sprintf(
 					"Great news, %s! 🎊 Products you were interested in are back in stock:\n\n%s\n\nShop now: %s",
 					$customer_name,
 					$this->format_product_list( $products ),
@@ -470,7 +470,7 @@ class WCH_Reengagement_Service {
 
 			case 'price_drop':
 				$products = $this->get_price_drop_products( $customer->phone );
-				$text = sprintf(
+				$text     = sprintf(
 					"Special alert for %s! 💰 Price drops on products you viewed:\n\n%s\n\nDon't miss out: %s",
 					$customer_name,
 					$this->format_product_list( $products, true ),
@@ -479,9 +479,9 @@ class WCH_Reengagement_Service {
 				break;
 
 			case 'loyalty_reward':
-				$discount_code = $this->generate_loyalty_discount( $customer );
+				$discount_code   = $this->generate_loyalty_discount( $customer );
 				$discount_amount = $this->settings->get( 'reengagement.loyalty_discount', 15 );
-				$text = sprintf(
+				$text            = sprintf(
 					"Hi %s! 🌟 Thank you for being a valued customer!\n\nAs a token of our appreciation, here's an exclusive %d%% discount code: *%s*\n\nValid for 7 days. Shop now: %s",
 					$customer_name,
 					$discount_amount,
@@ -580,7 +580,7 @@ class WCH_Reengagement_Service {
 		$products = get_posts( $args );
 
 		return array_map(
-			function( $product ) {
+			function ( $product ) {
 				$wc_product = wc_get_product( $product->ID );
 				return array(
 					'id'    => $product->ID,
@@ -600,7 +600,7 @@ class WCH_Reengagement_Service {
 	 * @return bool True if has new arrivals.
 	 */
 	private function has_new_arrivals_for_customer( $customer ) {
-		$profile = $this->customer_service->get_or_create_profile( $customer['phone'] );
+		$profile  = $this->customer_service->get_or_create_profile( $customer['phone'] );
 		$products = $this->get_new_arrivals_for_customer( $profile );
 		return ! empty( $products );
 	}
@@ -660,7 +660,7 @@ class WCH_Reengagement_Service {
 		$products = get_posts( $args );
 
 		return array_map(
-			function( $product ) {
+			function ( $product ) {
 				$wc_product = wc_get_product( $product->ID );
 				return array(
 					'id'    => $product->ID,
@@ -879,7 +879,7 @@ class WCH_Reengagement_Service {
 			ARRAY_A
 		);
 
-		$products = array();
+		$products         = array();
 		$min_drop_percent = 10; // 10% minimum price drop.
 
 		foreach ( $results as $row ) {
@@ -896,12 +896,12 @@ class WCH_Reengagement_Service {
 
 				if ( $drop_percent >= $min_drop_percent ) {
 					$products[] = array(
-						'id'         => $product->get_id(),
-						'name'       => $product->get_name(),
-						'old_price'  => $old_price,
-						'price'      => $current_price,
-						'drop'       => round( $drop_percent, 0 ),
-						'url'        => $product->get_permalink(),
+						'id'        => $product->get_id(),
+						'name'      => $product->get_name(),
+						'old_price' => $old_price,
+						'price'     => $current_price,
+						'drop'      => round( $drop_percent, 0 ),
+						'url'       => $product->get_permalink(),
 					);
 				}
 			}
@@ -981,7 +981,7 @@ class WCH_Reengagement_Service {
 
 		if ( $customer->wc_customer_id ) {
 			$wc_customer = new WC_Customer( $customer->wc_customer_id );
-			$email = $wc_customer->get_email();
+			$email       = $wc_customer->get_email();
 			if ( $email ) {
 				$coupon->set_email_restrictions( array( $email ) );
 			}
@@ -1145,7 +1145,7 @@ class WCH_Reengagement_Service {
 		$analytics = array();
 
 		foreach ( $results as $row ) {
-			$sent = intval( $row['sent'] );
+			$sent                               = intval( $row['sent'] );
 			$analytics[ $row['campaign_type'] ] = array(
 				'sent'            => $sent,
 				'delivered'       => intval( $row['delivered'] ),

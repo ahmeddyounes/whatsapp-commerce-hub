@@ -21,15 +21,15 @@ class WCH_Intent {
 	/**
 	 * Intent name constants.
 	 */
-	const INTENT_GREETING      = 'GREETING';
-	const INTENT_BROWSE        = 'BROWSE';
-	const INTENT_SEARCH        = 'SEARCH';
-	const INTENT_VIEW_CART     = 'VIEW_CART';
-	const INTENT_CHECKOUT      = 'CHECKOUT';
-	const INTENT_ORDER_STATUS  = 'ORDER_STATUS';
-	const INTENT_CANCEL        = 'CANCEL';
-	const INTENT_HELP          = 'HELP';
-	const INTENT_UNKNOWN       = 'UNKNOWN';
+	const INTENT_GREETING     = 'GREETING';
+	const INTENT_BROWSE       = 'BROWSE';
+	const INTENT_SEARCH       = 'SEARCH';
+	const INTENT_VIEW_CART    = 'VIEW_CART';
+	const INTENT_CHECKOUT     = 'CHECKOUT';
+	const INTENT_ORDER_STATUS = 'ORDER_STATUS';
+	const INTENT_CANCEL       = 'CANCEL';
+	const INTENT_HELP         = 'HELP';
+	const INTENT_UNKNOWN      = 'UNKNOWN';
 
 	/**
 	 * Intent name from enum.

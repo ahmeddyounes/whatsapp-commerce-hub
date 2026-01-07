@@ -127,7 +127,13 @@ class WCH_Action_ShowMainMenu extends WCH_Flow_Action {
 			)
 		);
 
-		$message->button( 'reply', array( 'id' => 'menu', 'title' => 'Main Menu' ) );
+		$message->button(
+			'reply',
+			array(
+				'id'    => 'menu',
+				'title' => 'Main Menu',
+			)
+		);
 
 		return $message;
 	}

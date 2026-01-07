@@ -110,7 +110,10 @@ class WCH_Job_Dispatcher {
 			// Dispatch the batch.
 			$action_id = self::dispatch(
 				$hook,
-				array( 'batch' => $batch, 'batch_num' => $batch_num ),
+				array(
+					'batch'     => $batch,
+					'batch_num' => $batch_num,
+				),
 				$batch_delay
 			);
 
@@ -226,9 +229,9 @@ class WCH_Job_Dispatcher {
 			return array();
 		}
 
-		$queue   = WCH_Queue::getInstance();
-		$hooks   = $queue->get_registered_hooks();
-		$counts  = array();
+		$queue  = WCH_Queue::getInstance();
+		$hooks  = $queue->get_registered_hooks();
+		$counts = array();
 
 		foreach ( $hooks as $hook ) {
 			$counts[ $hook ] = self::get_pending_count( $hook );

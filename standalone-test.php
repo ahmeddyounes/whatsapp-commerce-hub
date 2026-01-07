@@ -64,14 +64,14 @@ if ( strpos( $settings_content, 'class WCH_Settings' ) !== false ) {
 // Test 4: Check required methods exist.
 echo "\n4. Checking required methods:\n";
 $required_methods = array(
-	'WCH_Settings' => array( 'get', 'set', 'get_all', 'delete', 'get_section' ),
+	'WCH_Settings'   => array( 'get', 'set', 'get_all', 'delete', 'get_section' ),
 	'WCH_Encryption' => array( 'encrypt', 'decrypt' ),
 );
 
 foreach ( $required_methods as $class => $methods ) {
 	foreach ( $methods as $method ) {
 		if ( preg_match( '/function\s+' . preg_quote( $method, '/' ) . '\s*\(/', $settings_content ) ||
-		     preg_match( '/function\s+' . preg_quote( $method, '/' ) . '\s*\(/', $encryption_content ) ) {
+			preg_match( '/function\s+' . preg_quote( $method, '/' ) . '\s*\(/', $encryption_content ) ) {
 			echo "   ✓ $class::$method()\n";
 		} else {
 			echo "   ✗ $class::$method() not found\n";
@@ -129,7 +129,7 @@ if ( strpos( $settings_content, "apply_filters( 'wch_settings_defaults'" ) !== f
 // Test 9: Check singleton pattern.
 echo "\n9. Checking singleton pattern:\n";
 if ( strpos( $settings_content, 'getInstance()' ) !== false &&
-     strpos( $settings_content, 'private function __construct()' ) !== false ) {
+	strpos( $settings_content, 'private function __construct()' ) !== false ) {
 	echo "   ✓ Singleton pattern implemented\n";
 } else {
 	echo "   ✗ Singleton pattern not complete\n";

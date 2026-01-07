@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<ruleset name="WhatsApp Commerce Hub">
+	<description>WordPress coding standards for WhatsApp Commerce Hub plugin</description>
+
+	<!-- Check all PHP files in directory tree by default. -->
+	<arg name="extensions" value="php"/>
+	<file>.</file>
+
+	<!-- Show progress and sniff codes in all reports -->
+	<arg value="ps"/>
+
+	<!-- Show colors in console -->
+	<arg name="colors"/>
+
+	<!-- Exclude patterns -->
+	<exclude-pattern>*/vendor/*</exclude-pattern>
+	<exclude-pattern>*/node_modules/*</exclude-pattern>
+	<exclude-pattern>*/tests/*</exclude-pattern>
+	<exclude-pattern>*/bin/*</exclude-pattern>
+	<exclude-pattern>*.asset.php</exclude-pattern>
+	<exclude-pattern>test-*.php</exclude-pattern>
+	<exclude-pattern>verify-*.php</exclude-pattern>
+	<exclude-pattern>*/examples/*</exclude-pattern>
+
+	<!-- Include the WordPress-Extra standard. -->
+	<rule ref="WordPress-Extra">
+		<!-- Allow short array syntax -->
+		<exclude name="Universal.Arrays.DisallowShortArraySyntax"/>
+
+		<!-- We're using PSR-4 autoloading, so file names don't need class- prefix -->
+		<exclude name="WordPress.Files.FileName.InvalidClassFileName"/>
+		<exclude name="WordPress.Files.FileName.NotHyphenatedLowercase"/>
+	</rule>
+
+	<!-- Include the WordPress-Docs standard. -->
+	<rule ref="WordPress-Docs"/>
+
+	<!-- Custom line length -->
+	<rule ref="Generic.Files.LineLength">
+		<properties>
+			<property name="lineLimit" value="120"/>
+			<property name="absoluteLineLimit" value="150"/>
+		</properties>
+	</rule>
+
+	<!-- Verify that everything in the global namespace is prefixed with WCH_ or WhatsApp_Commerce_Hub_ -->
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<properties>
+			<property name="prefixes" type="array">
+				<element value="wch"/>
+				<element value="WCH"/>
+				<element value="whatsapp_commerce_hub"/>
+				<element value="WhatsApp_Commerce_Hub"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!-- Minimum PHP version -->
+	<config name="minimum_supported_wp_version" value="6.0"/>
+	<config name="testVersion" value="8.1-"/>
+
+	<!-- Check for PHP cross-version compatibility -->
+	<rule ref="PHPCompatibilityWP"/>
+</ruleset>

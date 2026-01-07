@@ -85,7 +85,7 @@ class WCH_Payment_Manager {
 			return;
 		}
 
-		$gateway_id                 = $gateway->get_id();
+		$gateway_id                    = $gateway->get_id();
 		self::$gateways[ $gateway_id ] = $gateway;
 
 		WCH_Logger::log( "Registered payment gateway: {$gateway_id}", 'debug' );
@@ -325,8 +325,8 @@ class WCH_Payment_Manager {
 	/**
 	 * Process refund through the original payment gateway.
 	 *
-	 * @param int   $order_id Order ID.
-	 * @param float $amount   Refund amount.
+	 * @param int    $order_id Order ID.
+	 * @param float  $amount   Refund amount.
 	 * @param string $reason  Refund reason.
 	 * @return bool|WP_Error True on success, WP_Error on failure.
 	 */
@@ -336,8 +336,8 @@ class WCH_Payment_Manager {
 			return new WP_Error( 'invalid_order', __( 'Invalid order ID.', 'whatsapp-commerce-hub' ) );
 		}
 
-		$gateway_id      = $order->get_meta( '_wch_payment_method' );
-		$transaction_id  = $order->get_meta( '_wch_transaction_id' );
+		$gateway_id     = $order->get_meta( '_wch_payment_method' );
+		$transaction_id = $order->get_meta( '_wch_transaction_id' );
 
 		if ( empty( $gateway_id ) ) {
 			return new WP_Error( 'no_gateway', __( 'No payment gateway found for this order.', 'whatsapp-commerce-hub' ) );

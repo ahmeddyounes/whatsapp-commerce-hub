@@ -243,13 +243,13 @@ class WCH_Payment_PIX implements WCH_Payment_Gateway {
 	private function generate_pagseguro_pix( $order, $conversation ) {
 		$url  = 'https://api.pagseguro.com/orders';
 		$data = array(
-			'reference_id' => $order->get_order_number(),
-			'customer'     => array(
+			'reference_id'      => $order->get_order_number(),
+			'customer'          => array(
 				'name'  => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
 				'email' => $order->get_billing_email() ?: 'noreply@example.com',
 			),
-			'items'        => array(),
-			'qr_codes'     => array(
+			'items'             => array(),
+			'qr_codes'          => array(
 				array(
 					'amount' => array(
 						'value' => intval( $order->get_total() * 100 ),
@@ -511,9 +511,9 @@ class WCH_Payment_PIX implements WCH_Payment_Gateway {
 
 			if ( $payment ) {
 				$status_map = array(
-					'approved' => 'completed',
-					'pending'  => 'pending',
-					'rejected' => 'failed',
+					'approved'  => 'completed',
+					'pending'   => 'pending',
+					'rejected'  => 'failed',
 					'cancelled' => 'failed',
 				);
 

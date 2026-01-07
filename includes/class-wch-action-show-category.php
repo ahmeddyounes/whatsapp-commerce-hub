@@ -40,7 +40,7 @@ class WCH_Action_ShowCategory extends WCH_Flow_Action {
 			}
 
 			$category_id = intval( $payload['category_id'] );
-			$page = isset( $payload['page'] ) ? intval( $payload['page'] ) : 1;
+			$page        = isset( $payload['page'] ) ? intval( $payload['page'] ) : 1;
 
 			$this->log(
 				'Showing category',
@@ -134,7 +134,7 @@ class WCH_Action_ShowCategory extends WCH_Flow_Action {
 		$rows = array();
 
 		foreach ( $products['items'] as $product ) {
-			$price = $this->format_price( floatval( $product->get_price() ) );
+			$price        = $this->format_price( floatval( $product->get_price() ) );
 			$stock_status = $product->is_in_stock() ? '✅' : '❌ Out of stock';
 
 			$rows[] = array(

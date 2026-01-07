@@ -96,19 +96,19 @@ class WCH_Admin_Settings {
 			'wch-admin-settings',
 			'wchSettings',
 			array(
-				'ajax_url'         => admin_url( 'admin-ajax.php' ),
-				'nonce'            => wp_create_nonce( 'wch_settings_nonce' ),
-				'webhook_url'      => rest_url( 'wch/v1/webhook' ),
-				'strings'          => array(
-					'testing'          => __( 'Testing...', 'whatsapp-commerce-hub' ),
-					'syncing'          => __( 'Syncing...', 'whatsapp-commerce-hub' ),
-					'success'          => __( 'Success', 'whatsapp-commerce-hub' ),
-					'error'            => __( 'Error', 'whatsapp-commerce-hub' ),
-					'copied'           => __( 'Copied!', 'whatsapp-commerce-hub' ),
-					'confirm_reset'    => __( 'Are you sure you want to reset all settings to defaults? This cannot be undone.', 'whatsapp-commerce-hub' ),
-					'confirm_clear'    => __( 'Are you sure you want to clear all logs?', 'whatsapp-commerce-hub' ),
-					'settings_saved'   => __( 'Settings saved successfully', 'whatsapp-commerce-hub' ),
-					'settings_error'   => __( 'Error saving settings', 'whatsapp-commerce-hub' ),
+				'ajax_url'    => admin_url( 'admin-ajax.php' ),
+				'nonce'       => wp_create_nonce( 'wch_settings_nonce' ),
+				'webhook_url' => rest_url( 'wch/v1/webhook' ),
+				'strings'     => array(
+					'testing'        => __( 'Testing...', 'whatsapp-commerce-hub' ),
+					'syncing'        => __( 'Syncing...', 'whatsapp-commerce-hub' ),
+					'success'        => __( 'Success', 'whatsapp-commerce-hub' ),
+					'error'          => __( 'Error', 'whatsapp-commerce-hub' ),
+					'copied'         => __( 'Copied!', 'whatsapp-commerce-hub' ),
+					'confirm_reset'  => __( 'Are you sure you want to reset all settings to defaults? This cannot be undone.', 'whatsapp-commerce-hub' ),
+					'confirm_clear'  => __( 'Are you sure you want to clear all logs?', 'whatsapp-commerce-hub' ),
+					'settings_saved' => __( 'Settings saved successfully', 'whatsapp-commerce-hub' ),
+					'settings_error' => __( 'Error saving settings', 'whatsapp-commerce-hub' ),
 				),
 			)
 		);
@@ -122,9 +122,9 @@ class WCH_Admin_Settings {
 			wp_die( esc_html__( 'You do not have permission to access this page.', 'whatsapp-commerce-hub' ) );
 		}
 
-		$settings      = WCH_Settings::getInstance();
-		$active_tab    = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'connection';
-		$verify_token  = $settings->get( 'api.webhook_verify_token' );
+		$settings     = WCH_Settings::getInstance();
+		$active_tab   = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'connection';
+		$verify_token = $settings->get( 'api.webhook_verify_token' );
 
 		if ( empty( $verify_token ) ) {
 			$verify_token = wp_generate_password( 32, false );
@@ -283,12 +283,12 @@ class WCH_Admin_Settings {
 	 * Render Catalog tab
 	 */
 	private static function render_catalog_tab( $settings ) {
-		$sync_enabled    = $settings->get( 'catalog.sync_enabled', false );
-		$product_mode    = $settings->get( 'catalog.product_selection', 'all' );
-		$categories      = $settings->get( 'catalog.categories', array() );
-		$products        = $settings->get( 'catalog.products', array() );
-		$include_oos     = $settings->get( 'catalog.include_out_of_stock', false );
-		$last_sync       = $settings->get( 'catalog.last_sync', '' );
+		$sync_enabled = $settings->get( 'catalog.sync_enabled', false );
+		$product_mode = $settings->get( 'catalog.product_selection', 'all' );
+		$categories   = $settings->get( 'catalog.categories', array() );
+		$products     = $settings->get( 'catalog.products', array() );
+		$include_oos  = $settings->get( 'catalog.include_out_of_stock', false );
+		$last_sync    = $settings->get( 'catalog.last_sync', '' );
 		?>
 		<table class="form-table" role="presentation">
 			<tbody>
@@ -424,7 +424,7 @@ class WCH_Admin_Settings {
 		$max_order        = $settings->get( 'checkout.max_order_amount', 0 );
 		$phone_verify     = $settings->get( 'checkout.phone_verification', false );
 
-		$payment_manager  = WCH_Payment_Manager::getInstance();
+		$payment_manager    = WCH_Payment_Manager::getInstance();
 		$available_gateways = $payment_manager->get_available_gateways();
 		?>
 		<table class="form-table" role="presentation">
@@ -550,11 +550,11 @@ class WCH_Admin_Settings {
 	 * Render AI tab
 	 */
 	private static function render_ai_tab( $settings ) {
-		$ai_enabled      = $settings->get( 'ai.enabled', false );
-		$openai_key      = $settings->get( 'ai.openai_api_key', '' );
-		$model           = $settings->get( 'ai.model', 'gpt-4' );
-		$temperature     = $settings->get( 'ai.temperature', 0.7 );
-		$system_prompt   = $settings->get( 'ai.system_prompt', '' );
+		$ai_enabled    = $settings->get( 'ai.enabled', false );
+		$openai_key    = $settings->get( 'ai.openai_api_key', '' );
+		$model         = $settings->get( 'ai.model', 'gpt-4' );
+		$temperature   = $settings->get( 'ai.temperature', 0.7 );
+		$system_prompt = $settings->get( 'ai.system_prompt', '' );
 		?>
 		<table class="form-table" role="presentation">
 			<tbody>
@@ -618,8 +618,8 @@ class WCH_Admin_Settings {
 	 * Render Advanced tab
 	 */
 	private static function render_advanced_tab( $settings ) {
-		$debug_mode     = $settings->get( 'advanced.debug_mode', false );
-		$log_retention  = $settings->get( 'advanced.log_retention_days', 30 );
+		$debug_mode    = $settings->get( 'advanced.debug_mode', false );
+		$log_retention = $settings->get( 'advanced.log_retention_days', 30 );
 		?>
 		<table class="form-table" role="presentation">
 			<tbody>
@@ -708,8 +708,8 @@ class WCH_Admin_Settings {
 
 		check_admin_referer( 'wch_save_settings', 'wch_settings_nonce' );
 
-		$settings    = WCH_Settings::getInstance();
-		$active_tab  = isset( $_POST['active_tab'] ) ? sanitize_key( $_POST['active_tab'] ) : 'connection';
+		$settings   = WCH_Settings::getInstance();
+		$active_tab = isset( $_POST['active_tab'] ) ? sanitize_key( $_POST['active_tab'] ) : 'connection';
 
 		// Process each tab's settings
 		$sections = array( 'api', 'catalog', 'checkout', 'notifications', 'ai', 'advanced' );
@@ -734,8 +734,8 @@ class WCH_Admin_Settings {
 
 		$redirect_url = add_query_arg(
 			array(
-				'page'           => 'wch-settings',
-				'tab'            => $active_tab,
+				'page'             => 'wch-settings',
+				'tab'              => $active_tab,
 				'settings-updated' => 'true',
 			),
 			admin_url( 'admin.php' )
@@ -809,8 +809,8 @@ class WCH_Admin_Settings {
 			wp_send_json_error( array( 'message' => __( 'Permission denied', 'whatsapp-commerce-hub' ) ) );
 		}
 
-		$settings    = WCH_Settings::getInstance();
-		$active_tab  = isset( $_POST['active_tab'] ) ? sanitize_key( $_POST['active_tab'] ) : 'connection';
+		$settings   = WCH_Settings::getInstance();
+		$active_tab = isset( $_POST['active_tab'] ) ? sanitize_key( $_POST['active_tab'] ) : 'connection';
 
 		// Process each tab's settings
 		$sections = array( 'api', 'catalog', 'checkout', 'notifications', 'ai', 'advanced' );
@@ -913,8 +913,8 @@ class WCH_Admin_Settings {
 			wp_send_json_error( array( 'message' => __( 'Permission denied', 'whatsapp-commerce-hub' ) ) );
 		}
 
-		$settings    = WCH_Settings::getInstance();
-		$new_token   = wp_generate_password( 32, false );
+		$settings  = WCH_Settings::getInstance();
+		$new_token = wp_generate_password( 32, false );
 
 		$settings->set( 'api.webhook_verify_token', $new_token );
 
@@ -1018,7 +1018,7 @@ class WCH_Admin_Settings {
 			wp_send_json_error( array( 'message' => __( 'Permission denied', 'whatsapp-commerce-hub' ) ) );
 		}
 
-		$settings  = WCH_Settings::getInstance();
+		$settings     = WCH_Settings::getInstance();
 		$all_settings = $settings->get_all();
 
 		// Remove sensitive data

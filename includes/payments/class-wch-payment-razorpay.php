@@ -151,19 +151,19 @@ class WCH_Payment_Razorpay implements WCH_Payment_Gateway {
 		$amount = intval( $order->get_total() * 100 ); // Convert to paise.
 
 		$data = array(
-			'amount'      => $amount,
-			'currency'    => $order->get_currency(),
-			'description' => sprintf(
+			'amount'          => $amount,
+			'currency'        => $order->get_currency(),
+			'description'     => sprintf(
 				/* translators: %s: Order number */
 				__( 'Order #%s', 'whatsapp-commerce-hub' ),
 				$order->get_order_number()
 			),
-			'customer'    => array(
+			'customer'        => array(
 				'name'    => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
 				'email'   => $order->get_billing_email() ?: 'noreply@example.com',
 				'contact' => preg_replace( '/[^0-9]/', '', $conversation['customer_phone'] ?? '' ),
 			),
-			'notify'      => array(
+			'notify'          => array(
 				'sms'   => false,
 				'email' => false,
 			),
@@ -233,8 +233,8 @@ class WCH_Payment_Razorpay implements WCH_Payment_Gateway {
 		$event = $data['event'] ?? '';
 
 		if ( $event === 'payment.captured' ) {
-			$payment = $data['payload']['payment']['entity'] ?? array();
-			$notes   = $payment['notes'] ?? array();
+			$payment  = $data['payload']['payment']['entity'] ?? array();
+			$notes    = $payment['notes'] ?? array();
 			$order_id = intval( $notes['order_id'] ?? 0 );
 
 			if ( $order_id ) {
@@ -311,11 +311,11 @@ class WCH_Payment_Razorpay implements WCH_Payment_Gateway {
 
 		$payment_status = $response['status'] ?? 'created';
 		$status_map     = array(
-			'paid'      => 'completed',
-			'created'   => 'pending',
+			'paid'           => 'completed',
+			'created'        => 'pending',
 			'partially_paid' => 'pending',
-			'expired'   => 'failed',
-			'cancelled' => 'failed',
+			'expired'        => 'failed',
+			'cancelled'      => 'failed',
 		);
 
 		return array(

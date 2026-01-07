@@ -149,12 +149,12 @@ class WCH_Payment_WhatsAppPay implements WCH_Payment_Gateway {
 
 		// Build payment configuration.
 		$payment_config = array(
-			'type'               => 'payment',
-			'payment_settings'   => array(
+			'type'             => 'payment',
+			'payment_settings' => array(
 				array(
-					'type'               => 'payment_gateway',
-					'payment_gateway'    => array(
-						'type'             => 'razorpay', // WhatsApp Pay uses underlying payment processors.
+					'type'            => 'payment_gateway',
+					'payment_gateway' => array(
+						'type'               => 'razorpay', // WhatsApp Pay uses underlying payment processors.
 						'configuration_name' => get_option( 'wch_whatsapppay_config_name', 'default' ),
 					),
 				),
@@ -218,14 +218,14 @@ class WCH_Payment_WhatsAppPay implements WCH_Payment_Gateway {
 	 */
 	public function handle_callback( $data ) {
 		// Extract payment status from webhook.
-		$entry   = $data['entry'][0] ?? array();
-		$changes = $entry['changes'][0] ?? array();
-		$value   = $changes['value'] ?? array();
+		$entry    = $data['entry'][0] ?? array();
+		$changes  = $entry['changes'][0] ?? array();
+		$value    = $changes['value'] ?? array();
 		$messages = $value['messages'] ?? array();
 
 		foreach ( $messages as $message ) {
 			if ( isset( $message['type'] ) && $message['type'] === 'order' ) {
-				$order_info = $message['order'] ?? array();
+				$order_info   = $message['order'] ?? array();
 				$reference_id = $order_info['reference_id'] ?? '';
 
 				// Extract order ID from reference.

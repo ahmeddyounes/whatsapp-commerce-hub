@@ -26,11 +26,11 @@ class WCH_Checkout_Controller {
 	/**
 	 * Checkout steps
 	 */
-	const STEP_ADDRESS = 'ADDRESS';
+	const STEP_ADDRESS         = 'ADDRESS';
 	const STEP_SHIPPING_METHOD = 'SHIPPING_METHOD';
-	const STEP_PAYMENT_METHOD = 'PAYMENT_METHOD';
-	const STEP_REVIEW = 'REVIEW';
-	const STEP_CONFIRM = 'CONFIRM';
+	const STEP_PAYMENT_METHOD  = 'PAYMENT_METHOD';
+	const STEP_REVIEW          = 'REVIEW';
+	const STEP_CONFIRM         = 'CONFIRM';
 
 	/**
 	 * Singleton instance.
@@ -76,8 +76,8 @@ class WCH_Checkout_Controller {
 	 * Constructor.
 	 */
 	private function __construct() {
-		$this->cart_manager = WCH_Cart_Manager::instance();
-		$this->customer_service = WCH_Customer_Service::instance();
+		$this->cart_manager       = WCH_Cart_Manager::instance();
+		$this->customer_service   = WCH_Customer_Service::instance();
 		$this->order_sync_service = WCH_Order_Sync_Service::instance();
 	}
 
@@ -103,10 +103,10 @@ class WCH_Checkout_Controller {
 			// Check cart not empty.
 			if ( empty( $cart['items'] ) ) {
 				return array(
-					'success' => false,
+					'success'  => false,
 					'messages' => array(
 						( new WCH_Message_Builder() )->text(
-							"Your cart is empty. Please add items before checkout."
+							'Your cart is empty. Please add items before checkout.'
 						),
 					),
 				);
@@ -118,12 +118,12 @@ class WCH_Checkout_Controller {
 			if ( ! $validation['is_valid'] ) {
 				$issues_text = "⚠️ There are issues with your cart:\n\n";
 				foreach ( $validation['issues'] as $issue ) {
-					$issues_text .= "• " . $issue['message'] . "\n";
+					$issues_text .= '• ' . $issue['message'] . "\n";
 				}
 				$issues_text .= "\nPlease review your cart and try again.";
 
 				return array(
-					'success' => false,
+					'success'  => false,
 					'messages' => array(
 						( new WCH_Message_Builder() )->text( $issues_text ),
 					),
@@ -153,7 +153,7 @@ class WCH_Checkout_Controller {
 			);
 
 			return array(
-				'success' => false,
+				'success'  => false,
 				'messages' => array(
 					( new WCH_Message_Builder() )->text(
 						'Sorry, we encountered an error starting checkout. Please try again.'
@@ -199,7 +199,7 @@ class WCH_Checkout_Controller {
 			}
 
 			return array(
-				'success' => true,
+				'success'  => true,
 				'messages' => array( $message ),
 			);
 
@@ -214,7 +214,7 @@ class WCH_Checkout_Controller {
 			);
 
 			return array(
-				'success' => false,
+				'success'  => false,
 				'messages' => array(
 					( new WCH_Message_Builder() )->text(
 						'Sorry, we could not process your address request. Please try again.'
@@ -239,7 +239,7 @@ class WCH_Checkout_Controller {
 				'Processing address input',
 				'checkout',
 				array(
-					'phone' => $conversation->customer_phone,
+					'phone'        => $conversation->customer_phone,
 					'input_length' => strlen( $input ),
 				)
 			);
@@ -249,7 +249,7 @@ class WCH_Checkout_Controller {
 			// Check if this is a saved address selection.
 			if ( preg_match( '/^saved_address_(\d+)$/', $input, $matches ) ) {
 				// Load saved address.
-				$index = intval( $matches[1] );
+				$index    = intval( $matches[1] );
 				$customer = $this->customer_service->get_or_create_profile( $conversation->customer_phone );
 
 				if ( $customer && ! empty( $customer->saved_addresses ) ) {
@@ -259,14 +259,17 @@ class WCH_Checkout_Controller {
 						WCH_Logger::info(
 							'Using saved address',
 							'checkout',
-							array( 'phone' => $conversation->customer_phone, 'index' => $index )
+							array(
+								'phone' => $conversation->customer_phone,
+								'index' => $index,
+							)
 						);
 					}
 				}
 
 				if ( ! $address ) {
 					return array(
-						'success' => false,
+						'success'  => false,
 						'messages' => array(
 							( new WCH_Message_Builder() )->text(
 								'Sorry, we could not load that saved address. Please try again.'
@@ -277,7 +280,7 @@ class WCH_Checkout_Controller {
 			} elseif ( 'new_address' === $input ) {
 				// Prompt for new address entry.
 				return array(
-					'success' => true,
+					'success'  => true,
 					'messages' => array( $this->build_new_address_prompt() ),
 				);
 			} else {
@@ -288,7 +291,7 @@ class WCH_Checkout_Controller {
 					'Parsed address from text',
 					'checkout',
 					array(
-						'phone' => $conversation->customer_phone,
+						'phone'   => $conversation->customer_phone,
 						'address' => $address,
 					)
 				);
@@ -299,7 +302,7 @@ class WCH_Checkout_Controller {
 
 			if ( ! $validation['valid'] ) {
 				return array(
-					'success' => false,
+					'success'  => false,
 					'messages' => array(
 						( new WCH_Message_Builder() )->text(
 							"⚠️ Address incomplete:\n\n" . $validation['message'] . "\n\nPlease provide a complete address."
@@ -318,7 +321,7 @@ class WCH_Checkout_Controller {
 				$wpdb->prefix . 'wch_carts',
 				array(
 					'shipping_address' => wp_json_encode( $address ),
-					'updated_at' => current_time( 'mysql' ),
+					'updated_at'       => current_time( 'mysql' ),
 				),
 				array( 'id' => $cart['id'] ),
 				array( '%s', '%s' ),
@@ -341,7 +344,7 @@ class WCH_Checkout_Controller {
 			);
 
 			return array(
-				'success' => false,
+				'success'  => false,
 				'messages' => array(
 					( new WCH_Message_Builder() )->text(
 						'Sorry, we could not process your address. Please try again.'
@@ -368,12 +371,12 @@ class WCH_Checkout_Controller {
 			);
 
 			// Get cart and address.
-			$cart = $this->cart_manager->get_cart( $conversation->customer_phone );
+			$cart    = $this->cart_manager->get_cart( $conversation->customer_phone );
 			$address = $conversation->state_data['checkout_data']['shipping_address'] ?? null;
 
 			if ( ! $address ) {
 				return array(
-					'success' => false,
+					'success'  => false,
 					'messages' => array(
 						( new WCH_Message_Builder() )->text(
 							'Address not found. Please start checkout again.'
@@ -389,9 +392,9 @@ class WCH_Checkout_Controller {
 				// No shipping available - offer free shipping or local pickup.
 				$shipping_methods = array(
 					array(
-						'id' => 'free_shipping',
+						'id'    => 'free_shipping',
 						'label' => 'Free Shipping',
-						'cost' => 0.00,
+						'cost'  => 0.00,
 					),
 				);
 			}
@@ -404,9 +407,9 @@ class WCH_Checkout_Controller {
 			$rows = array();
 			foreach ( $shipping_methods as $method ) {
 				$cost_display = $method['cost'] > 0 ? wc_price( $method['cost'] ) : 'Free';
-				$rows[] = array(
-					'id' => 'shipping_' . $method['id'],
-					'title' => $method['label'],
+				$rows[]       = array(
+					'id'          => 'shipping_' . $method['id'],
+					'title'       => $method['label'],
 					'description' => 'Cost: ' . $cost_display,
 				);
 			}
@@ -414,7 +417,7 @@ class WCH_Checkout_Controller {
 			$message->section( 'Shipping Methods', $rows );
 
 			return array(
-				'success' => true,
+				'success'  => true,
 				'messages' => array( $message ),
 			);
 
@@ -429,7 +432,7 @@ class WCH_Checkout_Controller {
 			);
 
 			return array(
-				'success' => false,
+				'success'  => false,
 				'messages' => array(
 					( new WCH_Message_Builder() )->text(
 						'Sorry, we could not load shipping methods. Please try again.'
@@ -454,7 +457,7 @@ class WCH_Checkout_Controller {
 				'Processing shipping selection',
 				'checkout',
 				array(
-					'phone' => $conversation->customer_phone,
+					'phone'  => $conversation->customer_phone,
 					'method' => $method,
 				)
 			);
@@ -463,12 +466,12 @@ class WCH_Checkout_Controller {
 			$shipping_id = str_replace( 'shipping_', '', $method );
 
 			// Get cart and address.
-			$cart = $this->cart_manager->get_cart( $conversation->customer_phone );
+			$cart    = $this->cart_manager->get_cart( $conversation->customer_phone );
 			$address = $conversation->state_data['checkout_data']['shipping_address'] ?? null;
 
 			// Find the selected shipping method.
 			$shipping_methods = $this->calculate_shipping_methods( $cart, $address );
-			$selected_method = null;
+			$selected_method  = null;
 
 			foreach ( $shipping_methods as $m ) {
 				if ( $m['id'] === $shipping_id ) {
@@ -479,7 +482,7 @@ class WCH_Checkout_Controller {
 
 			if ( ! $selected_method ) {
 				return array(
-					'success' => false,
+					'success'  => false,
 					'messages' => array(
 						( new WCH_Message_Builder() )->text(
 							'Invalid shipping method selected. Please try again.'
@@ -508,7 +511,7 @@ class WCH_Checkout_Controller {
 			);
 
 			return array(
-				'success' => false,
+				'success'  => false,
 				'messages' => array(
 					( new WCH_Message_Builder() )->text(
 						'Sorry, we could not process your shipping selection. Please try again.'
@@ -553,8 +556,8 @@ class WCH_Checkout_Controller {
 				}
 
 				$rows[] = array(
-					'id' => 'payment_' . $method['id'],
-					'title' => $method['label'],
+					'id'          => 'payment_' . $method['id'],
+					'title'       => $method['label'],
 					'description' => $description,
 				);
 			}
@@ -562,7 +565,7 @@ class WCH_Checkout_Controller {
 			$message->section( 'Payment Options', $rows );
 
 			return array(
-				'success' => true,
+				'success'  => true,
 				'messages' => array( $message ),
 			);
 
@@ -577,7 +580,7 @@ class WCH_Checkout_Controller {
 			);
 
 			return array(
-				'success' => false,
+				'success'  => false,
 				'messages' => array(
 					( new WCH_Message_Builder() )->text(
 						'Sorry, we could not load payment methods. Please try again.'
@@ -602,7 +605,7 @@ class WCH_Checkout_Controller {
 				'Processing payment selection',
 				'checkout',
 				array(
-					'phone' => $conversation->customer_phone,
+					'phone'  => $conversation->customer_phone,
 					'method' => $method,
 				)
 			);
@@ -634,7 +637,7 @@ class WCH_Checkout_Controller {
 			);
 
 			return array(
-				'success' => false,
+				'success'  => false,
 				'messages' => array(
 					( new WCH_Message_Builder() )->text(
 						'Sorry, we could not process your payment selection. Please try again.'
@@ -661,13 +664,13 @@ class WCH_Checkout_Controller {
 			);
 
 			// Get cart and checkout data.
-			$cart = $this->cart_manager->get_cart( $conversation->customer_phone );
+			$cart          = $this->cart_manager->get_cart( $conversation->customer_phone );
 			$checkout_data = $conversation->state_data['checkout_data'] ?? array();
 
-			$address = $checkout_data['shipping_address'] ?? null;
+			$address         = $checkout_data['shipping_address'] ?? null;
 			$shipping_method = $checkout_data['shipping_method'] ?? array();
-			$payment_method = $checkout_data['payment_method'] ?? '';
-			$totals = $checkout_data['totals'] ?? array();
+			$payment_method  = $checkout_data['payment_method'] ?? '';
+			$totals          = $checkout_data['totals'] ?? array();
 
 			// Build order review message.
 			$review_text = "📋 *Order Review*\n\n";
@@ -706,11 +709,11 @@ class WCH_Checkout_Controller {
 			}
 
 			// Payment Method.
-			$review_text .= "\n*Payment Method:*\n";
+			$review_text  .= "\n*Payment Method:*\n";
 			$payment_label = $this->get_payment_method_label( $payment_method );
-			$review_text .= $payment_label;
+			$review_text  .= $payment_label;
 			if ( ! empty( $totals['payment_fee'] ) && $totals['payment_fee'] > 0 ) {
-				$review_text .= sprintf( " (+ %s fee)", wc_price( $totals['payment_fee'] ) );
+				$review_text .= sprintf( ' (+ %s fee)', wc_price( $totals['payment_fee'] ) );
 			}
 			$review_text .= "\n";
 
@@ -735,7 +738,7 @@ class WCH_Checkout_Controller {
 			}
 
 			$review_text .= "━━━━━━━━━━━━━━━━━━━━\n";
-			$review_text .= sprintf( "*Total: %s*", wc_price( $totals['total'] ?? 0 ) );
+			$review_text .= sprintf( '*Total: %s*', wc_price( $totals['total'] ?? 0 ) );
 
 			// Build message with buttons.
 			$message = new WCH_Message_Builder();
@@ -744,7 +747,7 @@ class WCH_Checkout_Controller {
 			$message->button(
 				'reply',
 				array(
-					'id' => 'confirm_order',
+					'id'    => 'confirm_order',
 					'title' => 'Confirm Order',
 				)
 			);
@@ -752,7 +755,7 @@ class WCH_Checkout_Controller {
 			$message->button(
 				'reply',
 				array(
-					'id' => 'edit_address',
+					'id'    => 'edit_address',
 					'title' => 'Edit Address',
 				)
 			);
@@ -760,13 +763,13 @@ class WCH_Checkout_Controller {
 			$message->button(
 				'reply',
 				array(
-					'id' => 'cancel_checkout',
+					'id'    => 'cancel_checkout',
 					'title' => 'Cancel',
 				)
 			);
 
 			return array(
-				'success' => true,
+				'success'  => true,
 				'messages' => array( $message ),
 			);
 
@@ -781,7 +784,7 @@ class WCH_Checkout_Controller {
 			);
 
 			return array(
-				'success' => false,
+				'success'  => false,
 				'messages' => array(
 					( new WCH_Message_Builder() )->text(
 						'Sorry, we could not generate your order review. Please try again.'
@@ -808,7 +811,7 @@ class WCH_Checkout_Controller {
 			);
 
 			// Get cart and checkout data.
-			$cart = $this->cart_manager->get_cart( $conversation->customer_phone );
+			$cart          = $this->cart_manager->get_cart( $conversation->customer_phone );
 			$checkout_data = $conversation->state_data['checkout_data'] ?? array();
 
 			// Final stock check.
@@ -816,10 +819,10 @@ class WCH_Checkout_Controller {
 
 			if ( ! $validation['is_valid'] ) {
 				// Handle out of stock during checkout.
-				$issues_text = "⚠️ *Stock Update*\n\n";
+				$issues_text  = "⚠️ *Stock Update*\n\n";
 				$issues_text .= "Some items in your cart are no longer available:\n\n";
 				foreach ( $validation['issues'] as $issue ) {
-					$issues_text .= "• " . $issue['message'] . "\n";
+					$issues_text .= '• ' . $issue['message'] . "\n";
 				}
 				$issues_text .= "\nPlease review your cart and checkout again.";
 
@@ -827,7 +830,7 @@ class WCH_Checkout_Controller {
 				$conversation->current_state = WCH_Conversation_FSM::STATE_CART_MANAGEMENT;
 
 				return array(
-					'success' => false,
+					'success'  => false,
 					'messages' => array(
 						( new WCH_Message_Builder() )->text( $issues_text ),
 					),
@@ -836,11 +839,11 @@ class WCH_Checkout_Controller {
 
 			// Prepare order data.
 			$order_data = array(
-				'items' => $cart['items'],
+				'items'            => $cart['items'],
 				'shipping_address' => $this->convert_address_to_wc_format( $checkout_data['shipping_address'] ?? array() ),
-				'payment_method' => $checkout_data['payment_method'] ?? 'cod',
-				'coupon_code' => $cart['coupon_code'] ?? null,
-				'conversation_id' => $conversation->id ?? null,
+				'payment_method'   => $checkout_data['payment_method'] ?? 'cod',
+				'coupon_code'      => $cart['coupon_code'] ?? null,
+				'conversation_id'  => $conversation->id ?? null,
 			);
 
 			// Create order via Order Sync Service.
@@ -861,7 +864,7 @@ class WCH_Checkout_Controller {
 			$wpdb->update(
 				$wpdb->prefix . 'wch_carts',
 				array(
-					'status' => 'completed',
+					'status'     => 'completed',
 					'updated_at' => current_time( 'mysql' ),
 				),
 				array( 'id' => $cart['id'] ),
@@ -873,18 +876,18 @@ class WCH_Checkout_Controller {
 			$order = wc_get_order( $order_id );
 
 			// Build confirmation message.
-			$confirmation_text = "✅ *Order Confirmed!*\n\n";
+			$confirmation_text  = "✅ *Order Confirmed!*\n\n";
 			$confirmation_text .= sprintf( "Order Number: *#%s*\n\n", $order->get_order_number() );
 			$confirmation_text .= sprintf( "Total: *%s*\n\n", wc_price( $order->get_total() ) );
 			$confirmation_text .= "We'll send you updates about your order status.\n\n";
-			$confirmation_text .= "Thank you for shopping with us! 🎉";
+			$confirmation_text .= 'Thank you for shopping with us! 🎉';
 
 			// Transition to completed state.
 			$conversation->current_state = WCH_Conversation_FSM::STATE_COMPLETED;
-			$conversation->state_data = array();
+			$conversation->state_data    = array();
 
 			return array(
-				'success' => true,
+				'success'  => true,
 				'messages' => array(
 					( new WCH_Message_Builder() )->text( $confirmation_text ),
 				),
@@ -902,13 +905,13 @@ class WCH_Checkout_Controller {
 			);
 
 			// Handle payment failure or other errors.
-			$error_text = "❌ Order Failed\n\n";
+			$error_text  = "❌ Order Failed\n\n";
 			$error_text .= "We encountered an error processing your order.\n\n";
-			$error_text .= "Error: " . $e->getMessage() . "\n\n";
-			$error_text .= "Please try again or contact support.";
+			$error_text .= 'Error: ' . $e->getMessage() . "\n\n";
+			$error_text .= 'Please try again or contact support.';
 
 			return array(
-				'success' => false,
+				'success'  => false,
 				'messages' => array(
 					( new WCH_Message_Builder() )->text( $error_text ),
 				),
@@ -935,8 +938,8 @@ class WCH_Checkout_Controller {
 			$address_text = $this->format_address_summary( $address );
 
 			$rows[] = array(
-				'id' => 'saved_address_' . $index,
-				'title' => ! empty( $address['label'] ) ? $address['label'] : 'Address ' . ( $index + 1 ),
+				'id'          => 'saved_address_' . $index,
+				'title'       => ! empty( $address['label'] ) ? $address['label'] : 'Address ' . ( $index + 1 ),
 				'description' => wp_trim_words( $address_text, 10, '...' ),
 			);
 
@@ -948,8 +951,8 @@ class WCH_Checkout_Controller {
 
 		// Add "Enter New Address" option.
 		$rows[] = array(
-			'id' => 'new_address',
-			'title' => 'Enter New Address',
+			'id'          => 'new_address',
+			'title'       => 'Enter New Address',
 			'description' => 'Provide a different address',
 		);
 
@@ -1077,9 +1080,9 @@ class WCH_Checkout_Controller {
 						}
 
 						$methods[] = array(
-							'id' => $method->id . '_' . $method->instance_id,
+							'id'    => $method->id . '_' . $method->instance_id,
 							'label' => $method->get_title(),
-							'cost' => $cost,
+							'cost'  => $cost,
 						);
 					}
 				}
@@ -1089,9 +1092,9 @@ class WCH_Checkout_Controller {
 		// If no methods found, add default free shipping.
 		if ( empty( $methods ) ) {
 			$methods[] = array(
-				'id' => 'free_shipping',
+				'id'    => 'free_shipping',
 				'label' => 'Free Shipping',
-				'cost' => 0.00,
+				'cost'  => 0.00,
 			);
 		}
 
@@ -1109,48 +1112,48 @@ class WCH_Checkout_Controller {
 
 		// COD - Available everywhere.
 		$methods[] = array(
-			'id' => 'cod',
-			'label' => 'Cash on Delivery',
+			'id'          => 'cod',
+			'label'       => 'Cash on Delivery',
 			'description' => 'Pay when you receive',
-			'fee' => 0,
+			'fee'         => 0,
 		);
 
 		// UPI - Available in India.
 		if ( 'IN' === $country ) {
 			$methods[] = array(
-				'id' => 'upi',
-				'label' => 'UPI Payment',
+				'id'          => 'upi',
+				'label'       => 'UPI Payment',
 				'description' => 'Google Pay, PhonePe, Paytm',
-				'fee' => 0,
+				'fee'         => 0,
 			);
 		}
 
 		// PIX - Available in Brazil.
 		if ( 'BR' === $country ) {
 			$methods[] = array(
-				'id' => 'pix',
-				'label' => 'PIX',
+				'id'          => 'pix',
+				'label'       => 'PIX',
 				'description' => 'Instant bank transfer',
-				'fee' => 0,
+				'fee'         => 0,
 			);
 		}
 
 		// Card/Online - Available everywhere.
 		$methods[] = array(
-			'id' => 'card',
-			'label' => 'Credit/Debit Card',
+			'id'          => 'card',
+			'label'       => 'Credit/Debit Card',
 			'description' => 'Secure online payment',
-			'fee' => 0,
+			'fee'         => 0,
 		);
 
 		// WhatsApp Pay - If available.
 		$settings = WCH_Settings::getInstance();
 		if ( $settings->get( 'payment.whatsapp_pay_enabled', false ) ) {
 			$methods[] = array(
-				'id' => 'whatsapp_pay',
-				'label' => 'WhatsApp Pay',
+				'id'          => 'whatsapp_pay',
+				'label'       => 'WhatsApp Pay',
 				'description' => 'Pay within WhatsApp',
-				'fee' => 0,
+				'fee'         => 0,
 			);
 		}
 
@@ -1165,10 +1168,10 @@ class WCH_Checkout_Controller {
 	 */
 	private function get_payment_method_label( $method_id ) {
 		$labels = array(
-			'cod' => 'Cash on Delivery',
-			'upi' => 'UPI Payment',
-			'pix' => 'PIX',
-			'card' => 'Credit/Debit Card',
+			'cod'          => 'Cash on Delivery',
+			'upi'          => 'UPI Payment',
+			'pix'          => 'PIX',
+			'card'         => 'Credit/Debit Card',
 			'whatsapp_pay' => 'WhatsApp Pay',
 		);
 
@@ -1182,7 +1185,7 @@ class WCH_Checkout_Controller {
 	 * @return array Totals breakdown.
 	 */
 	private function calculate_final_totals( $conversation ) {
-		$cart = $this->cart_manager->get_cart( $conversation->customer_phone );
+		$cart          = $this->cart_manager->get_cart( $conversation->customer_phone );
 		$checkout_data = $conversation->state_data['checkout_data'] ?? array();
 
 		// Get base totals from cart.
@@ -1192,13 +1195,13 @@ class WCH_Checkout_Controller {
 		$shipping_cost = $checkout_data['shipping_method']['cost'] ?? 0.00;
 
 		// Calculate payment fee if applicable.
-		$payment_fee = 0.00;
+		$payment_fee    = 0.00;
 		$payment_method = $checkout_data['payment_method'] ?? '';
 
 		// Add payment fees based on method (can be configured).
 		if ( 'cod' === $payment_method ) {
 			// COD might have a fee.
-			$settings = WCH_Settings::getInstance();
+			$settings    = WCH_Settings::getInstance();
 			$payment_fee = floatval( $settings->get( 'payment.cod_fee', 0 ) );
 		}
 
@@ -1210,12 +1213,12 @@ class WCH_Checkout_Controller {
 			+ $payment_fee;
 
 		return array(
-			'subtotal' => $base_totals['subtotal'],
-			'discount' => $base_totals['discount'],
-			'shipping' => $shipping_cost,
-			'tax' => $base_totals['tax'],
+			'subtotal'    => $base_totals['subtotal'],
+			'discount'    => $base_totals['discount'],
+			'shipping'    => $shipping_cost,
+			'tax'         => $base_totals['tax'],
 			'payment_fee' => $payment_fee,
-			'total' => round( $total, 2 ),
+			'total'       => round( $total, 2 ),
 		);
 	}
 
@@ -1233,14 +1236,14 @@ class WCH_Checkout_Controller {
 
 		return array(
 			'first_name' => $name_parts[0] ?? '',
-			'last_name' => $name_parts[1] ?? '',
-			'company' => '',
-			'address_1' => $address['street'] ?? '',
-			'address_2' => '',
-			'city' => $address['city'] ?? '',
-			'state' => $address['state'] ?? '',
-			'postcode' => $address['postal_code'] ?? '',
-			'country' => $address['country'] ?? '',
+			'last_name'  => $name_parts[1] ?? '',
+			'company'    => '',
+			'address_1'  => $address['street'] ?? '',
+			'address_2'  => '',
+			'city'       => $address['city'] ?? '',
+			'state'      => $address['state'] ?? '',
+			'postcode'   => $address['postal_code'] ?? '',
+			'country'    => $address['country'] ?? '',
 		);
 	}
 }

@@ -206,8 +206,8 @@ class WCH_Action_RequestAddress extends WCH_Flow_Action {
 
 		// Try to parse last line as country.
 		if ( count( $lines ) > 1 ) {
-			$last_line           = array_pop( $lines );
-			$address['country']  = $last_line;
+			$last_line          = array_pop( $lines );
+			$address['country'] = $last_line;
 		}
 
 		// Second to last might be city, state, zip.

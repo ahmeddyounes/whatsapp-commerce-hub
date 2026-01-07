@@ -87,25 +87,25 @@ class WCH_Cart_Manager {
 
 		if ( $cart ) {
 			// Decode JSON fields.
-			$cart['items'] = ! empty( $cart['items'] ) ? json_decode( $cart['items'], true ) : array();
+			$cart['items']            = ! empty( $cart['items'] ) ? json_decode( $cart['items'], true ) : array();
 			$cart['shipping_address'] = ! empty( $cart['shipping_address'] ) ? json_decode( $cart['shipping_address'], true ) : null;
 			return $cart;
 		}
 
 		// Create new cart with 72-hour expiry.
-		$now = current_time( 'mysql' );
+		$now        = current_time( 'mysql' );
 		$expires_at = date( 'Y-m-d H:i:s', strtotime( '+' . self::CART_EXPIRY_HOURS . ' hours' ) );
 
 		$this->wpdb->insert(
 			$this->table_name,
 			array(
-				'customer_phone'   => $phone,
-				'items'            => wp_json_encode( array() ),
-				'total'            => 0.00,
-				'status'           => 'active',
-				'expires_at'       => $expires_at,
-				'created_at'       => $now,
-				'updated_at'       => $now,
+				'customer_phone' => $phone,
+				'items'          => wp_json_encode( array() ),
+				'total'          => 0.00,
+				'status'         => 'active',
+				'expires_at'     => $expires_at,
+				'created_at'     => $now,
+				'updated_at'     => $now,
 			),
 			array( '%s', '%s', '%f', '%s', '%s', '%s', '%s' )
 		);
@@ -147,7 +147,10 @@ class WCH_Cart_Manager {
 				'Product not found',
 				'product_not_found',
 				404,
-				array( 'product_id' => $product_id, 'variation_id' => $variation_id )
+				array(
+					'product_id'   => $product_id,
+					'variation_id' => $variation_id,
+				)
 			);
 		}
 
@@ -156,7 +159,10 @@ class WCH_Cart_Manager {
 				'Product is out of stock',
 				'out_of_stock',
 				400,
-				array( 'product_id' => $product_id, 'variation_id' => $variation_id )
+				array(
+					'product_id'   => $product_id,
+					'variation_id' => $variation_id,
+				)
 			);
 		}
 
@@ -179,18 +185,18 @@ class WCH_Cart_Manager {
 					'insufficient_stock',
 					400,
 					array(
-						'product_id'    => $product_id,
-						'variation_id'  => $variation_id,
-						'available'     => $product->get_stock_quantity(),
-						'requested'     => $total_qty,
+						'product_id'   => $product_id,
+						'variation_id' => $variation_id,
+						'available'    => $product->get_stock_quantity(),
+						'requested'    => $total_qty,
 					)
 				);
 			}
 		}
 
 		// Get product details.
-		$product_name = $product->get_name();
-		$price = floatval( $product->get_price() );
+		$product_name       = $product->get_name();
+		$price              = floatval( $product->get_price() );
 		$variant_attributes = null;
 
 		if ( $variation_id && $product->is_type( 'variation' ) ) {
@@ -202,7 +208,7 @@ class WCH_Cart_Manager {
 		foreach ( $cart['items'] as &$item ) {
 			if ( $item['product_id'] == $product_id && ( $item['variation_id'] ?? null ) == $variation_id ) {
 				$item['quantity'] += $quantity;
-				$item_exists = true;
+				$item_exists       = true;
 				break;
 			}
 		}
@@ -271,7 +277,10 @@ class WCH_Cart_Manager {
 				'Product no longer exists',
 				'product_not_found',
 				404,
-				array( 'product_id' => $item['product_id'], 'variation_id' => $item['variation_id'] ?? null )
+				array(
+					'product_id'   => $item['product_id'],
+					'variation_id' => $item['variation_id'] ?? null,
+				)
 			);
 		}
 
@@ -280,7 +289,10 @@ class WCH_Cart_Manager {
 				'Product is out of stock',
 				'out_of_stock',
 				400,
-				array( 'product_id' => $item['product_id'], 'variation_id' => $item['variation_id'] ?? null )
+				array(
+					'product_id'   => $item['product_id'],
+					'variation_id' => $item['variation_id'] ?? null,
+				)
 			);
 		}
 
@@ -291,10 +303,10 @@ class WCH_Cart_Manager {
 					'insufficient_stock',
 					400,
 					array(
-						'product_id'    => $item['product_id'],
-						'variation_id'  => $item['variation_id'] ?? null,
-						'available'     => $product->get_stock_quantity(),
-						'requested'     => $new_quantity,
+						'product_id'   => $item['product_id'],
+						'variation_id' => $item['variation_id'] ?? null,
+						'available'    => $product->get_stock_quantity(),
+						'requested'    => $new_quantity,
 					)
 				);
 			}
@@ -359,8 +371,8 @@ class WCH_Cart_Manager {
 		$cart = $this->get_cart( $phone );
 
 		// Clear items.
-		$cart['items'] = array();
-		$cart['total'] = 0.00;
+		$cart['items']       = array();
+		$cart['total']       = 0.00;
 		$cart['coupon_code'] = null;
 
 		// Save cart.
@@ -450,13 +462,16 @@ class WCH_Cart_Manager {
 		}
 
 		// Check product restrictions.
-		$product_ids = $coupon->get_product_ids();
+		$product_ids          = $coupon->get_product_ids();
 		$excluded_product_ids = $coupon->get_excluded_product_ids();
 
 		if ( ! empty( $product_ids ) || ! empty( $excluded_product_ids ) ) {
-			$cart_product_ids = array_map( function( $item ) {
-				return $item['product_id'];
-			}, $cart['items'] );
+			$cart_product_ids = array_map(
+				function ( $item ) {
+					return $item['product_id'];
+				},
+				$cart['items']
+			);
 
 			// If specific products are required.
 			if ( ! empty( $product_ids ) ) {
@@ -565,13 +580,13 @@ class WCH_Cart_Manager {
 			$tax_rates = WC_Tax::get_base_tax_rates();
 			if ( ! empty( $tax_rates ) ) {
 				$tax_rate = reset( $tax_rates );
-				$tax = ( $amount_after_discount * $tax_rate['rate'] ) / 100;
+				$tax      = ( $amount_after_discount * $tax_rate['rate'] ) / 100;
 			}
 		}
 
 		// Get shipping estimate (simplified - using flat rate or free shipping).
 		$shipping_estimate = 0.00;
-		$shipping_zones = WC_Shipping_Zones::get_zones();
+		$shipping_zones    = WC_Shipping_Zones::get_zones();
 		if ( ! empty( $shipping_zones ) ) {
 			$zone = reset( $shipping_zones );
 			if ( isset( $zone['shipping_methods'] ) ) {
@@ -628,9 +643,9 @@ class WCH_Cart_Manager {
 			}
 
 			$product_name = $product->get_name();
-			$price = floatval( $product->get_price() );
-			$quantity = $item['quantity'];
-			$line_total = $price * $quantity;
+			$price        = floatval( $product->get_price() );
+			$quantity     = $item['quantity'];
+			$line_total   = $price * $quantity;
 
 			$message .= sprintf(
 				"%d. *%s*\n   Qty: %d × %s = *%s*\n\n",
@@ -672,7 +687,7 @@ class WCH_Cart_Manager {
 
 		// Add total.
 		$message .= "━━━━━━━━━━━━━━━━━━━━\n";
-		$message .= sprintf( "*Total: %s*", wc_price( $totals['total'] ) );
+		$message .= sprintf( '*Total: %s*', wc_price( $totals['total'] ) );
 
 		return $message;
 	}
@@ -689,7 +704,7 @@ class WCH_Cart_Manager {
 		// Get cart.
 		$cart = $this->get_cart( $phone );
 
-		$issues = array();
+		$issues   = array();
 		$is_valid = true;
 
 		foreach ( $cart['items'] as $index => $item ) {
@@ -826,7 +841,7 @@ class WCH_Cart_Manager {
 				continue;
 			}
 
-			$price = floatval( $product->get_price() );
+			$price  = floatval( $product->get_price() );
 			$total += $price * intval( $item['quantity'] );
 		}
 
@@ -859,7 +874,7 @@ class WCH_Cart_Manager {
 
 		// Decode JSON fields.
 		foreach ( $carts as &$cart ) {
-			$cart['items'] = ! empty( $cart['items'] ) ? json_decode( $cart['items'], true ) : array();
+			$cart['items']            = ! empty( $cart['items'] ) ? json_decode( $cart['items'], true ) : array();
 			$cart['shipping_address'] = ! empty( $cart['shipping_address'] ) ? json_decode( $cart['shipping_address'], true ) : null;
 		}
 

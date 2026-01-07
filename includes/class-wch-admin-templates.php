@@ -97,8 +97,8 @@ class WCH_Admin_Templates {
 			wp_safe_redirect(
 				add_query_arg(
 					array(
-						'page'    => 'wch-templates',
-						'synced'  => count( $templates ),
+						'page'   => 'wch-templates',
+						'synced' => count( $templates ),
 					),
 					admin_url( 'admin.php' )
 				)

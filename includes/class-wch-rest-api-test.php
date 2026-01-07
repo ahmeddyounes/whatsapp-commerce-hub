@@ -36,7 +36,7 @@ class WCH_REST_API_Test extends WCH_Test {
 	public function setup() {
 		parent::setup();
 
-		$this->api = WCH_REST_API::getInstance();
+		$this->api        = WCH_REST_API::getInstance();
 		$this->controller = new WCH_Test_REST_Controller();
 	}
 
@@ -129,7 +129,7 @@ class WCH_REST_API_Test extends WCH_Test {
 	 */
 	public function test_check_api_key_permission_missing() {
 		$request = new WP_REST_Request( 'GET', '/wch/v1/test' );
-		$result = $this->controller->check_api_key_permission( $request );
+		$result  = $this->controller->check_api_key_permission( $request );
 
 		$this->assert_instance_of( 'WP_Error', $result, 'Should return WP_Error for missing API key' );
 		$this->assert_equals( 'wch_rest_missing_api_key', $result->get_error_code(), 'Error code should be wch_rest_missing_api_key' );
@@ -160,7 +160,7 @@ class WCH_REST_API_Test extends WCH_Test {
 	public function test_check_api_key_permission_valid() {
 		// Set a test API key hash.
 		$settings = WCH_Settings::getInstance();
-		$api_key = 'test-api-key';
+		$api_key  = 'test-api-key';
 		$settings->set( 'api.api_key_hash', wp_hash_password( $api_key ) );
 
 		$request = new WP_REST_Request( 'GET', '/wch/v1/test' );
@@ -178,7 +178,7 @@ class WCH_REST_API_Test extends WCH_Test {
 	 */
 	public function test_check_webhook_signature_missing() {
 		$request = new WP_REST_Request( 'POST', '/wch/v1/webhook' );
-		$result = $this->controller->check_webhook_signature( $request );
+		$result  = $this->controller->check_webhook_signature( $request );
 
 		$this->assert_instance_of( 'WP_Error', $result, 'Should return WP_Error for missing signature' );
 		$this->assert_equals( 'wch_rest_missing_signature', $result->get_error_code(), 'Error code should be wch_rest_missing_signature' );
@@ -210,10 +210,10 @@ class WCH_REST_API_Test extends WCH_Test {
 	public function test_check_webhook_signature_valid() {
 		// Set a test webhook secret.
 		$settings = WCH_Settings::getInstance();
-		$secret = 'test-secret';
+		$secret   = 'test-secret';
 		$settings->set( 'api.webhook_secret', $secret );
 
-		$body = '{"test": "data"}';
+		$body      = '{"test": "data"}';
 		$signature = 'sha256=' . hash_hmac( 'sha256', $body, $secret );
 
 		$request = new WP_REST_Request( 'POST', '/wch/v1/webhook' );
@@ -250,8 +250,8 @@ class WCH_REST_API_Test extends WCH_Test {
 	 * Test prepare response.
 	 */
 	public function test_prepare_response() {
-		$data = array( 'test' => 'data' );
-		$request = new WP_REST_Request( 'GET', '/wch/v1/test' );
+		$data     = array( 'test' => 'data' );
+		$request  = new WP_REST_Request( 'GET', '/wch/v1/test' );
 		$response = $this->controller->prepare_response( $data, $request );
 
 		$this->assert_instance_of( 'WP_REST_Response', $response, 'Should return WP_REST_Response' );

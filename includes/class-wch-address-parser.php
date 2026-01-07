@@ -29,17 +29,17 @@ class WCH_Address_Parser {
 	 */
 	public static function parse( $text ) {
 		// Clean and split into lines.
-		$text = trim( $text );
+		$text  = trim( $text );
 		$lines = array_filter( array_map( 'trim', explode( "\n", $text ) ) );
 
 		// Initialize address structure.
 		$address = array(
-			'name' => '',
-			'street' => '',
-			'city' => '',
-			'state' => '',
+			'name'        => '',
+			'street'      => '',
+			'city'        => '',
+			'state'       => '',
 			'postal_code' => '',
-			'country' => '',
+			'country'     => '',
 		);
 
 		if ( empty( $lines ) ) {
@@ -55,7 +55,7 @@ class WCH_Address_Parser {
 
 		// Extract country (last line).
 		if ( $line_count > 0 ) {
-			$last_line = array_pop( $lines );
+			$last_line          = array_pop( $lines );
 			$address['country'] = self::parse_country( $last_line );
 
 			// If country not recognized, treat as part of address.
@@ -69,8 +69,8 @@ class WCH_Address_Parser {
 			$location_line = array_pop( $lines );
 			$location_data = self::parse_location_line( $location_line );
 
-			$address['city'] = $location_data['city'];
-			$address['state'] = $location_data['state'];
+			$address['city']        = $location_data['city'];
+			$address['state']       = $location_data['state'];
 			$address['postal_code'] = $location_data['postal_code'];
 
 			// If nothing was extracted, add back to lines.
@@ -116,8 +116,8 @@ class WCH_Address_Parser {
 	 */
 	private static function parse_location_line( $line ) {
 		$data = array(
-			'city' => '',
-			'state' => '',
+			'city'        => '',
+			'state'       => '',
 			'postal_code' => '',
 		);
 
@@ -171,7 +171,7 @@ class WCH_Address_Parser {
 			$data['state'] = $second_part;
 		} elseif ( count( $parts ) >= 3 ) {
 			// Three or more parts: "City, State, ..." - take first two.
-			$data['city'] = trim( $parts[0] );
+			$data['city']  = trim( $parts[0] );
 			$data['state'] = trim( $parts[1] );
 		}
 
@@ -191,31 +191,31 @@ class WCH_Address_Parser {
 
 		// Common country mappings.
 		$countries = array(
-			'USA' => 'US',
-			'United States' => 'US',
+			'USA'                      => 'US',
+			'United States'            => 'US',
 			'United States of America' => 'US',
-			'US' => 'US',
-			'Canada' => 'CA',
-			'CA' => 'CA',
-			'United Kingdom' => 'GB',
-			'UK' => 'GB',
-			'GB' => 'GB',
-			'India' => 'IN',
-			'IN' => 'IN',
-			'Brazil' => 'BR',
-			'BR' => 'BR',
-			'Australia' => 'AU',
-			'AU' => 'AU',
-			'Germany' => 'DE',
-			'DE' => 'DE',
-			'France' => 'FR',
-			'FR' => 'FR',
-			'Italy' => 'IT',
-			'IT' => 'IT',
-			'Spain' => 'ES',
-			'ES' => 'ES',
-			'Mexico' => 'MX',
-			'MX' => 'MX',
+			'US'                       => 'US',
+			'Canada'                   => 'CA',
+			'CA'                       => 'CA',
+			'United Kingdom'           => 'GB',
+			'UK'                       => 'GB',
+			'GB'                       => 'GB',
+			'India'                    => 'IN',
+			'IN'                       => 'IN',
+			'Brazil'                   => 'BR',
+			'BR'                       => 'BR',
+			'Australia'                => 'AU',
+			'AU'                       => 'AU',
+			'Germany'                  => 'DE',
+			'DE'                       => 'DE',
+			'France'                   => 'FR',
+			'FR'                       => 'FR',
+			'Italy'                    => 'IT',
+			'IT'                       => 'IT',
+			'Spain'                    => 'ES',
+			'ES'                       => 'ES',
+			'Mexico'                   => 'MX',
+			'MX'                       => 'MX',
 		);
 
 		// Check for exact match (case-insensitive).
@@ -284,10 +284,10 @@ class WCH_Address_Parser {
 	 */
 	public static function validate( $address ) {
 		$required_fields = array(
-			'street' => 'Street address',
-			'city' => 'City',
+			'street'      => 'Street address',
+			'city'        => 'City',
 			'postal_code' => 'Postal code',
-			'country' => 'Country',
+			'country'     => 'Country',
 		);
 
 		$missing_fields = array();
@@ -300,7 +300,7 @@ class WCH_Address_Parser {
 
 		if ( ! empty( $missing_fields ) ) {
 			return array(
-				'valid' => false,
+				'valid'   => false,
 				'message' => 'Missing required fields: ' . implode( ', ', $missing_fields ),
 			);
 		}
@@ -308,13 +308,13 @@ class WCH_Address_Parser {
 		// Additional validation: postal code format.
 		if ( ! self::validate_postal_code( $address['postal_code'], $address['country'] ) ) {
 			return array(
-				'valid' => false,
+				'valid'   => false,
 				'message' => 'Invalid postal code format for ' . $address['country'],
 			);
 		}
 
 		return array(
-			'valid' => true,
+			'valid'   => true,
 			'message' => 'Address is valid',
 		);
 	}

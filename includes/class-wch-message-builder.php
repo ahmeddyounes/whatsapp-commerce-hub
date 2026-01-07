@@ -76,13 +76,13 @@ class WCH_Message_Builder {
 	/**
 	 * Validation constraints
 	 */
-	const MAX_TEXT_LENGTH          = 4096;
-	const MAX_HEADER_TEXT_LENGTH   = 60;
-	const MAX_BODY_LENGTH          = 1024;
-	const MAX_FOOTER_LENGTH        = 60;
-	const MAX_BUTTONS              = 3;
-	const MAX_SECTIONS             = 10;
-	const MAX_ROWS_PER_SECTION     = 10;
+	const MAX_TEXT_LENGTH        = 4096;
+	const MAX_HEADER_TEXT_LENGTH = 60;
+	const MAX_BODY_LENGTH        = 1024;
+	const MAX_FOOTER_LENGTH      = 60;
+	const MAX_BUTTONS            = 3;
+	const MAX_SECTIONS           = 10;
+	const MAX_ROWS_PER_SECTION   = 10;
 
 	/**
 	 * Set text content for simple text message
@@ -105,7 +105,7 @@ class WCH_Message_Builder {
 	 */
 	public function header( $type, $content ) {
 		$this->header = array(
-			'type' => $type,
+			'type'    => $type,
 			'content' => $content,
 		);
 		return $this;
@@ -146,7 +146,7 @@ class WCH_Message_Builder {
 			'type' => $type,
 			'data' => $data,
 		);
-		$this->type = 'interactive';
+		$this->type      = 'interactive';
 		return $this;
 	}
 
@@ -162,7 +162,7 @@ class WCH_Message_Builder {
 			'title' => $title,
 			'rows'  => $rows,
 		);
-		$this->type = 'interactive';
+		$this->type       = 'interactive';
 		return $this;
 	}
 
@@ -173,8 +173,8 @@ class WCH_Message_Builder {
 	 * @return self
 	 */
 	public function product( $product_id ) {
-		$this->products   = array( $product_id );
-		$this->type       = 'interactive';
+		$this->products = array( $product_id );
+		$this->type     = 'interactive';
 		return $this;
 	}
 
@@ -281,7 +281,7 @@ class WCH_Message_Builder {
 			);
 		} elseif ( 'product' === $interactive_type ) {
 			$message['interactive']['action'] = array(
-				'catalog_id'       => $this->get_catalog_id(),
+				'catalog_id'          => $this->get_catalog_id(),
 				'product_retailer_id' => $this->products[0],
 			);
 		} elseif ( 'product_list' === $interactive_type ) {
@@ -363,7 +363,10 @@ class WCH_Message_Builder {
 						count( $this->buttons )
 					),
 					'MESSAGE_VALIDATION_ERROR',
-					array( 'max_buttons' => self::MAX_BUTTONS, 'provided' => count( $this->buttons ) )
+					array(
+						'max_buttons' => self::MAX_BUTTONS,
+						'provided'    => count( $this->buttons ),
+					)
 				);
 			}
 
@@ -385,7 +388,10 @@ class WCH_Message_Builder {
 						count( $this->sections )
 					),
 					'MESSAGE_VALIDATION_ERROR',
-					array( 'max_sections' => self::MAX_SECTIONS, 'provided' => count( $this->sections ) )
+					array(
+						'max_sections' => self::MAX_SECTIONS,
+						'provided'     => count( $this->sections ),
+					)
 				);
 			}
 
@@ -444,7 +450,7 @@ class WCH_Message_Builder {
 	 * @return array
 	 */
 	private function build_header() {
-		$type = $this->header['type'];
+		$type    = $this->header['type'];
 		$content = $this->header['content'];
 
 		if ( 'text' === $type ) {
@@ -457,7 +463,7 @@ class WCH_Message_Builder {
 		// For media types (image, document, video)
 		return array(
 			'type' => $type,
-			$type => array(
+			$type  => array(
 				'link' => $content, // Assuming content is a URL
 			),
 		);
@@ -493,7 +499,7 @@ class WCH_Message_Builder {
 				);
 			} elseif ( 'phone' === $type ) {
 				$formatted_buttons[] = array(
-					'type'  => 'phone_number',
+					'type'         => 'phone_number',
 					'phone_number' => array(
 						'display_text' => $data['title'],
 						'phone_number' => $data['phone'],
@@ -503,9 +509,9 @@ class WCH_Message_Builder {
 				$formatted_buttons[] = array(
 					'type' => 'flow',
 					'flow' => array(
-						'id'                => $data['flow_id'],
-						'cta'               => $data['title'],
-						'flow_action'       => $data['action'] ?? 'navigate',
+						'id'                  => $data['flow_id'],
+						'cta'                 => $data['title'],
+						'flow_action'         => $data['action'] ?? 'navigate',
 						'flow_action_payload' => $data['payload'] ?? array(),
 					),
 				);
@@ -551,7 +557,7 @@ class WCH_Message_Builder {
 	private function build_product_sections() {
 		return array(
 			array(
-				'title'              => 'Products',
+				'title'         => 'Products',
 				'product_items' => array_map(
 					function ( $product_id ) {
 						return array( 'product_retailer_id' => $product_id );

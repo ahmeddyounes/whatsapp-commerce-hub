@@ -92,10 +92,10 @@ class WCH_AI_Assistant {
 		$this->settings = WCH_Settings::getInstance();
 
 		// Load config from settings or provided config.
-		$this->api_key      = $config['api_key'] ?? $this->settings->get( 'ai.openai_api_key', '' );
-		$this->model        = $config['model'] ?? $this->settings->get( 'ai.ai_model', 'gpt-4' );
-		$this->temperature  = $config['temperature'] ?? $this->settings->get( 'ai.ai_temperature', 0.7 );
-		$this->max_tokens   = $config['max_tokens'] ?? $this->settings->get( 'ai.ai_max_tokens', 500 );
+		$this->api_key       = $config['api_key'] ?? $this->settings->get( 'ai.openai_api_key', '' );
+		$this->model         = $config['model'] ?? $this->settings->get( 'ai.ai_model', 'gpt-4' );
+		$this->temperature   = $config['temperature'] ?? $this->settings->get( 'ai.ai_temperature', 0.7 );
+		$this->max_tokens    = $config['max_tokens'] ?? $this->settings->get( 'ai.ai_max_tokens', 500 );
 		$this->system_prompt = $config['system_prompt'] ?? $this->settings->get( 'ai.ai_system_prompt', '' );
 
 		// Initialize function definitions.
@@ -317,7 +317,7 @@ class WCH_AI_Assistant {
 
 		// Add business identity.
 		$business_name = $this->settings->get( 'general.business_name', get_bloginfo( 'name' ) );
-		$prompt .= "\n\nBusiness: {$business_name}";
+		$prompt       .= "\n\nBusiness: {$business_name}";
 
 		// Add tone guidelines.
 		$prompt .= "\n\nTone Guidelines: Be friendly, professional, and concise. Use emojis sparingly.";
@@ -330,7 +330,7 @@ class WCH_AI_Assistant {
 
 		// Add current conversation state.
 		if ( ! empty( $context['current_state'] ) ) {
-			$state = $context['current_state'];
+			$state   = $context['current_state'];
 			$prompt .= "\n\nCurrent State: {$state}";
 
 			// State-specific instructions.
@@ -360,13 +360,13 @@ class WCH_AI_Assistant {
 
 		if ( ! empty( $context['previous_orders'] ) ) {
 			$order_count = count( $context['previous_orders'] );
-			$prompt .= "\n\nThis customer has {$order_count} previous orders.";
+			$prompt     .= "\n\nThis customer has {$order_count} previous orders.";
 		}
 
 		// Add cart information.
 		if ( ! empty( $context['cart_items'] ) ) {
 			$cart_count = count( $context['cart_items'] );
-			$prompt .= "\n\nCurrent cart has {$cart_count} items.";
+			$prompt    .= "\n\nCurrent cart has {$cart_count} items.";
 		}
 
 		/**
@@ -404,7 +404,7 @@ class WCH_AI_Assistant {
 				},
 				$categories
 			);
-			$summary .= 'Top Categories: ' . implode( ', ', $cat_names );
+			$summary  .= 'Top Categories: ' . implode( ', ', $cat_names );
 		}
 
 		// Get current promotions/sale products.
@@ -513,7 +513,7 @@ class WCH_AI_Assistant {
 	 * @return array Processed response with text and actions.
 	 */
 	private function process_api_response( $api_response, $context ) {
-		$choice = $api_response['choices'][0];
+		$choice  = $api_response['choices'][0];
 		$message = $choice['message'];
 
 		$result = array(
@@ -688,8 +688,8 @@ class WCH_AI_Assistant {
 			'in_stock'    => $product->is_in_stock(),
 		);
 
-		$text = "{$details['name']}\n";
-		$text .= "Price: " . wc_price( $details['price'] ) . "\n";
+		$text  = "{$details['name']}\n";
+		$text .= 'Price: ' . wc_price( $details['price'] ) . "\n";
 		if ( ! empty( $details['description'] ) ) {
 			$text .= "\n" . wp_strip_all_tags( $details['description'] );
 		}
@@ -853,7 +853,7 @@ class WCH_AI_Assistant {
 			$calls = 0;
 		}
 
-		$calls++;
+		++$calls;
 		wp_cache_set( $cache_key, $calls, 'wch_ai', HOUR_IN_SECONDS );
 	}
 
@@ -868,7 +868,7 @@ class WCH_AI_Assistant {
 			return;
 		}
 
-		$usage = $api_response['usage'];
+		$usage             = $api_response['usage'];
 		$prompt_tokens     = $usage['prompt_tokens'] ?? 0;
 		$completion_tokens = $usage['completion_tokens'] ?? 0;
 		$total_tokens      = $usage['total_tokens'] ?? 0;
@@ -904,15 +904,18 @@ class WCH_AI_Assistant {
 		$current_month = gmdate( 'Y-m' );
 		$usage_key     = 'wch_ai_usage_' . $current_month;
 
-		$usage = get_option( $usage_key, array(
-			'tokens' => 0,
-			'cost'   => 0.0,
-			'calls'  => 0,
-		) );
+		$usage = get_option(
+			$usage_key,
+			array(
+				'tokens' => 0,
+				'cost'   => 0.0,
+				'calls'  => 0,
+			)
+		);
 
 		$usage['tokens'] += $tokens;
 		$usage['cost']   += $cost;
-		$usage['calls']++;
+		++$usage['calls'];
 
 		update_option( $usage_key, $usage );
 
@@ -954,10 +957,13 @@ class WCH_AI_Assistant {
 		$current_month = gmdate( 'Y-m' );
 		$usage_key     = 'wch_ai_usage_' . $current_month;
 
-		return get_option( $usage_key, array(
-			'tokens' => 0,
-			'cost'   => 0.0,
-			'calls'  => 0,
-		) );
+		return get_option(
+			$usage_key,
+			array(
+				'tokens' => 0,
+				'cost'   => 0.0,
+				'calls'  => 0,
+			)
+		);
 	}
 }

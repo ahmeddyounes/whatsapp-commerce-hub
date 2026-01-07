@@ -285,7 +285,12 @@ class WCH_Admin_Broadcasts {
 									<select name="category_id" style="width: 200px;">
 										<option value=""><?php esc_html_e( 'Select category', 'whatsapp-commerce-hub' ); ?></option>
 										<?php
-										$categories = get_terms( array( 'taxonomy' => 'product_cat', 'hide_empty' => false ) );
+										$categories = get_terms(
+											array(
+												'taxonomy' => 'product_cat',
+												'hide_empty' => false,
+											)
+										);
 										foreach ( $categories as $category ) {
 											echo '<option value="' . esc_attr( $category->term_id ) . '">' . esc_html( $category->name ) . '</option>';
 										}
@@ -369,18 +374,18 @@ class WCH_Admin_Broadcasts {
 										$selected_tz = $tzstring ? $tzstring : 'UTC';
 
 										$timezones = array(
-											'UTC'                => 'UTC',
-											'America/New_York'   => 'Eastern Time',
-											'America/Chicago'    => 'Central Time',
-											'America/Denver'     => 'Mountain Time',
+											'UTC'          => 'UTC',
+											'America/New_York' => 'Eastern Time',
+											'America/Chicago' => 'Central Time',
+											'America/Denver' => 'Mountain Time',
 											'America/Los_Angeles' => 'Pacific Time',
-											'Europe/London'      => 'London',
-											'Europe/Paris'       => 'Paris',
-											'Asia/Dubai'         => 'Dubai',
-											'Asia/Kolkata'       => 'India',
-											'Asia/Singapore'     => 'Singapore',
-											'Asia/Tokyo'         => 'Tokyo',
-											'Australia/Sydney'   => 'Sydney',
+											'Europe/London' => 'London',
+											'Europe/Paris' => 'Paris',
+											'Asia/Dubai'   => 'Dubai',
+											'Asia/Kolkata' => 'India',
+											'Asia/Singapore' => 'Singapore',
+											'Asia/Tokyo'   => 'Tokyo',
+											'Australia/Sydney' => 'Sydney',
 										);
 
 										foreach ( $timezones as $tz => $label ) {
@@ -602,10 +607,10 @@ class WCH_Admin_Broadcasts {
 			return '-';
 		}
 
-		$stats = isset( $campaign['stats'] ) ? $campaign['stats'] : array();
-		$sent  = $stats['sent'] ?? 0;
+		$stats     = isset( $campaign['stats'] ) ? $campaign['stats'] : array();
+		$sent      = $stats['sent'] ?? 0;
 		$delivered = $stats['delivered'] ?? 0;
-		$read  = $stats['read'] ?? 0;
+		$read      = $stats['read'] ?? 0;
 
 		return sprintf(
 			'<span class="wch-stats-compact">%d / %d / %d</span>',
@@ -681,11 +686,14 @@ class WCH_Admin_Broadcasts {
 		$campaigns = get_option( 'wch_broadcast_campaigns', array() );
 
 		// Sort by created_at descending
-		usort( $campaigns, function( $a, $b ) {
-			$time_a = strtotime( $a['created_at'] ?? '0' );
-			$time_b = strtotime( $b['created_at'] ?? '0' );
-			return $time_b - $time_a;
-		});
+		usort(
+			$campaigns,
+			function ( $a, $b ) {
+				$time_a = strtotime( $a['created_at'] ?? '0' );
+				$time_b = strtotime( $b['created_at'] ?? '0' );
+				return $time_b - $time_a;
+			}
+		);
 
 		return $campaigns;
 	}
@@ -778,14 +786,14 @@ class WCH_Admin_Broadcasts {
 
 		// Start with all opted-in customers from customer profiles
 		$table_name = $wpdb->prefix . 'wch_customer_profiles';
-		$query = "SELECT COUNT(DISTINCT phone) FROM $table_name WHERE opt_in_marketing = 1";
+		$query      = "SELECT COUNT(DISTINCT phone) FROM $table_name WHERE opt_in_marketing = 1";
 
 		$where_clauses = array( 'opt_in_marketing = 1' );
 
 		// Recent orders filter
 		if ( ! empty( $criteria['audience_recent_orders'] ) && ! empty( $criteria['recent_orders_days'] ) ) {
-			$days = absint( $criteria['recent_orders_days'] );
-			$date_threshold = gmdate( 'Y-m-d H:i:s', strtotime( "-$days days" ) );
+			$days            = absint( $criteria['recent_orders_days'] );
+			$date_threshold  = gmdate( 'Y-m-d H:i:s', strtotime( "-$days days" ) );
 			$where_clauses[] = "last_order_date >= '$date_threshold'";
 		}
 
@@ -832,17 +840,17 @@ class WCH_Admin_Broadcasts {
 
 		// Prepare campaign data
 		$campaign = array(
-			'id'             => $campaign_id > 0 ? $campaign_id : time(),
-			'name'           => sanitize_text_field( $campaign_data['name'] ?? '' ),
-			'template_name'  => sanitize_text_field( $campaign_data['template_name'] ?? '' ),
-			'template_data'  => $campaign_data['template_data'] ?? array(),
-			'audience'       => $campaign_data['audience'] ?? array(),
-			'audience_size'  => absint( $campaign_data['audience_size'] ?? 0 ),
+			'id'              => $campaign_id > 0 ? $campaign_id : time(),
+			'name'            => sanitize_text_field( $campaign_data['name'] ?? '' ),
+			'template_name'   => sanitize_text_field( $campaign_data['template_name'] ?? '' ),
+			'template_data'   => $campaign_data['template_data'] ?? array(),
+			'audience'        => $campaign_data['audience'] ?? array(),
+			'audience_size'   => absint( $campaign_data['audience_size'] ?? 0 ),
 			'personalization' => $campaign_data['personalization'] ?? array(),
-			'schedule'       => $campaign_data['schedule'] ?? array(),
-			'status'         => 'draft',
-			'created_at'     => $campaign_data['created_at'] ?? gmdate( 'Y-m-d H:i:s' ),
-			'updated_at'     => gmdate( 'Y-m-d H:i:s' ),
+			'schedule'        => $campaign_data['schedule'] ?? array(),
+			'status'          => 'draft',
+			'created_at'      => $campaign_data['created_at'] ?? gmdate( 'Y-m-d H:i:s' ),
+			'updated_at'      => gmdate( 'Y-m-d H:i:s' ),
 		);
 
 		// Update existing or add new
@@ -850,7 +858,7 @@ class WCH_Admin_Broadcasts {
 		foreach ( $campaigns as $index => $existing ) {
 			if ( $existing['id'] === $campaign['id'] ) {
 				$campaigns[ $index ] = $campaign;
-				$found = true;
+				$found               = true;
 				break;
 			}
 		}
@@ -861,10 +869,12 @@ class WCH_Admin_Broadcasts {
 
 		update_option( 'wch_broadcast_campaigns', $campaigns );
 
-		wp_send_json_success( array(
-			'message'  => __( 'Campaign saved successfully', 'whatsapp-commerce-hub' ),
-			'campaign' => $campaign,
-		) );
+		wp_send_json_success(
+			array(
+				'message'  => __( 'Campaign saved successfully', 'whatsapp-commerce-hub' ),
+				'campaign' => $campaign,
+			)
+		);
 	}
 
 	/**
@@ -907,16 +917,16 @@ class WCH_Admin_Broadcasts {
 		$schedule = $campaign['schedule'] ?? array();
 
 		if ( isset( $schedule['timing'] ) && 'scheduled' === $schedule['timing'] ) {
-			$campaign['status'] = 'scheduled';
+			$campaign['status']       = 'scheduled';
 			$campaign['scheduled_at'] = $schedule['datetime'] ?? gmdate( 'Y-m-d H:i:s' );
 
 			// Schedule the broadcast job
 			$scheduled_time = strtotime( $campaign['scheduled_at'] );
-			$delay = max( 0, $scheduled_time - time() );
+			$delay          = max( 0, $scheduled_time - time() );
 
 			self::schedule_broadcast( $campaign, $delay );
 		} else {
-			$campaign['status'] = 'sending';
+			$campaign['status']  = 'sending';
 			$campaign['sent_at'] = gmdate( 'Y-m-d H:i:s' );
 
 			// Send immediately
@@ -925,10 +935,12 @@ class WCH_Admin_Broadcasts {
 
 		update_option( 'wch_broadcast_campaigns', $campaigns );
 
-		wp_send_json_success( array(
-			'message'  => __( 'Campaign scheduled successfully', 'whatsapp-commerce-hub' ),
-			'campaign' => $campaign,
-		) );
+		wp_send_json_success(
+			array(
+				'message'  => __( 'Campaign scheduled successfully', 'whatsapp-commerce-hub' ),
+				'campaign' => $campaign,
+			)
+		);
 	}
 
 	/**
@@ -977,7 +989,7 @@ class WCH_Admin_Broadcasts {
 		global $wpdb;
 
 		$table_name = $wpdb->prefix . 'wch_customer_profiles';
-		$query = "SELECT phone FROM $table_name WHERE opt_in_marketing = 1";
+		$query      = "SELECT phone FROM $table_name WHERE opt_in_marketing = 1";
 
 		// Apply audience filters
 		$audience = $campaign['audience'] ?? array();
@@ -986,8 +998,8 @@ class WCH_Admin_Broadcasts {
 		$where_clauses = array( 'opt_in_marketing = 1' );
 
 		if ( ! empty( $audience['recent_orders_days'] ) ) {
-			$days = absint( $audience['recent_orders_days'] );
-			$date_threshold = gmdate( 'Y-m-d H:i:s', strtotime( "-$days days" ) );
+			$days            = absint( $audience['recent_orders_days'] );
+			$date_threshold  = gmdate( 'Y-m-d H:i:s', strtotime( "-$days days" ) );
 			$where_clauses[] = "last_order_date >= '$date_threshold'";
 		}
 
@@ -1007,7 +1019,7 @@ class WCH_Admin_Broadcasts {
 	 * @return array Message data.
 	 */
 	private static function build_campaign_message( $campaign ) {
-		$template_data = $campaign['template_data'] ?? array();
+		$template_data   = $campaign['template_data'] ?? array();
 		$personalization = $campaign['personalization'] ?? array();
 
 		// This would use WCH_Message_Builder to construct the message
@@ -1128,10 +1140,12 @@ class WCH_Admin_Broadcasts {
 			wp_send_json_error( array( 'message' => __( 'Campaign not found', 'whatsapp-commerce-hub' ) ) );
 		}
 
-		wp_send_json_success( array(
-			'campaign' => $campaign,
-			'stats'    => $campaign['stats'] ?? array(),
-		) );
+		wp_send_json_success(
+			array(
+				'campaign' => $campaign,
+				'stats'    => $campaign['stats'] ?? array(),
+			)
+		);
 	}
 
 	/**
@@ -1157,10 +1171,10 @@ class WCH_Admin_Broadcasts {
 		}
 
 		// Create duplicate
-		$duplicate = $original;
-		$duplicate['id'] = time();
-		$duplicate['name'] = $original['name'] . ' (Copy)';
-		$duplicate['status'] = 'draft';
+		$duplicate               = $original;
+		$duplicate['id']         = time();
+		$duplicate['name']       = $original['name'] . ' (Copy)';
+		$duplicate['status']     = 'draft';
 		$duplicate['created_at'] = gmdate( 'Y-m-d H:i:s' );
 		$duplicate['updated_at'] = gmdate( 'Y-m-d H:i:s' );
 		unset( $duplicate['sent_at'] );
@@ -1171,9 +1185,11 @@ class WCH_Admin_Broadcasts {
 		$campaigns[] = $duplicate;
 		update_option( 'wch_broadcast_campaigns', $campaigns );
 
-		wp_send_json_success( array(
-			'message'  => __( 'Campaign duplicated', 'whatsapp-commerce-hub' ),
-			'campaign' => $duplicate,
-		) );
+		wp_send_json_success(
+			array(
+				'message'  => __( 'Campaign duplicated', 'whatsapp-commerce-hub' ),
+				'campaign' => $duplicate,
+			)
+		);
 	}
 }

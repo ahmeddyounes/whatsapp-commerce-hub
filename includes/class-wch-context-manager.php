@@ -51,7 +51,7 @@ class WCH_Context_Manager {
 	 */
 	public function get_context( $conversation_id ) {
 		// Try to get from cache first.
-		$cache_key = 'context_' . $conversation_id;
+		$cache_key      = 'context_' . $conversation_id;
 		$cached_context = wp_cache_get( $cache_key, $this->cache_group );
 
 		if ( false !== $cached_context ) {
@@ -60,7 +60,7 @@ class WCH_Context_Manager {
 
 		// Load from database.
 		$table_name = $this->wpdb->prefix . 'wch_conversations';
-		$row = $this->wpdb->get_row(
+		$row        = $this->wpdb->get_row(
 			$this->wpdb->prepare(
 				"SELECT context, customer_phone FROM {$table_name} WHERE id = %d",
 				$conversation_id
@@ -98,8 +98,8 @@ class WCH_Context_Manager {
 	/**
 	 * Save context for a conversation.
 	 *
-	 * @param int                        $conversation_id Conversation ID.
-	 * @param WCH_Conversation_Context   $context Context object.
+	 * @param int                      $conversation_id Conversation ID.
+	 * @param WCH_Conversation_Context $context Context object.
 	 * @return bool Success status.
 	 */
 	public function save_context( $conversation_id, $context ) {
@@ -156,7 +156,7 @@ class WCH_Context_Manager {
 	public function clear_context( $conversation_id ) {
 		// Get conversation to preserve customer phone.
 		$table_name = $this->wpdb->prefix . 'wch_conversations';
-		$row = $this->wpdb->get_row(
+		$row        = $this->wpdb->get_row(
 			$this->wpdb->prepare(
 				"SELECT customer_phone FROM {$table_name} WHERE id = %d",
 				$conversation_id
@@ -191,8 +191,8 @@ class WCH_Context_Manager {
 	private function check_and_archive_expired_context( $conversation_id, $context ) {
 		// Check if context has expired (24 hours of inactivity).
 		$last_activity_timestamp = strtotime( $context->last_activity_at );
-		$current_timestamp = current_time( 'timestamp' );
-		$inactive_duration = $current_timestamp - $last_activity_timestamp;
+		$current_timestamp       = current_time( 'timestamp' );
+		$inactive_duration       = $current_timestamp - $last_activity_timestamp;
 
 		if ( $inactive_duration < self::CONTEXT_EXPIRATION ) {
 			return; // Not expired yet.
@@ -238,8 +238,8 @@ class WCH_Context_Manager {
 
 		// Preserve valuable slots from old context.
 		$preserved_slots = array( 'address', 'payment_method', 'preferred_category' );
-		$old_slots = $old_context->get_all_slots();
-		$new_slots = $new_data['slots'] ?? array();
+		$old_slots       = $old_context->get_all_slots();
+		$new_slots       = $new_data['slots'] ?? array();
 
 		// Keep old slot values that aren't overridden by new data.
 		foreach ( $preserved_slots as $slot_name ) {
@@ -255,7 +255,7 @@ class WCH_Context_Manager {
 		$merged_data['slots'] = $new_slots;
 
 		// Reset timestamps for new session.
-		$merged_data['started_at'] = current_time( 'mysql' );
+		$merged_data['started_at']       = current_time( 'mysql' );
 		$merged_data['last_activity_at'] = current_time( 'mysql' );
 
 		// Create new context with merged data.
@@ -282,7 +282,7 @@ class WCH_Context_Manager {
 	 * @return array Array of conversation IDs.
 	 */
 	public function get_expired_conversations() {
-		$table_name = $this->wpdb->prefix . 'wch_conversations';
+		$table_name      = $this->wpdb->prefix . 'wch_conversations';
 		$expiration_time = gmdate( 'Y-m-d H:i:s', current_time( 'timestamp' ) - self::CONTEXT_EXPIRATION );
 
 		$results = $this->wpdb->get_col(
@@ -303,13 +303,13 @@ class WCH_Context_Manager {
 	 * @return int Number of conversations archived.
 	 */
 	public function archive_expired_conversations() {
-		$expired_ids = $this->get_expired_conversations();
+		$expired_ids    = $this->get_expired_conversations();
 		$archived_count = 0;
 
 		foreach ( $expired_ids as $conversation_id ) {
 			$context = $this->get_context( $conversation_id );
 			$this->check_and_archive_expired_context( $conversation_id, $context );
-			$archived_count++;
+			++$archived_count;
 		}
 
 		return $archived_count;

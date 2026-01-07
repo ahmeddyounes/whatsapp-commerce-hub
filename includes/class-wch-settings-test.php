@@ -365,12 +365,12 @@ class WCH_Settings_Test {
 			$icon  = 'pass' === $result['status'] ? '✓' : '✗';
 
 			if ( 'pass' === $result['status'] ) {
-				$passed++;
+				++$passed;
 			} else {
-				$failed++;
+				++$failed;
 			}
 
-			echo sprintf(
+			printf(
 				'<div style="color: %s; margin: 10px 0;"><strong>%s %s:</strong> %s</div>',
 				esc_attr( $color ),
 				esc_html( $icon ),
@@ -380,7 +380,7 @@ class WCH_Settings_Test {
 		}
 
 		echo '<hr>';
-		echo sprintf(
+		printf(
 			'<div><strong>Total:</strong> %d tests | <span style="color: green;">%d passed</span> | <span style="color: red;">%d failed</span></div>',
 			count( $results ),
 			$passed,

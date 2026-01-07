@@ -94,12 +94,12 @@ class WCH_Admin_Analytics {
 			'wch-admin-analytics',
 			'wchAnalytics',
 			array(
-				'ajax_url'    => admin_url( 'admin-ajax.php' ),
-				'rest_url'    => rest_url( 'wch/v1/analytics/' ),
-				'nonce'       => wp_create_nonce( 'wch_analytics_nonce' ),
-				'currency'    => get_woocommerce_currency_symbol(),
-				'dateFormat'  => get_option( 'date_format' ),
-				'strings'     => array(
+				'ajax_url'   => admin_url( 'admin-ajax.php' ),
+				'rest_url'   => rest_url( 'wch/v1/analytics/' ),
+				'nonce'      => wp_create_nonce( 'wch_analytics_nonce' ),
+				'currency'   => get_woocommerce_currency_symbol(),
+				'dateFormat' => get_option( 'date_format' ),
+				'strings'    => array(
 					'loading'        => __( 'Loading...', 'whatsapp-commerce-hub' ),
 					'error'          => __( 'Error loading data', 'whatsapp-commerce-hub' ),
 					'no_data'        => __( 'No data available', 'whatsapp-commerce-hub' ),

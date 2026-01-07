@@ -645,7 +645,7 @@ class WCH_WhatsApp_API_Client {
 		$file_data = file_get_contents( $file_path );
 		$filename  = basename( $file_path );
 
-		$body = "--{$boundary}\r\n";
+		$body  = "--{$boundary}\r\n";
 		$body .= "Content-Disposition: form-data; name=\"messaging_product\"\r\n\r\n";
 		$body .= "whatsapp\r\n";
 		$body .= "--{$boundary}\r\n";
@@ -763,7 +763,7 @@ class WCH_WhatsApp_API_Client {
 	 */
 	public function update_business_profile( $data ) {
 		$body = array(
-			'messaging_product'        => 'whatsapp',
+			'messaging_product'         => 'whatsapp',
 			'whatsapp_business_profile' => $data,
 		);
 

@@ -90,21 +90,21 @@ class WCH_REST_API {
 	 */
 	public function get_api_info() {
 		return array(
-			'name'        => 'WhatsApp Commerce Hub API',
-			'version'     => 'v1',
-			'namespace'   => self::NAMESPACE,
-			'description' => __( 'REST API for WhatsApp Commerce Hub admin and external integrations.', 'whatsapp-commerce-hub' ),
-			'endpoints'   => array(
-				'/settings'                       => 'Settings management (GET/POST)',
-				'/conversations'                  => 'List conversations (GET/POST)',
-				'/conversations/{id}'             => 'Single conversation (GET/PATCH)',
-				'/conversations/{id}/messages'    => 'Conversation messages (GET/POST)',
-				'/customers'                      => 'List customers (GET)',
-				'/customers/{phone}'              => 'Single customer (GET/PATCH)',
-				'/analytics'                      => 'Analytics data (GET)',
-				'/broadcasts'                     => 'Broadcast campaigns (GET/POST)',
-				'/broadcasts/{id}'                => 'Single broadcast (GET/PATCH/DELETE)',
-				'/webhook'                        => 'WhatsApp webhook (POST)',
+			'name'           => 'WhatsApp Commerce Hub API',
+			'version'        => 'v1',
+			'namespace'      => self::NAMESPACE,
+			'description'    => __( 'REST API for WhatsApp Commerce Hub admin and external integrations.', 'whatsapp-commerce-hub' ),
+			'endpoints'      => array(
+				'/settings'                    => 'Settings management (GET/POST)',
+				'/conversations'               => 'List conversations (GET/POST)',
+				'/conversations/{id}'          => 'Single conversation (GET/PATCH)',
+				'/conversations/{id}/messages' => 'Conversation messages (GET/POST)',
+				'/customers'                   => 'List customers (GET)',
+				'/customers/{phone}'           => 'Single customer (GET/PATCH)',
+				'/analytics'                   => 'Analytics data (GET)',
+				'/broadcasts'                  => 'Broadcast campaigns (GET/POST)',
+				'/broadcasts/{id}'             => 'Single broadcast (GET/PATCH/DELETE)',
+				'/webhook'                     => 'WhatsApp webhook (POST)',
 			),
 			'authentication' => array(
 				'admin'   => 'WordPress authentication or X-WCH-API-Key header',

@@ -237,7 +237,7 @@ class WCH_Product_Sync_Service {
 			);
 
 			return array(
-				'success'        => true,
+				'success'         => true,
 				'catalog_item_id' => $response['id'] ?? null,
 			);
 		} catch ( Exception $e ) {
@@ -262,9 +262,9 @@ class WCH_Product_Sync_Service {
 	/**
 	 * Sync a variable product and its variations.
 	 *
-	 * @param WC_Product_Variable       $product     Variable product.
-	 * @param WCH_WhatsApp_API_Client   $api_client  API client.
-	 * @param string                    $catalog_id  Catalog ID.
+	 * @param WC_Product_Variable     $product     Variable product.
+	 * @param WCH_WhatsApp_API_Client $api_client  API client.
+	 * @param string                  $catalog_id  Catalog ID.
 	 * @return array Result array.
 	 */
 	private function sync_variable_product( $product, $api_client, $catalog_id ) {
@@ -302,7 +302,7 @@ class WCH_Product_Sync_Service {
 
 				// Update sync status.
 				$this->update_sync_status( $variation_id, 'synced' );
-				$synced++;
+				++$synced;
 			} catch ( Exception $e ) {
 				$this->update_sync_status( $variation_id, 'error', $e->getMessage() );
 				$errors[] = "Variation {$variation_id}: {$e->getMessage()}";
@@ -317,10 +317,10 @@ class WCH_Product_Sync_Service {
 		}
 
 		return array(
-			'success'       => $synced > 0,
-			'synced_count'  => $synced,
-			'total_count'   => count( $variations ),
-			'errors'        => $errors,
+			'success'      => $synced > 0,
+			'synced_count' => $synced,
+			'total_count'  => count( $variations ),
+			'errors'       => $errors,
 		);
 	}
 
@@ -426,12 +426,12 @@ class WCH_Product_Sync_Service {
 		}
 
 		$catalog_data = array(
-			'retailer_id' => (string) $product_id,
-			'name'        => $name,
-			'description' => $description,
-			'price'       => $price,
-			'currency'    => $currency,
-			'url'         => $url,
+			'retailer_id'  => (string) $product_id,
+			'name'         => $name,
+			'description'  => $description,
+			'price'        => $price,
+			'currency'     => $currency,
+			'url'          => $url,
 			'availability' => $availability,
 		);
 
@@ -482,8 +482,8 @@ class WCH_Product_Sync_Service {
 			WCH_Job_Dispatcher::dispatch(
 				'wch_sync_product_batch',
 				array(
-					'product_ids'  => $batch,
-					'batch_index'  => $batch_index,
+					'product_ids'   => $batch,
+					'batch_index'   => $batch_index,
 					'total_batches' => count( $batches ),
 				)
 			);
@@ -541,7 +541,7 @@ class WCH_Product_Sync_Service {
 			'Processing product batch',
 			'product-sync',
 			array(
-				'batch_index' => $batch_index,
+				'batch_index'   => $batch_index,
 				'product_count' => count( $product_ids ),
 			)
 		);
@@ -836,7 +836,7 @@ class WCH_Product_Sync_Service {
 	 */
 	public function add_bulk_actions( $actions ) {
 		if ( $this->is_sync_enabled() ) {
-			$actions['wch_sync_to_whatsapp']   = __( 'Sync to WhatsApp', 'whatsapp-commerce-hub' );
+			$actions['wch_sync_to_whatsapp']     = __( 'Sync to WhatsApp', 'whatsapp-commerce-hub' );
 			$actions['wch_remove_from_whatsapp'] = __( 'Remove from WhatsApp', 'whatsapp-commerce-hub' );
 		}
 		return $actions;
@@ -856,7 +856,7 @@ class WCH_Product_Sync_Service {
 			foreach ( $post_ids as $post_id ) {
 				$result = $this->sync_product_to_whatsapp( $post_id );
 				if ( $result['success'] ) {
-					$synced++;
+					++$synced;
 				}
 			}
 
@@ -872,7 +872,7 @@ class WCH_Product_Sync_Service {
 			foreach ( $post_ids as $post_id ) {
 				$result = $this->delete_from_catalog( $post_id );
 				if ( $result['success'] ) {
-					$removed++;
+					++$removed;
 				}
 			}
 

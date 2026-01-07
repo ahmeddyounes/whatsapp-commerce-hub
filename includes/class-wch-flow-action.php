@@ -108,33 +108,33 @@ abstract class WCH_Flow_Action {
 		}
 
 		// Create new cart.
-		$now = current_time( 'mysql' );
+		$now        = current_time( 'mysql' );
 		$expires_at = date( 'Y-m-d H:i:s', strtotime( '+7 days' ) );
 
 		$wpdb->insert(
 			$table_name,
 			array(
-				'customer_phone'   => $phone,
-				'items'            => wp_json_encode( array() ),
-				'total'            => 0.00,
-				'status'           => 'active',
-				'expires_at'       => $expires_at,
-				'created_at'       => $now,
-				'updated_at'       => $now,
+				'customer_phone' => $phone,
+				'items'          => wp_json_encode( array() ),
+				'total'          => 0.00,
+				'status'         => 'active',
+				'expires_at'     => $expires_at,
+				'created_at'     => $now,
+				'updated_at'     => $now,
 			),
 			array( '%s', '%s', '%f', '%s', '%s', '%s', '%s' )
 		);
 
 		if ( $wpdb->insert_id ) {
 			return array(
-				'id'               => $wpdb->insert_id,
-				'customer_phone'   => $phone,
-				'items'            => array(),
-				'total'            => 0.00,
-				'status'           => 'active',
-				'expires_at'       => $expires_at,
-				'created_at'       => $now,
-				'updated_at'       => $now,
+				'id'             => $wpdb->insert_id,
+				'customer_phone' => $phone,
+				'items'          => array(),
+				'total'          => 0.00,
+				'status'         => 'active',
+				'expires_at'     => $expires_at,
+				'created_at'     => $now,
+				'updated_at'     => $now,
 			);
 		}
 

@@ -61,7 +61,7 @@ class WCH_Dashboard_Widgets {
 		}
 
 		// Inline CSS for the widget.
-		$css = "
+		$css = '
 			.wch-widget-stat {
 				display: flex;
 				justify-content: space-between;
@@ -118,7 +118,7 @@ class WCH_Dashboard_Widgets {
 			.wch-widget-discrepancy-item:last-child {
 				border-bottom: none;
 			}
-		";
+		';
 
 		wp_add_inline_style( 'dashboard', $css );
 	}
@@ -137,7 +137,7 @@ class WCH_Dashboard_Widgets {
 		$discrepancies     = $stats['discrepancies'] ?? array();
 
 		// Calculate sync percentage.
-		$total_products = $products_in_sync + $out_of_sync_count;
+		$total_products  = $products_in_sync + $out_of_sync_count;
 		$sync_percentage = $total_products > 0 ? round( ( $products_in_sync / $total_products ) * 100, 1 ) : 100;
 
 		// Determine status class.
@@ -244,12 +244,12 @@ class WCH_Dashboard_Widgets {
 	public static function render_analytics_widget() {
 		$summary = WCH_Analytics_Data::get_summary( 'week' );
 
-		$total_orders        = $summary['total_orders'] ?? 0;
-		$total_revenue       = $summary['total_revenue'] ?? 0;
+		$total_orders         = $summary['total_orders'] ?? 0;
+		$total_revenue        = $summary['total_revenue'] ?? 0;
 		$active_conversations = $summary['active_conversations'] ?? 0;
-		$conversion_rate     = $summary['conversion_rate'] ?? 0;
+		$conversion_rate      = $summary['conversion_rate'] ?? 0;
 
-		$revenue_class = $total_revenue > 0 ? 'success' : 'neutral';
+		$revenue_class    = $total_revenue > 0 ? 'success' : 'neutral';
 		$conversion_class = $conversion_rate >= 5 ? 'success' : ( $conversion_rate >= 2 ? 'warning' : 'neutral' );
 		?>
 		<div class="wch-analytics-widget">

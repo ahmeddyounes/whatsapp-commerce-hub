@@ -62,35 +62,35 @@ class WCH_Intent_Classifier {
 	 */
 	private function init_patterns() {
 		$this->patterns = array(
-			WCH_Intent::INTENT_GREETING      => array(
+			WCH_Intent::INTENT_GREETING     => array(
 				'regex'      => '/^(hi|hello|hey|good\s*(morning|afternoon|evening))/i',
 				'confidence' => 0.95,
 			),
-			WCH_Intent::INTENT_BROWSE        => array(
+			WCH_Intent::INTENT_BROWSE       => array(
 				'regex'      => '/(show|browse|see|view).*(products?|catalog|items?|collection)/i',
 				'confidence' => 0.9,
 			),
-			WCH_Intent::INTENT_SEARCH        => array(
+			WCH_Intent::INTENT_SEARCH       => array(
 				'regex'      => '/(search|find|looking for|want|need)\s+(.+)/i',
 				'confidence' => 0.85,
 			),
-			WCH_Intent::INTENT_VIEW_CART     => array(
+			WCH_Intent::INTENT_VIEW_CART    => array(
 				'regex'      => '/(my )?(cart|basket|bag)/i',
 				'confidence' => 0.9,
 			),
-			WCH_Intent::INTENT_CHECKOUT      => array(
+			WCH_Intent::INTENT_CHECKOUT     => array(
 				'regex'      => '/(checkout|buy|purchase|pay|order)/i',
 				'confidence' => 0.9,
 			),
-			WCH_Intent::INTENT_ORDER_STATUS  => array(
+			WCH_Intent::INTENT_ORDER_STATUS => array(
 				'regex'      => '/(order|track|where).*(status|order|package|delivery)/i',
 				'confidence' => 0.85,
 			),
-			WCH_Intent::INTENT_CANCEL        => array(
+			WCH_Intent::INTENT_CANCEL       => array(
 				'regex'      => '/(cancel|remove|delete)/i',
 				'confidence' => 0.8,
 			),
-			WCH_Intent::INTENT_HELP          => array(
+			WCH_Intent::INTENT_HELP         => array(
 				'regex'      => '/(help|support|assist|human|agent|person)/i',
 				'confidence' => 0.9,
 			),
@@ -131,7 +131,7 @@ class WCH_Intent_Classifier {
 	 */
 	public function classify( $text, $context = array() ) {
 		// Check cache first
-		$cache_key = $this->get_cache_key( $text, $context );
+		$cache_key     = $this->get_cache_key( $text, $context );
 		$cached_result = wp_cache_get( $cache_key, $this->cache_group );
 
 		if ( false !== $cached_result ) {
@@ -185,10 +185,10 @@ class WCH_Intent_Classifier {
 	 * @return WCH_Intent Intent object.
 	 */
 	private function classify_with_rules( $text, $context ) {
-		$text = trim( $text );
+		$text           = trim( $text );
 		$matched_intent = null;
 		$max_confidence = 0.0;
-		$entities = array();
+		$entities       = array();
 
 		// Try to match each pattern
 		foreach ( $this->patterns as $intent_name => $pattern_data ) {
@@ -233,7 +233,7 @@ class WCH_Intent_Classifier {
 
 		// Extract common entities from text
 		$common_entities = $this->extract_entities( $text );
-		$entities = array_merge( $entities, $common_entities );
+		$entities        = array_merge( $entities, $common_entities );
 
 		return new WCH_Intent( $matched_intent, $max_confidence, $entities );
 	}
@@ -330,8 +330,8 @@ class WCH_Intent_Classifier {
 
 		// Prepare the prompt
 		$valid_intents = WCH_Intent::get_valid_intents();
-		$intents_list = implode( ', ', $valid_intents );
-		$prompt = sprintf(
+		$intents_list  = implode( ', ', $valid_intents );
+		$prompt        = sprintf(
 			"Classify the following user message into one of these intents: %s.\n\nUser message: \"%s\"%s\n\nRespond with only the intent name and confidence (0-1) in JSON format: {\"intent\": \"INTENT_NAME\", \"confidence\": 0.9}",
 			$intents_list,
 			$text,
@@ -424,9 +424,9 @@ class WCH_Intent_Classifier {
 	/**
 	 * Log classification for training data collection.
 	 *
-	 * @param string      $text    User message text.
-	 * @param WCH_Intent  $intent  Classified intent.
-	 * @param array       $context Context data.
+	 * @param string     $text    User message text.
+	 * @param WCH_Intent $intent  Classified intent.
+	 * @param array      $context Context data.
 	 */
 	private function log_classification( $text, $intent, $context ) {
 		if ( ! class_exists( 'WCH_Logger' ) ) {
@@ -436,12 +436,12 @@ class WCH_Intent_Classifier {
 		WCH_Logger::log(
 			'Intent classified',
 			array(
-				'text'         => $text,
-				'intent'       => $intent->intent_name,
-				'confidence'   => $intent->confidence,
-				'entities'     => $intent->entities,
-				'context'      => isset( $context['current_state'] ) ? $context['current_state'] : null,
-				'timestamp'    => current_time( 'mysql' ),
+				'text'       => $text,
+				'intent'     => $intent->intent_name,
+				'confidence' => $intent->confidence,
+				'entities'   => $intent->entities,
+				'context'    => isset( $context['current_state'] ) ? $context['current_state'] : null,
+				'timestamp'  => current_time( 'mysql' ),
 			),
 			'info'
 		);

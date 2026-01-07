@@ -381,7 +381,7 @@ class WCH_Abandoned_Cart_Recovery {
 		if ( 3 === $sequence && $this->is_discount_enabled() ) {
 			$coupon_code = $this->generate_recovery_coupon( $cart );
 			if ( $coupon_code ) {
-				$variables['discount_code'] = $coupon_code;
+				$variables['discount_code']   = $coupon_code;
 				$variables['discount_amount'] = $this->get_discount_display();
 			}
 		}
@@ -395,10 +395,10 @@ class WCH_Abandoned_Cart_Recovery {
 			$this->mark_reminder_sent( $cart['id'], $sequence, $coupon_code );
 
 			return array(
-				'success'   => true,
-				'cart_id'   => $cart['id'],
-				'sequence'  => $sequence,
-				'sent_at'   => current_time( 'mysql' ),
+				'success'  => true,
+				'cart_id'  => $cart['id'],
+				'sequence' => $sequence,
+				'sent_at'  => current_time( 'mysql' ),
 			);
 		}
 
@@ -428,11 +428,11 @@ class WCH_Abandoned_Cart_Recovery {
 		}
 
 		// Get top item (first item or highest value).
-		$top_item_name = '';
+		$top_item_name  = '';
 		$top_item_image = '';
 		if ( ! empty( $items[0] ) ) {
 			$top_item_name = $items[0]['name'] ?? '';
-			$product_id = $items[0]['product_id'] ?? 0;
+			$product_id    = $items[0]['product_id'] ?? 0;
 			if ( $product_id ) {
 				$product = wc_get_product( $product_id );
 				if ( $product ) {
@@ -483,7 +483,7 @@ class WCH_Abandoned_Cart_Recovery {
 	 * @return string|null Coupon code or null on failure.
 	 */
 	private function generate_recovery_coupon( $cart ) {
-		$discount_type = $this->settings->get( 'recovery.discount_type', 'percent' );
+		$discount_type   = $this->settings->get( 'recovery.discount_type', 'percent' );
 		$discount_amount = $this->settings->get( 'recovery.discount_amount', 10 );
 
 		// Generate unique coupon code.
@@ -593,10 +593,10 @@ class WCH_Abandoned_Cart_Recovery {
 		$result = $wpdb->update(
 			$table_name,
 			array(
-				'recovered'           => 1,
-				'recovered_order_id'  => $order_id,
-				'recovered_revenue'   => $revenue,
-				'status'              => 'completed',
+				'recovered'          => 1,
+				'recovered_order_id' => $order_id,
+				'recovered_revenue'  => $revenue,
+				'status'             => 'completed',
 			),
 			array( 'id' => $cart_id ),
 			array( '%d', '%d', '%f', '%s' ),
@@ -790,7 +790,7 @@ class WCH_Abandoned_Cart_Recovery {
 	 * @return string Discount display.
 	 */
 	private function get_discount_display() {
-		$type = $this->settings->get( 'recovery.discount_type', 'percent' );
+		$type   = $this->settings->get( 'recovery.discount_type', 'percent' );
 		$amount = $this->settings->get( 'recovery.discount_amount', 10 );
 
 		if ( 'percent' === $type ) {

@@ -534,4 +534,37 @@ class WCH_Analytics_Controller extends WCH_REST_Controller {
 	public function validate_period( $value ) {
 		return in_array( $value, array( 'today', 'week', 'month' ), true );
 	}
+
+	/**
+	 * Get the schema for analytics summary items.
+	 *
+	 * @return array
+	 */
+	public function get_item_schema() {
+		return array(
+			'$schema'    => 'http://json-schema.org/draft-04/schema#',
+			'title'      => 'analytics',
+			'type'       => 'object',
+			'properties' => array(
+				'total_conversations' => array(
+					'description' => 'Total number of conversations',
+					'type'        => 'integer',
+					'context'     => array( 'view' ),
+					'readonly'    => true,
+				),
+				'total_orders'        => array(
+					'description' => 'Total number of orders',
+					'type'        => 'integer',
+					'context'     => array( 'view' ),
+					'readonly'    => true,
+				),
+				'total_revenue'       => array(
+					'description' => 'Total revenue',
+					'type'        => 'number',
+					'context'     => array( 'view' ),
+					'readonly'    => true,
+				),
+			),
+		);
+	}
 }

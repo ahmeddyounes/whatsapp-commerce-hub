@@ -85,7 +85,7 @@ class WCH_Database_Manager {
 		$charset_collate = $this->wpdb->get_charset_collate();
 
 		// Create wch_conversations table.
-		$sql_conversations = "CREATE TABLE " . $this->get_table_name( 'conversations' ) . " (
+		$sql_conversations = 'CREATE TABLE ' . $this->get_table_name( 'conversations' ) . " (
 			id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
 			customer_phone VARCHAR(20) NOT NULL,
 			wa_conversation_id VARCHAR(100) NOT NULL,
@@ -101,7 +101,7 @@ class WCH_Database_Manager {
 		) $charset_collate;";
 
 		// Create wch_messages table.
-		$sql_messages = "CREATE TABLE " . $this->get_table_name( 'messages' ) . " (
+		$sql_messages = 'CREATE TABLE ' . $this->get_table_name( 'messages' ) . " (
 			id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
 			conversation_id BIGINT(20) UNSIGNED NOT NULL,
 			direction ENUM('inbound', 'outbound') NOT NULL,
@@ -117,7 +117,7 @@ class WCH_Database_Manager {
 		) $charset_collate;";
 
 		// Create wch_carts table.
-		$sql_carts = "CREATE TABLE " . $this->get_table_name( 'carts' ) . " (
+		$sql_carts = 'CREATE TABLE ' . $this->get_table_name( 'carts' ) . " (
 			id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
 			customer_phone VARCHAR(20) NOT NULL,
 			items JSON NULL,
@@ -145,7 +145,7 @@ class WCH_Database_Manager {
 		) $charset_collate;";
 
 		// Create wch_customer_profiles table.
-		$sql_customer_profiles = "CREATE TABLE " . $this->get_table_name( 'customer_profiles' ) . " (
+		$sql_customer_profiles = 'CREATE TABLE ' . $this->get_table_name( 'customer_profiles' ) . " (
 			id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
 			phone VARCHAR(20) NOT NULL,
 			wc_customer_id BIGINT(20) UNSIGNED NULL,
@@ -162,7 +162,7 @@ class WCH_Database_Manager {
 		) $charset_collate;";
 
 		// Create wch_broadcast_campaigns table.
-		$sql_broadcast_campaigns = "CREATE TABLE " . $this->get_table_name( 'broadcast_campaigns' ) . " (
+		$sql_broadcast_campaigns = 'CREATE TABLE ' . $this->get_table_name( 'broadcast_campaigns' ) . " (
 			id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
 			name VARCHAR(200) NOT NULL,
 			template_name VARCHAR(100) NOT NULL,
@@ -180,7 +180,7 @@ class WCH_Database_Manager {
 		) $charset_collate;";
 
 		// Create wch_sync_queue table.
-		$sql_sync_queue = "CREATE TABLE " . $this->get_table_name( 'sync_queue' ) . " (
+		$sql_sync_queue = 'CREATE TABLE ' . $this->get_table_name( 'sync_queue' ) . " (
 			id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
 			entity_type ENUM('product', 'order', 'inventory') NOT NULL,
 			entity_id BIGINT(20) UNSIGNED NOT NULL,
@@ -197,7 +197,7 @@ class WCH_Database_Manager {
 		) $charset_collate;";
 
 		// Create wch_notification_log table.
-		$sql_notification_log = "CREATE TABLE " . $this->get_table_name( 'notification_log' ) . " (
+		$sql_notification_log = 'CREATE TABLE ' . $this->get_table_name( 'notification_log' ) . " (
 			id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
 			order_id BIGINT(20) UNSIGNED NOT NULL,
 			notification_type VARCHAR(50) NOT NULL,
@@ -221,7 +221,7 @@ class WCH_Database_Manager {
 		) $charset_collate;";
 
 		// Create wch_product_views table for re-engagement tracking.
-		$sql_product_views = "CREATE TABLE " . $this->get_table_name( 'product_views' ) . " (
+		$sql_product_views = 'CREATE TABLE ' . $this->get_table_name( 'product_views' ) . " (
 			id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
 			customer_phone VARCHAR(20) NOT NULL,
 			product_id BIGINT(20) UNSIGNED NOT NULL,
@@ -235,7 +235,7 @@ class WCH_Database_Manager {
 		) $charset_collate;";
 
 		// Create wch_reengagement_log table.
-		$sql_reengagement_log = "CREATE TABLE " . $this->get_table_name( 'reengagement_log' ) . " (
+		$sql_reengagement_log = 'CREATE TABLE ' . $this->get_table_name( 'reengagement_log' ) . " (
 			id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
 			customer_phone VARCHAR(20) NOT NULL,
 			campaign_type VARCHAR(50) NOT NULL,

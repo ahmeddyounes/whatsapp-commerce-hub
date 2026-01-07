@@ -20,21 +20,21 @@ class WCH_Response_Parser {
 	/**
 	 * Intent constants
 	 */
-	const INTENT_GREETING        = 'GREETING';
-	const INTENT_BROWSE_CATALOG  = 'BROWSE_CATALOG';
-	const INTENT_VIEW_CATEGORY   = 'VIEW_CATEGORY';
-	const INTENT_SEARCH_PRODUCT  = 'SEARCH_PRODUCT';
-	const INTENT_VIEW_PRODUCT    = 'VIEW_PRODUCT';
-	const INTENT_ADD_TO_CART     = 'ADD_TO_CART';
-	const INTENT_VIEW_CART       = 'VIEW_CART';
-	const INTENT_MODIFY_CART     = 'MODIFY_CART';
-	const INTENT_CHECKOUT        = 'CHECKOUT';
-	const INTENT_APPLY_COUPON    = 'APPLY_COUPON';
-	const INTENT_ORDER_STATUS    = 'ORDER_STATUS';
-	const INTENT_TRACK_SHIPPING  = 'TRACK_SHIPPING';
-	const INTENT_HELP            = 'HELP';
-	const INTENT_TALK_TO_HUMAN   = 'TALK_TO_HUMAN';
-	const INTENT_UNKNOWN         = 'UNKNOWN';
+	const INTENT_GREETING       = 'GREETING';
+	const INTENT_BROWSE_CATALOG = 'BROWSE_CATALOG';
+	const INTENT_VIEW_CATEGORY  = 'VIEW_CATEGORY';
+	const INTENT_SEARCH_PRODUCT = 'SEARCH_PRODUCT';
+	const INTENT_VIEW_PRODUCT   = 'VIEW_PRODUCT';
+	const INTENT_ADD_TO_CART    = 'ADD_TO_CART';
+	const INTENT_VIEW_CART      = 'VIEW_CART';
+	const INTENT_MODIFY_CART    = 'MODIFY_CART';
+	const INTENT_CHECKOUT       = 'CHECKOUT';
+	const INTENT_APPLY_COUPON   = 'APPLY_COUPON';
+	const INTENT_ORDER_STATUS   = 'ORDER_STATUS';
+	const INTENT_TRACK_SHIPPING = 'TRACK_SHIPPING';
+	const INTENT_HELP           = 'HELP';
+	const INTENT_TALK_TO_HUMAN  = 'TALK_TO_HUMAN';
+	const INTENT_UNKNOWN        = 'UNKNOWN';
 
 	/**
 	 * Intent keyword mappings
@@ -68,14 +68,14 @@ class WCH_Response_Parser {
 				'delivery status',
 				'shipping status',
 			),
-			self::INTENT_ORDER_STATUS => array(
+			self::INTENT_ORDER_STATUS   => array(
 				'order status',
 				'my order',
 				'where is my order',
 				'check order',
 				'order',
 			),
-			self::INTENT_CHECKOUT => array(
+			self::INTENT_CHECKOUT       => array(
 				'checkout',
 				'complete order',
 				'place order',
@@ -84,7 +84,7 @@ class WCH_Response_Parser {
 				'payment',
 				'pay',
 			),
-			self::INTENT_VIEW_CART => array(
+			self::INTENT_VIEW_CART      => array(
 				'view cart',
 				'show cart',
 				'my cart',
@@ -93,21 +93,21 @@ class WCH_Response_Parser {
 				'basket',
 				'bag',
 			),
-			self::INTENT_MODIFY_CART => array(
+			self::INTENT_MODIFY_CART    => array(
 				'remove from cart',
 				'delete from cart',
 				'update cart',
 				'change quantity',
 				'modify cart',
 			),
-			self::INTENT_ADD_TO_CART => array(
+			self::INTENT_ADD_TO_CART    => array(
 				'add to cart',
 				'add this',
 				'buy this',
 				'purchase this',
 				'want this',
 			),
-			self::INTENT_APPLY_COUPON => array(
+			self::INTENT_APPLY_COUPON   => array(
 				'apply coupon',
 				'use coupon',
 				'promo code',
@@ -124,7 +124,7 @@ class WCH_Response_Parser {
 				'catalog',
 				'catalogue',
 			),
-			self::INTENT_VIEW_CATEGORY => array(
+			self::INTENT_VIEW_CATEGORY  => array(
 				'show category',
 				'view category',
 				'categories',
@@ -135,13 +135,13 @@ class WCH_Response_Parser {
 				'looking for',
 				'search',
 			),
-			self::INTENT_VIEW_PRODUCT => array(
+			self::INTENT_VIEW_PRODUCT   => array(
 				'view product',
 				'product details',
 				'more info',
 				'tell me more',
 			),
-			self::INTENT_HELP => array(
+			self::INTENT_HELP           => array(
 				'need help',
 				'help me',
 				'i need assistance',
@@ -149,7 +149,7 @@ class WCH_Response_Parser {
 				'support',
 				'assistance',
 			),
-			self::INTENT_TALK_TO_HUMAN => array(
+			self::INTENT_TALK_TO_HUMAN  => array(
 				'talk to human',
 				'speak to agent',
 				'talk to someone',
@@ -157,7 +157,7 @@ class WCH_Response_Parser {
 				'representative',
 			),
 			// Generic greetings last as they should have lower priority
-			self::INTENT_GREETING => array(
+			self::INTENT_GREETING       => array(
 				'good morning',
 				'good afternoon',
 				'good evening',
@@ -191,7 +191,7 @@ class WCH_Response_Parser {
 			);
 		}
 
-		$type = isset( $webhook_message_data['type'] ) ? $webhook_message_data['type'] : 'unknown';
+		$type    = isset( $webhook_message_data['type'] ) ? $webhook_message_data['type'] : 'unknown';
 		$content = isset( $webhook_message_data['content'] ) ? $webhook_message_data['content'] : array();
 
 		$parsed_response = null;
@@ -426,9 +426,12 @@ class WCH_Response_Parser {
 
 		// If we have matches, return the one with the longest keyword (most specific).
 		if ( ! empty( $sorted_matches ) ) {
-			usort( $sorted_matches, function( $a, $b ) {
-				return $b['length'] - $a['length'];
-			});
+			usort(
+				$sorted_matches,
+				function ( $a, $b ) {
+					return $b['length'] - $a['length'];
+				}
+			);
 
 			$best_match = $sorted_matches[0];
 			// Apply filter to allow AI enhancement or custom logic.
@@ -470,8 +473,8 @@ class WCH_Response_Parser {
 	 * This method stores the parsed response in the conversation context
 	 * for multi-turn conversation handling.
 	 *
-	 * @param string               $conversation_id Conversation ID (phone number).
-	 * @param WCH_Parsed_Response  $parsed_response Parsed response object.
+	 * @param string              $conversation_id Conversation ID (phone number).
+	 * @param WCH_Parsed_Response $parsed_response Parsed response object.
 	 * @return bool Success status.
 	 */
 	public function store_in_context( $conversation_id, $parsed_response ) {
@@ -502,10 +505,10 @@ class WCH_Response_Parser {
 		}
 
 		$context['parsed_responses'][] = array(
-			'timestamp'    => time(),
-			'type'         => $parsed_response->get_type(),
-			'intent'       => $parsed_response->get_intent(),
-			'parsed_data'  => $parsed_response->get_parsed_data(),
+			'timestamp'   => time(),
+			'type'        => $parsed_response->get_type(),
+			'intent'      => $parsed_response->get_intent(),
+			'parsed_data' => $parsed_response->get_parsed_data(),
 		);
 
 		// Keep only last 10 parsed responses to avoid bloat.

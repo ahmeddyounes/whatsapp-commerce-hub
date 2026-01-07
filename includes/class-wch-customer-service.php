@@ -265,7 +265,7 @@ class WCH_Customer_Service {
 					'Invalid address data - missing required field',
 					'customer-service',
 					array(
-						'phone'        => $phone,
+						'phone'         => $phone,
 						'missing_field' => $field,
 					)
 				);
@@ -502,9 +502,9 @@ class WCH_Customer_Service {
 
 		// Initialize stats.
 		$stats = array(
-			'total_orders'         => 0,
-			'total_spent'          => 0.0,
-			'average_order_value'  => 0.0,
+			'total_orders'          => 0,
+			'total_spent'           => 0.0,
+			'average_order_value'   => 0.0,
 			'days_since_last_order' => null,
 		);
 
@@ -513,8 +513,8 @@ class WCH_Customer_Service {
 		}
 
 		// Calculate stats.
-		$total_spent  = 0.0;
-		$last_order   = null;
+		$total_spent = 0.0;
+		$last_order  = null;
 
 		foreach ( $orders as $order ) {
 			$total_spent += floatval( $order['total'] );
@@ -532,8 +532,8 @@ class WCH_Customer_Service {
 		}
 
 		if ( $last_order ) {
-			$last_order_time = strtotime( $last_order );
-			$current_time    = current_time( 'timestamp' );
+			$last_order_time                = strtotime( $last_order );
+			$current_time                   = current_time( 'timestamp' );
 			$stats['days_since_last_order'] = floor( ( $current_time - $last_order_time ) / DAY_IN_SECONDS );
 		}
 
@@ -642,7 +642,7 @@ class WCH_Customer_Service {
 			if ( is_array( $content ) ) {
 				// Remove any phone references.
 				$content = array_map(
-					function( $value ) use ( $phone ) {
+					function ( $value ) use ( $phone ) {
 						if ( is_string( $value ) ) {
 							return str_replace( $phone, 'ANONYMIZED', $value );
 						}

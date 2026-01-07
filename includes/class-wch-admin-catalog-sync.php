@@ -71,17 +71,17 @@ class WCH_Admin_Catalog_Sync {
 				'ajax_url' => admin_url( 'admin-ajax.php' ),
 				'nonce'    => wp_create_nonce( 'wch_catalog_sync_nonce' ),
 				'strings'  => array(
-					'syncing'             => __( 'Syncing...', 'whatsapp-commerce-hub' ),
-					'success'             => __( 'Success', 'whatsapp-commerce-hub' ),
-					'error'               => __( 'Error', 'whatsapp-commerce-hub' ),
-					'confirm_remove'      => __( 'Are you sure you want to remove selected products from WhatsApp catalog?', 'whatsapp-commerce-hub' ),
-					'confirm_retry'       => __( 'Retry failed products?', 'whatsapp-commerce-hub' ),
-					'no_products'         => __( 'No products selected', 'whatsapp-commerce-hub' ),
-					'processing'          => __( 'Processing...', 'whatsapp-commerce-hub' ),
-					'items_processed'     => __( 'items processed', 'whatsapp-commerce-hub' ),
-					'errors_encountered'  => __( 'errors encountered', 'whatsapp-commerce-hub' ),
-					'estimated_time'      => __( 'Estimated time remaining:', 'whatsapp-commerce-hub' ),
-					'cancel_sync'         => __( 'Cancel Sync', 'whatsapp-commerce-hub' ),
+					'syncing'            => __( 'Syncing...', 'whatsapp-commerce-hub' ),
+					'success'            => __( 'Success', 'whatsapp-commerce-hub' ),
+					'error'              => __( 'Error', 'whatsapp-commerce-hub' ),
+					'confirm_remove'     => __( 'Are you sure you want to remove selected products from WhatsApp catalog?', 'whatsapp-commerce-hub' ),
+					'confirm_retry'      => __( 'Retry failed products?', 'whatsapp-commerce-hub' ),
+					'no_products'        => __( 'No products selected', 'whatsapp-commerce-hub' ),
+					'processing'         => __( 'Processing...', 'whatsapp-commerce-hub' ),
+					'items_processed'    => __( 'items processed', 'whatsapp-commerce-hub' ),
+					'errors_encountered' => __( 'errors encountered', 'whatsapp-commerce-hub' ),
+					'estimated_time'     => __( 'Estimated time remaining:', 'whatsapp-commerce-hub' ),
+					'cancel_sync'        => __( 'Cancel Sync', 'whatsapp-commerce-hub' ),
 				),
 			)
 		);
@@ -95,8 +95,8 @@ class WCH_Admin_Catalog_Sync {
 			wp_die( esc_html__( 'You do not have permission to access this page.', 'whatsapp-commerce-hub' ) );
 		}
 
-		$settings = WCH_Settings::getInstance();
-		$catalog_id = $settings->get( 'api.catalog_id', '' );
+		$settings    = WCH_Settings::getInstance();
+		$catalog_id  = $settings->get( 'api.catalog_id', '' );
 		$business_id = $settings->get( 'api.business_account_id', '' );
 
 		// Get sync status overview
@@ -173,10 +173,12 @@ class WCH_Admin_Catalog_Sync {
 						<select id="filter-category" class="wch-filter">
 							<option value=""><?php esc_html_e( 'All Categories', 'whatsapp-commerce-hub' ); ?></option>
 							<?php
-							$categories = get_terms( array(
-								'taxonomy'   => 'product_cat',
-								'hide_empty' => false,
-							) );
+							$categories = get_terms(
+								array(
+									'taxonomy'   => 'product_cat',
+									'hide_empty' => false,
+								)
+							);
 							foreach ( $categories as $category ) {
 								echo '<option value="' . esc_attr( $category->term_id ) . '">' . esc_html( $category->name ) . '</option>';
 							}
@@ -557,11 +559,13 @@ class WCH_Admin_Catalog_Sync {
 			wp_reset_postdata();
 		}
 
-		wp_send_json_success( array(
-			'products'    => $products,
-			'total'       => $query->found_posts,
-			'total_pages' => $query->max_num_pages,
-		) );
+		wp_send_json_success(
+			array(
+				'products'    => $products,
+				'total'       => $query->found_posts,
+				'total_pages' => $query->max_num_pages,
+			)
+		);
 	}
 
 	/**
@@ -597,10 +601,12 @@ class WCH_Admin_Catalog_Sync {
 			// Record sync history
 			self::record_sync_history( count( $product_ids ), 'manual' );
 
-			wp_send_json_success( array(
-				'message' => __( 'Products queued for sync', 'whatsapp-commerce-hub' ),
-				'count'   => $sync_all ? 'all' : count( $product_ids ),
-			) );
+			wp_send_json_success(
+				array(
+					'message' => __( 'Products queued for sync', 'whatsapp-commerce-hub' ),
+					'count'   => $sync_all ? 'all' : count( $product_ids ),
+				)
+			);
 		} catch ( Exception $e ) {
 			wp_send_json_error( array( 'message' => $e->getMessage() ) );
 		}
@@ -624,7 +630,7 @@ class WCH_Admin_Catalog_Sync {
 
 		try {
 			$sync_service = WCH_Product_Sync_Service::instance();
-			$result = $sync_service->sync_product( $product_id );
+			$result       = $sync_service->sync_product( $product_id );
 
 			if ( $result ) {
 				update_post_meta( $product_id, '_wch_sync_status', 'synced' );
@@ -665,10 +671,12 @@ class WCH_Admin_Catalog_Sync {
 				delete_post_meta( $product_id, '_wch_sync_error' );
 			}
 
-			wp_send_json_success( array(
-				'message' => __( 'Products removed from catalog', 'whatsapp-commerce-hub' ),
-				'count'   => count( $product_ids ),
-			) );
+			wp_send_json_success(
+				array(
+					'message' => __( 'Products removed from catalog', 'whatsapp-commerce-hub' ),
+					'count'   => count( $product_ids ),
+				)
+			);
 		} catch ( Exception $e ) {
 			wp_send_json_error( array( 'message' => $e->getMessage() ) );
 		}
@@ -691,19 +699,24 @@ class WCH_Admin_Catalog_Sync {
 		$total   = count( $history );
 
 		// Sort by timestamp descending
-		usort( $history, function( $a, $b ) {
-			return strtotime( $b['timestamp'] ) - strtotime( $a['timestamp'] );
-		} );
+		usort(
+			$history,
+			function ( $a, $b ) {
+				return strtotime( $b['timestamp'] ) - strtotime( $a['timestamp'] );
+			}
+		);
 
 		// Paginate
-		$offset = ( $page - 1 ) * $per_page;
+		$offset  = ( $page - 1 ) * $per_page;
 		$history = array_slice( $history, $offset, $per_page );
 
-		wp_send_json_success( array(
-			'history'     => $history,
-			'total'       => $total,
-			'total_pages' => ceil( $total / $per_page ),
-		) );
+		wp_send_json_success(
+			array(
+				'history'     => $history,
+				'total'       => $total,
+				'total_pages' => ceil( $total / $per_page ),
+			)
+		);
 	}
 
 	/**
@@ -732,10 +745,10 @@ class WCH_Admin_Catalog_Sync {
 
 		$settings = WCH_Settings::getInstance();
 
-		$sync_mode           = isset( $_POST['sync_mode'] ) ? sanitize_text_field( $_POST['sync_mode'] ) : 'manual';
-		$sync_frequency      = isset( $_POST['sync_frequency'] ) ? sanitize_text_field( $_POST['sync_frequency'] ) : 'daily';
-		$categories_include  = isset( $_POST['categories_include'] ) ? array_map( 'absint', (array) $_POST['categories_include'] ) : array();
-		$categories_exclude  = isset( $_POST['categories_exclude'] ) ? array_map( 'absint', (array) $_POST['categories_exclude'] ) : array();
+		$sync_mode          = isset( $_POST['sync_mode'] ) ? sanitize_text_field( $_POST['sync_mode'] ) : 'manual';
+		$sync_frequency     = isset( $_POST['sync_frequency'] ) ? sanitize_text_field( $_POST['sync_frequency'] ) : 'daily';
+		$categories_include = isset( $_POST['categories_include'] ) ? array_map( 'absint', (array) $_POST['categories_include'] ) : array();
+		$categories_exclude = isset( $_POST['categories_exclude'] ) ? array_map( 'absint', (array) $_POST['categories_exclude'] ) : array();
 
 		$settings->set( 'sync.mode', $sync_mode );
 		$settings->set( 'sync.frequency', $sync_frequency );
@@ -763,7 +776,7 @@ class WCH_Admin_Catalog_Sync {
 			'fields'         => 'ids',
 		);
 
-		$query = new WP_Query( $args );
+		$query       = new WP_Query( $args );
 		$product_ids = $query->posts;
 
 		$products_info = array();
@@ -778,10 +791,12 @@ class WCH_Admin_Catalog_Sync {
 			}
 		}
 
-		wp_send_json_success( array(
-			'count'    => count( $product_ids ),
-			'products' => $products_info,
-		) );
+		wp_send_json_success(
+			array(
+				'count'    => count( $product_ids ),
+				'products' => $products_info,
+			)
+		);
 	}
 
 	/**
@@ -816,10 +831,12 @@ class WCH_Admin_Catalog_Sync {
 		// Queue sync jobs
 		WCH_Queue::getInstance()->schedule_bulk_action( 'wch_sync_product', $product_ids );
 
-		wp_send_json_success( array(
-			'message' => __( 'Failed products queued for retry', 'whatsapp-commerce-hub' ),
-			'count'   => count( $product_ids ),
-		) );
+		wp_send_json_success(
+			array(
+				'message' => __( 'Failed products queued for retry', 'whatsapp-commerce-hub' ),
+				'count'   => count( $product_ids ),
+			)
+		);
 	}
 
 	/**
@@ -829,13 +846,13 @@ class WCH_Admin_Catalog_Sync {
 		$history = get_option( 'wch_sync_history', array() );
 
 		$entry = array(
-			'timestamp'        => current_time( 'mysql' ),
-			'products_count'   => $product_count,
-			'status'           => $status,
-			'duration'         => $duration,
-			'error_count'      => count( $errors ),
-			'errors'           => $errors,
-			'triggered_by'     => $triggered_by,
+			'timestamp'      => current_time( 'mysql' ),
+			'products_count' => $product_count,
+			'status'         => $status,
+			'duration'       => $duration,
+			'error_count'    => count( $errors ),
+			'errors'         => $errors,
+			'triggered_by'   => $triggered_by,
 		);
 
 		array_unshift( $history, $entry );

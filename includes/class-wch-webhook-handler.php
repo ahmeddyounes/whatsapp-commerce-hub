@@ -91,9 +91,9 @@ class WCH_Webhook_Handler extends WCH_REST_Controller {
 	 */
 	public function verify_webhook( $request ) {
 		// Get query parameters.
-		$mode         = $request->get_param( 'hub_mode' );
-		$token        = $request->get_param( 'hub_verify_token' );
-		$challenge    = $request->get_param( 'hub_challenge' );
+		$mode      = $request->get_param( 'hub_mode' );
+		$token     = $request->get_param( 'hub_verify_token' );
+		$challenge = $request->get_param( 'hub_challenge' );
 
 		// Get stored verify token.
 		$stored_token = $this->settings->get( 'api.webhook_verify_token', '' );
@@ -204,8 +204,8 @@ class WCH_Webhook_Handler extends WCH_REST_Controller {
 			'Webhook event received',
 			'webhook',
 			array(
-				'object'       => $payload['object'],
-				'entry_count'  => count( $payload['entry'] ),
+				'object'      => $payload['object'],
+				'entry_count' => count( $payload['entry'] ),
 			)
 		);
 
@@ -421,9 +421,9 @@ class WCH_Webhook_Handler extends WCH_REST_Controller {
 				$interactive = $message['interactive'] ?? array();
 				if ( isset( $interactive['button_reply'] ) ) {
 					return array(
-						'type'    => 'button_reply',
-						'id'      => $interactive['button_reply']['id'] ?? '',
-						'title'   => $interactive['button_reply']['title'] ?? '',
+						'type'  => 'button_reply',
+						'id'    => $interactive['button_reply']['id'] ?? '',
+						'title' => $interactive['button_reply']['title'] ?? '',
 					);
 				} elseif ( isset( $interactive['list_reply'] ) ) {
 					return array(
@@ -437,10 +437,10 @@ class WCH_Webhook_Handler extends WCH_REST_Controller {
 
 			case 'image':
 				return array(
-					'id'       => $message['image']['id'] ?? '',
+					'id'        => $message['image']['id'] ?? '',
 					'mime_type' => $message['image']['mime_type'] ?? '',
-					'sha256'   => $message['image']['sha256'] ?? '',
-					'caption'  => $message['image']['caption'] ?? '',
+					'sha256'    => $message['image']['sha256'] ?? '',
+					'caption'   => $message['image']['caption'] ?? '',
 				);
 
 			case 'document':

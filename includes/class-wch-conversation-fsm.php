@@ -19,34 +19,34 @@ class WCH_Conversation_FSM {
 	/**
 	 * Conversation states.
 	 */
-	const STATE_IDLE = 'IDLE';
-	const STATE_BROWSING = 'BROWSING';
-	const STATE_VIEWING_PRODUCT = 'VIEWING_PRODUCT';
-	const STATE_CART_MANAGEMENT = 'CART_MANAGEMENT';
+	const STATE_IDLE             = 'IDLE';
+	const STATE_BROWSING         = 'BROWSING';
+	const STATE_VIEWING_PRODUCT  = 'VIEWING_PRODUCT';
+	const STATE_CART_MANAGEMENT  = 'CART_MANAGEMENT';
 	const STATE_CHECKOUT_ADDRESS = 'CHECKOUT_ADDRESS';
 	const STATE_CHECKOUT_PAYMENT = 'CHECKOUT_PAYMENT';
 	const STATE_CHECKOUT_CONFIRM = 'CHECKOUT_CONFIRM';
-	const STATE_AWAITING_HUMAN = 'AWAITING_HUMAN';
-	const STATE_COMPLETED = 'COMPLETED';
+	const STATE_AWAITING_HUMAN   = 'AWAITING_HUMAN';
+	const STATE_COMPLETED        = 'COMPLETED';
 
 	/**
 	 * Conversation events.
 	 */
-	const EVENT_START = 'START';
+	const EVENT_START           = 'START';
 	const EVENT_SELECT_CATEGORY = 'SELECT_CATEGORY';
-	const EVENT_SEARCH = 'SEARCH';
-	const EVENT_VIEW_PRODUCT = 'VIEW_PRODUCT';
-	const EVENT_ADD_TO_CART = 'ADD_TO_CART';
-	const EVENT_VIEW_CART = 'VIEW_CART';
-	const EVENT_MODIFY_CART = 'MODIFY_CART';
-	const EVENT_START_CHECKOUT = 'START_CHECKOUT';
-	const EVENT_ENTER_ADDRESS = 'ENTER_ADDRESS';
-	const EVENT_SELECT_PAYMENT = 'SELECT_PAYMENT';
-	const EVENT_CONFIRM_ORDER = 'CONFIRM_ORDER';
-	const EVENT_REQUEST_HUMAN = 'REQUEST_HUMAN';
-	const EVENT_AGENT_TAKEOVER = 'AGENT_TAKEOVER';
-	const EVENT_TIMEOUT = 'TIMEOUT';
-	const EVENT_RESET = 'RESET';
+	const EVENT_SEARCH          = 'SEARCH';
+	const EVENT_VIEW_PRODUCT    = 'VIEW_PRODUCT';
+	const EVENT_ADD_TO_CART     = 'ADD_TO_CART';
+	const EVENT_VIEW_CART       = 'VIEW_CART';
+	const EVENT_MODIFY_CART     = 'MODIFY_CART';
+	const EVENT_START_CHECKOUT  = 'START_CHECKOUT';
+	const EVENT_ENTER_ADDRESS   = 'ENTER_ADDRESS';
+	const EVENT_SELECT_PAYMENT  = 'SELECT_PAYMENT';
+	const EVENT_CONFIRM_ORDER   = 'CONFIRM_ORDER';
+	const EVENT_REQUEST_HUMAN   = 'REQUEST_HUMAN';
+	const EVENT_AGENT_TAKEOVER  = 'AGENT_TAKEOVER';
+	const EVENT_TIMEOUT         = 'TIMEOUT';
+	const EVENT_RESET           = 'RESET';
 
 	/**
 	 * Timeout duration in seconds (30 minutes).
@@ -317,8 +317,8 @@ class WCH_Conversation_FSM {
 		}
 
 		// Update state and context.
-		$new_state = $transition['to_state'];
-		$context['current_state'] = $new_state;
+		$new_state                   = $transition['to_state'];
+		$context['current_state']    = $new_state;
 		$context['last_activity_at'] = current_time( 'mysql' );
 
 		// Update state_data with payload.
@@ -345,7 +345,7 @@ class WCH_Conversation_FSM {
 		}
 
 		// Persist to database.
-		$conversation['context'] = wp_json_encode( $context );
+		$conversation['context']    = wp_json_encode( $context );
 		$conversation['updated_at'] = current_time( 'mysql' );
 
 		$table_name = $this->wpdb->prefix . 'wch_conversations';
@@ -424,7 +424,7 @@ class WCH_Conversation_FSM {
 				return $product && $product->is_in_stock();
 
 			case 'cart_not_empty':
-				$context = isset( $conversation['context'] ) ? json_decode( $conversation['context'], true ) : array();
+				$context    = isset( $conversation['context'] ) ? json_decode( $conversation['context'], true ) : array();
 				$cart_items = $context['state_data']['cart_items'] ?? array();
 				return ! empty( $cart_items );
 
@@ -520,7 +520,7 @@ class WCH_Conversation_FSM {
 	 * @return array Available events.
 	 */
 	public function get_available_events( $conversation ) {
-		$context = isset( $conversation['context'] ) ? json_decode( $conversation['context'], true ) : array();
+		$context       = isset( $conversation['context'] ) ? json_decode( $conversation['context'], true ) : array();
 		$current_state = $context['current_state'] ?? self::STATE_IDLE;
 
 		$available_events = array();
@@ -544,7 +544,7 @@ class WCH_Conversation_FSM {
 	 * @return array|null Updated conversation or null if no timeout.
 	 */
 	public function check_timeout( $conversation ) {
-		$context = isset( $conversation['context'] ) ? json_decode( $conversation['context'], true ) : array();
+		$context       = isset( $conversation['context'] ) ? json_decode( $conversation['context'], true ) : array();
 		$current_state = $context['current_state'] ?? self::STATE_IDLE;
 
 		// Don't check timeout for IDLE, COMPLETED, or AWAITING_HUMAN states.
@@ -552,9 +552,9 @@ class WCH_Conversation_FSM {
 			return null;
 		}
 
-		$last_activity_at = $context['last_activity_at'] ?? $conversation['updated_at'];
+		$last_activity_at        = $context['last_activity_at'] ?? $conversation['updated_at'];
 		$last_activity_timestamp = strtotime( $last_activity_at );
-		$current_timestamp = current_time( 'timestamp' );
+		$current_timestamp       = current_time( 'timestamp' );
 
 		if ( ( $current_timestamp - $last_activity_timestamp ) >= self::TIMEOUT_DURATION ) {
 			return $this->transition( $conversation, self::EVENT_TIMEOUT );

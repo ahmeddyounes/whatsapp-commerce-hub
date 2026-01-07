@@ -1,0 +1,886 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
+			count: 8
+			path: includes/class-wch-abandoned-cart-handler.php
+
+		-
+			message: "#^If condition is always true\\.$#"
+			count: 1
+			path: includes/class-wch-abandoned-cart-handler.php
+
+		-
+			message: "#^Unreachable statement \\- code above always terminates\\.$#"
+			count: 1
+			path: includes/class-wch-abandoned-cart-handler.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
+			count: 9
+			path: includes/class-wch-abandoned-cart-recovery.php
+
+		-
+			message: "#^Function as_next_scheduled_action not found\\.$#"
+			count: 1
+			path: includes/class-wch-abandoned-cart-recovery.php
+
+		-
+			message: "#^Function as_schedule_recurring_action not found\\.$#"
+			count: 1
+			path: includes/class-wch-abandoned-cart-recovery.php
+
+		-
+			message: "#^If condition is always true\\.$#"
+			count: 1
+			path: includes/class-wch-abandoned-cart-recovery.php
+
+		-
+			message: "#^Parameter \\#1 \\$attachment_id of function wp_get_attachment_url expects int, string given\\.$#"
+			count: 1
+			path: includes/class-wch-abandoned-cart-recovery.php
+
+		-
+			message: "#^Unreachable statement \\- code above always terminates\\.$#"
+			count: 1
+			path: includes/class-wch-abandoned-cart-recovery.php
+
+		-
+			message: "#^Method WCH_Message_Builder\\:\\:header\\(\\) invoked with 1 parameter, 2 required\\.$#"
+			count: 1
+			path: includes/class-wch-action-confirm-order.php
+
+		-
+			message: "#^Negated boolean expression is always false\\.$#"
+			count: 1
+			path: includes/class-wch-action-confirm-order.php
+
+		-
+			message: "#^Method WCH_Action_ProcessPayment\\:\\:generate_payment_link\\(\\) never returns null so it can be removed from the return type\\.$#"
+			count: 1
+			path: includes/class-wch-action-process-payment.php
+
+		-
+			message: "#^Method WCH_Action_ProcessPayment\\:\\:generate_upi_link\\(\\) never returns null so it can be removed from the return type\\.$#"
+			count: 1
+			path: includes/class-wch-action-process-payment.php
+
+		-
+			message: "#^Method WCH_Message_Builder\\:\\:header\\(\\) invoked with 1 parameter, 2 required\\.$#"
+			count: 1
+			path: includes/class-wch-action-process-payment.php
+
+		-
+			message: "#^Method WCH_Message_Builder\\:\\:header\\(\\) invoked with 1 parameter, 2 required\\.$#"
+			count: 1
+			path: includes/class-wch-action-request-address.php
+
+		-
+			message: "#^Parameter \\#1 \\$json of function json_decode expects string, array given\\.$#"
+			count: 1
+			path: includes/class-wch-action-request-address.php
+
+		-
+			message: "#^Method WCH_Message_Builder\\:\\:header\\(\\) invoked with 1 parameter, 2 required\\.$#"
+			count: 1
+			path: includes/class-wch-action-show-cart.php
+
+		-
+			message: "#^Method WCH_Message_Builder\\:\\:header\\(\\) invoked with 1 parameter, 2 required\\.$#"
+			count: 1
+			path: includes/class-wch-action-show-category.php
+
+		-
+			message: "#^Method WCH_Message_Builder\\:\\:header\\(\\) invoked with 1 parameter, 2 required\\.$#"
+			count: 1
+			path: includes/class-wch-action-show-product.php
+
+		-
+			message: "#^Parameter \\#1 \\$attachment_id of function wp_get_attachment_image_url expects int, string given\\.$#"
+			count: 1
+			path: includes/class-wch-action-show-product.php
+
+		-
+			message: "#^Parameter \\#1 \\$product of method WCH_Action_ShowProduct\\:\\:build_variant_selector\\(\\) expects WC_Product_Variable, WC_Product given\\.$#"
+			count: 1
+			path: includes/class-wch-action-show-product.php
+
+		-
+			message: "#^Comparison operation \"\\>\" between int\\<1, max\\> and 0 is always true\\.$#"
+			count: 1
+			path: includes/class-wch-address-parser.php
+
+		-
+			message: "#^Constant WCH_PLUGIN_URL not found\\.$#"
+			count: 2
+			path: includes/class-wch-admin-analytics.php
+
+		-
+			message: "#^Call to function is_array\\(\\) with array will always evaluate to true\\.$#"
+			count: 1
+			path: includes/class-wch-admin-broadcasts.php
+
+		-
+			message: "#^Comparison operation \"\\>\" between int\\<1, 2\\> and 0 is always true\\.$#"
+			count: 2
+			path: includes/class-wch-admin-broadcasts.php
+
+		-
+			message: "#^Constant WCH_PLUGIN_URL not found\\.$#"
+			count: 2
+			path: includes/class-wch-admin-broadcasts.php
+
+		-
+			message: "#^Parameter \\#1 \\$text of function esc_attr expects string, \\(float\\|int\\) given\\.$#"
+			count: 2
+			path: includes/class-wch-admin-broadcasts.php
+
+		-
+			message: "#^Parameter \\#1 \\$text of function esc_attr expects string, int given\\.$#"
+			count: 3
+			path: includes/class-wch-admin-broadcasts.php
+
+		-
+			message: "#^Call to an undefined method WCH_Product_Sync_Service\\:\\:sync_product\\(\\)\\.$#"
+			count: 1
+			path: includes/class-wch-admin-catalog-sync.php
+
+		-
+			message: "#^Call to an undefined method WCH_Queue\\:\\:schedule_bulk_action\\(\\)\\.$#"
+			count: 2
+			path: includes/class-wch-admin-catalog-sync.php
+
+		-
+			message: "#^Constant WCH_PLUGIN_URL not found\\.$#"
+			count: 2
+			path: includes/class-wch-admin-catalog-sync.php
+
+		-
+			message: "#^Parameter \\#1 \\$text of function esc_attr expects string, int given\\.$#"
+			count: 3
+			path: includes/class-wch-admin-catalog-sync.php
+
+		-
+			message: "#^Constant WCH_PLUGIN_URL not found\\.$#"
+			count: 2
+			path: includes/class-wch-admin-jobs.php
+
+		-
+			message: "#^Parameter \\#1 \\$text of function esc_html expects string, int given\\.$#"
+			count: 2
+			path: includes/class-wch-admin-jobs.php
+
+		-
+			message: "#^Parameter \\#1 \\$text of function esc_html expects string, int\\<0, max\\> given\\.$#"
+			count: 2
+			path: includes/class-wch-admin-logs.php
+
+		-
+			message: "#^Parameter \\#2 \\$src of function wp_enqueue_style expects string, false given\\.$#"
+			count: 1
+			path: includes/class-wch-admin-logs.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Logger\\:\\:clear_all_logs\\(\\)\\.$#"
+			count: 1
+			path: includes/class-wch-admin-settings.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Payment_Manager\\:\\:getInstance\\(\\)\\.$#"
+			count: 1
+			path: includes/class-wch-admin-settings.php
+
+		-
+			message: "#^Class WCH_WhatsApp_API_Client constructor invoked with 0 parameters, 1 required\\.$#"
+			count: 2
+			path: includes/class-wch-admin-settings.php
+
+		-
+			message: "#^Constant WCH_PLUGIN_URL not found\\.$#"
+			count: 2
+			path: includes/class-wch-admin-settings.php
+
+		-
+			message: "#^Parameter \\#1 \\$text of function esc_attr expects string, int given\\.$#"
+			count: 1
+			path: includes/class-wch-admin-settings.php
+
+		-
+			message: "#^Constant WCH_PLUGIN_URL not found\\.$#"
+			count: 2
+			path: includes/class-wch-admin-templates.php
+
+		-
+			message: "#^Comparison operation \"\\>\" between int\\<1, max\\> and 0 is always true\\.$#"
+			count: 1
+			path: includes/class-wch-ai-assistant.php
+
+		-
+			message: "#^Parameter \\#1 \\$price of function wc_price expects float, string given\\.$#"
+			count: 1
+			path: includes/class-wch-ai-assistant.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
+			count: 9
+			path: includes/class-wch-analytics-controller.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
+			count: 5
+			path: includes/class-wch-broadcast-job-handler.php
+
+		-
+			message: "#^If condition is always true\\.$#"
+			count: 1
+			path: includes/class-wch-broadcast-job-handler.php
+
+		-
+			message: "#^Unreachable statement \\- code above always terminates\\.$#"
+			count: 1
+			path: includes/class-wch-broadcast-job-handler.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
+			count: 5
+			path: includes/class-wch-cart-cleanup-handler.php
+
+		-
+			message: "#^Binary operation \"\\*\" between float and string results in an error\\.$#"
+			count: 2
+			path: includes/class-wch-cart-manager.php
+
+		-
+			message: "#^Call to an undefined method WC_Product\\:\\:get_variation_attributes\\(\\)\\.$#"
+			count: 1
+			path: includes/class-wch-cart-manager.php
+
+		-
+			message: "#^Call to function is_null\\(\\) with WCH_Cart_Manager will always evaluate to false\\.$#"
+			count: 1
+			path: includes/class-wch-cart-manager.php
+
+		-
+			message: "#^Access to private property WCH_Message_Builder\\:\\:\\$body\\.$#"
+			count: 1
+			path: includes/class-wch-catalog-browser.php
+
+		-
+			message: "#^Call to an undefined method WC_Data_Store\\:\\:search_products\\(\\)\\.$#"
+			count: 1
+			path: includes/class-wch-catalog-browser.php
+
+		-
+			message: "#^Call to an undefined method WC_Product\\:\\:get_variation_attributes\\(\\)\\.$#"
+			count: 2
+			path: includes/class-wch-catalog-browser.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
+			count: 1
+			path: includes/class-wch-catalog-browser.php
+
+		-
+			message: "#^Method WCH_Message_Builder\\:\\:header\\(\\) invoked with 1 parameter, 2 required\\.$#"
+			count: 4
+			path: includes/class-wch-catalog-browser.php
+
+		-
+			message: "#^Parameter \\#1 \\$image_id of method WCH_Catalog_Browser\\:\\:generate_optimized_image\\(\\) expects int, string given\\.$#"
+			count: 1
+			path: includes/class-wch-catalog-browser.php
+
+		-
+			message: "#^Parameter \\#1 \\$post_id of function get_post_meta expects int, string given\\.$#"
+			count: 1
+			path: includes/class-wch-catalog-browser.php
+
+		-
+			message: "#^Parameter \\#1 \\$post_id of function update_post_meta expects int, string given\\.$#"
+			count: 1
+			path: includes/class-wch-catalog-browser.php
+
+		-
+			message: "#^Parameter \\#1 \\$product of method WCH_Catalog_Browser\\:\\:build_variant_overview\\(\\) expects WC_Product_Variable, WC_Product given\\.$#"
+			count: 1
+			path: includes/class-wch-catalog-browser.php
+
+		-
+			message: "#^Variable \\$category_rows in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 2
+			path: includes/class-wch-catalog-browser.php
+
+		-
+			message: "#^Method WCH_Message_Builder\\:\\:header\\(\\) invoked with 1 parameter, 2 required\\.$#"
+			count: 3
+			path: includes/class-wch-checkout-controller.php
+
+		-
+			message: "#^Parameter \\#1 \\$json of function json_decode expects string, array given\\.$#"
+			count: 2
+			path: includes/class-wch-checkout-controller.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of static method WCH_Logger\\:\\:error\\(\\) expects array, string given\\.$#"
+			count: 9
+			path: includes/class-wch-checkout-controller.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of static method WCH_Logger\\:\\:info\\(\\) expects array, string given\\.$#"
+			count: 11
+			path: includes/class-wch-checkout-controller.php
+
+		-
+			message: "#^Static method WCH_Logger\\:\\:error\\(\\) invoked with 3 parameters, 1\\-2 required\\.$#"
+			count: 9
+			path: includes/class-wch-checkout-controller.php
+
+		-
+			message: "#^Static method WCH_Logger\\:\\:info\\(\\) invoked with 3 parameters, 1\\-2 required\\.$#"
+			count: 11
+			path: includes/class-wch-checkout-controller.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
+			count: 3
+			path: includes/class-wch-context-manager.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
+			count: 1
+			path: includes/class-wch-conversation-fsm.php
+
+		-
+			message: "#^Call to function is_array\\(\\) with array will always evaluate to true\\.$#"
+			count: 1
+			path: includes/class-wch-conversation-fsm.php
+
+		-
+			message: "#^Method WCH_Conversation_FSM\\:\\:check_guard\\(\\) never returns WP_Error so it can be removed from the return type\\.$#"
+			count: 1
+			path: includes/class-wch-conversation-fsm.php
+
+		-
+			message: "#^Method WCH_Conversation_FSM\\:\\:transition\\(\\) should return array but returns WP_Error\\.$#"
+			count: 4
+			path: includes/class-wch-conversation-fsm.php
+
+		-
+			message: "#^Call to static method getInstance\\(\\) on an unknown class WCH_AI_Service\\.$#"
+			count: 1
+			path: includes/class-wch-conversations-controller.php
+
+		-
+			message: "#^Call to static method getInstance\\(\\) on an unknown class WCH_WhatsApp_API\\.$#"
+			count: 1
+			path: includes/class-wch-conversations-controller.php
+
+		-
+			message: "#^Variable \\$where_values in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 1
+			path: includes/class-wch-conversations-controller.php
+
+		-
+			message: "#^Call to function is_array\\(\\) with array will always evaluate to true\\.$#"
+			count: 3
+			path: includes/class-wch-customer-service.php
+
+		-
+			message: "#^Comparison operation \"\\>\" between int\\<1, max\\> and 0 is always true\\.$#"
+			count: 1
+			path: includes/class-wch-customer-service.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of static method WCH_Logger\\:\\:info\\(\\) expects array, string given\\.$#"
+			count: 6
+			path: includes/class-wch-customer-service.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of static method WCH_Logger\\:\\:warning\\(\\) expects array, string given\\.$#"
+			count: 1
+			path: includes/class-wch-customer-service.php
+
+		-
+			message: "#^Static method WCH_Logger\\:\\:info\\(\\) invoked with 3 parameters, 1\\-2 required\\.$#"
+			count: 6
+			path: includes/class-wch-customer-service.php
+
+		-
+			message: "#^Static method WCH_Logger\\:\\:warning\\(\\) invoked with 3 parameters, 1\\-2 required\\.$#"
+			count: 1
+			path: includes/class-wch-customer-service.php
+
+		-
+			message: "#^Comparison operation \"\\>\" between \\(array\\|float\\|int\\) and 0 results in an error\\.$#"
+			count: 1
+			path: includes/class-wch-dashboard-widgets.php
+
+		-
+			message: "#^Parameter \\#1 \\$text of function esc_html expects string, float\\|int given\\.$#"
+			count: 1
+			path: includes/class-wch-dashboard-widgets.php
+
+		-
+			message: "#^Parameter \\#1 \\$text of function esc_html expects string, int given\\.$#"
+			count: 1
+			path: includes/class-wch-error-handler.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
+			count: 1
+			path: includes/class-wch-flow-action.php
+
+		-
+			message: "#^Parameter \\#1 \\$attachment_id of function wp_get_attachment_image_url expects int, string given\\.$#"
+			count: 1
+			path: includes/class-wch-flow-action.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
+			count: 3
+			path: includes/class-wch-intent-classifier.php
+
+		-
+			message: "#^Right side of && is always true\\.$#"
+			count: 1
+			path: includes/class-wch-intent-classifier.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_product_id\\(\\)\\.$#"
+			count: 1
+			path: includes/class-wch-inventory-sync-handler.php
+
+		-
+			message: "#^Function as_next_scheduled_action not found\\.$#"
+			count: 1
+			path: includes/class-wch-inventory-sync-handler.php
+
+		-
+			message: "#^Function as_schedule_recurring_action not found\\.$#"
+			count: 1
+			path: includes/class-wch-inventory-sync-handler.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
+			count: 8
+			path: includes/class-wch-job-dispatcher.php
+
+		-
+			message: "#^Call to function is_array\\(\\) with array will always evaluate to true\\.$#"
+			count: 1
+			path: includes/class-wch-job-dispatcher.php
+
+		-
+			message: "#^Call to static method instance\\(\\) on an unknown class ActionScheduler_Store\\.$#"
+			count: 1
+			path: includes/class-wch-job-dispatcher.php
+
+		-
+			message: "#^Method WCH_Logger\\:\\:get_wc_logger\\(\\) never returns null so it can be removed from the return type\\.$#"
+			count: 1
+			path: includes/class-wch-logger.php
+
+		-
+			message: "#^Static property WCH_Logger\\:\\:\\$wc_logger \\(WC_Logger\\) does not accept WC_Logger_Interface\\.$#"
+			count: 1
+			path: includes/class-wch-logger.php
+
+		-
+			message: "#^Parameter \\#3 \\$http_status of class WCH_Exception constructor expects int, array\\<string, \\(int\\|string\\)\\> given\\.$#"
+			count: 1
+			path: includes/class-wch-message-builder.php
+
+		-
+			message: "#^Parameter \\#3 \\$http_status of class WCH_Exception constructor expects int, array\\<string, int\\<10, max\\>\\> given\\.$#"
+			count: 1
+			path: includes/class-wch-message-builder.php
+
+		-
+			message: "#^Parameter \\#3 \\$http_status of class WCH_Exception constructor expects int, array\\<string, int\\<3, max\\>\\> given\\.$#"
+			count: 1
+			path: includes/class-wch-message-builder.php
+
+		-
+			message: "#^Parameter \\#3 \\$http_status of class WCH_Exception constructor expects int, array\\<string, int\\|string\\> given\\.$#"
+			count: 1
+			path: includes/class-wch-message-builder.php
+
+		-
+			message: "#^Parameter \\#3 \\$http_status of class WCH_Exception constructor expects int, array\\<string, string\\> given\\.$#"
+			count: 1
+			path: includes/class-wch-message-builder.php
+
+		-
+			message: "#^Call to an undefined method WCH_WhatsApp_API_Client\\:\\:send_template_message\\(\\)\\.$#"
+			count: 1
+			path: includes/class-wch-order-notifications.php
+
+		-
+			message: "#^Class WCH_WhatsApp_API_Client constructor invoked with 0 parameters, 1 required\\.$#"
+			count: 1
+			path: includes/class-wch-order-notifications.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Settings\\:\\:instance\\(\\)\\.$#"
+			count: 1
+			path: includes/class-wch-order-sync-service.php
+
+		-
+			message: "#^Constant WCH_PLUGIN_URL not found\\.$#"
+			count: 1
+			path: includes/class-wch-order-sync-service.php
+
+		-
+			message: "#^Parameter \\#1 \\$text of function esc_attr expects string, int given\\.$#"
+			count: 2
+			path: includes/class-wch-order-sync-service.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of static method WCH_Logger\\:\\:error\\(\\) expects array, string given\\.$#"
+			count: 1
+			path: includes/class-wch-order-sync-service.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of static method WCH_Logger\\:\\:info\\(\\) expects array, string given\\.$#"
+			count: 4
+			path: includes/class-wch-order-sync-service.php
+
+		-
+			message: "#^Parameter \\#2 \\$value of method WC_Data\\:\\:update_meta_data\\(\\) expects array\\|string, true given\\.$#"
+			count: 1
+			path: includes/class-wch-order-sync-service.php
+
+		-
+			message: "#^Property WCH_Order_Sync_Service\\:\\:\\$settings is never read, only written\\.$#"
+			count: 1
+			path: includes/class-wch-order-sync-service.php
+
+		-
+			message: "#^Static method WCH_Logger\\:\\:error\\(\\) invoked with 3 parameters, 1\\-2 required\\.$#"
+			count: 1
+			path: includes/class-wch-order-sync-service.php
+
+		-
+			message: "#^Static method WCH_Logger\\:\\:info\\(\\) invoked with 3 parameters, 1\\-2 required\\.$#"
+			count: 4
+			path: includes/class-wch-order-sync-service.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
+			count: 2
+			path: includes/class-wch-payment-webhook-handler.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Settings\\:\\:instance\\(\\)\\.$#"
+			count: 1
+			path: includes/class-wch-product-sync-service.php
+
+		-
+			message: "#^Parameter \\#1 \\$attachment_id of function wp_get_attachment_image_url expects int, string given\\.$#"
+			count: 1
+			path: includes/class-wch-product-sync-service.php
+
+		-
+			message: "#^Parameter \\#1 \\$product of method WCH_Product_Sync_Service\\:\\:sync_variable_product\\(\\) expects WC_Product_Variable, WC_Product given\\.$#"
+			count: 1
+			path: includes/class-wch-product-sync-service.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of static method WCH_Logger\\:\\:debug\\(\\) expects array, string given\\.$#"
+			count: 1
+			path: includes/class-wch-product-sync-service.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of static method WCH_Logger\\:\\:error\\(\\) expects array, string given\\.$#"
+			count: 3
+			path: includes/class-wch-product-sync-service.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of static method WCH_Logger\\:\\:info\\(\\) expects array, string given\\.$#"
+			count: 6
+			path: includes/class-wch-product-sync-service.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of static method WCH_Logger\\:\\:warning\\(\\) expects array, string given\\.$#"
+			count: 1
+			path: includes/class-wch-product-sync-service.php
+
+		-
+			message: "#^Static method WCH_Logger\\:\\:debug\\(\\) invoked with 3 parameters, 1\\-2 required\\.$#"
+			count: 1
+			path: includes/class-wch-product-sync-service.php
+
+		-
+			message: "#^Static method WCH_Logger\\:\\:error\\(\\) invoked with 3 parameters, 1\\-2 required\\.$#"
+			count: 3
+			path: includes/class-wch-product-sync-service.php
+
+		-
+			message: "#^Static method WCH_Logger\\:\\:info\\(\\) invoked with 3 parameters, 1\\-2 required\\.$#"
+			count: 6
+			path: includes/class-wch-product-sync-service.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
+			count: 4
+			path: includes/class-wch-queue.php
+
+		-
+			message: "#^Function as_next_scheduled_action not found\\.$#"
+			count: 1
+			path: includes/class-wch-queue.php
+
+		-
+			message: "#^Function as_schedule_recurring_action not found\\.$#"
+			count: 1
+			path: includes/class-wch-queue.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of static method WCH_Logger\\:\\:info\\(\\) expects array, string given\\.$#"
+			count: 1
+			path: includes/class-wch-queue.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of static method WCH_Logger\\:\\:warning\\(\\) expects array, string given\\.$#"
+			count: 1
+			path: includes/class-wch-queue.php
+
+		-
+			message: "#^Static method WCH_Logger\\:\\:info\\(\\) invoked with 3 parameters, 1\\-2 required\\.$#"
+			count: 1
+			path: includes/class-wch-queue.php
+
+		-
+			message: "#^Static method WCH_Logger\\:\\:warning\\(\\) invoked with 3 parameters, 1\\-2 required\\.$#"
+			count: 1
+			path: includes/class-wch-queue.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_product\\(\\)\\.$#"
+			count: 1
+			path: includes/class-wch-reengagement-service.php
+
+		-
+			message: "#^Function as_next_scheduled_action not found\\.$#"
+			count: 3
+			path: includes/class-wch-reengagement-service.php
+
+		-
+			message: "#^Function as_schedule_recurring_action not found\\.$#"
+			count: 3
+			path: includes/class-wch-reengagement-service.php
+
+		-
+			message: "#^Negated boolean expression is always false\\.$#"
+			count: 1
+			path: includes/class-wch-reengagement-service.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of static method WCH_Logger\\:\\:info\\(\\) expects array, string given\\.$#"
+			count: 2
+			path: includes/class-wch-reengagement-service.php
+
+		-
+			message: "#^Static method WCH_Logger\\:\\:info\\(\\) invoked with 3 parameters, 1\\-2 required\\.$#"
+			count: 1
+			path: includes/class-wch-reengagement-service.php
+
+		-
+			message: "#^Call to an undefined method WCH_WhatsApp_API_Client\\:\\:send_message\\(\\)\\.$#"
+			count: 1
+			path: includes/class-wch-refund-handler.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
+			count: 4
+			path: includes/class-wch-refund-handler.php
+
+		-
+			message: "#^Call to function is_null\\(\\) with WCH_Refund_Handler will always evaluate to false\\.$#"
+			count: 1
+			path: includes/class-wch-refund-handler.php
+
+		-
+			message: "#^Class WCH_WhatsApp_API_Client constructor invoked with 0 parameters, 1 required\\.$#"
+			count: 1
+			path: includes/class-wch-refund-handler.php
+
+		-
+			message: "#^Parameter \\#1 \\$price of function wc_price expects float, string given\\.$#"
+			count: 1
+			path: includes/class-wch-refund-handler.php
+
+		-
+			message: "#^Call to function is_array\\(\\) with array will always evaluate to true\\.$#"
+			count: 1
+			path: includes/class-wch-response-parser.php
+
+		-
+			message: "#^Call to function is_string\\(\\) with non\\-falsy\\-string will always evaluate to true\\.$#"
+			count: 1
+			path: includes/class-wch-response-parser.php
+
+		-
+			message: "#^Parameter \\#2 \\$value of method WP_HTTP_Response\\:\\:header\\(\\) expects string, int given\\.$#"
+			count: 2
+			path: includes/class-wch-rest-controller.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
+			count: 5
+			path: includes/class-wch-sync-job-handler.php
+
+		-
+			message: "#^Class WCH_WhatsApp_API_Client constructor invoked with 3 parameters, 1 required\\.$#"
+			count: 1
+			path: includes/class-wch-template-manager.php
+
+		-
+			message: "#^Negated boolean expression is always false\\.$#"
+			count: 1
+			path: includes/class-wch-template-manager.php
+
+		-
+			message: "#^Parameter \\#2 \\$api_error_code of class WCH_API_Exception constructor expects int\\|null, string given\\.$#"
+			count: 2
+			path: includes/class-wch-template-manager.php
+
+		-
+			message: "#^Parameter \\#3 \\$api_error_type of class WCH_API_Exception constructor expects string\\|null, array\\<string, mixed\\> given\\.$#"
+			count: 1
+			path: includes/class-wch-template-manager.php
+
+		-
+			message: "#^Parameter \\#3 \\$http_status of class WCH_Exception constructor expects int, array\\<string, string\\> given\\.$#"
+			count: 2
+			path: includes/class-wch-template-manager.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
+			count: 13
+			path: includes/class-wch-webhook-handler.php
+
+		-
+			message: "#^Parameter \\#1 \\$amount of method WC_Order_Item_Fee\\:\\:set_total\\(\\) expects string, float given\\.$#"
+			count: 1
+			path: includes/payments/class-wch-payment-cod.php
+
+		-
+			message: "#^Parameter \\#1 \\$value of method WC_Order_Item_Fee\\:\\:set_amount\\(\\) expects string, float given\\.$#"
+			count: 1
+			path: includes/payments/class-wch-payment-cod.php
+
+		-
+			message: "#^Call to an undefined method WCH_WhatsApp_API_Client\\:\\:send_message\\(\\)\\.$#"
+			count: 2
+			path: includes/payments/class-wch-payment-manager.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
+			count: 11
+			path: includes/payments/class-wch-payment-manager.php
+
+		-
+			message: "#^Call to function is_null\\(\\) with WCH_Payment_Manager will always evaluate to false\\.$#"
+			count: 1
+			path: includes/payments/class-wch-payment-manager.php
+
+		-
+			message: "#^Class WCH_WhatsApp_API_Client constructor invoked with 0 parameters, 1 required\\.$#"
+			count: 2
+			path: includes/payments/class-wch-payment-manager.php
+
+		-
+			message: "#^Constant WCH_PLUGIN_DIR not found\\.$#"
+			count: 6
+			path: includes/payments/class-wch-payment-manager.php
+
+		-
+			message: "#^Instanceof between WCH_Payment_Gateway and WCH_Payment_Gateway will always evaluate to true\\.$#"
+			count: 1
+			path: includes/payments/class-wch-payment-manager.php
+
+		-
+			message: "#^Call to an undefined method WCH_WhatsApp_API_Client\\:\\:send_message\\(\\)\\.$#"
+			count: 2
+			path: includes/payments/class-wch-payment-pix.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_product_id\\(\\)\\.$#"
+			count: 1
+			path: includes/payments/class-wch-payment-pix.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_total\\(\\)\\.$#"
+			count: 1
+			path: includes/payments/class-wch-payment-pix.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
+			count: 3
+			path: includes/payments/class-wch-payment-pix.php
+
+		-
+			message: "#^Class WCH_WhatsApp_API_Client constructor invoked with 0 parameters, 1 required\\.$#"
+			count: 1
+			path: includes/payments/class-wch-payment-pix.php
+
+		-
+			message: "#^Offset 'id' on non\\-falsy\\-string in isset\\(\\) does not exist\\.$#"
+			count: 1
+			path: includes/payments/class-wch-payment-pix.php
+
+		-
+			message: "#^Property WCH_Payment_PIX\\:\\:\\$api_key is never read, only written\\.$#"
+			count: 1
+			path: includes/payments/class-wch-payment-pix.php
+
+		-
+			message: "#^Result of && is always false\\.$#"
+			count: 1
+			path: includes/payments/class-wch-payment-pix.php
+
+		-
+			message: "#^Binary operation \"\\.\" between array and '\\:' results in an error\\.$#"
+			count: 1
+			path: includes/payments/class-wch-payment-razorpay.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
+			count: 3
+			path: includes/payments/class-wch-payment-razorpay.php
+
+		-
+			message: "#^Binary operation \"\\*\" between string and 100 results in an error\\.$#"
+			count: 1
+			path: includes/payments/class-wch-payment-stripe.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_total\\(\\)\\.$#"
+			count: 1
+			path: includes/payments/class-wch-payment-stripe.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
+			count: 3
+			path: includes/payments/class-wch-payment-stripe.php
+
+		-
+			message: "#^Call to an undefined method WCH_WhatsApp_API_Client\\:\\:send_message\\(\\)\\.$#"
+			count: 1
+			path: includes/payments/class-wch-payment-whatsapppay.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_total\\(\\)\\.$#"
+			count: 1
+			path: includes/payments/class-wch-payment-whatsapppay.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
+			count: 1
+			path: includes/payments/class-wch-payment-whatsapppay.php
+
+		-
+			message: "#^Class WCH_WhatsApp_API_Client constructor invoked with 0 parameters, 1 required\\.$#"
+			count: 1
+			path: includes/payments/class-wch-payment-whatsapppay.php

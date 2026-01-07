@@ -86,10 +86,13 @@ class WCH_Order_Notifications {
 		}
 
 		// Queue confirmation notification with 30-second delay
-		$this->queue_notification( array(
-			'order_id'          => $order_id,
-			'notification_type' => 'order_confirmation',
-		), 30 );
+		$this->queue_notification(
+			array(
+				'order_id'          => $order_id,
+				'notification_type' => 'order_confirmation',
+			),
+			30
+		);
 	}
 
 	/**
@@ -113,12 +116,15 @@ class WCH_Order_Notifications {
 		}
 
 		// Queue status notification with 30-second delay
-		$this->queue_notification( array(
-			'order_id'          => $order_id,
-			'notification_type' => 'status_update',
-			'old_status'        => $old_status,
-			'new_status'        => $new_status,
-		), 30 );
+		$this->queue_notification(
+			array(
+				'order_id'          => $order_id,
+				'notification_type' => 'status_update',
+				'old_status'        => $old_status,
+				'new_status'        => $new_status,
+			),
+			30
+		);
 	}
 
 	/**
@@ -142,12 +148,15 @@ class WCH_Order_Notifications {
 		}
 
 		// Queue shipping notification
-		$this->queue_notification( array(
-			'order_id'          => $order_id,
-			'notification_type' => 'shipping_update',
-			'tracking_number'   => $tracking_number,
-			'carrier'           => $carrier,
-		), 30 );
+		$this->queue_notification(
+			array(
+				'order_id'          => $order_id,
+				'notification_type' => 'shipping_update',
+				'tracking_number'   => $tracking_number,
+				'carrier'           => $carrier,
+			),
+			30
+		);
 	}
 
 	/**
@@ -388,11 +397,14 @@ class WCH_Order_Notifications {
 			}
 
 			// Update log with success
-			$this->update_notification_log( $log_id, array(
-				'status'        => 'sent',
-				'wa_message_id' => $result['messages'][0]['id'],
-				'sent_at'       => current_time( 'mysql' ),
-			) );
+			$this->update_notification_log(
+				$log_id,
+				array(
+					'status'        => 'sent',
+					'wa_message_id' => $result['messages'][0]['id'],
+					'sent_at'       => current_time( 'mysql' ),
+				)
+			);
 
 			WCH_Logger::info( "Notification sent for order {$order_id}: {$notification_type}" );
 
@@ -400,10 +412,13 @@ class WCH_Order_Notifications {
 
 		} catch ( Exception $e ) {
 			// Update log with failure
-			$this->update_notification_log( $log_id, array(
-				'status'        => 'failed',
-				'error_message' => $e->getMessage(),
-			) );
+			$this->update_notification_log(
+				$log_id,
+				array(
+					'status'        => 'failed',
+					'error_message' => $e->getMessage(),
+				)
+			);
 
 			WCH_Logger::error( "Notification failed for order {$order_id}: {$e->getMessage()}" );
 
@@ -487,10 +502,12 @@ class WCH_Order_Notifications {
 		$table_name = WCH_Database_Manager::instance()->get_table_name( 'notification_log' );
 
 		// Get current retry count
-		$log = $wpdb->get_row( $wpdb->prepare(
-			"SELECT retry_count FROM {$table_name} WHERE id = %d",
-			$log_id
-		) );
+		$log = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT retry_count FROM {$table_name} WHERE id = %d",
+				$log_id
+			)
+		);
 
 		if ( ! $log ) {
 			return;
@@ -522,7 +539,7 @@ class WCH_Order_Notifications {
 			300 // 5 minutes
 		);
 
-		WCH_Logger::info( "Scheduled retry " . ( $retry_count + 1 ) . " for notification log {$log_id}" );
+		WCH_Logger::info( 'Scheduled retry ' . ( $retry_count + 1 ) . " for notification log {$log_id}" );
 	}
 
 	/**
@@ -610,10 +627,12 @@ class WCH_Order_Notifications {
 
 		$table_name = WCH_Database_Manager::instance()->get_table_name( 'customer_profiles' );
 
-		$profile = $wpdb->get_row( $wpdb->prepare(
-			"SELECT notification_opt_out FROM {$table_name} WHERE phone = %s",
-			$customer_phone
-		) );
+		$profile = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT notification_opt_out FROM {$table_name} WHERE phone = %s",
+				$customer_phone
+			)
+		);
 
 		return $profile && ! empty( $profile->notification_opt_out );
 	}
@@ -766,15 +785,15 @@ class WCH_Order_Notifications {
 	 */
 	private function get_tracking_url( $carrier, $tracking_number ) {
 		$carrier_urls = array(
-			'ups'    => "https://www.ups.com/track?tracknum={$tracking_number}",
-			'usps'   => "https://tools.usps.com/go/TrackConfirmAction?tLabels={$tracking_number}",
-			'fedex'  => "https://www.fedex.com/fedextrack/?tracknumbers={$tracking_number}",
-			'dhl'    => "https://www.dhl.com/en/express/tracking.html?AWB={$tracking_number}",
+			'ups'   => "https://www.ups.com/track?tracknum={$tracking_number}",
+			'usps'  => "https://tools.usps.com/go/TrackConfirmAction?tLabels={$tracking_number}",
+			'fedex' => "https://www.fedex.com/fedextrack/?tracknumbers={$tracking_number}",
+			'dhl'   => "https://www.dhl.com/en/express/tracking.html?AWB={$tracking_number}",
 		);
 
 		$carrier_key = strtolower( $carrier );
 
-		return $carrier_urls[ $carrier_key ] ?? "#";
+		return $carrier_urls[ $carrier_key ] ?? '#';
 	}
 
 	/**
@@ -874,10 +893,12 @@ class WCH_Order_Notifications {
 
 		$table_name = WCH_Database_Manager::instance()->get_table_name( 'notification_log' );
 
-		return $wpdb->get_results( $wpdb->prepare(
-			"SELECT * FROM {$table_name} WHERE order_id = %d ORDER BY created_at DESC",
-			$order_id
-		) );
+		return $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT * FROM {$table_name} WHERE order_id = %d ORDER BY created_at DESC",
+				$order_id
+			)
+		);
 	}
 
 	/**

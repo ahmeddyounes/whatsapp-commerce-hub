@@ -1,0 +1,17 @@
+[main fdba6d8] M07-04: implement
+ 16 files changed, 6658 insertions(+), 8 deletions(-)
+ create mode 100644 .logs/M07-03.gitcommit.txt
+ create mode 100644 .logs/M07-04.claude.impl.last.md
+ create mode 100644 .logs/M07-04.claude.impl.raw.txt
+ create mode 100644 .plans/M07-04.md
+ create mode 100644 .t2/handoff/M07-04.md
+ create mode 100644 CHANGELOG.md
+ create mode 100644 CONTRIBUTING.md
+ create mode 100644 docs/README.md
+ create mode 100644 docs/api-reference.md
+ create mode 100644 docs/configuration.md
+ create mode 100644 docs/extending.md
+ create mode 100644 docs/hooks-reference.md
+ create mode 100644 docs/installation.md
+ create mode 100644 docs/troubleshooting.md
+

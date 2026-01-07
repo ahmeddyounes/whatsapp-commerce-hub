@@ -78,20 +78,20 @@ class WCH_Conversation_Context {
 	 * @param array $data Context data.
 	 */
 	public function __construct( $data = array() ) {
-		$this->current_state = $data['current_state'] ?? WCH_Conversation_FSM::STATE_IDLE;
-		$this->state_data = $data['state_data'] ?? array();
+		$this->current_state        = $data['current_state'] ?? WCH_Conversation_FSM::STATE_IDLE;
+		$this->state_data           = $data['state_data'] ?? array();
 		$this->conversation_history = $data['conversation_history'] ?? array();
-		$this->slots = $data['slots'] ?? array();
-		$this->customer_phone = $data['customer_phone'] ?? '';
-		$this->started_at = $data['started_at'] ?? current_time( 'mysql' );
-		$this->last_activity_at = $data['last_activity_at'] ?? current_time( 'mysql' );
+		$this->slots                = $data['slots'] ?? array();
+		$this->customer_phone       = $data['customer_phone'] ?? '';
+		$this->started_at           = $data['started_at'] ?? current_time( 'mysql' );
+		$this->last_activity_at     = $data['last_activity_at'] ?? current_time( 'mysql' );
 
 		// Calculate expires_at (24 hours from last activity)
 		if ( isset( $data['expires_at'] ) ) {
 			$this->expires_at = $data['expires_at'];
 		} else {
 			$last_activity_timestamp = strtotime( $this->last_activity_at );
-			$this->expires_at = gmdate( 'Y-m-d H:i:s', $last_activity_timestamp + ( 24 * 3600 ) );
+			$this->expires_at        = gmdate( 'Y-m-d H:i:s', $last_activity_timestamp + ( 24 * 3600 ) );
 		}
 	}
 
@@ -150,9 +150,9 @@ class WCH_Conversation_Context {
 	 * Update last activity and expires_at timestamps.
 	 */
 	private function update_activity() {
-		$this->last_activity_at = current_time( 'mysql' );
+		$this->last_activity_at  = current_time( 'mysql' );
 		$last_activity_timestamp = strtotime( $this->last_activity_at );
-		$this->expires_at = gmdate( 'Y-m-d H:i:s', $last_activity_timestamp + ( 24 * 3600 ) );
+		$this->expires_at        = gmdate( 'Y-m-d H:i:s', $last_activity_timestamp + ( 24 * 3600 ) );
 	}
 
 	/**
@@ -308,11 +308,11 @@ class WCH_Conversation_Context {
 	 * Reset context to initial state.
 	 */
 	public function reset() {
-		$this->current_state = WCH_Conversation_FSM::STATE_IDLE;
-		$this->state_data = array();
+		$this->current_state        = WCH_Conversation_FSM::STATE_IDLE;
+		$this->state_data           = array();
 		$this->conversation_history = array();
-		$this->started_at = current_time( 'mysql' );
-		$this->last_activity_at = current_time( 'mysql' );
+		$this->started_at           = current_time( 'mysql' );
+		$this->last_activity_at     = current_time( 'mysql' );
 	}
 
 	/**
@@ -323,7 +323,7 @@ class WCH_Conversation_Context {
 	 */
 	public function is_timed_out( $timeout_seconds = WCH_Conversation_FSM::TIMEOUT_DURATION ) {
 		$last_activity_timestamp = strtotime( $this->last_activity_at );
-		$current_timestamp = current_time( 'timestamp' );
+		$current_timestamp       = current_time( 'timestamp' );
 		return ( $current_timestamp - $last_activity_timestamp ) >= $timeout_seconds;
 	}
 
@@ -334,7 +334,7 @@ class WCH_Conversation_Context {
 	 */
 	public function get_inactive_duration() {
 		$last_activity_timestamp = strtotime( $this->last_activity_at );
-		$current_timestamp = current_time( 'timestamp' );
+		$current_timestamp       = current_time( 'timestamp' );
 		return $current_timestamp - $last_activity_timestamp;
 	}
 
@@ -347,7 +347,7 @@ class WCH_Conversation_Context {
 		$context_parts = array();
 
 		// Business information
-		$business_name = get_bloginfo( 'name' );
+		$business_name   = get_bloginfo( 'name' );
 		$context_parts[] = "Business: {$business_name}";
 
 		// Current state
@@ -376,14 +376,14 @@ class WCH_Conversation_Context {
 		}
 
 		// Available actions based on current state
-		$context_parts[] = "\nAvailable Actions:";
+		$context_parts[]   = "\nAvailable Actions:";
 		$available_actions = $this->get_available_actions_for_state();
 		if ( ! empty( $available_actions ) ) {
 			foreach ( $available_actions as $action ) {
 				$context_parts[] = "- {$action}";
 			}
 		} else {
-			$context_parts[] = "- Continue conversation based on context";
+			$context_parts[] = '- Continue conversation based on context';
 		}
 
 		return implode( "\n", $context_parts );

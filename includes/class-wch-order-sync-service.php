@@ -36,11 +36,11 @@ class WCH_Order_Sync_Service {
 	 * @var array
 	 */
 	private $notification_templates = array(
-		'pending->processing' => 'order_confirmed',
+		'pending->processing'   => 'order_confirmed',
 		'processing->completed' => 'order_completed',
-		'processing->shipped' => 'shipping_update',
-		'any->cancelled' => 'order_cancelled',
-		'any->refunded' => 'order_cancelled',
+		'processing->shipped'   => 'shipping_update',
+		'any->cancelled'        => 'order_cancelled',
+		'any->refunded'         => 'order_cancelled',
 	);
 
 	/**
@@ -163,9 +163,9 @@ class WCH_Order_Sync_Service {
 				'Order created from WhatsApp cart',
 				'order-sync',
 				array(
-					'order_id' => $order->get_id(),
+					'order_id'       => $order->get_id(),
 					'customer_phone' => $customer_phone,
-					'status' => $status,
+					'status'         => $status,
 				)
 			);
 
@@ -180,7 +180,7 @@ class WCH_Order_Sync_Service {
 				'order-sync',
 				array(
 					'customer_phone' => $customer_phone,
-					'error' => $e->getMessage(),
+					'error'          => $e->getMessage(),
 				)
 			);
 
@@ -201,7 +201,7 @@ class WCH_Order_Sync_Service {
 
 		foreach ( $items as $item ) {
 			$product_id = $item['product_id'] ?? 0;
-			$quantity = $item['quantity'] ?? 0;
+			$quantity   = $item['quantity'] ?? 0;
 
 			if ( ! $product_id || ! $quantity ) {
 				throw new WCH_Exception( 'Invalid cart item data' );
@@ -249,7 +249,7 @@ class WCH_Order_Sync_Service {
 	private function add_line_items( $order, $items ) {
 		foreach ( $items as $item ) {
 			$product_id = $item['product_id'];
-			$quantity = $item['quantity'];
+			$quantity   = $item['quantity'];
 
 			$product = wc_get_product( $product_id );
 
@@ -272,15 +272,15 @@ class WCH_Order_Sync_Service {
 	private function set_order_addresses( $order, $shipping_address, $customer_phone ) {
 		$address_data = array(
 			'first_name' => $shipping_address['first_name'] ?? '',
-			'last_name' => $shipping_address['last_name'] ?? '',
-			'company' => $shipping_address['company'] ?? '',
-			'address_1' => $shipping_address['address_1'] ?? '',
-			'address_2' => $shipping_address['address_2'] ?? '',
-			'city' => $shipping_address['city'] ?? '',
-			'state' => $shipping_address['state'] ?? '',
-			'postcode' => $shipping_address['postcode'] ?? '',
-			'country' => $shipping_address['country'] ?? '',
-			'phone' => $customer_phone,
+			'last_name'  => $shipping_address['last_name'] ?? '',
+			'company'    => $shipping_address['company'] ?? '',
+			'address_1'  => $shipping_address['address_1'] ?? '',
+			'address_2'  => $shipping_address['address_2'] ?? '',
+			'city'       => $shipping_address['city'] ?? '',
+			'state'      => $shipping_address['state'] ?? '',
+			'postcode'   => $shipping_address['postcode'] ?? '',
+			'country'    => $shipping_address['country'] ?? '',
+			'phone'      => $customer_phone,
 		);
 
 		// Set email if available.
@@ -301,8 +301,8 @@ class WCH_Order_Sync_Service {
 	 */
 	private function get_payment_method_title( $payment_method ) {
 		$titles = array(
-			'cod' => __( 'Cash on Delivery', 'whatsapp-commerce-hub' ),
-			'bacs' => __( 'Bank Transfer', 'whatsapp-commerce-hub' ),
+			'cod'    => __( 'Cash on Delivery', 'whatsapp-commerce-hub' ),
+			'bacs'   => __( 'Bank Transfer', 'whatsapp-commerce-hub' ),
 			'cheque' => __( 'Check Payment', 'whatsapp-commerce-hub' ),
 		);
 
@@ -346,7 +346,7 @@ class WCH_Order_Sync_Service {
 			return;
 		}
 
-		$customer_phone = $order->get_meta( '_wch_customer_phone' );
+		$customer_phone  = $order->get_meta( '_wch_customer_phone' );
 		$conversation_id = $order->get_meta( '_wch_conversation_id' );
 
 		if ( empty( $customer_phone ) ) {
@@ -362,19 +362,19 @@ class WCH_Order_Sync_Service {
 
 		// Prepare notification data.
 		$notification_data = array(
-			'customer_phone' => $customer_phone,
+			'customer_phone'  => $customer_phone,
 			'conversation_id' => $conversation_id,
-			'template_name' => $template_name,
-			'order_id' => $order_id,
-			'order_number' => $order->get_order_number(),
-			'old_status' => $old_status,
-			'new_status' => $new_status,
+			'template_name'   => $template_name,
+			'order_id'        => $order_id,
+			'order_number'    => $order->get_order_number(),
+			'old_status'      => $old_status,
+			'new_status'      => $new_status,
 		);
 
 		// Add tracking info for shipping updates.
 		if ( 'shipping_update' === $template_name ) {
 			$notification_data['tracking_number'] = $order->get_meta( '_wch_tracking_number' );
-			$notification_data['carrier'] = $order->get_meta( '_wch_carrier' );
+			$notification_data['carrier']         = $order->get_meta( '_wch_carrier' );
 		}
 
 		// Queue notification.
@@ -387,10 +387,10 @@ class WCH_Order_Sync_Service {
 			'Order status notification queued',
 			'order-sync',
 			array(
-				'order_id' => $order_id,
+				'order_id'   => $order_id,
 				'old_status' => $old_status,
 				'new_status' => $new_status,
-				'template' => $template_name,
+				'template'   => $template_name,
 			)
 		);
 	}
@@ -446,7 +446,7 @@ class WCH_Order_Sync_Service {
 		// Add order note.
 		$order->add_order_note(
 			sprintf(
-				__( 'Tracking information added - Carrier: %s, Tracking Number: %s', 'whatsapp-commerce-hub' ),
+				__( 'Tracking information added - Carrier: %1$s, Tracking Number: %2$s', 'whatsapp-commerce-hub' ),
 				$carrier,
 				$tracking_number
 			)
@@ -454,19 +454,19 @@ class WCH_Order_Sync_Service {
 
 		// Trigger shipping update notification if order is WhatsApp order.
 		if ( $order->get_meta( '_wch_order' ) ) {
-			$customer_phone = $order->get_meta( '_wch_customer_phone' );
+			$customer_phone  = $order->get_meta( '_wch_customer_phone' );
 			$conversation_id = $order->get_meta( '_wch_conversation_id' );
 
 			if ( $customer_phone ) {
 				WCH_Job_Dispatcher::dispatch(
 					'wch_send_order_notification',
 					array(
-						'customer_phone' => $customer_phone,
+						'customer_phone'  => $customer_phone,
 						'conversation_id' => $conversation_id,
-						'template_name' => 'shipping_update',
-						'order_id' => $order_id,
+						'template_name'   => 'shipping_update',
+						'order_id'        => $order_id,
 						'tracking_number' => $tracking_number,
-						'carrier' => $carrier,
+						'carrier'         => $carrier,
 					)
 				);
 			}
@@ -476,9 +476,9 @@ class WCH_Order_Sync_Service {
 			'Tracking info added to order',
 			'order-sync',
 			array(
-				'order_id' => $order_id,
+				'order_id'        => $order_id,
 				'tracking_number' => $tracking_number,
-				'carrier' => $carrier,
+				'carrier'         => $carrier,
 			)
 		);
 
@@ -564,8 +564,8 @@ class WCH_Order_Sync_Service {
 		if ( 'shop_order' === $typenow && isset( $_GET['wch_source'] ) && 'whatsapp' === $_GET['wch_source'] ) {
 			$vars['meta_query'] = array(
 				array(
-					'key' => '_wch_order',
-					'value' => true,
+					'key'     => '_wch_order',
+					'value'   => true,
 					'compare' => '=',
 				),
 			);
@@ -601,7 +601,7 @@ class WCH_Order_Sync_Service {
 			return;
 		}
 
-		$customer_phone = $order->get_meta( '_wch_customer_phone' );
+		$customer_phone  = $order->get_meta( '_wch_customer_phone' );
 		$conversation_id = $order->get_meta( '_wch_conversation_id' );
 
 		?>
@@ -633,7 +633,7 @@ class WCH_Order_Sync_Service {
 
 			<?php
 			$tracking_number = $order->get_meta( '_wch_tracking_number' );
-			$carrier = $order->get_meta( '_wch_carrier' );
+			$carrier         = $order->get_meta( '_wch_carrier' );
 			?>
 
 			<p>
@@ -683,7 +683,7 @@ class WCH_Order_Sync_Service {
 			'wchOrderAdmin',
 			array(
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-				'nonce' => wp_create_nonce( 'wch_order_admin' ),
+				'nonce'   => wp_create_nonce( 'wch_order_admin' ),
 			)
 		);
 	}
@@ -748,9 +748,9 @@ class WCH_Order_Sync_Service {
 			wp_send_json_error( 'Insufficient permissions' );
 		}
 
-		$phone = sanitize_text_field( $_POST['phone'] ?? '' );
+		$phone    = sanitize_text_field( $_POST['phone'] ?? '' );
 		$order_id = intval( $_POST['order_id'] ?? 0 );
-		$message = sanitize_textarea_field( $_POST['message'] ?? '' );
+		$message  = sanitize_textarea_field( $_POST['message'] ?? '' );
 
 		if ( empty( $phone ) || empty( $message ) ) {
 			wp_send_json_error( 'Missing required parameters' );
@@ -762,9 +762,9 @@ class WCH_Order_Sync_Service {
 			'Quick message send requested',
 			'order-sync',
 			array(
-				'phone' => $phone,
+				'phone'    => $phone,
 				'order_id' => $order_id,
-				'message' => $message,
+				'message'  => $message,
 			)
 		);
 
@@ -781,9 +781,9 @@ class WCH_Order_Sync_Service {
 			wp_send_json_error( 'Insufficient permissions' );
 		}
 
-		$order_id = intval( $_POST['order_id'] ?? 0 );
+		$order_id        = intval( $_POST['order_id'] ?? 0 );
 		$tracking_number = sanitize_text_field( $_POST['tracking_number'] ?? '' );
-		$carrier = sanitize_text_field( $_POST['carrier'] ?? '' );
+		$carrier         = sanitize_text_field( $_POST['carrier'] ?? '' );
 
 		if ( ! $order_id || empty( $tracking_number ) || empty( $carrier ) ) {
 			wp_send_json_error( 'Missing required parameters' );
@@ -792,10 +792,12 @@ class WCH_Order_Sync_Service {
 		$result = $this->add_tracking_info( $order_id, $tracking_number, $carrier );
 
 		if ( $result ) {
-			wp_send_json_success( array(
-				'message' => 'Tracking information saved',
-				'note' => true
-			) );
+			wp_send_json_success(
+				array(
+					'message' => 'Tracking information saved',
+					'note'    => true,
+				)
+			);
 		} else {
 			wp_send_json_error( 'Failed to save tracking information' );
 		}

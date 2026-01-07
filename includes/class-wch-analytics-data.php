@@ -36,11 +36,11 @@ class WCH_Analytics_Data {
 		$date_range = self::get_date_range( $period );
 
 		$data = array(
-			'total_orders'        => self::get_whatsapp_orders_count( $date_range['start'], $date_range['end'] ),
-			'total_revenue'       => self::get_whatsapp_revenue( $date_range['start'], $date_range['end'] ),
+			'total_orders'         => self::get_whatsapp_orders_count( $date_range['start'], $date_range['end'] ),
+			'total_revenue'        => self::get_whatsapp_revenue( $date_range['start'], $date_range['end'] ),
 			'active_conversations' => self::get_active_conversations_count(),
-			'conversion_rate'     => self::get_conversion_rate( $date_range['start'], $date_range['end'] ),
-			'period'              => $period,
+			'conversion_rate'      => self::get_conversion_rate( $date_range['start'], $date_range['end'] ),
+			'period'               => $period,
 		);
 
 		set_transient( $cache_key, $data, self::CACHE_EXPIRY );
@@ -86,7 +86,7 @@ class WCH_Analytics_Data {
 
 		$data = array();
 		for ( $i = $days - 1; $i >= 0; $i-- ) {
-			$date           = gmdate( 'Y-m-d', strtotime( "-{$i} days" ) );
+			$date          = gmdate( 'Y-m-d', strtotime( "-{$i} days" ) );
 			$data[ $date ] = 0;
 		}
 
@@ -140,7 +140,7 @@ class WCH_Analytics_Data {
 
 		$data = array();
 		for ( $i = $days - 1; $i >= 0; $i-- ) {
-			$date           = gmdate( 'Y-m-d', strtotime( "-{$i} days" ) );
+			$date          = gmdate( 'Y-m-d', strtotime( "-{$i} days" ) );
 			$data[ $date ] = 0;
 		}
 
@@ -271,11 +271,11 @@ class WCH_Analytics_Data {
 		$end_date   = gmdate( 'Y-m-d' );
 
 		$data = array(
-			'avg_order_value'        => self::get_average_order_value( $start_date, $end_date ),
-			'avg_order_value_web'    => self::get_average_order_value_web( $start_date, $end_date ),
-			'cart_abandonment_rate'  => self::get_cart_abandonment_rate( $start_date, $end_date ),
-			'avg_response_time'      => self::get_average_response_time( $start_date, $end_date ),
-			'message_volume_inbound' => self::get_message_volume( 'inbound', $start_date, $end_date ),
+			'avg_order_value'         => self::get_average_order_value( $start_date, $end_date ),
+			'avg_order_value_web'     => self::get_average_order_value_web( $start_date, $end_date ),
+			'cart_abandonment_rate'   => self::get_cart_abandonment_rate( $start_date, $end_date ),
+			'avg_response_time'       => self::get_average_response_time( $start_date, $end_date ),
+			'message_volume_inbound'  => self::get_message_volume( 'inbound', $start_date, $end_date ),
 			'message_volume_outbound' => self::get_message_volume( 'outbound', $start_date, $end_date ),
 		);
 
@@ -780,7 +780,7 @@ class WCH_Analytics_Data {
 	/**
 	 * Export analytics data to CSV
 	 *
-	 * @param array $data Data to export
+	 * @param array  $data Data to export
 	 * @param string $filename Filename
 	 * @return string File path
 	 */

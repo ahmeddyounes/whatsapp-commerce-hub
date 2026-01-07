@@ -208,7 +208,7 @@ class WCH_Payment_Webhook_Handler extends WCH_REST_Controller {
 	 * @return bool
 	 */
 	private function verify_stripe_signature( $request ) {
-		$signature   = $request->get_header( 'Stripe-Signature' );
+		$signature      = $request->get_header( 'Stripe-Signature' );
 		$webhook_secret = get_option( 'wch_stripe_webhook_secret', '' );
 
 		if ( empty( $signature ) || empty( $webhook_secret ) ) {
@@ -223,10 +223,10 @@ class WCH_Payment_Webhook_Handler extends WCH_REST_Controller {
 
 		foreach ( $elements as $element ) {
 			list( $key, $value ) = explode( '=', $element, 2 );
-			$sig_data[ $key ] = $value;
+			$sig_data[ $key ]    = $value;
 		}
 
-		$timestamp = $sig_data['t'] ?? '';
+		$timestamp  = $sig_data['t'] ?? '';
 		$signatures = isset( $sig_data['v1'] ) ? array( $sig_data['v1'] ) : array();
 
 		// Verify timestamp to prevent replay attacks (tolerance: 5 minutes).
@@ -266,5 +266,35 @@ class WCH_Payment_Webhook_Handler extends WCH_REST_Controller {
 		$expected_sig = hash_hmac( 'sha256', $payload, $webhook_secret );
 
 		return hash_equals( $expected_sig, $signature );
+	}
+
+	/**
+	 * Get the schema for webhook items.
+	 *
+	 * @return array
+	 */
+	public function get_item_schema() {
+		return array(
+			'$schema'    => 'http://json-schema.org/draft-04/schema#',
+			'title'      => 'payment_webhook',
+			'type'       => 'object',
+			'properties' => array(
+				'gateway'    => array(
+					'description' => 'Payment gateway name',
+					'type'        => 'string',
+					'context'     => array( 'view' ),
+				),
+				'event_type' => array(
+					'description' => 'Webhook event type',
+					'type'        => 'string',
+					'context'     => array( 'view' ),
+				),
+				'order_id'   => array(
+					'description' => 'Order ID',
+					'type'        => 'integer',
+					'context'     => array( 'view' ),
+				),
+			),
+		);
 	}
 }

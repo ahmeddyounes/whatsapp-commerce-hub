@@ -302,8 +302,8 @@ class WCH_Queue {
 	 */
 	public function send_order_notification( $args ) {
 		$customer_phone = $args['customer_phone'] ?? '';
-		$template_name = $args['template_name'] ?? '';
-		$order_id = $args['order_id'] ?? 0;
+		$template_name  = $args['template_name'] ?? '';
+		$order_id       = $args['order_id'] ?? 0;
 
 		if ( empty( $customer_phone ) || empty( $template_name ) ) {
 			WCH_Logger::warning(
@@ -319,8 +319,8 @@ class WCH_Queue {
 			'queue',
 			array(
 				'customer_phone' => $customer_phone,
-				'template_name' => $template_name,
-				'order_id' => $order_id,
+				'template_name'  => $template_name,
+				'order_id'       => $order_id,
 			)
 		);
 

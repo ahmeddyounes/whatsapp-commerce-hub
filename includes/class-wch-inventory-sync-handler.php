@@ -163,8 +163,8 @@ class WCH_Inventory_Sync_Handler {
 			set_transient(
 				$transient_key,
 				array(
-					'product_id'       => $product_id,
-					'new_availability' => $new_availability,
+					'product_id'        => $product_id,
+					'new_availability'  => $new_availability,
 					'low_stock_reached' => $low_stock_reached,
 				),
 				self::DEBOUNCE_DELAY
@@ -191,8 +191,8 @@ class WCH_Inventory_Sync_Handler {
 			set_transient(
 				$transient_key,
 				array(
-					'product_id'       => $product_id,
-					'new_availability' => $new_availability,
+					'product_id'        => $product_id,
+					'new_availability'  => $new_availability,
 					'low_stock_reached' => $low_stock_reached,
 				),
 				self::DEBOUNCE_DELAY
@@ -404,7 +404,7 @@ class WCH_Inventory_Sync_Handler {
 
 				// Get WhatsApp catalog stock status.
 				try {
-					$catalog_product     = $api_client->get_catalog_product( $catalog_id, $catalog_product_id );
+					$catalog_product       = $api_client->get_catalog_product( $catalog_id, $catalog_product_id );
 					$whatsapp_availability = $catalog_product['availability'] ?? 'unknown';
 
 					// Compare availability.
@@ -446,9 +446,9 @@ class WCH_Inventory_Sync_Handler {
 			WCH_Logger::info(
 				'Stock discrepancy detection completed',
 				array(
-					'total_checked'  => $total_checked,
-					'discrepancies'  => count( $discrepancies ),
-					'auto_fix'       => $this->is_auto_fix_enabled(),
+					'total_checked' => $total_checked,
+					'discrepancies' => count( $discrepancies ),
+					'auto_fix'      => $this->is_auto_fix_enabled(),
 				)
 			);
 

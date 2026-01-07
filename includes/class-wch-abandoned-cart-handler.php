@@ -60,7 +60,10 @@ class WCH_Abandoned_Cart_Handler {
 				'info',
 				'Cart is no longer active, skipping reminder',
 				'queue',
-				array( 'cart_id' => $cart_id, 'status' => $cart['status'] )
+				array(
+					'cart_id' => $cart_id,
+					'status'  => $cart['status'],
+				)
 			);
 			return;
 		}
@@ -77,9 +80,9 @@ class WCH_Abandoned_Cart_Handler {
 				'Cart is not idle long enough, skipping reminder',
 				'queue',
 				array(
-					'cart_id'        => $cart_id,
-					'delay_hours'    => $delay_hours,
-					'updated_at'     => $cart['updated_at'],
+					'cart_id'     => $cart_id,
+					'delay_hours' => $delay_hours,
+					'updated_at'  => $cart['updated_at'],
 				)
 			);
 			return;
@@ -171,9 +174,9 @@ class WCH_Abandoned_Cart_Handler {
 
 		if ( $success ) {
 			return array(
-				'success'  => true,
-				'cart_id'  => $cart['id'],
-				'sent_at'  => current_time( 'mysql' ),
+				'success' => true,
+				'cart_id' => $cart['id'],
+				'sent_at' => current_time( 'mysql' ),
 			);
 		}
 
@@ -248,8 +251,8 @@ class WCH_Abandoned_Cart_Handler {
 	public static function schedule_reminders() {
 		global $wpdb;
 
-		$settings    = WCH_Settings::getInstance();
-		$enabled     = $settings->get( 'notifications.abandoned_cart_reminder', false );
+		$settings = WCH_Settings::getInstance();
+		$enabled  = $settings->get( 'notifications.abandoned_cart_reminder', false );
 
 		if ( ! $enabled ) {
 			return;

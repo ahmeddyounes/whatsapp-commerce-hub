@@ -279,7 +279,7 @@ class WCH_Template_Manager {
 
 			if ( in_array( $mapped_category, self::SUPPORTED_CATEGORIES, true ) ) {
 				$template['mapped_category'] = $mapped_category;
-				$filtered[] = $template;
+				$filtered[]                  = $template;
 			}
 		}
 
@@ -294,13 +294,13 @@ class WCH_Template_Manager {
 	 */
 	private function map_template_category( $category ) {
 		$mapping = array(
-			'transactional'     => 'order_confirmation',
-			'order_details'     => 'order_status_update',
-			'shipping_update'   => 'shipping_update',
-			'issue_resolution'  => 'order_status_update',
+			'transactional'      => 'order_confirmation',
+			'order_details'      => 'order_status_update',
+			'shipping_update'    => 'shipping_update',
+			'issue_resolution'   => 'order_status_update',
 			'appointment_update' => 'order_status_update',
-			'auto_reply'        => 'abandoned_cart',
-			'marketing'         => 'promotional',
+			'auto_reply'         => 'abandoned_cart',
+			'marketing'          => 'promotional',
 		);
 
 		return $mapping[ $category ] ?? $category;
@@ -426,7 +426,7 @@ class WCH_Template_Manager {
 			);
 		}
 
-		$stats['usage_count']++;
+		++$stats['usage_count'];
 		$stats['last_used'] = time();
 
 		// Store for 30 days

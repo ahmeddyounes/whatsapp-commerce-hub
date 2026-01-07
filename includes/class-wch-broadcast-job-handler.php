@@ -46,9 +46,9 @@ class WCH_Broadcast_Job_Handler {
 			'Processing broadcast batch',
 			'queue',
 			array(
-				'campaign_id'     => $campaign_id,
-				'batch_num'       => $batch_num,
-				'recipients'      => count( $batch ),
+				'campaign_id' => $campaign_id,
+				'batch_num'   => $batch_num,
+				'recipients'  => count( $batch ),
 			)
 		);
 
@@ -175,12 +175,12 @@ class WCH_Broadcast_Job_Handler {
 
 		if ( ! $summary ) {
 			$summary = array(
-				'campaign_id'   => $campaign_id,
-				'total_sent'    => 0,
-				'total_failed'  => 0,
-				'batches'       => 0,
-				'started_at'    => current_time( 'mysql' ),
-				'last_updated'  => current_time( 'mysql' ),
+				'campaign_id'  => $campaign_id,
+				'total_sent'   => 0,
+				'total_failed' => 0,
+				'batches'      => 0,
+				'started_at'   => current_time( 'mysql' ),
+				'last_updated' => current_time( 'mysql' ),
 			);
 		}
 
@@ -216,7 +216,7 @@ class WCH_Broadcast_Job_Handler {
 			'Dispatching broadcast campaign',
 			'queue',
 			array(
-				'campaign_id'     => $campaign_id,
+				'campaign_id'      => $campaign_id,
 				'total_recipients' => count( $recipients ),
 			)
 		);

@@ -63,7 +63,7 @@ class WCH_Catalog_Browser {
 		if ( ! empty( $categories ) ) {
 			$category_rows = array();
 			foreach ( $categories as $category ) {
-				$count = $this->get_category_product_count( $category->term_id );
+				$count           = $this->get_category_product_count( $category->term_id );
 				$category_rows[] = array(
 					'id'          => 'category_' . $category->term_id,
 					'title'       => $this->truncate_text( $category->name, self::MAX_PRODUCT_NAME_LENGTH ),
@@ -107,7 +107,13 @@ class WCH_Catalog_Browser {
 		$message->section( 'Shopping', $shopping_rows );
 
 		// Back to main menu button.
-		$message->button( 'reply', array( 'id' => 'main_menu', 'title' => 'Main Menu' ) );
+		$message->button(
+			'reply',
+			array(
+				'id'    => 'main_menu',
+				'title' => 'Main Menu',
+			)
+		);
 
 		$messages[] = $message;
 
@@ -141,7 +147,13 @@ class WCH_Catalog_Browser {
 		if ( empty( $products_data['items'] ) ) {
 			$empty_message = new WCH_Message_Builder();
 			$empty_message->text( sprintf( 'No products found in %s. Browse other categories?', $category->name ) );
-			$empty_message->button( 'reply', array( 'id' => 'browse_catalog', 'title' => 'Browse Catalog' ) );
+			$empty_message->button(
+				'reply',
+				array(
+					'id'    => 'browse_catalog',
+					'title' => 'Browse Catalog',
+				)
+			);
 			return array( $empty_message );
 		}
 
@@ -445,7 +457,7 @@ class WCH_Catalog_Browser {
 
 				$category_rows = array();
 				foreach ( $categories as $category ) {
-					$count = $this->get_category_product_count( $category->term_id );
+					$count           = $this->get_category_product_count( $category->term_id );
 					$category_rows[] = array(
 						'id'          => 'category_' . $category->term_id,
 						'title'       => $this->truncate_text( $category->name, self::MAX_PRODUCT_NAME_LENGTH ),
@@ -458,7 +470,13 @@ class WCH_Catalog_Browser {
 				}
 			}
 
-			$message->button( 'reply', array( 'id' => 'browse_catalog', 'title' => 'Browse Catalog' ) );
+			$message->button(
+				'reply',
+				array(
+					'id'    => 'browse_catalog',
+					'title' => 'Browse Catalog',
+				)
+			);
 			$messages[] = $message;
 
 			$this->log( 'Product search - no results', array( 'query' => $query ) );
@@ -485,7 +503,13 @@ class WCH_Catalog_Browser {
 		$message->section( 'Results', $rows );
 
 		// Back button.
-		$message->button( 'reply', array( 'id' => 'browse_catalog', 'title' => 'Browse Catalog' ) );
+		$message->button(
+			'reply',
+			array(
+				'id'    => 'browse_catalog',
+				'title' => 'Browse Catalog',
+			)
+		);
 
 		$messages[] = $message;
 
@@ -515,7 +539,13 @@ class WCH_Catalog_Browser {
 		if ( empty( $featured_products ) ) {
 			$message = new WCH_Message_Builder();
 			$message->text( 'No featured products available at the moment. Browse our catalog?' );
-			$message->button( 'reply', array( 'id' => 'browse_catalog', 'title' => 'Browse Catalog' ) );
+			$message->button(
+				'reply',
+				array(
+					'id'    => 'browse_catalog',
+					'title' => 'Browse Catalog',
+				)
+			);
 			$messages[] = $message;
 			return $messages;
 		}
@@ -539,7 +569,13 @@ class WCH_Catalog_Browser {
 		$message->section( 'Featured', $rows );
 
 		// Back button.
-		$message->button( 'reply', array( 'id' => 'browse_catalog', 'title' => 'Browse Catalog' ) );
+		$message->button(
+			'reply',
+			array(
+				'id'    => 'browse_catalog',
+				'title' => 'Browse Catalog',
+			)
+		);
 
 		$messages[] = $message;
 
@@ -638,7 +674,7 @@ class WCH_Catalog_Browser {
 			'category' => array( $category_id ),
 			'return'   => 'ids',
 		);
-		$total = wc_get_products( $total_args );
+		$total      = wc_get_products( $total_args );
 
 		return array(
 			'items'       => $products,
@@ -661,13 +697,13 @@ class WCH_Catalog_Browser {
 		$has_subcategories = false;
 
 		foreach ( $products as $product ) {
-			$categories = wp_get_post_terms( $product->get_id(), 'product_cat' );
+			$categories       = wp_get_post_terms( $product->get_id(), 'product_cat' );
 			$subcategory_name = 'Products';
 
 			// Find subcategory under parent.
 			foreach ( $categories as $category ) {
 				if ( $category->parent === $parent_category_id ) {
-					$subcategory_name = $category->name;
+					$subcategory_name  = $category->name;
 					$has_subcategories = true;
 					break;
 				}
@@ -695,7 +731,7 @@ class WCH_Catalog_Browser {
 	 * @return array Product row data.
 	 */
 	private function format_product_row( $product ) {
-		$price = wc_price( floatval( $product->get_price() ) );
+		$price        = wc_price( floatval( $product->get_price() ) );
 		$stock_status = $product->is_in_stock() ? '✅' : '❌ Out of stock';
 
 		// Get short description.
@@ -804,7 +840,7 @@ class WCH_Catalog_Browser {
 	private function format_price_availability( $product ) {
 		// Price (highlight sale price).
 		$regular_price = $product->get_regular_price();
-		$sale_price = $product->get_sale_price();
+		$sale_price    = $product->get_sale_price();
 
 		if ( $sale_price ) {
 			$price_text = sprintf(
@@ -852,7 +888,7 @@ class WCH_Catalog_Browser {
 
 		$count = 0;
 		foreach ( $variations as $variation ) {
-			$count++;
+			++$count;
 			$variation_obj = wc_get_product( $variation['variation_id'] );
 
 			if ( ! $variation_obj ) {
@@ -864,9 +900,9 @@ class WCH_Catalog_Browser {
 				$attributes[] = $attr_value;
 			}
 
-			$variant_name = implode( ', ', $attributes );
+			$variant_name  = implode( ', ', $attributes );
 			$variant_price = wc_price( floatval( $variation_obj->get_price() ) );
-			$in_stock = $variation_obj->is_in_stock() ? '✅' : '❌';
+			$in_stock      = $variation_obj->is_in_stock() ? '✅' : '❌';
 
 			$variant_text .= sprintf(
 				"%d. %s - %s %s\n",
@@ -904,7 +940,7 @@ class WCH_Catalog_Browser {
 		);
 
 		// Use WooCommerce product search.
-		$data_store = WC_Data_Store::load( 'product' );
+		$data_store  = WC_Data_Store::load( 'product' );
 		$product_ids = $data_store->search_products( $query, '', true );
 
 		if ( empty( $product_ids ) ) {

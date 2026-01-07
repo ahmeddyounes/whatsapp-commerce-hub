@@ -63,7 +63,7 @@ class WCH_Error_Handler {
 		if ( $throwable instanceof WCH_Exception ) {
 			$context['error_code']  = $throwable->get_error_code();
 			$context['http_status'] = $throwable->get_http_status();
-			$context = array_merge( $context, $throwable->get_context() );
+			$context                = array_merge( $context, $throwable->get_context() );
 		}
 
 		// Include trace in debug mode.
@@ -107,10 +107,10 @@ class WCH_Error_Handler {
 
 		// Log the error.
 		$context = array(
-			'errno'   => $errno,
-			'file'    => $errfile,
-			'line'    => $errline,
-			'type'    => self::get_error_type_name( $errno ),
+			'errno' => $errno,
+			'file'  => $errfile,
+			'line'  => $errline,
+			'type'  => self::get_error_type_name( $errno ),
 		);
 
 		switch ( $log_level ) {
@@ -161,9 +161,9 @@ class WCH_Error_Handler {
 
 		// Log the fatal error.
 		$context = array(
-			'type'    => self::get_error_type_name( $error['type'] ),
-			'file'    => $error['file'],
-			'line'    => $error['line'],
+			'type'     => self::get_error_type_name( $error['type'] ),
+			'file'     => $error['file'],
+			'line'     => $error['line'],
 			'is_fatal' => true,
 		);
 

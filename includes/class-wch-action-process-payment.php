@@ -77,7 +77,6 @@ class WCH_Action_ProcessPayment extends WCH_Flow_Action {
 				default:
 					return $this->error( 'Invalid payment method. Please select a valid option.' );
 			}
-
 		} catch ( Exception $e ) {
 			$this->log( 'Error processing payment', array( 'error' => $e->getMessage() ), 'error' );
 			return $this->error( 'Sorry, we could not process your payment. Please try again.' );
@@ -210,7 +209,7 @@ class WCH_Action_ProcessPayment extends WCH_Flow_Action {
 			"💳 Online Payment\n\n"
 			. "Amount: %s\n\n"
 			. "Click the button below to complete your payment securely.\n\n"
-			. "Your order will be confirmed once payment is received.",
+			. 'Your order will be confirmed once payment is received.',
 			$total
 		);
 
@@ -265,7 +264,7 @@ class WCH_Action_ProcessPayment extends WCH_Flow_Action {
 			"📱 UPI Payment\n\n"
 			. "Amount: %s\n\n"
 			. "Click the button below to pay using your preferred UPI app (Google Pay, PhonePe, Paytm, etc.).\n\n"
-			. "Your order will be confirmed once payment is received.",
+			. 'Your order will be confirmed once payment is received.',
 			$total
 		);
 

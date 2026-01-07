@@ -68,7 +68,7 @@ class WCH_Logger {
 	 */
 	private static function get_log_dir() {
 		if ( null === self::$log_dir ) {
-			$upload_dir     = wp_upload_dir();
+			$upload_dir    = wp_upload_dir();
 			self::$log_dir = $upload_dir['basedir'] . '/wch-logs';
 
 			// Create directory if it doesn't exist.
