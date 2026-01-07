@@ -1,0 +1,364 @@
+/**
+ * Admin Settings Page Styles
+ */
+
+.wch-settings-wrap {
+	max-width: 1200px;
+}
+
+.wch-nav-tab-wrapper {
+	margin-bottom: 20px;
+}
+
+.wch-settings-content {
+	background: #fff;
+	border: 1px solid #ccd0d4;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+	padding: 20px;
+	margin-top: 20px;
+}
+
+.wch-settings-content .form-table {
+	margin-top: 0;
+}
+
+/* Status Messages */
+.wch-status-message {
+	display: inline-block;
+	margin-left: 10px;
+	padding: 5px 10px;
+	border-radius: 3px;
+	font-weight: 500;
+}
+
+.wch-status-message.success {
+	color: #00a32a;
+	background: #e7f7e9;
+}
+
+.wch-status-message.error {
+	color: #d63638;
+	background: #fce8e8;
+}
+
+/* Save Button */
+#wch-save-settings {
+	position: relative;
+}
+
+#wch-save-settings .spinner {
+	float: none;
+	margin: 0 8px;
+	vertical-align: middle;
+}
+
+.wch-save-message {
+	margin-left: 10px;
+	font-weight: 500;
+}
+
+.wch-save-message.success {
+	color: #00a32a;
+}
+
+.wch-save-message.error {
+	color: #d63638;
+}
+
+/* Product Selection */
+.wch-multiselect {
+	border: 1px solid #8c8f94;
+	border-radius: 4px;
+}
+
+.wch-product-list {
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	padding: 10px;
+	margin-top: 10px;
+	max-height: 200px;
+	overflow-y: auto;
+	background: #f6f7f7;
+}
+
+.wch-product-item {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 3px;
+	padding: 8px 12px;
+	margin-bottom: 5px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.wch-product-item:last-child {
+	margin-bottom: 0;
+}
+
+.wch-remove-product {
+	color: #d63638;
+	font-size: 20px;
+	line-height: 1;
+	text-decoration: none;
+	cursor: pointer;
+	background: none;
+	border: none;
+	padding: 0 5px;
+}
+
+.wch-remove-product:hover {
+	color: #dc3232;
+}
+
+/* Progress Bar */
+.wch-progress-bar {
+	width: 100%;
+	max-width: 400px;
+	height: 20px;
+	background: #f0f0f1;
+	border-radius: 10px;
+	overflow: hidden;
+	margin-top: 10px;
+	position: relative;
+}
+
+.wch-progress-fill {
+	height: 100%;
+	background: linear-gradient(90deg, #2271b1 0%, #135e96 100%);
+	transition: width 0.3s ease;
+	width: 0%;
+}
+
+/* Notification Rows */
+.wch-notification-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-bottom: 10px;
+}
+
+.wch-notification-row label {
+	min-width: 200px;
+}
+
+.wch-notification-row .spinner {
+	float: none;
+	margin: 0;
+}
+
+.wch-test-result {
+	font-size: 12px;
+	font-weight: 500;
+}
+
+.wch-test-result.success {
+	color: #00a32a;
+}
+
+.wch-test-result.error {
+	color: #d63638;
+}
+
+/* Temperature Slider */
+#ai_temperature {
+	width: 300px;
+	vertical-align: middle;
+}
+
+#temperature-value {
+	display: inline-block;
+	min-width: 30px;
+	margin-left: 10px;
+	font-weight: 600;
+}
+
+/* Conditional Rows */
+tr.wch-cod-settings,
+tr.wch-product-categories,
+tr.wch-product-products,
+tr.wch-ai-settings {
+	transition: opacity 0.3s ease;
+}
+
+/* Copy Button */
+#copy-webhook-url {
+	position: relative;
+}
+
+#copy-webhook-url.copied::after {
+	content: attr(data-copied);
+	position: absolute;
+	left: 50%;
+	bottom: 100%;
+	transform: translateX(-50%);
+	background: #1d2327;
+	color: #fff;
+	padding: 5px 10px;
+	border-radius: 3px;
+	white-space: nowrap;
+	font-size: 12px;
+	margin-bottom: 5px;
+	pointer-events: none;
+}
+
+/* Connection Test */
+#connection-status {
+	margin-top: 10px;
+	padding: 10px;
+	border-radius: 4px;
+}
+
+#connection-status.success {
+	background: #e7f7e9;
+	border-left: 4px solid #00a32a;
+}
+
+#connection-status.error {
+	background: #fce8e8;
+	border-left: 4px solid #d63638;
+}
+
+/* Advanced Tab */
+#import-settings-file {
+	max-width: 300px;
+}
+
+/* Responsive */
+@media screen and (max-width: 782px) {
+	.wch-notification-row {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.wch-notification-row label {
+		min-width: auto;
+	}
+
+	#ai_temperature {
+		width: 100%;
+	}
+}
+
+/* Help Tab Enhancement */
+.wch-settings-wrap .help-tab-content ul {
+	list-style-type: disc;
+	margin-left: 20px;
+}
+
+.wch-settings-wrap .help-tab-content li {
+	margin-bottom: 5px;
+}
+
+/* Settings Error/Success Messages */
+.wch-settings-wrap .notice {
+	margin: 15px 0;
+}
+
+/* Loading States */
+.wch-settings-content button .spinner.is-active {
+	visibility: visible;
+	display: inline-block;
+}
+
+/* Toggle Switch Style (Optional Enhancement) */
+.wch-toggle-wrapper {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.wch-toggle-switch {
+	position: relative;
+	display: inline-block;
+	width: 44px;
+	height: 24px;
+}
+
+.wch-toggle-switch input {
+	opacity: 0;
+	width: 0;
+	height: 0;
+}
+
+.wch-toggle-slider {
+	position: absolute;
+	cursor: pointer;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: #8c8f94;
+	transition: 0.3s;
+	border-radius: 24px;
+}
+
+.wch-toggle-slider:before {
+	position: absolute;
+	content: "";
+	height: 18px;
+	width: 18px;
+	left: 3px;
+	bottom: 3px;
+	background-color: white;
+	transition: 0.3s;
+	border-radius: 50%;
+}
+
+input:checked + .wch-toggle-slider {
+	background-color: #2271b1;
+}
+
+input:checked + .wch-toggle-slider:before {
+	transform: translateX(20px);
+}
+
+/* Tab Content Fade In */
+.wch-settings-content {
+	animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+		transform: translateY(-10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* Field Groups */
+.wch-field-group {
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	padding: 15px;
+	margin-bottom: 20px;
+}
+
+.wch-field-group h4 {
+	margin-top: 0;
+	margin-bottom: 15px;
+	font-size: 14px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+/* Readonly Fields */
+input[readonly] {
+	background-color: #f6f7f7;
+	cursor: not-allowed;
+}
+
+/* Password Fields */
+input[type="password"] {
+	font-family: monospace;
+	letter-spacing: 2px;
+}
+
+/* Sync Status */
+#sync-status {
+	margin-top: 10px;
+}
