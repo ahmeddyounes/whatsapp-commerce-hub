@@ -1,0 +1,637 @@
+/**
+ * Broadcasts Admin Styles
+ */
+
+/* Campaign List */
+.wch-broadcasts-wrap {
+	margin: 20px;
+}
+
+.wch-campaigns-list {
+	margin-top: 20px;
+}
+
+.wch-no-campaigns {
+	text-align: center;
+	padding: 60px 20px;
+}
+
+.wch-no-campaigns p {
+	font-size: 16px;
+	color: #666;
+	margin-bottom: 20px;
+}
+
+/* Status Badges */
+.wch-badge {
+	display: inline-block;
+	padding: 4px 12px;
+	border-radius: 12px;
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 1.5;
+}
+
+.wch-badge-draft {
+	background-color: #f0f0f1;
+	color: #3c434a;
+}
+
+.wch-badge-scheduled {
+	background-color: #d5e5f7;
+	color: #135e96;
+}
+
+.wch-badge-sending {
+	background-color: #fef7e5;
+	color: #93642d;
+}
+
+.wch-badge-completed {
+	background-color: #d5f2e3;
+	color: #0f5132;
+}
+
+.wch-badge-failed {
+	background-color: #f8d7da;
+	color: #842029;
+}
+
+/* Campaign Actions */
+.wch-campaign-actions {
+	white-space: nowrap;
+}
+
+.wch-campaign-actions .button {
+	margin-right: 4px;
+	margin-bottom: 4px;
+}
+
+/* Campaign Stats */
+.wch-stats-compact {
+	font-family: monospace;
+	font-size: 13px;
+	color: #666;
+}
+
+/* Campaign Wizard */
+.wch-campaign-wizard {
+	max-width: 1200px;
+	margin: 20px 0;
+}
+
+.wch-wizard-steps {
+	display: flex;
+	justify-content: space-between;
+	margin-bottom: 40px;
+	padding: 20px;
+	background: #fff;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+}
+
+.wch-step {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	flex: 1;
+	position: relative;
+	cursor: pointer;
+	opacity: 0.5;
+	transition: opacity 0.3s;
+}
+
+.wch-step:not(:last-child)::after {
+	content: '';
+	position: absolute;
+	top: 18px;
+	left: 50%;
+	width: 100%;
+	height: 2px;
+	background: #ddd;
+	z-index: -1;
+}
+
+.wch-step.active {
+	opacity: 1;
+}
+
+.wch-step.completed {
+	opacity: 1;
+}
+
+.wch-step.active::after,
+.wch-step.completed::after {
+	background: #2271b1;
+}
+
+.wch-step-number {
+	width: 36px;
+	height: 36px;
+	border-radius: 50%;
+	background: #f0f0f1;
+	color: #3c434a;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 600;
+	margin-bottom: 8px;
+	border: 2px solid #ddd;
+}
+
+.wch-step.active .wch-step-number {
+	background: #2271b1;
+	color: #fff;
+	border-color: #2271b1;
+}
+
+.wch-step.completed .wch-step-number {
+	background: #2271b1;
+	color: #fff;
+	border-color: #2271b1;
+}
+
+.wch-step-label {
+	font-size: 13px;
+	font-weight: 500;
+	color: #3c434a;
+}
+
+.wch-wizard-content {
+	background: #fff;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	padding: 30px;
+	margin-bottom: 20px;
+	min-height: 400px;
+}
+
+.wch-wizard-panel h2 {
+	margin-top: 0;
+	margin-bottom: 24px;
+	font-size: 22px;
+	color: #1d2327;
+}
+
+.wch-wizard-panel h3 {
+	margin-top: 24px;
+	margin-bottom: 16px;
+	font-size: 16px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.wch-wizard-navigation {
+	display: flex;
+	justify-content: space-between;
+	gap: 10px;
+}
+
+/* Template Selection */
+.wch-template-selection {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 30px;
+}
+
+.wch-templates-list {
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	padding: 20px;
+	max-height: 500px;
+	overflow-y: auto;
+}
+
+.wch-template-item {
+	padding: 16px;
+	border: 2px solid #ddd;
+	border-radius: 4px;
+	margin-bottom: 12px;
+	cursor: pointer;
+	transition: all 0.2s;
+}
+
+.wch-template-item:hover {
+	border-color: #2271b1;
+	background: #f6f7f7;
+}
+
+.wch-template-item.selected {
+	border-color: #2271b1;
+	background: #d5e5f7;
+}
+
+.wch-template-item h4 {
+	margin: 0 0 8px 0;
+	font-size: 15px;
+	color: #1d2327;
+}
+
+.wch-template-item .wch-template-category {
+	display: inline-block;
+	padding: 2px 8px;
+	background: #f0f0f1;
+	border-radius: 3px;
+	font-size: 11px;
+	text-transform: uppercase;
+	color: #666;
+	margin-right: 8px;
+}
+
+.wch-template-item .wch-template-status {
+	display: inline-block;
+	padding: 2px 8px;
+	background: #d5f2e3;
+	color: #0f5132;
+	border-radius: 3px;
+	font-size: 11px;
+	text-transform: uppercase;
+}
+
+.wch-template-item .wch-template-status.unapproved {
+	background: #f8d7da;
+	color: #842029;
+}
+
+.wch-template-preview {
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	padding: 20px;
+}
+
+.wch-preview-content {
+	background: #f6f7f7;
+	padding: 20px;
+	border-radius: 4px;
+	min-height: 300px;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.wch-preview-content .wch-placeholder {
+	color: #999;
+	text-align: center;
+	padding: 60px 20px;
+}
+
+.wch-template-warning {
+	background: #fef7e5;
+	border-left: 4px solid #f0b849;
+	padding: 12px 16px;
+	margin-top: 16px;
+	border-radius: 4px;
+}
+
+.wch-template-warning p {
+	margin: 0;
+	color: #93642d;
+}
+
+/* Audience Builder */
+.wch-audience-builder {
+	display: grid;
+	grid-template-columns: 2fr 1fr;
+	gap: 30px;
+}
+
+.wch-audience-criteria {
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	padding: 20px;
+}
+
+.wch-form-field {
+	margin-bottom: 16px;
+}
+
+.wch-form-field label {
+	display: block;
+	font-weight: 500;
+	margin-bottom: 6px;
+	color: #1d2327;
+}
+
+.wch-form-field input[type="checkbox"] {
+	margin-right: 8px;
+}
+
+.wch-form-field input[type="number"],
+.wch-form-field input[type="date"],
+.wch-form-field input[type="time"],
+.wch-form-field select {
+	margin: 0 8px;
+}
+
+.wch-audience-count {
+	position: sticky;
+	top: 20px;
+}
+
+.wch-count-box {
+	border: 2px solid #2271b1;
+	border-radius: 4px;
+	padding: 30px;
+	text-align: center;
+	background: #fff;
+}
+
+.wch-count-number {
+	font-size: 48px;
+	font-weight: 700;
+	color: #2271b1;
+	margin-bottom: 8px;
+}
+
+.wch-count-label {
+	font-size: 14px;
+	color: #666;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+/* Personalization */
+.wch-personalization {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 30px;
+}
+
+.wch-variable-mapping {
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	padding: 20px;
+}
+
+.wch-variable-row {
+	display: grid;
+	grid-template-columns: 120px 1fr;
+	gap: 16px;
+	align-items: start;
+	margin-bottom: 16px;
+	padding-bottom: 16px;
+	border-bottom: 1px solid #f0f0f1;
+}
+
+.wch-variable-row:last-child {
+	border-bottom: none;
+	margin-bottom: 0;
+	padding-bottom: 0;
+}
+
+.wch-variable-label {
+	font-weight: 600;
+	color: #1d2327;
+	padding-top: 6px;
+}
+
+.wch-variable-input select,
+.wch-variable-input input[type="text"] {
+	width: 100%;
+}
+
+.wch-personalization-preview {
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	padding: 20px;
+}
+
+/* Schedule Options */
+.wch-schedule-options {
+	max-width: 600px;
+}
+
+.wch-schedule-datetime {
+	margin-top: 12px;
+}
+
+.wch-schedule-datetime label {
+	display: block;
+	margin-bottom: 12px;
+}
+
+.wch-schedule-datetime input,
+.wch-schedule-datetime select {
+	width: 100%;
+	max-width: 300px;
+}
+
+.wch-optimal-time-suggestion {
+	margin-top: 24px;
+	padding: 12px 16px;
+	background: #d5e5f7;
+	border-left: 4px solid #2271b1;
+	border-radius: 4px;
+}
+
+.wch-optimal-time-suggestion p {
+	margin: 0;
+	color: #135e96;
+}
+
+.wch-optimal-time-suggestion .dashicons {
+	color: #2271b1;
+	vertical-align: middle;
+}
+
+/* Review */
+.wch-campaign-review {
+	max-width: 800px;
+}
+
+.wch-review-section {
+	margin-bottom: 32px;
+}
+
+.wch-review-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.wch-review-table th,
+.wch-review-table td {
+	padding: 12px 16px;
+	text-align: left;
+	border-bottom: 1px solid #f0f0f1;
+}
+
+.wch-review-table th {
+	font-weight: 600;
+	color: #666;
+	width: 180px;
+}
+
+.wch-review-table td {
+	color: #1d2327;
+}
+
+.wch-message-preview {
+	background: #f6f7f7;
+	padding: 20px;
+	border-radius: 4px;
+	border: 1px solid #ddd;
+}
+
+.wch-review-actions {
+	display: flex;
+	gap: 12px;
+	margin-top: 32px;
+	padding-top: 24px;
+	border-top: 2px solid #f0f0f1;
+}
+
+/* Campaign Report */
+.wch-campaign-report {
+	max-width: 900px;
+	margin: 20px 0;
+}
+
+.wch-report-header {
+	margin-bottom: 32px;
+}
+
+.wch-report-header h2 {
+	margin: 0 0 8px 0;
+	font-size: 24px;
+}
+
+.wch-report-meta {
+	color: #666;
+	font-size: 14px;
+}
+
+.wch-delivery-funnel {
+	background: #fff;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	padding: 30px;
+	margin-bottom: 24px;
+}
+
+.wch-delivery-funnel h3 {
+	margin-top: 0;
+	margin-bottom: 24px;
+	font-size: 18px;
+}
+
+.wch-funnel-stats {
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+}
+
+.wch-funnel-item {
+	position: relative;
+}
+
+.wch-funnel-number {
+	font-size: 32px;
+	font-weight: 700;
+	color: #2271b1;
+	margin-bottom: 4px;
+}
+
+.wch-funnel-label {
+	font-size: 14px;
+	color: #666;
+	margin-bottom: 8px;
+}
+
+.wch-percentage {
+	color: #999;
+	font-size: 12px;
+	margin-left: 8px;
+}
+
+.wch-funnel-bar {
+	height: 8px;
+	background: linear-gradient(to right, #2271b1, #135e96);
+	border-radius: 4px;
+	transition: width 0.5s ease;
+}
+
+.wch-errors-breakdown {
+	background: #fff;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	padding: 30px;
+	margin-bottom: 24px;
+}
+
+.wch-errors-breakdown h3 {
+	margin-top: 0;
+	margin-bottom: 20px;
+	font-size: 18px;
+}
+
+.wch-report-actions {
+	display: flex;
+	gap: 12px;
+	margin-top: 24px;
+}
+
+/* Loading States */
+.wch-loading {
+	text-align: center;
+	padding: 40px 20px;
+	color: #999;
+}
+
+.wch-loading::before {
+	content: '';
+	display: inline-block;
+	width: 20px;
+	height: 20px;
+	border: 3px solid #f0f0f1;
+	border-top-color: #2271b1;
+	border-radius: 50%;
+	animation: wch-spin 0.8s linear infinite;
+	margin-right: 8px;
+	vertical-align: middle;
+}
+
+@keyframes wch-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+	.wch-template-selection,
+	.wch-audience-builder,
+	.wch-personalization {
+		grid-template-columns: 1fr;
+	}
+
+	.wch-wizard-steps {
+		flex-wrap: wrap;
+	}
+
+	.wch-step {
+		min-width: 100px;
+	}
+}
+
+@media (max-width: 768px) {
+	.wch-wizard-steps {
+		padding: 15px;
+	}
+
+	.wch-step-number {
+		width: 32px;
+		height: 32px;
+		font-size: 14px;
+	}
+
+	.wch-step-label {
+		font-size: 11px;
+	}
+
+	.wch-wizard-content {
+		padding: 20px;
+	}
+
+	.wch-campaign-actions .button {
+		font-size: 11px;
+		padding: 4px 8px;
+	}
+}
