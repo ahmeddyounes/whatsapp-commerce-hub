@@ -439,6 +439,18 @@ class WCH_Settings {
 				'ai_system_prompt'   => __( 'You are a helpful customer service assistant for an e-commerce store.', 'whatsapp-commerce-hub' ),
 				'monthly_budget_cap' => 0.0,
 			),
+			'recovery'      => array(
+				'enabled'              => false,
+				'delay_sequence_1'     => 4,
+				'delay_sequence_2'     => 24,
+				'delay_sequence_3'     => 48,
+				'template_sequence_1'  => null,
+				'template_sequence_2'  => null,
+				'template_sequence_3'  => null,
+				'discount_enabled'     => false,
+				'discount_type'        => 'percent',
+				'discount_amount'      => 10,
+			),
 		);
 
 		/**

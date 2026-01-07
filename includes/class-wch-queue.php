@@ -35,6 +35,8 @@ class WCH_Queue {
 		'wch_send_order_notification',
 		'wch_process_stock_sync',
 		'wch_detect_stock_discrepancies',
+		'wch_schedule_recovery_reminders',
+		'wch_process_recovery_message',
 	);
 
 	/**
@@ -139,6 +141,14 @@ class WCH_Queue {
 
 				case 'wch_detect_stock_discrepancies':
 					add_action( $hook, array( 'WCH_Inventory_Sync_Handler', 'detect_stock_discrepancies' ), 10, 0 );
+					break;
+
+				case 'wch_schedule_recovery_reminders':
+					add_action( $hook, array( 'WCH_Abandoned_Cart_Recovery', 'schedule_recovery_reminders' ), 10, 0 );
+					break;
+
+				case 'wch_process_recovery_message':
+					add_action( $hook, array( 'WCH_Abandoned_Cart_Recovery', 'process_recovery_message' ), 10, 1 );
 					break;
 			}
 		}

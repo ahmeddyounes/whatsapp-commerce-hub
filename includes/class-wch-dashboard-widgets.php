@@ -41,6 +41,12 @@ class WCH_Dashboard_Widgets {
 			__( 'WhatsApp Commerce Analytics', 'whatsapp-commerce-hub' ),
 			array( __CLASS__, 'render_analytics_widget' )
 		);
+
+		wp_add_dashboard_widget(
+			'wch_abandoned_cart_recovery_widget',
+			__( 'Abandoned Cart Recovery', 'whatsapp-commerce-hub' ),
+			array( __CLASS__, 'render_abandoned_cart_recovery_widget' )
+		);
 	}
 
 	/**
@@ -275,6 +281,73 @@ class WCH_Dashboard_Widgets {
 				<a href="<?php echo esc_url( admin_url( 'admin.php?page=wch-analytics' ) ); ?>">
 					<?php esc_html_e( 'View Full Analytics →', 'whatsapp-commerce-hub' ); ?>
 				</a>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render abandoned cart recovery widget.
+	 */
+	public static function render_abandoned_cart_recovery_widget() {
+		if ( ! class_exists( 'WCH_Abandoned_Cart_Recovery' ) ) {
+			echo '<p>' . esc_html__( 'Abandoned cart recovery not available.', 'whatsapp-commerce-hub' ) . '</p>';
+			return;
+		}
+
+		$recovery = WCH_Abandoned_Cart_Recovery::getInstance();
+		$stats    = $recovery->get_recovery_stats( 7 );
+
+		$abandoned_carts   = $stats['abandoned_carts'] ?? 0;
+		$messages_sent     = $stats['messages_sent'] ?? 0;
+		$carts_recovered   = $stats['carts_recovered'] ?? 0;
+		$recovery_rate     = $stats['recovery_rate'] ?? 0;
+		$revenue_recovered = $stats['revenue_recovered'] ?? 0;
+
+		// Determine status classes.
+		$recovery_rate_class = 'neutral';
+		if ( $recovery_rate >= 15 ) {
+			$recovery_rate_class = 'success';
+		} elseif ( $recovery_rate >= 8 ) {
+			$recovery_rate_class = 'warning';
+		}
+
+		$revenue_class = $revenue_recovered > 0 ? 'success' : 'neutral';
+		?>
+		<div class="wch-abandoned-cart-recovery-widget">
+			<div class="wch-widget-stat">
+				<span class="wch-widget-stat-label"><?php esc_html_e( 'Abandoned Carts (7 days):', 'whatsapp-commerce-hub' ); ?></span>
+				<span class="wch-widget-stat-value neutral"><?php echo esc_html( $abandoned_carts ); ?></span>
+			</div>
+
+			<div class="wch-widget-stat">
+				<span class="wch-widget-stat-label"><?php esc_html_e( 'Recovery Messages Sent:', 'whatsapp-commerce-hub' ); ?></span>
+				<span class="wch-widget-stat-value neutral"><?php echo esc_html( $messages_sent ); ?></span>
+			</div>
+
+			<div class="wch-widget-stat">
+				<span class="wch-widget-stat-label"><?php esc_html_e( 'Carts Recovered:', 'whatsapp-commerce-hub' ); ?></span>
+				<span class="wch-widget-stat-value <?php echo esc_attr( $carts_recovered > 0 ? 'success' : 'neutral' ); ?>">
+					<?php echo esc_html( $carts_recovered ); ?>
+				</span>
+			</div>
+
+			<div class="wch-widget-stat">
+				<span class="wch-widget-stat-label"><?php esc_html_e( 'Recovery Rate:', 'whatsapp-commerce-hub' ); ?></span>
+				<span class="wch-widget-stat-value <?php echo esc_attr( $recovery_rate_class ); ?>">
+					<?php echo esc_html( number_format( $recovery_rate, 1 ) . '%' ); ?>
+				</span>
+			</div>
+
+			<div class="wch-widget-stat">
+				<span class="wch-widget-stat-label"><?php esc_html_e( 'Revenue Recovered:', 'whatsapp-commerce-hub' ); ?></span>
+				<span class="wch-widget-stat-value <?php echo esc_attr( $revenue_class ); ?>">
+					<?php echo esc_html( get_woocommerce_currency_symbol() . number_format( $revenue_recovered, 2 ) ); ?>
+				</span>
+			</div>
+
+			<div class="wch-widget-timestamp">
+				<?php esc_html_e( 'Last 7 days statistics', 'whatsapp-commerce-hub' ); ?>
 			</div>
 		</div>
 		<?php

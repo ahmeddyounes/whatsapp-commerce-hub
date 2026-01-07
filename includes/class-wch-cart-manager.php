@@ -802,6 +802,12 @@ class WCH_Cart_Manager {
 			array( '%d' )
 		);
 
+		// Stop recovery sequence when cart is modified (items changed).
+		if ( $result !== false && class_exists( 'WCH_Abandoned_Cart_Recovery' ) ) {
+			$recovery = WCH_Abandoned_Cart_Recovery::getInstance();
+			$recovery->stop_sequence( $cart['customer_phone'], 'cart_modified' );
+		}
+
 		return $result !== false;
 	}
 

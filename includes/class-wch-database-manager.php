@@ -21,7 +21,7 @@ class WCH_Database_Manager {
 	 *
 	 * @var string
 	 */
-	const DB_VERSION = '1.0.0';
+	const DB_VERSION = '1.1.0';
 
 	/**
 	 * Option name for storing DB version.
@@ -126,6 +126,13 @@ class WCH_Database_Manager {
 			shipping_address JSON NULL,
 			status ENUM('active', 'completed', 'abandoned') NOT NULL DEFAULT 'active',
 			reminder_sent_at DATETIME NULL,
+			reminder_1_sent_at DATETIME NULL,
+			reminder_2_sent_at DATETIME NULL,
+			reminder_3_sent_at DATETIME NULL,
+			recovery_coupon_code VARCHAR(50) NULL,
+			recovered TINYINT(1) NOT NULL DEFAULT 0,
+			recovered_order_id BIGINT(20) UNSIGNED NULL,
+			recovered_revenue DECIMAL(10,2) NULL,
 			expires_at DATETIME NOT NULL,
 			created_at DATETIME NOT NULL,
 			updated_at DATETIME NOT NULL,
@@ -133,7 +140,8 @@ class WCH_Database_Manager {
 			UNIQUE KEY customer_phone (customer_phone),
 			KEY status (status),
 			KEY updated_at (updated_at),
-			KEY expires_at (expires_at)
+			KEY expires_at (expires_at),
+			KEY recovered (recovered)
 		) $charset_collate;";
 
 		// Create wch_customer_profiles table.

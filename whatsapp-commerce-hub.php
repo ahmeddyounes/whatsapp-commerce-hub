@@ -148,6 +148,10 @@ class WCH_Plugin {
 
 		// Initialize order notifications.
 		WCH_Order_Notifications::instance();
+
+		// Initialize abandoned cart recovery system.
+		$recovery = WCH_Abandoned_Cart_Recovery::getInstance();
+		$recovery->init();
 	}
 
 	/**

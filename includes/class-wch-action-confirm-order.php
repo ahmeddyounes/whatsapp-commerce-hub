@@ -73,6 +73,9 @@ class WCH_Action_ConfirmOrder extends WCH_Flow_Action {
 			// Update cart status to completed.
 			$this->update_cart( $cart['id'], array( 'status' => 'completed' ) );
 
+			// Track abandoned cart recovery conversion.
+			$this->track_cart_recovery( $cart, $order_id );
+
 			// Send confirmation message.
 			$message = $this->build_confirmation_message( $order_id );
 
@@ -302,5 +305,48 @@ class WCH_Action_ConfirmOrder extends WCH_Flow_Action {
 				'order_created'  => true,
 			)
 		);
+	}
+
+	/**
+	 * Track abandoned cart recovery conversion.
+	 *
+	 * Checks if cart had recovery messages sent and marks it as recovered.
+	 *
+	 * @param array $cart Cart data.
+	 * @param int   $order_id WooCommerce order ID.
+	 */
+	private function track_cart_recovery( $cart, $order_id ) {
+		// Check if any recovery reminders were sent.
+		$had_reminders = ! empty( $cart['reminder_1_sent_at'] )
+			|| ! empty( $cart['reminder_2_sent_at'] )
+			|| ! empty( $cart['reminder_3_sent_at'] );
+
+		if ( ! $had_reminders ) {
+			return;
+		}
+
+		// Get order to get the revenue.
+		$order = wc_get_order( $order_id );
+		if ( ! $order ) {
+			return;
+		}
+
+		$revenue = $order->get_total();
+
+		// Mark cart as recovered.
+		if ( class_exists( 'WCH_Abandoned_Cart_Recovery' ) ) {
+			$recovery = WCH_Abandoned_Cart_Recovery::getInstance();
+			$recovery->mark_cart_recovered( $cart['id'], $order_id, $revenue );
+
+			$this->log(
+				'Cart recovery tracked',
+				array(
+					'cart_id'  => $cart['id'],
+					'order_id' => $order_id,
+					'revenue'  => $revenue,
+				),
+				'info'
+			);
+		}
 	}
 }
