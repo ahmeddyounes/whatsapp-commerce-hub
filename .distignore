@@ -1,0 +1,46 @@
+# Directories
+/.wordpress-org
+/.git
+/.github
+/bin
+/node_modules
+/tests
+/.plans
+/.logs
+/.t2
+/.implementation-notes
+/.idea
+
+# Files
+.gitignore
+.gitattributes
+.distignore
+.editorconfig
+.travis.yml
+.DS_Store
+Thumbs.db
+phpunit.xml.dist
+phpcs.xml.dist
+phpstan.neon
+phpstan-baseline.neon
+composer.json
+composer.lock
+package.json
+package-lock.json
+yarn.lock
+README.md
+CHANGELOG.md
+CONTRIBUTING.md
+RELEASE_CHECKLIST.md
+*.md
+tasks.csv
+
+# Test files
+test-*.php
+verify-*.php
+standalone-test.php
+
+# Development files
+*.log
+*.cache
+.phpunit.result.cache

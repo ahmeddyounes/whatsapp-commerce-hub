@@ -1,0 +1,14 @@
+[main 8782d10] M07-05: implement
+ 70 files changed, 4021 insertions(+), 1718 deletions(-)
+ create mode 100644 .editorconfig
+ create mode 100644 .github/workflows/quality.yml
+ create mode 100644 .logs/M07-04.gitcommit.txt
+ create mode 100644 .logs/M07-05.claude.impl.last.md
+ create mode 100644 .logs/M07-05.claude.impl.raw.txt
+ create mode 100644 .plans/M07-05.md
+ create mode 100644 .t2/handoff/M07-05.md
+ create mode 100644 SECURITY.md
+ create mode 100644 phpcs.xml.dist
+ create mode 100644 phpstan-baseline.neon
+ create mode 100644 phpstan.neon
+
