@@ -111,6 +111,7 @@ class WCH_Plugin {
 
 		// Initialize admin pages.
 		if ( is_admin() ) {
+			WCH_Admin_Inbox::init();
 			WCH_Admin_Logs::init();
 			WCH_Admin_Jobs::init();
 			WCH_Admin_Templates::init();

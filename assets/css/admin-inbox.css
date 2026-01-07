@@ -1,0 +1,647 @@
+/**
+ * WhatsApp Commerce Hub - Admin Inbox Styles
+ */
+
+.wch-inbox-wrap {
+    margin-right: 20px;
+}
+
+.wch-inbox-container {
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+    height: calc(100vh - 150px);
+    min-height: 600px;
+}
+
+/* Left Sidebar - Conversation List */
+.wch-inbox-sidebar {
+    width: 320px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.wch-inbox-filters {
+    padding: 15px;
+    border-bottom: 1px solid #ddd;
+    background: #f9f9f9;
+}
+
+.wch-search-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    margin-bottom: 12px;
+}
+
+.wch-filter-group {
+    margin-bottom: 10px;
+}
+
+.wch-filter-group:last-child {
+    margin-bottom: 0;
+}
+
+.wch-filter-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: #555;
+}
+
+.wch-filter-select {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.wch-bulk-actions {
+    padding: 10px 15px;
+    border-bottom: 1px solid #ddd;
+    background: #fafafa;
+}
+
+.wch-bulk-actions input[type="checkbox"] {
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+.wch-bulk-actions label {
+    font-size: 13px;
+    font-weight: 600;
+    vertical-align: middle;
+}
+
+.wch-bulk-action-buttons {
+    margin-top: 10px;
+    display: flex;
+    gap: 5px;
+}
+
+.wch-bulk-action-buttons .button {
+    font-size: 11px;
+    padding: 4px 8px;
+    height: auto;
+    flex: 1;
+}
+
+.wch-conversation-list {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.wch-conversation-item {
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    transition: background 0.2s;
+    position: relative;
+}
+
+.wch-conversation-item:hover {
+    background: #f5f5f5;
+}
+
+.wch-conversation-item.active {
+    background: #e8f4f8;
+    border-left: 3px solid #0073aa;
+}
+
+.wch-conversation-item-checkbox {
+    position: absolute;
+    top: 12px;
+    left: 15px;
+}
+
+.wch-conversation-item.has-checkbox {
+    padding-left: 40px;
+}
+
+.wch-conversation-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 6px;
+}
+
+.wch-conversation-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: #23282d;
+}
+
+.wch-conversation-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.wch-conversation-time {
+    font-size: 11px;
+    color: #999;
+}
+
+.wch-unread-badge {
+    background: #d63638;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 10px;
+    line-height: 1;
+}
+
+.wch-conversation-preview {
+    font-size: 13px;
+    color: #666;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 6px;
+}
+
+.wch-conversation-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.wch-status-badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.wch-status-badge.status-active {
+    background: #d4edda;
+    color: #155724;
+}
+
+.wch-status-badge.status-pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.wch-status-badge.status-closed {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.wch-agent-avatar {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #0073aa;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+/* Main Area - Conversation View */
+.wch-inbox-main {
+    flex: 1;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.wch-no-conversation {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-size: 16px;
+}
+
+.wch-conversation-view {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.wch-conversation-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid #ddd;
+    background: #f9f9f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.wch-conversation-title h2 {
+    margin: 0 0 4px 0;
+    font-size: 18px;
+}
+
+.wch-customer-phone {
+    font-size: 13px;
+    color: #666;
+}
+
+.wch-conversation-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.wch-action-select {
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.wch-messages-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    background: #fafafa;
+}
+
+.wch-message {
+    display: flex;
+    margin-bottom: 16px;
+    align-items: flex-end;
+}
+
+.wch-message.inbound {
+    justify-content: flex-start;
+}
+
+.wch-message.outbound {
+    justify-content: flex-end;
+}
+
+.wch-message.system {
+    justify-content: center;
+}
+
+.wch-message-bubble {
+    max-width: 60%;
+    padding: 10px 14px;
+    border-radius: 8px;
+    position: relative;
+}
+
+.wch-message.inbound .wch-message-bubble {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-bottom-left-radius: 2px;
+}
+
+.wch-message.outbound .wch-message-bubble {
+    background: #0073aa;
+    color: #fff;
+    border-bottom-right-radius: 2px;
+}
+
+.wch-message.system .wch-message-bubble {
+    background: #f0f0f0;
+    color: #666;
+    font-size: 12px;
+    font-style: italic;
+    max-width: 80%;
+    text-align: center;
+    border-radius: 4px;
+}
+
+.wch-message-content {
+    margin-bottom: 4px;
+    word-wrap: break-word;
+    line-height: 1.4;
+}
+
+.wch-message-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    margin-top: 4px;
+}
+
+.wch-message.inbound .wch-message-meta {
+    color: #999;
+}
+
+.wch-message.outbound .wch-message-meta {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.wch-message-time {
+    margin-right: 6px;
+}
+
+.wch-message-status {
+    display: inline-flex;
+    gap: 2px;
+}
+
+.wch-message-status .dashicons {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+}
+
+.wch-message-media {
+    margin-top: 8px;
+}
+
+.wch-message-media img {
+    max-width: 100%;
+    border-radius: 4px;
+}
+
+.wch-message-media a {
+    color: inherit;
+    text-decoration: underline;
+}
+
+.wch-reply-composer {
+    border-top: 1px solid #ddd;
+    background: #fff;
+}
+
+.wch-composer-toolbar {
+    padding: 10px 15px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.wch-template-select {
+    flex: 1;
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.wch-composer-input {
+    padding: 15px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+}
+
+#wch-message-input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    resize: vertical;
+    min-height: 60px;
+}
+
+#wch-send-message {
+    padding: 10px 24px;
+}
+
+/* Right Sidebar - Customer Details */
+.wch-inbox-customer-sidebar {
+    width: 280px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow-y: auto;
+}
+
+.wch-no-customer {
+    padding: 40px 20px;
+    text-align: center;
+    color: #999;
+}
+
+.wch-customer-details {
+    padding: 20px;
+}
+
+.wch-customer-profile {
+    text-align: center;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 20px;
+}
+
+.wch-customer-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: #0073aa;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+}
+
+.wch-customer-avatar .dashicons {
+    font-size: 40px;
+    width: 40px;
+    height: 40px;
+}
+
+.wch-customer-profile h3 {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+}
+
+.wch-customer-phone-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #666;
+}
+
+#wch-copy-phone {
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: #0073aa;
+}
+
+#wch-copy-phone:hover {
+    color: #005a87;
+}
+
+.wch-customer-info,
+.wch-customer-orders,
+.wch-customer-notes {
+    margin-bottom: 20px;
+}
+
+.wch-customer-info h4,
+.wch-customer-orders h4,
+.wch-customer-notes h4 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #23282d;
+}
+
+.wch-info-item {
+    margin-bottom: 10px;
+    font-size: 13px;
+}
+
+.wch-info-item label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 2px;
+    color: #555;
+}
+
+.wch-info-item a {
+    color: #0073aa;
+    text-decoration: none;
+}
+
+.wch-info-item a:hover {
+    text-decoration: underline;
+}
+
+.wch-order-item {
+    padding: 8px;
+    background: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    font-size: 12px;
+}
+
+.wch-order-item a {
+    font-weight: 600;
+    color: #0073aa;
+    text-decoration: none;
+}
+
+.wch-order-item a:hover {
+    text-decoration: underline;
+}
+
+.wch-order-date {
+    color: #666;
+    display: block;
+    margin-top: 4px;
+}
+
+.wch-no-orders {
+    font-size: 13px;
+    color: #999;
+    font-style: italic;
+}
+
+#wch-agent-notes {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    resize: vertical;
+}
+
+#wch-save-notes {
+    margin-top: 8px;
+    width: 100%;
+}
+
+/* Loading & Empty States */
+.wch-loading {
+    padding: 40px 20px;
+    text-align: center;
+    color: #999;
+    font-style: italic;
+}
+
+.wch-loading::before {
+    content: "";
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #ddd;
+    border-top-color: #0073aa;
+    border-radius: 50%;
+    animation: wch-spin 0.8s linear infinite;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+@keyframes wch-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Responsive Adjustments */
+@media (max-width: 1400px) {
+    .wch-inbox-customer-sidebar {
+        width: 240px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .wch-inbox-sidebar {
+        width: 280px;
+    }
+}
+
+/* Scrollbar Styling */
+.wch-conversation-list::-webkit-scrollbar,
+.wch-messages-container::-webkit-scrollbar,
+.wch-inbox-customer-sidebar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.wch-conversation-list::-webkit-scrollbar-track,
+.wch-messages-container::-webkit-scrollbar-track,
+.wch-inbox-customer-sidebar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.wch-conversation-list::-webkit-scrollbar-thumb,
+.wch-messages-container::-webkit-scrollbar-thumb,
+.wch-inbox-customer-sidebar::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.wch-conversation-list::-webkit-scrollbar-thumb:hover,
+.wch-messages-container::-webkit-scrollbar-thumb:hover,
+.wch-inbox-customer-sidebar::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Utility Classes */
+.wch-hidden {
+    display: none !important;
+}
+
+.wch-text-success {
+    color: #46b450;
+}
+
+.wch-text-error {
+    color: #dc3232;
+}
