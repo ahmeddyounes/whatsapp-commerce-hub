@@ -31,11 +31,30 @@ class WCH_Database_Manager {
 	const DB_VERSION_OPTION = 'wch_db_version';
 
 	/**
+	 * Singleton instance
+	 *
+	 * @var WCH_Database_Manager|null
+	 */
+	private static $instance = null;
+
+	/**
 	 * Global wpdb instance.
 	 *
 	 * @var wpdb
 	 */
 	private $wpdb;
+
+	/**
+	 * Get singleton instance
+	 *
+	 * @return WCH_Database_Manager
+	 */
+	public static function instance() {
+		if ( null === self::$instance ) {
+			self::$instance = new self();
+		}
+		return self::$instance;
+	}
 
 	/**
 	 * Constructor.
@@ -126,6 +145,7 @@ class WCH_Database_Manager {
 			saved_addresses JSON NULL,
 			preferences JSON NULL,
 			opt_in_marketing TINYINT(1) NOT NULL DEFAULT 0,
+			notification_opt_out TINYINT(1) NOT NULL DEFAULT 0,
 			created_at DATETIME NOT NULL,
 			updated_at DATETIME NOT NULL,
 			PRIMARY KEY (id),
@@ -168,6 +188,30 @@ class WCH_Database_Manager {
 			KEY created_at (created_at)
 		) $charset_collate;";
 
+		// Create wch_notification_log table.
+		$sql_notification_log = "CREATE TABLE " . $this->get_table_name( 'notification_log' ) . " (
+			id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+			order_id BIGINT(20) UNSIGNED NOT NULL,
+			notification_type VARCHAR(50) NOT NULL,
+			customer_phone VARCHAR(20) NOT NULL,
+			template_name VARCHAR(100) NULL,
+			wa_message_id VARCHAR(100) NULL,
+			status ENUM('queued', 'sent', 'delivered', 'read', 'failed') NOT NULL DEFAULT 'queued',
+			retry_count INT(11) NOT NULL DEFAULT 0,
+			sent_at DATETIME NULL,
+			delivered_at DATETIME NULL,
+			read_at DATETIME NULL,
+			error_message TEXT NULL,
+			created_at DATETIME NOT NULL,
+			updated_at DATETIME NOT NULL,
+			PRIMARY KEY (id),
+			KEY order_id (order_id),
+			KEY customer_phone (customer_phone),
+			KEY notification_type (notification_type),
+			KEY status (status),
+			KEY created_at (created_at)
+		) $charset_collate;";
+
 		// Execute dbDelta for all tables.
 		dbDelta( $sql_conversations );
 		dbDelta( $sql_messages );
@@ -175,6 +219,7 @@ class WCH_Database_Manager {
 		dbDelta( $sql_customer_profiles );
 		dbDelta( $sql_broadcast_campaigns );
 		dbDelta( $sql_sync_queue );
+		dbDelta( $sql_notification_log );
 
 		// Update the database version.
 		update_option( self::DB_VERSION_OPTION, self::DB_VERSION );
@@ -198,6 +243,7 @@ class WCH_Database_Manager {
 			'customer_profiles',
 			'broadcast_campaigns',
 			'sync_queue',
+			'notification_log',
 		);
 
 		foreach ( $tables as $table ) {

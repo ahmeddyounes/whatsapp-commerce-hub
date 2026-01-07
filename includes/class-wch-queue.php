@@ -130,7 +130,7 @@ class WCH_Queue {
 					break;
 
 				case 'wch_send_order_notification':
-					add_action( $hook, array( $this, 'send_order_notification' ), 10, 1 );
+					add_action( $hook, array( 'WCH_Order_Notifications', 'process_notification_job' ), 10, 1 );
 					break;
 
 				case 'wch_process_stock_sync':

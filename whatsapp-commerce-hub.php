@@ -145,6 +145,9 @@ class WCH_Plugin {
 
 		// Initialize refund handler.
 		WCH_Refund_Handler::instance();
+
+		// Initialize order notifications.
+		WCH_Order_Notifications::instance();
 	}
 
 	/**
