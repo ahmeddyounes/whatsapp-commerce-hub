@@ -95,27 +95,47 @@ class WCH_Action_ProcessPayment extends WCH_Flow_Action {
 		$message->header( 'Select Payment Method' );
 		$message->body( 'How would you like to pay?' );
 
-		// Payment method options.
-		$message->section(
-			'Payment Options',
-			array(
-				array(
-					'id'          => 'payment_cod',
-					'title'       => 'Cash on Delivery',
-					'description' => 'Pay when you receive the order',
-				),
-				array(
-					'id'          => 'payment_card',
-					'title'       => 'Credit/Debit Card',
-					'description' => 'Secure online payment',
-				),
-				array(
-					'id'          => 'payment_upi',
-					'title'       => 'UPI Payment',
-					'description' => 'Google Pay, PhonePe, Paytm',
-				),
-			)
-		);
+		// Get available payment gateways.
+		$payment_manager = WCH_Payment_Manager::instance();
+		$country         = WC()->countries->get_base_country();
+		$gateways        = $payment_manager->get_available_gateways( $country );
+
+		// Build payment options.
+		$options = array();
+		foreach ( $gateways as $gateway_id => $gateway ) {
+			$description = '';
+
+			// Add gateway-specific descriptions.
+			switch ( $gateway_id ) {
+				case 'cod':
+					$description = 'Pay when you receive the order';
+					break;
+				case 'stripe':
+					$description = 'Secure card and local payments';
+					break;
+				case 'razorpay':
+					$description = 'UPI, Cards, Net Banking, Wallets';
+					break;
+				case 'whatsapppay':
+					$description = 'Pay directly in WhatsApp';
+					break;
+				case 'pix':
+					$description = 'Instant payment via PIX';
+					break;
+			}
+
+			$options[] = array(
+				'id'          => 'payment_' . $gateway_id,
+				'title'       => $gateway->get_title(),
+				'description' => $description,
+			);
+		}
+
+		if ( empty( $options ) ) {
+			return $this->error( 'No payment methods are currently available. Please contact support.' );
+		}
+
+		$message->section( 'Payment Options', $options );
 
 		return WCH_Action_Result::success( array( $message ) );
 	}

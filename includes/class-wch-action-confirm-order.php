@@ -135,10 +135,6 @@ class WCH_Action_ConfirmOrder extends WCH_Flow_Action {
 			$address = $context['shipping_address'];
 			$this->set_order_addresses( $order, $address, $customer );
 
-			// Set payment method.
-			$payment_method = $context['payment_method'];
-			$this->set_order_payment_method( $order, $payment_method );
-
 			// Set customer.
 			if ( $customer && ! empty( $customer->wc_customer_id ) ) {
 				$order->set_customer_id( $customer->wc_customer_id );
@@ -148,25 +144,48 @@ class WCH_Action_ConfirmOrder extends WCH_Flow_Action {
 			$order->update_meta_data( '_wch_conversation_id', $conversation->customer_phone );
 			$order->update_meta_data( '_wch_cart_id', $cart['id'] );
 			$order->update_meta_data( '_wch_channel', 'whatsapp' );
+			$order->update_meta_data( '_wch_customer_phone', $conversation->customer_phone );
 
 			// Calculate totals.
 			$order->calculate_totals();
 
-			// Set order status based on payment method.
-			if ( $payment_method === 'cod' ) {
-				$order->set_status( 'processing', 'Order placed via WhatsApp with COD payment.' );
-			} else {
-				$order->set_status( 'pending', 'Order placed via WhatsApp, awaiting payment.' );
-			}
-
-			// Save order.
+			// Save order before payment processing.
 			$order->save();
 
-			$this->log(
-				'Order created',
+			// Process payment through gateway manager.
+			$payment_method = $context['payment_method'];
+			$payment_manager = WCH_Payment_Manager::instance();
+
+			$payment_result = $payment_manager->process_order_payment(
+				$order->get_id(),
+				$payment_method,
 				array(
-					'order_id' => $order->get_id(),
-					'total'    => $order->get_total(),
+					'customer_phone' => $conversation->customer_phone,
+					'id'             => $conversation->customer_phone,
+				)
+			);
+
+			if ( ! $payment_result['success'] ) {
+				// Payment processing failed, cancel order.
+				$order->update_status( 'cancelled', 'Payment processing failed.' );
+				$this->log(
+					'Payment processing failed',
+					array(
+						'order_id' => $order->get_id(),
+						'error'    => $payment_result['error']['message'] ?? 'Unknown error',
+					),
+					'error'
+				);
+				return null;
+			}
+
+			$this->log(
+				'Order created with payment',
+				array(
+					'order_id'       => $order->get_id(),
+					'total'          => $order->get_total(),
+					'payment_method' => $payment_method,
+					'transaction_id' => $payment_result['transaction_id'] ?? 'N/A',
 				),
 				'info'
 			);
@@ -211,36 +230,6 @@ class WCH_Action_ConfirmOrder extends WCH_Flow_Action {
 		$order->set_address( $address_data, 'shipping' );
 	}
 
-	/**
-	 * Set order payment method
-	 *
-	 * @param WC_Order $order Order object.
-	 * @param string   $payment_method Payment method.
-	 */
-	private function set_order_payment_method( $order, $payment_method ) {
-		switch ( $payment_method ) {
-			case 'cod':
-				$order->set_payment_method( 'cod' );
-				$order->set_payment_method_title( 'Cash on Delivery' );
-				break;
-
-			case 'card':
-			case 'online':
-				$order->set_payment_method( 'stripe' ); // Or configured gateway.
-				$order->set_payment_method_title( 'Online Payment' );
-				break;
-
-			case 'upi':
-				$order->set_payment_method( 'upi' );
-				$order->set_payment_method_title( 'UPI Payment' );
-				break;
-
-			default:
-				$order->set_payment_method( $payment_method );
-				$order->set_payment_method_title( ucfirst( $payment_method ) );
-				break;
-		}
-	}
 
 	/**
 	 * Build order confirmation message

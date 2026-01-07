@@ -37,7 +37,27 @@ function wch_autoloader( $class_name ) {
 
 	// Convert class name to file path.
 	$class_file = strtolower( str_replace( '_', '-', $class_name ) );
-	$file_path  = WCH_PLUGIN_DIR . 'includes/class-' . $class_file . '.php';
+
+	// Check for payment gateway classes.
+	if ( strpos( $class_name, 'WCH_Payment_' ) === 0 ) {
+		$file_path = WCH_PLUGIN_DIR . 'includes/payments/class-' . $class_file . '.php';
+		if ( file_exists( $file_path ) ) {
+			require_once $file_path;
+			return;
+		}
+	}
+
+	// Check for interface files in payments.
+	if ( $class_name === 'WCH_Payment_Gateway' ) {
+		$file_path = WCH_PLUGIN_DIR . 'includes/payments/interface-wch-payment-gateway.php';
+		if ( file_exists( $file_path ) ) {
+			require_once $file_path;
+			return;
+		}
+	}
+
+	// Standard class loading.
+	$file_path = WCH_PLUGIN_DIR . 'includes/class-' . $class_file . '.php';
 
 	if ( file_exists( $file_path ) ) {
 		require_once $file_path;
@@ -114,6 +134,12 @@ class WCH_Plugin {
 
 		// Schedule inventory discrepancy check.
 		WCH_Inventory_Sync_Handler::schedule_discrepancy_check();
+
+		// Initialize payment system.
+		WCH_Payment_Manager::instance();
+
+		// Initialize refund handler.
+		WCH_Refund_Handler::instance();
 	}
 
 	/**
