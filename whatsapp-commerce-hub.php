@@ -152,6 +152,27 @@ class WCH_Plugin {
 		// Initialize abandoned cart recovery system.
 		$recovery = WCH_Abandoned_Cart_Recovery::getInstance();
 		$recovery->init();
+
+		// Initialize re-engagement service.
+		$reengagement = WCH_Reengagement_Service::instance();
+		$reengagement->init();
+
+		// Hook into WooCommerce order creation for conversion tracking.
+		add_action( 'woocommerce_checkout_order_created', array( $this, 'track_order_conversion' ), 10, 1 );
+	}
+
+	/**
+	 * Track conversions when orders are created.
+	 *
+	 * @param WC_Order $order The order object.
+	 */
+	public function track_order_conversion( $order ) {
+		$customer_phone = $order->get_billing_phone();
+
+		if ( $customer_phone ) {
+			$reengagement = WCH_Reengagement_Service::instance();
+			$reengagement->track_conversion( $customer_phone, $order->get_id() );
+		}
 	}
 
 	/**

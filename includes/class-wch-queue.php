@@ -37,6 +37,10 @@ class WCH_Queue {
 		'wch_detect_stock_discrepancies',
 		'wch_schedule_recovery_reminders',
 		'wch_process_recovery_message',
+		'wch_process_reengagement_campaigns',
+		'wch_send_reengagement_message',
+		'wch_check_back_in_stock',
+		'wch_check_price_drops',
 	);
 
 	/**
@@ -149,6 +153,22 @@ class WCH_Queue {
 
 				case 'wch_process_recovery_message':
 					add_action( $hook, array( 'WCH_Abandoned_Cart_Recovery', 'process_recovery_message' ), 10, 1 );
+					break;
+
+				case 'wch_process_reengagement_campaigns':
+					add_action( $hook, array( 'WCH_Reengagement_Service', 'process_reengagement_campaigns' ), 10, 0 );
+					break;
+
+				case 'wch_send_reengagement_message':
+					add_action( $hook, array( 'WCH_Reengagement_Service', 'send_reengagement_message' ), 10, 1 );
+					break;
+
+				case 'wch_check_back_in_stock':
+					add_action( $hook, array( 'WCH_Reengagement_Service', 'check_back_in_stock' ), 10, 0 );
+					break;
+
+				case 'wch_check_price_drops':
+					add_action( $hook, array( 'WCH_Reengagement_Service', 'check_price_drops' ), 10, 0 );
 					break;
 			}
 		}

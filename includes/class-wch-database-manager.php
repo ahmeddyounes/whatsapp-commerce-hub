@@ -21,7 +21,7 @@ class WCH_Database_Manager {
 	 *
 	 * @var string
 	 */
-	const DB_VERSION = '1.1.0';
+	const DB_VERSION = '1.2.0';
 
 	/**
 	 * Option name for storing DB version.
@@ -220,6 +220,38 @@ class WCH_Database_Manager {
 			KEY created_at (created_at)
 		) $charset_collate;";
 
+		// Create wch_product_views table for re-engagement tracking.
+		$sql_product_views = "CREATE TABLE " . $this->get_table_name( 'product_views' ) . " (
+			id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+			customer_phone VARCHAR(20) NOT NULL,
+			product_id BIGINT(20) UNSIGNED NOT NULL,
+			price_at_view DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+			in_stock TINYINT(1) NOT NULL DEFAULT 1,
+			viewed_at DATETIME NOT NULL,
+			PRIMARY KEY (id),
+			KEY customer_phone (customer_phone),
+			KEY product_id (product_id),
+			KEY viewed_at (viewed_at)
+		) $charset_collate;";
+
+		// Create wch_reengagement_log table.
+		$sql_reengagement_log = "CREATE TABLE " . $this->get_table_name( 'reengagement_log' ) . " (
+			id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+			customer_phone VARCHAR(20) NOT NULL,
+			campaign_type VARCHAR(50) NOT NULL,
+			message_id VARCHAR(100) NULL,
+			status ENUM('sent', 'delivered', 'read', 'failed') NOT NULL DEFAULT 'sent',
+			converted TINYINT(1) NOT NULL DEFAULT 0,
+			order_id BIGINT(20) UNSIGNED NULL,
+			sent_at DATETIME NOT NULL,
+			converted_at DATETIME NULL,
+			PRIMARY KEY (id),
+			KEY customer_phone (customer_phone),
+			KEY campaign_type (campaign_type),
+			KEY sent_at (sent_at),
+			KEY converted (converted)
+		) $charset_collate;";
+
 		// Execute dbDelta for all tables.
 		dbDelta( $sql_conversations );
 		dbDelta( $sql_messages );
@@ -228,6 +260,8 @@ class WCH_Database_Manager {
 		dbDelta( $sql_broadcast_campaigns );
 		dbDelta( $sql_sync_queue );
 		dbDelta( $sql_notification_log );
+		dbDelta( $sql_product_views );
+		dbDelta( $sql_reengagement_log );
 
 		// Update the database version.
 		update_option( self::DB_VERSION_OPTION, self::DB_VERSION );
@@ -252,6 +286,8 @@ class WCH_Database_Manager {
 			'broadcast_campaigns',
 			'sync_queue',
 			'notification_log',
+			'product_views',
+			'reengagement_log',
 		);
 
 		foreach ( $tables as $table ) {
