@@ -65,11 +65,25 @@ class WCH_Template_Manager {
 	);
 
 	/**
-	 * Get singleton instance
+	 * Get singleton instance.
 	 *
+	 * @deprecated 2.1.0 Use wch_get_container()->get(WCH_Template_Manager::class) instead.
 	 * @return WCH_Template_Manager
 	 */
 	public static function getInstance() {
+		// Use container if available for consistent instance.
+		if ( function_exists( 'wch_get_container' ) ) {
+			try {
+				$container = wch_get_container();
+				if ( $container->has( self::class ) ) {
+					return $container->get( self::class );
+				}
+			} catch ( \Throwable $e ) {
+				// Fall through to legacy behavior.
+			}
+		}
+
+		// Legacy fallback for backwards compatibility.
 		if ( null === self::$instance ) {
 			self::$instance = new self();
 		}
@@ -77,10 +91,12 @@ class WCH_Template_Manager {
 	}
 
 	/**
-	 * Private constructor
+	 * Constructor.
+	 *
+	 * @param WCH_Settings|null $settings Optional settings instance for DI.
 	 */
-	private function __construct() {
-		$this->settings = WCH_Settings::getInstance();
+	public function __construct( ?WCH_Settings $settings = null ) {
+		$this->settings = $settings ?? WCH_Settings::getInstance();
 		$this->init_api_client();
 	}
 

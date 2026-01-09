@@ -52,16 +52,30 @@ class WCH_Settings {
 	/**
 	 * The single instance of the class.
 	 *
-	 * @var WCH_Settings
+	 * @var WCH_Settings|null
 	 */
 	private static $instance = null;
 
 	/**
 	 * Get the singleton instance.
 	 *
+	 * @deprecated 2.1.0 Use wch_get_container()->get(WCH_Settings::class) instead.
 	 * @return WCH_Settings
 	 */
 	public static function getInstance() {
+		// Use container if available for consistent instance.
+		if ( function_exists( 'wch_get_container' ) ) {
+			try {
+				$container = wch_get_container();
+				if ( $container->has( self::class ) ) {
+					return $container->get( self::class );
+				}
+			} catch ( \Throwable $e ) {
+				// Fall through to legacy behavior.
+			}
+		}
+
+		// Legacy fallback for backwards compatibility.
 		if ( null === self::$instance ) {
 			self::$instance = new self();
 		}
@@ -69,10 +83,22 @@ class WCH_Settings {
 	}
 
 	/**
-	 * Private constructor to prevent direct instantiation.
+	 * Alias for getInstance() for compatibility.
+	 *
+	 * @deprecated 2.1.0 Use wch_get_container()->get(WCH_Settings::class) instead.
+	 * @return WCH_Settings
 	 */
-	private function __construct() {
-		$this->encryption = new WCH_Encryption();
+	public static function instance() {
+		return self::getInstance();
+	}
+
+	/**
+	 * Constructor.
+	 *
+	 * @param WCH_Encryption|null $encryption Optional encryption instance for DI.
+	 */
+	public function __construct( ?WCH_Encryption $encryption = null ) {
+		$this->encryption = $encryption ?? new WCH_Encryption();
 	}
 
 	/**
@@ -461,15 +487,4 @@ class WCH_Settings {
 		return apply_filters( 'wch_settings_defaults', $defaults );
 	}
 
-	/**
-	 * Prevent cloning of the instance.
-	 */
-	private function __clone() {}
-
-	/**
-	 * Prevent unserialization of the instance.
-	 */
-	public function __wakeup() {
-		throw new Exception( 'Cannot unserialize singleton' );
-	}
 }

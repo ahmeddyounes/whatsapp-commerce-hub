@@ -1,0 +1,266 @@
+<?php
+/**
+ * Cart Factory for Testing
+ *
+ * Provides factory methods for creating Cart entities in tests.
+ *
+ * @package WhatsApp_Commerce_Hub
+ */
+
+namespace WhatsAppCommerceHub\Tests\Factories;
+
+use WhatsAppCommerceHub\Entities\Cart;
+use WhatsAppCommerceHub\Entities\CartItem;
+
+/**
+ * Class CartFactory
+ *
+ * Factory for creating Cart test fixtures.
+ */
+class CartFactory {
+
+	/**
+	 * Default cart attributes.
+	 *
+	 * @var array
+	 */
+	private static array $defaults = array(
+		'id'             => null,
+		'phone_number'   => '+1234567890',
+		'items'          => array(),
+		'currency'       => 'USD',
+		'status'         => 'active',
+		'created_at'     => null,
+		'updated_at'     => null,
+		'expires_at'     => null,
+	);
+
+	/**
+	 * Sequence counter for unique IDs.
+	 *
+	 * @var int
+	 */
+	private static int $sequence = 0;
+
+	/**
+	 * Create a Cart entity.
+	 *
+	 * @param array $attributes Override attributes.
+	 * @return Cart
+	 */
+	public static function create( array $attributes = array() ): Cart {
+		self::$sequence++;
+
+		$data = array_merge( self::$defaults, $attributes );
+
+		// Generate ID if not provided.
+		if ( null === $data['id'] ) {
+			$data['id'] = self::$sequence;
+		}
+
+		// Generate timestamps if not provided.
+		$now = new \DateTimeImmutable();
+		if ( null === $data['created_at'] ) {
+			$data['created_at'] = $now;
+		}
+		if ( null === $data['updated_at'] ) {
+			$data['updated_at'] = $now;
+		}
+		if ( null === $data['expires_at'] ) {
+			$data['expires_at'] = $now->modify( '+72 hours' );
+		}
+
+		return new Cart(
+			$data['id'],
+			$data['phone_number'],
+			$data['items'],
+			$data['currency'],
+			$data['status'],
+			$data['created_at'],
+			$data['updated_at'],
+			$data['expires_at']
+		);
+	}
+
+	/**
+	 * Create a Cart with items.
+	 *
+	 * @param int   $item_count Number of items to add.
+	 * @param array $attributes Override cart attributes.
+	 * @return Cart
+	 */
+	public static function createWithItems( int $item_count = 3, array $attributes = array() ): Cart {
+		$items = array();
+		for ( $i = 0; $i < $item_count; $i++ ) {
+			$items[] = CartItemFactory::create( array(
+				'product_id' => 100 + $i,
+				'name'       => "Test Product {$i}",
+				'quantity'   => 1 + ( $i % 5 ),  // Predictable quantity: 1-5 based on index.
+			) );
+		}
+
+		$attributes['items'] = $items;
+		return self::create( $attributes );
+	}
+
+	/**
+	 * Create an empty cart.
+	 *
+	 * @param array $attributes Override cart attributes.
+	 * @return Cart
+	 */
+	public static function createEmpty( array $attributes = array() ): Cart {
+		$attributes['items'] = array();
+		return self::create( $attributes );
+	}
+
+	/**
+	 * Create an abandoned cart.
+	 *
+	 * @param array $attributes Override cart attributes.
+	 * @return Cart
+	 */
+	public static function createAbandoned( array $attributes = array() ): Cart {
+		$now = new \DateTimeImmutable();
+		$attributes = array_merge(
+			array(
+				'status'     => 'abandoned',
+				'updated_at' => $now->modify( '-48 hours' ),
+			),
+			$attributes
+		);
+		return self::createWithItems( 2, $attributes );
+	}
+
+	/**
+	 * Create an expired cart.
+	 *
+	 * @param array $attributes Override cart attributes.
+	 * @return Cart
+	 */
+	public static function createExpired( array $attributes = array() ): Cart {
+		$now = new \DateTimeImmutable();
+		$attributes = array_merge(
+			array(
+				'expires_at' => $now->modify( '-1 hour' ),
+			),
+			$attributes
+		);
+		return self::createWithItems( 1, $attributes );
+	}
+
+	/**
+	 * Reset the sequence counter.
+	 *
+	 * @return void
+	 */
+	public static function resetSequence(): void {
+		self::$sequence = 0;
+	}
+}
+
+/**
+ * Class CartItemFactory
+ *
+ * Factory for creating CartItem test fixtures.
+ */
+class CartItemFactory {
+
+	/**
+	 * Default cart item attributes.
+	 *
+	 * @var array
+	 */
+	private static array $defaults = array(
+		'product_id'   => 1,
+		'variation_id' => 0,
+		'name'         => 'Test Product',
+		'price'        => 29.99,
+		'quantity'     => 1,
+		'image_url'    => 'https://example.com/image.jpg',
+		'attributes'   => array(),
+	);
+
+	/**
+	 * Sequence counter.
+	 *
+	 * @var int
+	 */
+	private static int $sequence = 0;
+
+	/**
+	 * Create a CartItem.
+	 *
+	 * @param array $attributes Override attributes.
+	 * @return CartItem
+	 */
+	public static function create( array $attributes = array() ): CartItem {
+		self::$sequence++;
+
+		$data = array_merge( self::$defaults, $attributes );
+
+		// Generate product ID if not provided.
+		if ( 1 === $data['product_id'] ) {
+			$data['product_id'] = self::$sequence;
+		}
+
+		return new CartItem(
+			$data['product_id'],
+			$data['variation_id'],
+			$data['name'],
+			$data['price'],
+			$data['quantity'],
+			$data['image_url'],
+			$data['attributes']
+		);
+	}
+
+	/**
+	 * Create a variable product item.
+	 *
+	 * @param array $attributes Override attributes.
+	 * @return CartItem
+	 */
+	public static function createVariable( array $attributes = array() ): CartItem {
+		// Use sequence-based variation ID for reproducibility.
+		$seq        = self::$sequence + 1;
+		$attributes = array_merge(
+			array(
+				'variation_id' => 1000 + $seq,  // Predictable variation ID.
+				'attributes'   => array(
+					'size'  => 'Large',
+					'color' => 'Blue',
+				),
+			),
+			$attributes
+		);
+		return self::create( $attributes );
+	}
+
+	/**
+	 * Create multiple cart items.
+	 *
+	 * @param int   $count Number of items.
+	 * @param array $attributes Override attributes applied to all items.
+	 * @return array<CartItem>
+	 */
+	public static function createMany( int $count, array $attributes = array() ): array {
+		$items = array();
+		for ( $i = 0; $i < $count; $i++ ) {
+			$items[] = self::create( array_merge(
+				$attributes,
+				array( 'product_id' => 100 + $i, 'name' => "Product {$i}" )
+			) );
+		}
+		return $items;
+	}
+
+	/**
+	 * Reset the sequence counter.
+	 *
+	 * @return void
+	 */
+	public static function resetSequence(): void {
+		self::$sequence = 0;
+	}
+}

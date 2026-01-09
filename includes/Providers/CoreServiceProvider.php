@@ -221,11 +221,100 @@ class CoreServiceProvider implements ServiceProviderInterface {
 			'wch.encryption',
 			static function () {
 				if ( class_exists( 'WCH_Encryption' ) ) {
-					return \WCH_Encryption::instance();
+					return new \WCH_Encryption();
 				}
 
 				return null;
 			}
+		);
+
+		// Register WCH_Encryption class.
+		$container->singleton(
+			\WCH_Encryption::class,
+			static fn( ContainerInterface $c ) => $c->get( 'wch.encryption' )
+		);
+
+		// Register database manager.
+		$container->singleton(
+			\WCH_Database_Manager::class,
+			static function ( ContainerInterface $c ) {
+				return new \WCH_Database_Manager();
+			}
+		);
+
+		// Convenience alias for database manager.
+		$container->singleton(
+			'wch.database',
+			static fn( ContainerInterface $c ) => $c->get( \WCH_Database_Manager::class )
+		);
+
+		// Register settings manager.
+		$container->singleton(
+			\WCH_Settings::class,
+			static function ( ContainerInterface $c ) {
+				$encryption = $c->has( 'wch.encryption' ) ? $c->get( 'wch.encryption' ) : null;
+				return new \WCH_Settings( $encryption );
+			}
+		);
+
+		// Alias for settings class.
+		$container->singleton(
+			'wch.settings.manager',
+			static fn( ContainerInterface $c ) => $c->get( \WCH_Settings::class )
+		);
+
+		// Register order sync service.
+		$container->singleton(
+			\WCH_Order_Sync_Service::class,
+			static function ( ContainerInterface $c ) {
+				$settings = $c->has( \WCH_Settings::class ) ? $c->get( \WCH_Settings::class ) : null;
+				return new \WCH_Order_Sync_Service( $settings );
+			}
+		);
+
+		// Convenience alias for order sync.
+		$container->singleton(
+			'wch.order_sync',
+			static fn( ContainerInterface $c ) => $c->get( \WCH_Order_Sync_Service::class )
+		);
+
+		// Register template manager.
+		$container->singleton(
+			\WCH_Template_Manager::class,
+			static function ( ContainerInterface $c ) {
+				$settings = $c->has( \WCH_Settings::class ) ? $c->get( \WCH_Settings::class ) : null;
+				return new \WCH_Template_Manager( $settings );
+			}
+		);
+
+		// Convenience alias for template manager.
+		$container->singleton(
+			'wch.templates',
+			static fn( ContainerInterface $c ) => $c->get( \WCH_Template_Manager::class )
+		);
+
+		// Register payment manager.
+		$container->singleton(
+			\WCH_Payment_Manager::class,
+			static fn() => new \WCH_Payment_Manager()
+		);
+
+		// Convenience alias for payments.
+		$container->singleton(
+			'wch.payments',
+			static fn( ContainerInterface $c ) => $c->get( \WCH_Payment_Manager::class )
+		);
+
+		// Register queue manager.
+		$container->singleton(
+			\WCH_Queue::class,
+			static fn() => new \WCH_Queue()
+		);
+
+		// Convenience alias for queue.
+		$container->singleton(
+			'wch.queue',
+			static fn( ContainerInterface $c ) => $c->get( \WCH_Queue::class )
 		);
 	}
 
@@ -255,6 +344,19 @@ class CoreServiceProvider implements ServiceProviderInterface {
 			'wch.hooks',
 			'wch.cache',
 			'wch.encryption',
+			\WCH_Encryption::class,
+			\WCH_Database_Manager::class,
+			'wch.database',
+			\WCH_Settings::class,
+			'wch.settings.manager',
+			\WCH_Order_Sync_Service::class,
+			'wch.order_sync',
+			\WCH_Template_Manager::class,
+			'wch.templates',
+			\WCH_Payment_Manager::class,
+			'wch.payments',
+			\WCH_Queue::class,
+			'wch.queue',
 		);
 	}
 }

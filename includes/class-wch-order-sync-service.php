@@ -46,9 +46,23 @@ class WCH_Order_Sync_Service {
 	/**
 	 * Get singleton instance.
 	 *
+	 * @deprecated 2.1.0 Use wch_get_container()->get('wch.order_sync') instead.
 	 * @return WCH_Order_Sync_Service
 	 */
 	public static function instance() {
+		// Use container if available for consistent instance.
+		if ( function_exists( 'wch_get_container' ) ) {
+			try {
+				$container = wch_get_container();
+				if ( $container->has( 'wch.order_sync' ) ) {
+					return $container->get( 'wch.order_sync' );
+				}
+			} catch ( \Throwable $e ) {
+				// Fall through to legacy behavior.
+			}
+		}
+
+		// Legacy fallback for backwards compatibility.
 		if ( null === self::$instance ) {
 			self::$instance = new self();
 		}
@@ -57,9 +71,11 @@ class WCH_Order_Sync_Service {
 
 	/**
 	 * Constructor.
+	 *
+	 * @param WCH_Settings|null $settings Optional settings instance for DI.
 	 */
-	private function __construct() {
-		$this->settings = WCH_Settings::instance();
+	public function __construct( ?WCH_Settings $settings = null ) {
+		$this->settings = $settings ?? WCH_Settings::getInstance();
 		$this->init_hooks();
 	}
 

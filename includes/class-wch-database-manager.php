@@ -45,11 +45,25 @@ class WCH_Database_Manager {
 	private $wpdb;
 
 	/**
-	 * Get singleton instance
+	 * Get singleton instance.
 	 *
+	 * @deprecated 2.1.0 Use wch_get_container()->get(WCH_Database_Manager::class) instead.
 	 * @return WCH_Database_Manager
 	 */
 	public static function instance() {
+		// Use container if available for consistent instance.
+		if ( function_exists( 'wch_get_container' ) ) {
+			try {
+				$container = wch_get_container();
+				if ( $container->has( self::class ) ) {
+					return $container->get( self::class );
+				}
+			} catch ( \Throwable $e ) {
+				// Fall through to legacy behavior.
+			}
+		}
+
+		// Legacy fallback for backwards compatibility.
 		if ( null === self::$instance ) {
 			self::$instance = new self();
 		}
