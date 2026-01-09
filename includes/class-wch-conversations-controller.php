@@ -109,8 +109,15 @@ class WCH_Conversations_Controller extends WCH_REST_Controller {
 					'permission_callback' => array( $this, 'check_admin_permission' ),
 					'args'                => array(
 						'ids'      => array(
-							'required' => true,
-							'type'     => 'array',
+							'required'          => true,
+							'type'              => 'array',
+							'items'             => array(
+								'type' => 'integer',
+							),
+							'minItems'          => 1,
+							'maxItems'          => 100,
+							'sanitize_callback' => array( $this, 'sanitize_ids_array' ),
+							'validate_callback' => array( $this, 'validate_ids_array' ),
 						),
 						'action'   => array(
 							'required' => true,
@@ -670,5 +677,112 @@ class WCH_Conversations_Controller extends WCH_REST_Controller {
 				),
 			),
 		);
+	}
+
+	/**
+	 * Sanitize an array of IDs for bulk operations.
+	 *
+	 * Converts all values to positive integers and filters out invalid values.
+	 *
+	 * @param mixed $value The value to sanitize.
+	 * @return array Sanitized array of integer IDs.
+	 */
+	public function sanitize_ids_array( $value ): array {
+		if ( ! is_array( $value ) ) {
+			return array();
+		}
+
+		$sanitized = array();
+		foreach ( $value as $id ) {
+			$int_id = absint( $id );
+			if ( $int_id > 0 ) {
+				$sanitized[] = $int_id;
+			}
+		}
+
+		return array_values( array_unique( $sanitized ) );
+	}
+
+	/**
+	 * Validate an array of IDs for bulk operations.
+	 *
+	 * Ensures the array is valid, not empty, and within size limits.
+	 *
+	 * @param mixed            $value   The value to validate.
+	 * @param WP_REST_Request  $request The request object.
+	 * @param string           $param   The parameter name.
+	 * @return true|WP_Error True if valid, WP_Error otherwise.
+	 */
+	public function validate_ids_array( $value, $request, $param ) {
+		// Must be an array.
+		if ( ! is_array( $value ) ) {
+			return new WP_Error(
+				'rest_invalid_param',
+				sprintf(
+					/* translators: %s: parameter name */
+					__( '%s must be an array.', 'whatsapp-commerce-hub' ),
+					$param
+				),
+				array( 'status' => 400 )
+			);
+		}
+
+		// Must not be empty.
+		if ( empty( $value ) ) {
+			return new WP_Error(
+				'rest_invalid_param',
+				sprintf(
+					/* translators: %s: parameter name */
+					__( '%s must contain at least one ID.', 'whatsapp-commerce-hub' ),
+					$param
+				),
+				array( 'status' => 400 )
+			);
+		}
+
+		// Enforce maximum items limit (DoS prevention).
+		if ( count( $value ) > 100 ) {
+			return new WP_Error(
+				'rest_invalid_param',
+				sprintf(
+					/* translators: %s: parameter name */
+					__( '%s cannot contain more than 100 IDs.', 'whatsapp-commerce-hub' ),
+					$param
+				),
+				array( 'status' => 400 )
+			);
+		}
+
+		// Validate each item is a valid ID.
+		foreach ( $value as $index => $id ) {
+			if ( ! is_numeric( $id ) ) {
+				return new WP_Error(
+					'rest_invalid_param',
+					sprintf(
+						/* translators: 1: parameter name, 2: array index */
+						__( '%1$s[%2$d] must be a numeric ID.', 'whatsapp-commerce-hub' ),
+						$param,
+						$index
+					),
+					array( 'status' => 400 )
+				);
+			}
+
+			$int_id = (int) $id;
+			if ( $int_id <= 0 ) {
+				return new WP_Error(
+					'rest_invalid_param',
+					sprintf(
+						/* translators: 1: parameter name, 2: array index */
+						__( '%1$s[%2$d] must be a positive integer.', 'whatsapp-commerce-hub' ),
+						$param,
+						$index
+					),
+					array( 'status' => 400 )
+				);
+			}
+		}
+
+		return true;
 	}
 }

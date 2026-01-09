@@ -12,6 +12,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+use WhatsAppCommerceHub\Security\RateLimiter;
+
 /**
  * Abstract class WCH_REST_Controller
  */
@@ -124,12 +126,89 @@ abstract class WCH_REST_Controller extends WP_REST_Controller {
 	public function prepare_response( $data, $request ) {
 		$response = rest_ensure_response( $data );
 
-		// Add CORS headers if needed.
-		$response->header( 'Access-Control-Allow-Origin', '*' );
-		$response->header( 'Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS' );
-		$response->header( 'Access-Control-Allow-Headers', 'Content-Type, Authorization, X-WCH-API-Key, X-Hub-Signature-256' );
+		// Add CORS headers with security restrictions.
+		$allowed_origin = $this->get_allowed_cors_origin( $request );
+		if ( $allowed_origin ) {
+			$response->header( 'Access-Control-Allow-Origin', $allowed_origin );
+			$response->header( 'Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS' );
+			$response->header( 'Access-Control-Allow-Headers', 'Content-Type, Authorization, X-WCH-API-Key, X-Hub-Signature-256' );
+			$response->header( 'Vary', 'Origin' );
+		}
 
 		return $response;
+	}
+
+	/**
+	 * Get allowed CORS origin based on request origin.
+	 *
+	 * Only allows requests from:
+	 * 1. Same site origin
+	 * 2. Configured allowed origins from settings
+	 * 3. WhatsApp/Meta domains (for webhooks)
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return string|null Allowed origin or null if not allowed.
+	 */
+	protected function get_allowed_cors_origin( $request ) {
+		$origin = $request->get_header( 'Origin' );
+
+		// No origin header = same-origin request, no CORS needed.
+		if ( empty( $origin ) ) {
+			return null;
+		}
+
+		// Get configured allowed origins.
+		$allowed_origins = $this->get_allowed_origins();
+
+		// Check if origin is in allowed list (case-insensitive comparison).
+		foreach ( $allowed_origins as $allowed ) {
+			if ( strcasecmp( $origin, $allowed ) === 0 ) {
+				return $origin;
+			}
+		}
+
+		// Log blocked CORS request for monitoring.
+		do_action( 'wch_log_warning', 'CORS request blocked', array(
+			'origin'  => $origin,
+			'allowed' => $allowed_origins,
+		) );
+
+		return null;
+	}
+
+	/**
+	 * Get list of allowed CORS origins.
+	 *
+	 * @return array List of allowed origins.
+	 */
+	protected function get_allowed_origins() {
+		// Always allow same-site origin.
+		$site_url    = get_site_url();
+		$parsed      = wp_parse_url( $site_url );
+		$site_origin = ( $parsed['scheme'] ?? 'https' ) . '://' . ( $parsed['host'] ?? '' );
+		if ( isset( $parsed['port'] ) ) {
+			$site_origin .= ':' . $parsed['port'];
+		}
+
+		$allowed = array( $site_origin );
+
+		// Add configured allowed origins from settings.
+		$configured = $this->settings->get( 'api.cors_allowed_origins', '' );
+		if ( ! empty( $configured ) ) {
+			$additional = array_map( 'trim', explode( "\n", $configured ) );
+			$additional = array_filter( $additional, function ( $origin ) {
+				// Validate origin format.
+				return ! empty( $origin ) && filter_var( $origin, FILTER_VALIDATE_URL );
+			} );
+			$allowed = array_merge( $allowed, $additional );
+		}
+
+		// WhatsApp/Meta webhook origins (if webhooks are enabled).
+		// Meta webhooks typically don't send Origin headers, but include for completeness.
+		$allowed[] = 'https://graph.facebook.com';
+		$allowed[] = 'https://www.facebook.com';
+
+		return array_unique( $allowed );
 	}
 
 	/**
@@ -263,6 +342,8 @@ abstract class WCH_REST_Controller extends WP_REST_Controller {
 	/**
 	 * Check rate limit for the current request.
 	 *
+	 * Uses the database-backed RateLimiter for reliable rate limiting.
+	 *
 	 * @param string $endpoint_type Endpoint type ('admin' or 'webhook').
 	 * @return bool|WP_Error True if within limit, WP_Error otherwise.
 	 */
@@ -273,6 +354,56 @@ abstract class WCH_REST_Controller extends WP_REST_Controller {
 		// Get client identifier (IP address or API key).
 		$client_id = $this->get_client_identifier();
 
+		// Try to use the new database-backed RateLimiter if available.
+		if ( function_exists( 'wch_get_container' ) ) {
+			try {
+				$container = wch_get_container();
+				if ( $container->has( RateLimiter::class ) ) {
+					$rate_limiter = $container->get( RateLimiter::class );
+					// Use checkAndHit() for atomic check + record (prevents TOCTOU race condition).
+					$result = $rate_limiter->checkAndHit( $client_id, $endpoint_type, $limit, 60 );
+
+					if ( ! $result['allowed'] ) {
+						return new WP_Error(
+							'wch_rest_rate_limit_exceeded',
+							sprintf(
+								/* translators: %d: rate limit */
+								__( 'Rate limit exceeded. Maximum %d requests per minute allowed.', 'whatsapp-commerce-hub' ),
+								$limit
+							),
+							array(
+								'status'     => 429,
+								'remaining'  => $result['remaining'] ?? 0,
+								'reset_at'   => $result['reset_at'] ?? null,
+								'retry_after' => $result['retry_after'] ?? 60,
+							)
+						);
+					}
+
+					return true;
+				}
+			} catch ( \Throwable $e ) {
+				// Log the error and fall back to transient-based rate limiting.
+				do_action( 'wch_log_warning', sprintf(
+					'Rate limiter fallback: %s',
+					$e->getMessage()
+				) );
+			}
+		}
+
+		// Fallback to transient-based rate limiting for backward compatibility.
+		return $this->check_rate_limit_legacy( $client_id, $endpoint_type, $limit );
+	}
+
+	/**
+	 * Legacy transient-based rate limiting (fallback).
+	 *
+	 * @param string $client_id     Client identifier.
+	 * @param string $endpoint_type Endpoint type.
+	 * @param int    $limit         Rate limit.
+	 * @return bool|WP_Error True if within limit, WP_Error otherwise.
+	 */
+	protected function check_rate_limit_legacy( $client_id, $endpoint_type, $limit ) {
 		// Create transient key.
 		$transient_key = 'wch_rate_limit_' . $endpoint_type . '_' . md5( $client_id );
 
@@ -326,25 +457,162 @@ abstract class WCH_REST_Controller extends WP_REST_Controller {
 	/**
 	 * Get client IP address.
 	 *
+	 * SECURITY: Only trusts proxy headers when request comes from a trusted proxy IP.
+	 * This prevents IP spoofing attacks where attackers set X-Forwarded-For headers.
+	 *
 	 * @return string
 	 */
 	protected function get_client_ip() {
-		// Check for forwarded IP (from proxy/load balancer).
+		// Get the direct connection IP first.
+		$remote_addr = isset( $_SERVER['REMOTE_ADDR'] )
+			? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) )
+			: '0.0.0.0';
+
+		// Validate that remote_addr is a valid IP.
+		if ( ! $this->is_valid_ip( $remote_addr ) ) {
+			return '0.0.0.0';
+		}
+
+		// Only trust proxy headers if the direct connection is from a trusted proxy.
+		if ( ! $this->is_trusted_proxy( $remote_addr ) ) {
+			return $remote_addr;
+		}
+
+		// Check for forwarded IP (from trusted proxy/load balancer).
 		if ( isset( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
 			$forwarded = sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_FORWARDED_FOR'] ) );
-			$ips       = explode( ',', $forwarded );
-			return trim( $ips[0] );
+			$ips       = array_map( 'trim', explode( ',', $forwarded ) );
+
+			// The rightmost IP that isn't a trusted proxy is the client IP.
+			// Work backwards through the chain to find the actual client.
+			$client_ip = null;
+			foreach ( array_reverse( $ips ) as $ip ) {
+				if ( $this->is_valid_ip( $ip ) && ! $this->is_trusted_proxy( $ip ) ) {
+					$client_ip = $ip;
+					break;
+				}
+			}
+
+			if ( $client_ip ) {
+				return $client_ip;
+			}
 		}
 
 		if ( isset( $_SERVER['HTTP_X_REAL_IP'] ) ) {
-			return sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_REAL_IP'] ) );
+			$real_ip = sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_REAL_IP'] ) );
+			if ( $this->is_valid_ip( $real_ip ) ) {
+				return $real_ip;
+			}
 		}
 
-		if ( isset( $_SERVER['REMOTE_ADDR'] ) ) {
-			return sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) );
+		return $remote_addr;
+	}
+
+	/**
+	 * Check if an IP address is from a trusted proxy.
+	 *
+	 * Trusted proxies include:
+	 * 1. Private/local networks (behind firewall)
+	 * 2. Configured trusted proxy IPs
+	 *
+	 * @param string $ip IP address to check.
+	 * @return bool True if trusted proxy.
+	 */
+	protected function is_trusted_proxy( string $ip ): bool {
+		// Common private/local network ranges (typically behind firewall).
+		$trusted_ranges = array(
+			'127.0.0.0/8',      // Loopback.
+			'10.0.0.0/8',       // Private Class A.
+			'172.16.0.0/12',    // Private Class B.
+			'192.168.0.0/16',   // Private Class C.
+			'::1/128',          // IPv6 loopback.
+			'fc00::/7',         // IPv6 private.
+		);
+
+		// Add configured trusted proxy IPs.
+		$configured = $this->settings->get( 'api.trusted_proxy_ips', '' );
+		if ( ! empty( $configured ) ) {
+			$additional = array_map( 'trim', explode( "\n", $configured ) );
+			$additional = array_filter( $additional );
+			$trusted_ranges = array_merge( $trusted_ranges, $additional );
 		}
 
-		return '0.0.0.0';
+		// Check if IP is in any trusted range.
+		foreach ( $trusted_ranges as $range ) {
+			if ( $this->ip_in_range( $ip, $range ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Validate IP address format.
+	 *
+	 * @param string $ip IP address to validate.
+	 * @return bool True if valid IP.
+	 */
+	protected function is_valid_ip( string $ip ): bool {
+		return filter_var( $ip, FILTER_VALIDATE_IP ) !== false;
+	}
+
+	/**
+	 * Check if IP is in a CIDR range.
+	 *
+	 * @param string $ip    IP address to check.
+	 * @param string $range CIDR range (e.g., "192.168.0.0/24" or single IP).
+	 * @return bool True if IP is in range.
+	 */
+	protected function ip_in_range( string $ip, string $range ): bool {
+		// Handle single IP.
+		if ( strpos( $range, '/' ) === false ) {
+			return $ip === $range;
+		}
+
+		list( $subnet, $bits ) = explode( '/', $range, 2 );
+		$bits = (int) $bits;
+
+		// Handle IPv6.
+		if ( filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6 ) ) {
+			if ( ! filter_var( $subnet, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6 ) ) {
+				return false;
+			}
+
+			$ip_bin     = inet_pton( $ip );
+			$subnet_bin = inet_pton( $subnet );
+
+			if ( false === $ip_bin || false === $subnet_bin ) {
+				return false;
+			}
+
+			// Create mask.
+			$mask = str_repeat( 'f', (int) ( $bits / 4 ) );
+			if ( $bits % 4 ) {
+				$mask .= dechex( 0xf << ( 4 - $bits % 4 ) & 0xf );
+			}
+			$mask = str_pad( $mask, 32, '0' );
+			$mask = pack( 'H*', $mask );
+
+			return ( $ip_bin & $mask ) === ( $subnet_bin & $mask );
+		}
+
+		// Handle IPv4.
+		if ( ! filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 ) ||
+		     ! filter_var( $subnet, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 ) ) {
+			return false;
+		}
+
+		$ip_long     = ip2long( $ip );
+		$subnet_long = ip2long( $subnet );
+
+		if ( false === $ip_long || false === $subnet_long ) {
+			return false;
+		}
+
+		$mask = -1 << ( 32 - $bits );
+
+		return ( $ip_long & $mask ) === ( $subnet_long & $mask );
 	}
 
 	/**

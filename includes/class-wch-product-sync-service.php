@@ -73,6 +73,13 @@ class WCH_Product_Sync_Service {
 	const META_SYNC_HASH = '_wch_sync_hash';
 
 	/**
+	 * Option key for bulk sync progress.
+	 *
+	 * @var string
+	 */
+	const OPTION_SYNC_PROGRESS = 'wch_bulk_sync_progress';
+
+	/**
 	 * Get singleton instance.
 	 *
 	 * @return WCH_Product_Sync_Service
@@ -140,7 +147,7 @@ class WCH_Product_Sync_Service {
 
 			return $this->api_client;
 		} catch ( Exception $e ) {
-			WCH_Logger::error( 'Failed to initialize API client', 'product-sync', array( 'error' => $e->getMessage() ) );
+			WCH_Logger::error( 'Failed to initialize API client', array( 'category' => 'product-sync', 'error' => $e->getMessage() ) );
 			return null;
 		}
 	}
@@ -229,8 +236,8 @@ class WCH_Product_Sync_Service {
 
 			WCH_Logger::info(
 				'Product synced to WhatsApp catalog',
-				'product-sync',
 				array(
+					'category'   => 'product-sync',
 					'product_id' => $product_id,
 					'catalog_id' => $catalog_id,
 				)
@@ -245,8 +252,8 @@ class WCH_Product_Sync_Service {
 
 			WCH_Logger::error(
 				'Failed to sync product to WhatsApp catalog',
-				'product-sync',
 				array(
+					'category'   => 'product-sync',
 					'product_id' => $product_id,
 					'error'      => $e->getMessage(),
 				)
@@ -458,46 +465,479 @@ class WCH_Product_Sync_Service {
 
 	/**
 	 * Sync all products based on settings.
+	 *
+	 * @return string|null Sync session ID on success, null on failure.
 	 */
 	public function sync_all_products() {
 		if ( ! $this->is_sync_enabled() ) {
-			WCH_Logger::warning( 'Attempted to sync all products but sync is disabled', 'product-sync' );
-			return;
+			WCH_Logger::warning( 'Attempted to sync all products but sync is disabled', array( 'category' => 'product-sync' ) );
+			return null;
+		}
+
+		// Check if a sync is already in progress.
+		$existing_progress = $this->get_sync_progress();
+		if ( $existing_progress && 'in_progress' === $existing_progress['status'] ) {
+			WCH_Logger::warning(
+				'Bulk sync already in progress',
+				array(
+					'category' => 'product-sync',
+					'sync_id'  => $existing_progress['sync_id'],
+				)
+			);
+			return $existing_progress['sync_id'];
 		}
 
 		// Get products to sync.
 		$product_ids = $this->get_products_to_sync();
 
+		if ( empty( $product_ids ) ) {
+			WCH_Logger::info( 'No products found to sync', array( 'category' => 'product-sync' ) );
+			return null;
+		}
+
+		// Initialize progress tracking.
+		$sync_id = $this->start_bulk_sync( count( $product_ids ) );
+
 		WCH_Logger::info(
 			'Starting bulk product sync',
-			'product-sync',
-			array( 'total_products' => count( $product_ids ) )
+			array(
+				'category'       => 'product-sync',
+				'sync_id'        => $sync_id,
+				'total_products' => count( $product_ids ),
+			)
 		);
 
 		// Process in batches.
 		$batches = array_chunk( $product_ids, self::BATCH_SIZE );
 
 		foreach ( $batches as $batch_index => $batch ) {
-			// Queue batch for processing.
+			// Queue batch for processing with sync_id for tracking.
 			WCH_Job_Dispatcher::dispatch(
 				'wch_sync_product_batch',
 				array(
 					'product_ids'   => $batch,
 					'batch_index'   => $batch_index,
 					'total_batches' => count( $batches ),
+					'sync_id'       => $sync_id,
 				)
 			);
 		}
 
 		WCH_Logger::info(
 			'Queued all product batches for sync',
-			'product-sync',
-			array( 'total_batches' => count( $batches ) )
+			array(
+				'category'      => 'product-sync',
+				'sync_id'       => $sync_id,
+				'total_batches' => count( $batches ),
+			)
 		);
+
+		return $sync_id;
+	}
+
+	/**
+	 * Start a bulk sync session and initialize progress tracking.
+	 *
+	 * @param int $total_items Total number of items to sync.
+	 * @return string Unique sync session ID.
+	 */
+	public function start_bulk_sync( int $total_items ): string {
+		$sync_id = wp_generate_uuid4();
+
+		$progress = array(
+			'sync_id'         => $sync_id,
+			'status'          => 'in_progress',
+			'total_items'     => $total_items,
+			'processed_count' => 0,
+			'success_count'   => 0,
+			'failed_count'    => 0,
+			'failed_items'    => array(),
+			'started_at'      => current_time( 'mysql', true ),
+			'updated_at'      => current_time( 'mysql', true ),
+			'completed_at'    => null,
+		);
+
+		update_option( self::OPTION_SYNC_PROGRESS, $progress, false );
+
+		WCH_Logger::info(
+			'Initialized bulk sync progress tracking',
+			array(
+				'category'    => 'product-sync',
+				'sync_id'     => $sync_id,
+				'total_items' => $total_items,
+			)
+		);
+
+		return $sync_id;
+	}
+
+	/**
+	 * Update bulk sync progress counters.
+	 *
+	 * Uses atomic operations to handle concurrent batch updates safely.
+	 *
+	 * @param string $sync_id     Sync session ID.
+	 * @param int    $processed   Number of items processed in this batch.
+	 * @param int    $successful  Number of successful syncs in this batch.
+	 * @param int    $failed      Number of failed syncs in this batch.
+	 * @return bool True if update succeeded.
+	 */
+	public function update_sync_progress( string $sync_id, int $processed, int $successful, int $failed ): bool {
+		global $wpdb;
+
+		// Use a database lock to prevent race conditions with concurrent batches.
+		$lock_name = 'wch_sync_progress_lock';
+		$lock_acquired = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT GET_LOCK(%s, 30)",
+				$lock_name
+			)
+		);
+
+		if ( ! $lock_acquired ) {
+			WCH_Logger::warning(
+				'Failed to acquire sync progress lock',
+				array(
+					'category' => 'product-sync',
+					'sync_id'  => $sync_id,
+				)
+			);
+			return false;
+		}
+
+		try {
+			$progress = get_option( self::OPTION_SYNC_PROGRESS );
+
+			if ( ! $progress || $progress['sync_id'] !== $sync_id ) {
+				WCH_Logger::warning(
+					'Sync progress not found or ID mismatch',
+					array(
+						'category'         => 'product-sync',
+						'expected_sync_id' => $sync_id,
+						'actual_sync_id'   => $progress['sync_id'] ?? 'none',
+					)
+				);
+				return false;
+			}
+
+			// Update counters.
+			$progress['processed_count'] += $processed;
+			$progress['success_count']   += $successful;
+			$progress['failed_count']    += $failed;
+			$progress['updated_at']       = current_time( 'mysql', true );
+
+			// Check if sync is complete.
+			if ( $progress['processed_count'] >= $progress['total_items'] ) {
+				$progress['status']       = 'completed';
+				$progress['completed_at'] = current_time( 'mysql', true );
+
+				WCH_Logger::info(
+					'Bulk sync completed',
+					array(
+						'category'      => 'product-sync',
+						'sync_id'       => $sync_id,
+						'total'         => $progress['total_items'],
+						'successful'    => $progress['success_count'],
+						'failed'        => $progress['failed_count'],
+						'duration_secs' => strtotime( $progress['completed_at'] ) - strtotime( $progress['started_at'] ),
+					)
+				);
+			}
+
+			update_option( self::OPTION_SYNC_PROGRESS, $progress, false );
+
+			return true;
+		} finally {
+			// Always release the lock.
+			$wpdb->query(
+				$wpdb->prepare(
+					"SELECT RELEASE_LOCK(%s)",
+					$lock_name
+				)
+			);
+		}
+	}
+
+	/**
+	 * Record a failed sync item with error details.
+	 *
+	 * @param string $sync_id      Sync session ID.
+	 * @param int    $product_id   Product ID that failed.
+	 * @param string $error_message Error message.
+	 * @return bool True if recorded successfully.
+	 */
+	public function add_sync_failure( string $sync_id, int $product_id, string $error_message ): bool {
+		global $wpdb;
+
+		$lock_name = 'wch_sync_progress_lock';
+		$lock_acquired = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT GET_LOCK(%s, 30)",
+				$lock_name
+			)
+		);
+
+		if ( ! $lock_acquired ) {
+			return false;
+		}
+
+		try {
+			$progress = get_option( self::OPTION_SYNC_PROGRESS );
+
+			if ( ! $progress || $progress['sync_id'] !== $sync_id ) {
+				return false;
+			}
+
+			// Limit stored failures to prevent memory bloat (keep last 100).
+			if ( count( $progress['failed_items'] ) >= 100 ) {
+				array_shift( $progress['failed_items'] );
+			}
+
+			$progress['failed_items'][] = array(
+				'product_id'    => $product_id,
+				'error'         => substr( $error_message, 0, 255 ), // Truncate long errors.
+				'failed_at'     => current_time( 'mysql', true ),
+			);
+
+			update_option( self::OPTION_SYNC_PROGRESS, $progress, false );
+
+			return true;
+		} finally {
+			$wpdb->query(
+				$wpdb->prepare(
+					"SELECT RELEASE_LOCK(%s)",
+					$lock_name
+				)
+			);
+		}
+	}
+
+	/**
+	 * Get current bulk sync progress.
+	 *
+	 * @return array|null Progress data or null if no sync in progress.
+	 */
+	public function get_sync_progress(): ?array {
+		$progress = get_option( self::OPTION_SYNC_PROGRESS );
+
+		if ( ! $progress || ! is_array( $progress ) ) {
+			return null;
+		}
+
+		// Calculate percentage.
+		$progress['percentage'] = $progress['total_items'] > 0
+			? round( ( $progress['processed_count'] / $progress['total_items'] ) * 100, 1 )
+			: 0;
+
+		// Calculate elapsed time.
+		if ( ! empty( $progress['started_at'] ) ) {
+			$end_time = $progress['completed_at'] ?? current_time( 'mysql', true );
+			$progress['elapsed_seconds'] = strtotime( $end_time ) - strtotime( $progress['started_at'] );
+		}
+
+		// Estimate remaining time based on current rate.
+		if ( $progress['processed_count'] > 0 && 'in_progress' === $progress['status'] ) {
+			$rate = $progress['processed_count'] / max( 1, $progress['elapsed_seconds'] );
+			$remaining_items = $progress['total_items'] - $progress['processed_count'];
+			$progress['estimated_remaining_seconds'] = $rate > 0 ? round( $remaining_items / $rate ) : null;
+		}
+
+		return $progress;
+	}
+
+	/**
+	 * Clear sync progress data.
+	 *
+	 * Uses locking to prevent race condition with concurrent sync operations.
+	 *
+	 * @param bool $force Force clear even if sync is in progress.
+	 * @return bool True if cleared successfully, false if sync in progress or lock failed.
+	 */
+	public function clear_sync_progress( bool $force = false ): bool {
+		global $wpdb;
+
+		// Use the same lock as update_sync_progress to prevent race conditions.
+		$lock_name     = 'wch_sync_progress_lock';
+		$lock_acquired = $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT GET_LOCK(%s, 30)',
+				$lock_name
+			)
+		);
+
+		if ( ! $lock_acquired ) {
+			WCH_Logger::warning( 'Failed to acquire lock for clear_sync_progress', array( 'category' => 'product-sync' ) );
+			return false;
+		}
+
+		try {
+			// Check if sync is in progress (unless force clearing).
+			if ( ! $force ) {
+				$progress = get_option( self::OPTION_SYNC_PROGRESS );
+				if ( $progress && 'in_progress' === ( $progress['status'] ?? '' ) ) {
+					WCH_Logger::warning( 'Cannot clear sync progress while sync is in progress', array( 'category' => 'product-sync' ) );
+					return false;
+				}
+			}
+
+			return delete_option( self::OPTION_SYNC_PROGRESS );
+		} finally {
+			$wpdb->query(
+				$wpdb->prepare(
+					'SELECT RELEASE_LOCK(%s)',
+					$lock_name
+				)
+			);
+		}
+	}
+
+	/**
+	 * Mark a sync as failed with an error reason.
+	 *
+	 * @param string $sync_id Sync session ID.
+	 * @param string $reason  Failure reason.
+	 * @return bool True if marked successfully.
+	 */
+	public function fail_bulk_sync( string $sync_id, string $reason ): bool {
+		global $wpdb;
+
+		// Acquire lock to prevent race conditions.
+		$lock_name     = 'wch_sync_progress_lock';
+		$lock_acquired = $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT GET_LOCK(%s, 30)',
+				$lock_name
+			)
+		);
+
+		if ( ! $lock_acquired ) {
+			WCH_Logger::warning(
+				'Failed to acquire lock for fail_bulk_sync',
+				array( 'category' => 'product-sync' )
+			);
+			return false;
+		}
+
+		try {
+			$progress = get_option( self::OPTION_SYNC_PROGRESS );
+
+			if ( ! $progress || $progress['sync_id'] !== $sync_id ) {
+				return false;
+			}
+
+			$progress['status']         = 'failed';
+			$progress['failure_reason'] = $reason;
+			$progress['completed_at']   = current_time( 'mysql', true );
+
+			WCH_Logger::error(
+				'Bulk sync failed',
+				array(
+					'category' => 'product-sync',
+					'sync_id'  => $sync_id,
+					'reason'   => $reason,
+				)
+			);
+
+			return update_option( self::OPTION_SYNC_PROGRESS, $progress, false );
+		} finally {
+			$wpdb->query(
+				$wpdb->prepare(
+					'SELECT RELEASE_LOCK(%s)',
+					$lock_name
+				)
+			);
+		}
+	}
+
+	/**
+	 * Retry failed items from a previous sync.
+	 *
+	 * Uses locking to prevent race conditions between validation, clearing,
+	 * and starting a new sync.
+	 *
+	 * @return string|null New sync ID or null if no failed items.
+	 */
+	public function retry_failed_items(): ?string {
+		global $wpdb;
+
+		// Acquire lock to prevent race conditions.
+		$lock_name     = 'wch_sync_progress_lock';
+		$lock_acquired = $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT GET_LOCK(%s, 30)',
+				$lock_name
+			)
+		);
+
+		if ( ! $lock_acquired ) {
+			WCH_Logger::warning(
+				'Failed to acquire lock for retry_failed_items',
+				array( 'category' => 'product-sync' )
+			);
+			return null;
+		}
+
+		$product_ids = array();
+
+		try {
+			// Get and validate progress inside lock.
+			$progress = get_option( self::OPTION_SYNC_PROGRESS );
+
+			if ( ! $progress || empty( $progress['failed_items'] ) ) {
+				return null;
+			}
+
+			$product_ids = array_column( $progress['failed_items'], 'product_id' );
+
+			if ( empty( $product_ids ) ) {
+				return null;
+			}
+
+			// Clear old progress while still holding lock.
+			delete_option( self::OPTION_SYNC_PROGRESS );
+		} finally {
+			$wpdb->query(
+				$wpdb->prepare(
+					'SELECT RELEASE_LOCK(%s)',
+					$lock_name
+				)
+			);
+		}
+
+		// Start new sync with just the failed items (outside lock since start_bulk_sync acquires its own lock).
+		$sync_id = $this->start_bulk_sync( count( $product_ids ) );
+
+		$batches = array_chunk( $product_ids, self::BATCH_SIZE );
+
+		foreach ( $batches as $batch_index => $batch ) {
+			WCH_Job_Dispatcher::dispatch(
+				'wch_sync_product_batch',
+				array(
+					'product_ids'   => $batch,
+					'batch_index'   => $batch_index,
+					'total_batches' => count( $batches ),
+					'sync_id'       => $sync_id,
+					'is_retry'      => true,
+				)
+			);
+		}
+
+		WCH_Logger::info(
+			'Retrying failed sync items',
+			array(
+				'category'    => 'product-sync',
+				'sync_id'     => $sync_id,
+				'retry_count' => count( $product_ids ),
+			)
+		);
+
+		return $sync_id;
 	}
 
 	/**
 	 * Get product IDs to sync based on settings.
+	 *
+	 * Uses paginated queries to avoid memory exhaustion with large catalogs.
 	 *
 	 * @return array Array of product IDs.
 	 */
@@ -509,20 +949,48 @@ class WCH_Product_Sync_Service {
 			return $sync_products;
 		}
 
-		// Get all published products.
-		$args = array(
+		// Get published products using pagination to avoid memory issues.
+		$all_product_ids = array();
+		$page            = 1;
+		$per_page        = 100;
+
+		$base_args = array(
 			'status' => 'publish',
-			'limit'  => -1,
 			'return' => 'ids',
+			'limit'  => $per_page,
 		);
 
 		// Exclude out of stock if setting enabled.
 		$include_out_of_stock = $this->settings->get( 'catalog.include_out_of_stock', false );
 		if ( ! $include_out_of_stock ) {
-			$args['stock_status'] = 'instock';
+			$base_args['stock_status'] = 'instock';
 		}
 
-		return wc_get_products( $args );
+		do {
+			$args        = array_merge( $base_args, array( 'page' => $page ) );
+			$product_ids = wc_get_products( $args );
+
+			if ( empty( $product_ids ) ) {
+				break;
+			}
+
+			$all_product_ids = array_merge( $all_product_ids, $product_ids );
+			++$page;
+
+			// Safety limit to prevent infinite loops (max 100,000 products).
+			if ( $page > 1000 ) {
+				WCH_Logger::warning(
+					'Product sync hit safety limit of 100,000 products',
+					array(
+						'category' => 'product-sync',
+						'fetched'  => count( $all_product_ids ),
+					)
+				);
+				break;
+			}
+		} while ( count( $product_ids ) === $per_page );
+
+		return $all_product_ids;
 	}
 
 	/**
@@ -533,27 +1001,59 @@ class WCH_Product_Sync_Service {
 	 * @param array $args Job arguments.
 	 */
 	public static function process_product_batch( $args ) {
-		$instance    = self::instance();
-		$product_ids = $args['product_ids'] ?? array();
-		$batch_index = $args['batch_index'] ?? 0;
+		$instance      = self::instance();
+		$product_ids   = $args['product_ids'] ?? array();
+		$batch_index   = $args['batch_index'] ?? 0;
+		$total_batches = $args['total_batches'] ?? 1;
+		$sync_id       = $args['sync_id'] ?? null;
 
 		WCH_Logger::info(
 			'Processing product batch',
-			'product-sync',
 			array(
+				'category'      => 'product-sync',
+				'sync_id'       => $sync_id,
 				'batch_index'   => $batch_index,
+				'total_batches' => $total_batches,
 				'product_count' => count( $product_ids ),
 			)
 		);
 
+		$processed  = 0;
+		$successful = 0;
+		$failed     = 0;
+
 		foreach ( $product_ids as $product_id ) {
-			$instance->sync_product_to_whatsapp( $product_id );
+			$result = $instance->sync_product_to_whatsapp( $product_id );
+			$processed++;
+
+			if ( ! empty( $result['success'] ) ) {
+				$successful++;
+			} else {
+				$failed++;
+
+				// Record failure details if sync_id is available.
+				if ( $sync_id ) {
+					$error_message = $result['error'] ?? 'Unknown error';
+					$instance->add_sync_failure( $sync_id, $product_id, $error_message );
+				}
+			}
+		}
+
+		// Update progress tracking if sync_id is available.
+		if ( $sync_id ) {
+			$instance->update_sync_progress( $sync_id, $processed, $successful, $failed );
 		}
 
 		WCH_Logger::info(
 			'Completed product batch',
-			'product-sync',
-			array( 'batch_index' => $batch_index )
+			array(
+				'category'    => 'product-sync',
+				'sync_id'     => $sync_id,
+				'batch_index' => $batch_index,
+				'processed'   => $processed,
+				'successful'  => $successful,
+				'failed'      => $failed,
+			)
 		);
 	}
 
@@ -597,8 +1097,8 @@ class WCH_Product_Sync_Service {
 
 			WCH_Logger::info(
 				'Product removed from WhatsApp catalog',
-				'product-sync',
 				array(
+					'category'        => 'product-sync',
 					'product_id'      => $product_id,
 					'catalog_item_id' => $catalog_item_id,
 				)
@@ -608,8 +1108,8 @@ class WCH_Product_Sync_Service {
 		} catch ( Exception $e ) {
 			WCH_Logger::error(
 				'Failed to delete product from WhatsApp catalog',
-				'product-sync',
 				array(
+					'category'   => 'product-sync',
 					'product_id' => $product_id,
 					'error'      => $e->getMessage(),
 				)
@@ -651,8 +1151,10 @@ class WCH_Product_Sync_Service {
 
 		WCH_Logger::debug(
 			'Product update queued for sync',
-			'product-sync',
-			array( 'product_id' => $product_id )
+			array(
+				'category'   => 'product-sync',
+				'product_id' => $product_id,
+			)
 		);
 	}
 

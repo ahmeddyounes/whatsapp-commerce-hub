@@ -19,10 +19,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define plugin constants.
-define( 'WCH_VERSION', '1.0.0' );
+define( 'WCH_VERSION', '2.0.0' );
 define( 'WCH_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'WCH_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'WCH_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
+
+// Container instance holder.
+global $wch_container;
+$wch_container = null;
 
 /**
  * Autoloader for WCH_ prefixed classes.
@@ -70,6 +74,110 @@ function wch_autoloader( $class_name ) {
 }
 
 spl_autoload_register( 'wch_autoloader' );
+
+/**
+ * PSR-4 Autoloader for namespaced classes.
+ *
+ * Loads classes from the WhatsAppCommerceHub namespace.
+ * Supports the new architecture with Container, Repositories, Entities, etc.
+ *
+ * @since 2.0.0
+ * @param string $class_name The fully-qualified class name to load.
+ * @return void
+ */
+function wch_psr4_autoloader( $class_name ) {
+	$namespace = 'WhatsAppCommerceHub\\';
+
+	// Only autoload classes in our namespace.
+	if ( strpos( $class_name, $namespace ) !== 0 ) {
+		return;
+	}
+
+	// Remove namespace prefix.
+	$relative_class = substr( $class_name, strlen( $namespace ) );
+
+	// Convert namespace separators to directory separators.
+	$file = WCH_PLUGIN_DIR . 'includes/' . str_replace( '\\', '/', $relative_class ) . '.php';
+
+	if ( file_exists( $file ) ) {
+		require_once $file;
+	}
+}
+
+spl_autoload_register( 'wch_psr4_autoloader' );
+
+/**
+ * Get the DI container instance.
+ *
+ * Initializes the container on first call and registers all service providers.
+ *
+ * @since 2.0.0
+ * @return \WhatsAppCommerceHub\Container\ContainerInterface The container instance.
+ */
+function wch_get_container(): \WhatsAppCommerceHub\Container\ContainerInterface {
+	global $wch_container;
+
+	if ( null === $wch_container ) {
+		$wch_container = new \WhatsAppCommerceHub\Container\Container();
+
+		// Register core service providers.
+		// IMPORTANT: Order matters! Dependencies must be registered before dependents.
+		// ResilienceServiceProvider must come before ApiClientServiceProvider (CircuitBreakerRegistry).
+		$providers = array(
+			new \WhatsAppCommerceHub\Providers\CoreServiceProvider(),
+			new \WhatsAppCommerceHub\Providers\ResilienceServiceProvider(),
+			new \WhatsAppCommerceHub\Providers\RepositoryServiceProvider(),
+			new \WhatsAppCommerceHub\Providers\ApiClientServiceProvider(),
+			new \WhatsAppCommerceHub\Providers\BusinessServiceProvider(),
+			new \WhatsAppCommerceHub\Providers\SagaServiceProvider(),
+			new \WhatsAppCommerceHub\Providers\QueueServiceProvider(),
+			new \WhatsAppCommerceHub\Providers\SecurityServiceProvider(),
+			new \WhatsAppCommerceHub\Providers\EventServiceProvider(),
+			new \WhatsAppCommerceHub\Providers\MonitoringServiceProvider(),
+		);
+
+		foreach ( $providers as $provider ) {
+			$wch_container->register( $provider );
+		}
+
+		// Allow plugins/themes to register additional providers.
+		do_action( 'wch_container_registered', $wch_container );
+
+		// Boot all providers using Container's boot method.
+		// This ensures the booted flag is set and providers are booted consistently.
+		$wch_container->boot();
+
+		do_action( 'wch_container_booted', $wch_container );
+	}
+
+	return $wch_container;
+}
+
+/**
+ * Resolve a service from the DI container.
+ *
+ * Helper function for quick service resolution.
+ *
+ * @since 2.0.0
+ * @param string $abstract The abstract type or alias to resolve.
+ * @return mixed The resolved service.
+ */
+function wch( string $abstract ): mixed {
+	return wch_get_container()->get( $abstract );
+}
+
+/**
+ * Check if WooCommerce is active and available.
+ *
+ * Use this in contexts where WC availability isn't guaranteed
+ * (webhooks, REST API, background jobs) before calling WC functions.
+ *
+ * @since 2.0.0
+ * @return bool True if WooCommerce is active.
+ */
+function wch_is_woocommerce_active(): bool {
+	return class_exists( 'WooCommerce' ) && function_exists( 'WC' );
+}
 
 // Initialize error handler early.
 WCH_Error_Handler::init();
@@ -358,7 +466,11 @@ function wch_init_plugin() {
 		return;
 	}
 
-	// Initialize the main plugin class.
+	// Initialize the DI container.
+	// This sets up all services, repositories, and providers.
+	wch_get_container();
+
+	// Initialize the main plugin class (legacy support).
 	WCH_Plugin::getInstance();
 }
 

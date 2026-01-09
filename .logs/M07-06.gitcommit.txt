@@ -1,0 +1,18 @@
+[main f46ecdf] M07-06: implement
+ 17 files changed, 4484 insertions(+), 5 deletions(-)
+ create mode 100644 .distignore
+ create mode 100644 .github/workflows/release.yml
+ create mode 100644 .logs/M07-05.gitcommit.txt
+ create mode 100644 .logs/M07-06.claude.impl.last.md
+ create mode 100644 .logs/M07-06.claude.impl.raw.txt
+ create mode 100644 .plans/M07-06.md
+ create mode 100644 .t2/handoff/M07-06.md
+ create mode 100644 .wordpress-org/.gitkeep
+ create mode 100644 .wordpress-org/README.md
+ create mode 100644 M07-06-IMPLEMENTATION-SUMMARY.md
+ create mode 100644 RELEASE_CHECKLIST.md
+ create mode 100644 WORDPRESS_ORG_SUBMISSION.md
+ create mode 100644 languages/whatsapp-commerce-hub.pot
+ create mode 100644 readme.txt
+ create mode 100755 verification-m07-06.sh
+

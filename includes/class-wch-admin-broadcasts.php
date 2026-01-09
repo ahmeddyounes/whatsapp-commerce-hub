@@ -776,7 +776,9 @@ class WCH_Admin_Broadcasts {
 	}
 
 	/**
-	 * Calculate audience count based on criteria
+	 * Calculate audience count based on criteria.
+	 *
+	 * Uses fully parameterized queries to prevent SQL injection.
 	 *
 	 * @param array $criteria Audience criteria.
 	 * @return int
@@ -784,36 +786,65 @@ class WCH_Admin_Broadcasts {
 	private static function calculate_audience_count( $criteria ) {
 		global $wpdb;
 
-		// Start with all opted-in customers from customer profiles
 		$table_name = $wpdb->prefix . 'wch_customer_profiles';
-		$query      = "SELECT COUNT(DISTINCT phone) FROM $table_name WHERE opt_in_marketing = 1";
 
-		$where_clauses = array( 'opt_in_marketing = 1' );
+		// Build parameterized query parts.
+		$where_clauses = array( 'opt_in_marketing = %d' );
+		$where_values  = array( 1 );
 
-		// Recent orders filter
+		// Recent orders filter.
 		if ( ! empty( $criteria['audience_recent_orders'] ) && ! empty( $criteria['recent_orders_days'] ) ) {
-			$days            = absint( $criteria['recent_orders_days'] );
-			$date_threshold  = gmdate( 'Y-m-d H:i:s', strtotime( "-$days days" ) );
-			$where_clauses[] = "last_order_date >= '$date_threshold'";
+			$days           = absint( $criteria['recent_orders_days'] );
+			$date_threshold = gmdate( 'Y-m-d H:i:s', strtotime( "-$days days" ) );
+
+			$where_clauses[] = 'last_order_date >= %s';
+			$where_values[]  = $date_threshold;
 		}
 
-		// Cart abandoners - This is a simple implementation
-		// In production, you'd query a cart abandonment table
+		// Cart abandoners filter - join with carts table.
 		if ( ! empty( $criteria['audience_cart_abandoners'] ) ) {
-			// Placeholder - would need proper cart abandonment tracking
+			$carts_table     = $wpdb->prefix . 'wch_carts';
+			$where_clauses[] = "phone IN (SELECT customer_phone FROM $carts_table WHERE status = %s)";
+			$where_values[]  = 'abandoned';
 		}
 
-		// Build final query
-		if ( count( $where_clauses ) > 0 ) {
-			$query = "SELECT COUNT(DISTINCT phone) FROM $table_name WHERE " . implode( ' AND ', $where_clauses );
-		}
+		// Build the final query with proper escaping.
+		// Table name is safe (uses wpdb prefix).
+		$where_sql = implode( ' AND ', $where_clauses );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is sanitized via wpdb->prefix.
+		$query = $wpdb->prepare(
+			"SELECT COUNT(DISTINCT phone) FROM $table_name WHERE $where_sql",
+			$where_values
+		);
 
 		$count = (int) $wpdb->get_var( $query );
 
-		// Apply exclusions
+		// Apply exclusions - also fully parameterized.
 		if ( ! empty( $criteria['exclude_recent_broadcast'] ) && ! empty( $criteria['exclude_broadcast_days'] ) ) {
-			// Would subtract customers who received broadcasts recently
-			// This requires tracking broadcast recipients
+			$days              = absint( $criteria['exclude_broadcast_days'] );
+			$broadcast_cutoff  = gmdate( 'Y-m-d H:i:s', strtotime( "-$days days" ) );
+			$broadcasts_table  = $wpdb->prefix . 'wch_broadcast_recipients';
+
+			// Check if tracking table exists before querying.
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$table_exists = $wpdb->get_var(
+				$wpdb->prepare( 'SHOW TABLES LIKE %s', $broadcasts_table )
+			);
+
+			if ( $table_exists ) {
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$excluded_count = (int) $wpdb->get_var(
+					$wpdb->prepare(
+						"SELECT COUNT(DISTINCT cp.phone) FROM $table_name cp
+						INNER JOIN $broadcasts_table br ON cp.phone = br.phone
+						WHERE cp.opt_in_marketing = %d AND br.sent_at >= %s",
+						1,
+						$broadcast_cutoff
+					)
+				);
+				$count = max( 0, $count - $excluded_count );
+			}
 		}
 
 		return max( 0, $count );
@@ -980,7 +1011,9 @@ class WCH_Admin_Broadcasts {
 	}
 
 	/**
-	 * Get campaign recipients
+	 * Get campaign recipients using pagination to avoid memory issues.
+	 *
+	 * Uses consistent parameterized query approach matching calculate_audience_count().
 	 *
 	 * @param array $campaign Campaign data.
 	 * @return array Array of phone numbers.
@@ -989,27 +1022,72 @@ class WCH_Admin_Broadcasts {
 		global $wpdb;
 
 		$table_name = $wpdb->prefix . 'wch_customer_profiles';
-		$query      = "SELECT phone FROM $table_name WHERE opt_in_marketing = 1";
 
-		// Apply audience filters
+		// Apply audience filters - must match calculate_audience_count() logic.
 		$audience = $campaign['audience'] ?? array();
 
-		// Build WHERE clauses based on audience criteria
-		$where_clauses = array( 'opt_in_marketing = 1' );
+		// Build parameterized query parts (consistent with calculate_audience_count).
+		$where_clauses = array( 'opt_in_marketing = %d' );
+		$where_values  = array( 1 );
 
-		if ( ! empty( $audience['recent_orders_days'] ) ) {
-			$days            = absint( $audience['recent_orders_days'] );
-			$date_threshold  = gmdate( 'Y-m-d H:i:s', strtotime( "-$days days" ) );
-			$where_clauses[] = "last_order_date >= '$date_threshold'";
+		// Recent orders filter - check both the checkbox flag and days value.
+		if ( ! empty( $audience['audience_recent_orders'] ) && ! empty( $audience['recent_orders_days'] ) ) {
+			$days           = absint( $audience['recent_orders_days'] );
+			$date_threshold = gmdate( 'Y-m-d H:i:s', strtotime( "-$days days" ) );
+
+			$where_clauses[] = 'last_order_date >= %s';
+			$where_values[]  = $date_threshold;
 		}
 
-		if ( count( $where_clauses ) > 0 ) {
-			$query = "SELECT phone FROM $table_name WHERE " . implode( ' AND ', $where_clauses );
+		// Cart abandoners filter - join with carts table.
+		if ( ! empty( $audience['audience_cart_abandoners'] ) ) {
+			$carts_table     = $wpdb->prefix . 'wch_carts';
+			$where_clauses[] = "phone IN (SELECT customer_phone FROM $carts_table WHERE status = %s)";
+			$where_values[]  = 'abandoned';
 		}
 
-		$results = $wpdb->get_col( $query );
+		$where_sql = implode( ' AND ', $where_clauses );
 
-		return $results;
+		// Use pagination to fetch recipients in batches to avoid memory issues.
+		$all_recipients = array();
+		$offset         = 0;
+		$per_page       = 1000;
+		$max_recipients = 100000; // Safety limit.
+
+		do {
+			// Build full values array for this batch query.
+			$batch_values   = array_merge( $where_values, array( $per_page, $offset ) );
+
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names from wpdb->prefix.
+			$batch = $wpdb->get_col(
+				$wpdb->prepare(
+					"SELECT phone FROM {$table_name} WHERE {$where_sql} ORDER BY id ASC LIMIT %d OFFSET %d",
+					$batch_values
+				)
+			);
+
+			if ( empty( $batch ) ) {
+				break;
+			}
+
+			$all_recipients = array_merge( $all_recipients, $batch );
+			$offset        += $per_page;
+
+			// Safety limit to prevent memory exhaustion.
+			if ( count( $all_recipients ) >= $max_recipients ) {
+				WCH_Logger::warning(
+					'Broadcast recipients hit safety limit',
+					array(
+						'category'    => 'broadcasts',
+						'fetched'     => count( $all_recipients ),
+						'campaign_id' => $campaign['id'] ?? 'unknown',
+					)
+				);
+				break;
+			}
+		} while ( count( $batch ) === $per_page );
+
+		return $all_recipients;
 	}
 
 	/**

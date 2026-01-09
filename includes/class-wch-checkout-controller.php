@@ -12,6 +12,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+use WhatsAppCommerceHub\Sagas\CheckoutSaga;
+use WhatsAppCommerceHub\Sagas\SagaResult;
+
 /**
  * Class WCH_Checkout_Controller
  *
@@ -61,6 +64,20 @@ class WCH_Checkout_Controller {
 	private $order_sync_service;
 
 	/**
+	 * Cart repository instance.
+	 *
+	 * @var \WhatsAppCommerceHub\Repositories\CartRepository|null
+	 */
+	private $cart_repository = null;
+
+	/**
+	 * Checkout saga instance.
+	 *
+	 * @var CheckoutSaga|null
+	 */
+	private $checkout_saga = null;
+
+	/**
 	 * Get singleton instance.
 	 *
 	 * @return WCH_Checkout_Controller
@@ -79,6 +96,47 @@ class WCH_Checkout_Controller {
 		$this->cart_manager       = WCH_Cart_Manager::instance();
 		$this->customer_service   = WCH_Customer_Service::instance();
 		$this->order_sync_service = WCH_Order_Sync_Service::instance();
+	}
+
+	/**
+	 * Get the cart repository instance.
+	 *
+	 * Lazy-loads the repository from the container to maintain backward compatibility
+	 * with the legacy singleton pattern while using the new repository layer.
+	 *
+	 * @return \WhatsAppCommerceHub\Repositories\CartRepository
+	 */
+	private function get_cart_repository() {
+		if ( null === $this->cart_repository ) {
+			$container             = wch_get_container();
+			$this->cart_repository = $container->get( \WhatsAppCommerceHub\Repositories\CartRepository::class );
+		}
+		return $this->cart_repository;
+	}
+
+	/**
+	 * Get the checkout saga instance.
+	 *
+	 * Lazy-loads the saga from the DI container.
+	 *
+	 * @return CheckoutSaga|null The checkout saga or null if not available.
+	 */
+	private function get_checkout_saga(): ?CheckoutSaga {
+		if ( null === $this->checkout_saga ) {
+			try {
+				$container = wch_get_container();
+				if ( $container->has( CheckoutSaga::class ) ) {
+					$this->checkout_saga = $container->get( CheckoutSaga::class );
+				}
+			} catch ( \Throwable $e ) {
+				WCH_Logger::warning(
+					'CheckoutSaga not available, using legacy checkout',
+					'checkout',
+					array( 'error' => $e->getMessage() )
+				);
+			}
+		}
+		return $this->checkout_saga;
 	}
 
 	/**
@@ -182,12 +240,12 @@ class WCH_Checkout_Controller {
 			// Get customer profile.
 			$customer = $this->customer_service->get_or_create_profile( $conversation->customer_phone );
 
-			// Check for saved addresses.
+			// Check for saved addresses (already decrypted by customer service).
 			$saved_addresses = array();
 			if ( $customer && ! empty( $customer->saved_addresses ) ) {
-				$decoded = json_decode( $customer->saved_addresses, true );
-				if ( is_array( $decoded ) ) {
-					$saved_addresses = $decoded;
+				// saved_addresses is already an array after profile retrieval.
+				if ( is_array( $customer->saved_addresses ) ) {
+					$saved_addresses = $customer->saved_addresses;
 				}
 			}
 
@@ -252,10 +310,10 @@ class WCH_Checkout_Controller {
 				$index    = intval( $matches[1] );
 				$customer = $this->customer_service->get_or_create_profile( $conversation->customer_phone );
 
-				if ( $customer && ! empty( $customer->saved_addresses ) ) {
-					$saved_addresses = json_decode( $customer->saved_addresses, true );
-					if ( isset( $saved_addresses[ $index ] ) ) {
-						$address = $saved_addresses[ $index ];
+				if ( $customer && ! empty( $customer->saved_addresses ) && is_array( $customer->saved_addresses ) ) {
+					// saved_addresses is already an array after profile retrieval.
+					if ( isset( $customer->saved_addresses[ $index ] ) ) {
+						$address = $customer->saved_addresses[ $index ];
 						WCH_Logger::info(
 							'Using saved address',
 							'checkout',
@@ -314,18 +372,14 @@ class WCH_Checkout_Controller {
 			// Store address in checkout context.
 			$conversation->state_data['checkout_data']['shipping_address'] = $address;
 
-			// Update cart with shipping address.
+			// Update cart with shipping address via repository.
 			$cart = $this->cart_manager->get_cart( $conversation->customer_phone );
-			global $wpdb;
-			$wpdb->update(
-				$wpdb->prefix . 'wch_carts',
+			$this->get_cart_repository()->update(
+				$cart['id'],
 				array(
-					'shipping_address' => wp_json_encode( $address ),
-					'updated_at'       => current_time( 'mysql' ),
-				),
-				array( 'id' => $cart['id'] ),
-				array( '%s', '%s' ),
-				array( '%d' )
+					'shipping_address' => $address,
+					'updated_at'       => new \DateTimeImmutable(),
+				)
 			);
 
 			// Move to shipping method selection.
@@ -667,6 +721,48 @@ class WCH_Checkout_Controller {
 			$cart          = $this->cart_manager->get_cart( $conversation->customer_phone );
 			$checkout_data = $conversation->state_data['checkout_data'] ?? array();
 
+			// Validate all cart items are still available before showing review.
+			$unavailable_items = array();
+			foreach ( $cart['items'] as $item ) {
+				$product_id = $item['variation_id'] ?? $item['product_id'];
+				$product    = wc_get_product( $product_id );
+
+				if ( ! $product ) {
+					$unavailable_items[] = $item['name'] ?? "Product #{$product_id}";
+					continue;
+				}
+
+				// Check if product is still purchasable.
+				if ( ! $product->is_purchasable() || ! $product->is_in_stock() ) {
+					$unavailable_items[] = $product->get_name();
+				}
+			}
+
+			if ( ! empty( $unavailable_items ) ) {
+				WCH_Logger::warning(
+					'Checkout blocked: unavailable products in cart',
+					'checkout',
+					array(
+						'phone'             => $conversation->customer_phone,
+						'unavailable_items' => $unavailable_items,
+					)
+				);
+
+				$message = new WCH_Message_Builder();
+				$message->text(
+					"⚠️ *Some items are no longer available*\n\n" .
+					"The following items in your cart are no longer available for purchase:\n\n" .
+					'• ' . implode( "\n• ", $unavailable_items ) . "\n\n" .
+					'Please reply with *"cart"* to review and update your cart before proceeding.'
+				);
+
+				return array(
+					'success'  => false,
+					'messages' => array( $message->build() ),
+					'error'    => 'unavailable_products',
+				);
+			}
+
 			$address         = $checkout_data['shipping_address'] ?? null;
 			$shipping_method = $checkout_data['shipping_method'] ?? array();
 			$payment_method  = $checkout_data['payment_method'] ?? '';
@@ -798,26 +894,274 @@ class WCH_Checkout_Controller {
 	 * Confirm and create order
 	 *
 	 * Performs final stock check, creates WooCommerce order, processes payment if applicable.
+	 * Uses the CheckoutSaga pattern for robust transaction handling with automatic rollback.
+	 * Falls back to legacy database locking if saga is not available.
 	 *
 	 * @param WCH_Conversation_Context $conversation Current conversation context.
 	 * @return array Result with success status and messages.
 	 */
 	public function confirm_order( $conversation ) {
-		try {
-			WCH_Logger::info(
-				'Confirming order',
-				'checkout',
-				array( 'phone' => $conversation->customer_phone )
-			);
+		WCH_Logger::info(
+			'Confirming order',
+			'checkout',
+			array( 'phone' => $conversation->customer_phone )
+		);
 
-			// Get cart and checkout data.
-			$cart          = $this->cart_manager->get_cart( $conversation->customer_phone );
+		// Try to use CheckoutSaga for robust transaction handling.
+		$saga = $this->get_checkout_saga();
+		if ( $saga ) {
+			return $this->confirm_order_via_saga( $conversation, $saga );
+		}
+
+		// Fallback to legacy checkout if saga is not available.
+		return $this->confirm_order_legacy( $conversation );
+	}
+
+	/**
+	 * Confirm order using CheckoutSaga pattern.
+	 *
+	 * Provides robust transaction handling with automatic compensating transactions.
+	 *
+	 * @param WCH_Conversation_Context $conversation Current conversation context.
+	 * @param CheckoutSaga             $saga         Checkout saga instance.
+	 * @return array Result with success status and messages.
+	 */
+	private function confirm_order_via_saga( $conversation, CheckoutSaga $saga ): array {
+		try {
 			$checkout_data = $conversation->state_data['checkout_data'] ?? array();
 
-			// Final stock check.
+			// Prepare checkout data for saga.
+			$saga_checkout_data = array(
+				'shipping_address' => $this->convert_address_to_wc_format( $checkout_data['shipping_address'] ?? array() ),
+				'payment_method'   => $checkout_data['payment_method'] ?? 'cod',
+				'shipping_method'  => $checkout_data['shipping_method'] ?? array(),
+				'totals'           => $checkout_data['totals'] ?? array(),
+				'conversation_id'  => $conversation->id ?? null,
+			);
+
+			// Execute the checkout saga.
+			$result = $saga->execute( $conversation->customer_phone, $saga_checkout_data );
+
+			if ( $result->success ) {
+				// Get order details from saga result.
+				$order_result = $result->getStepResult( 'create_order' );
+				$order_id     = $order_result['order_id'] ?? null;
+				$order_number = $order_result['order_number'] ?? '';
+				$total        = $order_result['total'] ?? 0;
+
+				// Build confirmation message.
+				$confirmation_text  = "✅ *Order Confirmed!*\n\n";
+				$confirmation_text .= sprintf( "Order Number: *#%s*\n\n", $order_number );
+				$confirmation_text .= sprintf( "Total: *%s*\n\n", wc_price( $total ) );
+				$confirmation_text .= "We'll send you updates about your order status.\n\n";
+				$confirmation_text .= 'Thank you for shopping with us! 🎉';
+
+				// Transition to completed state.
+				$conversation->current_state = WCH_Conversation_FSM::STATE_COMPLETED;
+				$conversation->state_data    = array();
+
+				WCH_Logger::info(
+					'Order confirmed via saga',
+					'checkout',
+					array(
+						'phone'    => $conversation->customer_phone,
+						'order_id' => $order_id,
+						'saga_id'  => $result->saga_id,
+					)
+				);
+
+				return array(
+					'success'  => true,
+					'messages' => array(
+						( new WCH_Message_Builder() )->text( $confirmation_text ),
+					),
+					'order_id' => $order_id,
+					'saga_id'  => $result->saga_id,
+				);
+			}
+
+			// Saga failed - determine appropriate error message.
+			$failed_step = $result->failed_step;
+			$error       = $result->error ?? 'Unknown error';
+
+			WCH_Logger::error(
+				'Checkout saga failed',
+				'checkout',
+				array(
+					'phone'       => $conversation->customer_phone,
+					'failed_step' => $failed_step,
+					'error'       => $error,
+					'saga_id'     => $result->saga_id,
+					'compensated' => $result->isFullyCompensated(),
+				)
+			);
+
+			// Build user-friendly error message based on failed step.
+			$error_text = $this->build_saga_error_message( $failed_step, $error );
+
+			// Determine if user should retry or modify cart.
+			if ( 'validate_cart' === $failed_step || 'reserve_inventory' === $failed_step ) {
+				// Stock issues - return to cart.
+				$conversation->current_state = WCH_Conversation_FSM::STATE_CART_MANAGEMENT;
+			}
+
+			return array(
+				'success'  => false,
+				'messages' => array(
+					( new WCH_Message_Builder() )->text( $error_text ),
+				),
+				'saga_id'  => $result->saga_id,
+			);
+
+		} catch ( \Throwable $e ) {
+			WCH_Logger::error(
+				'Checkout saga exception',
+				'checkout',
+				array(
+					'phone' => $conversation->customer_phone,
+					'error' => $e->getMessage(),
+				)
+			);
+
+			return array(
+				'success'  => false,
+				'messages' => array(
+					( new WCH_Message_Builder() )->text(
+						"❌ *Order Failed*\n\nWe encountered an error processing your order.\n\nPlease try again or contact support."
+					),
+				),
+			);
+		}
+	}
+
+	/**
+	 * Build user-friendly error message based on saga failure.
+	 *
+	 * @param string|null $failed_step The step that failed.
+	 * @param string      $error       The error message.
+	 * @return string User-friendly error message.
+	 */
+	private function build_saga_error_message( ?string $failed_step, string $error ): string {
+		$error_text = "❌ *Order Failed*\n\n";
+
+		switch ( $failed_step ) {
+			case 'validate_cart':
+				$error_text .= "⚠️ *Cart Issue*\n\n";
+				$error_text .= "There was an issue with your cart:\n";
+				$error_text .= $error . "\n\n";
+				$error_text .= 'Please review your cart and try again.';
+				break;
+
+			case 'reserve_inventory':
+				$error_text .= "⚠️ *Stock Update*\n\n";
+				$error_text .= "Some items are no longer available in the requested quantity.\n\n";
+				$error_text .= 'Please review your cart and checkout again.';
+				break;
+
+			case 'create_order':
+				$error_text .= "We couldn't create your order at this time.\n\n";
+				$error_text .= 'Please try again in a few moments.';
+				break;
+
+			case 'process_payment':
+				$error_text .= "⚠️ *Payment Issue*\n\n";
+				$error_text .= "Payment could not be processed.\n\n";
+				$error_text .= 'Please try again or choose a different payment method.';
+				break;
+
+			default:
+				$error_text .= "We encountered an error processing your order.\n\n";
+				$error_text .= 'Please try again or contact support.';
+		}
+
+		return $error_text;
+	}
+
+	/**
+	 * Legacy confirm order implementation.
+	 *
+	 * Uses database locking to prevent race conditions (duplicate orders).
+	 * Used as fallback when CheckoutSaga is not available.
+	 *
+	 * @param WCH_Conversation_Context $conversation Current conversation context.
+	 * @return array Result with success status and messages.
+	 */
+	private function confirm_order_legacy( $conversation ): array {
+		global $wpdb;
+
+		$cart_table = $wpdb->prefix . 'wch_carts';
+
+		try {
+			// Start transaction and acquire exclusive lock on the cart row.
+			// This prevents concurrent checkout attempts for the same customer.
+			$wpdb->query( 'START TRANSACTION' );
+
+			// Get cart with FOR UPDATE lock to prevent concurrent processing.
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$cart = $wpdb->get_row(
+				$wpdb->prepare(
+					"SELECT * FROM $cart_table WHERE customer_phone = %s AND status = %s FOR UPDATE",
+					$conversation->customer_phone,
+					'active'
+				),
+				ARRAY_A
+			);
+
+			// If no active cart found, another request may have already processed it.
+			if ( ! $cart ) {
+				$wpdb->query( 'ROLLBACK' );
+
+				WCH_Logger::warning(
+					'Cart already processed or not found during checkout',
+					'checkout',
+					array( 'phone' => $conversation->customer_phone )
+				);
+
+				return array(
+					'success'  => false,
+					'messages' => array(
+						( new WCH_Message_Builder() )->text(
+							"⚠️ *Cart Already Processed*\n\nYour cart has already been checked out or is no longer available."
+						),
+					),
+				);
+			}
+
+			// Immediately mark cart as "processing" to prevent concurrent checkouts.
+			$wpdb->update(
+				$cart_table,
+				array(
+					'status'     => 'processing',
+					'updated_at' => current_time( 'mysql', true ),
+				),
+				array( 'id' => $cart['id'] ),
+				array( '%s', '%s' ),
+				array( '%d' )
+			);
+
+			// Decode cart items.
+			$cart['items']            = ! empty( $cart['items'] ) ? json_decode( $cart['items'], true ) : array();
+			$cart['shipping_address'] = ! empty( $cart['shipping_address'] ) ? json_decode( $cart['shipping_address'], true ) : null;
+
+			$checkout_data = $conversation->state_data['checkout_data'] ?? array();
+
+			// Final stock check (still within transaction).
 			$validation = $this->cart_manager->check_cart_validity( $conversation->customer_phone );
 
 			if ( ! $validation['is_valid'] ) {
+				// Revert cart status back to active so user can modify it.
+				$wpdb->update(
+					$cart_table,
+					array(
+						'status'     => 'active',
+						'updated_at' => current_time( 'mysql', true ),
+					),
+					array( 'id' => $cart['id'] ),
+					array( '%s', '%s' ),
+					array( '%d' )
+				);
+				$wpdb->query( 'COMMIT' );
+
 				// Handle out of stock during checkout.
 				$issues_text  = "⚠️ *Stock Update*\n\n";
 				$issues_text .= "Some items in your cart are no longer available:\n\n";
@@ -846,39 +1190,58 @@ class WCH_Checkout_Controller {
 				'conversation_id'  => $conversation->id ?? null,
 			);
 
-			// Create order via Order Sync Service.
+			// Create order via Order Sync Service (includes its own transaction for WC order).
 			$order_id = $this->order_sync_service->create_order_from_cart(
 				$order_data,
 				$conversation->customer_phone
 			);
 
 			if ( ! $order_id ) {
+				// Revert cart status on failure.
+				$wpdb->update(
+					$cart_table,
+					array(
+						'status'     => 'active',
+						'updated_at' => current_time( 'mysql', true ),
+					),
+					array( 'id' => $cart['id'] ),
+					array( '%s', '%s' ),
+					array( '%d' )
+				);
+				$wpdb->query( 'COMMIT' );
 				throw new Exception( 'Failed to create order' );
 			}
 
-			// Clear cart.
-			$this->cart_manager->clear_cart( $conversation->customer_phone );
-
-			// Mark cart as completed.
-			global $wpdb;
+			// Mark cart as converted (final status).
 			$wpdb->update(
-				$wpdb->prefix . 'wch_carts',
+				$cart_table,
 				array(
-					'status'     => 'completed',
-					'updated_at' => current_time( 'mysql' ),
+					'status'     => \WhatsAppCommerceHub\Entities\Cart::STATUS_CONVERTED,
+					'updated_at' => current_time( 'mysql', true ),
 				),
 				array( 'id' => $cart['id'] ),
 				array( '%s', '%s' ),
 				array( '%d' )
 			);
 
+			// Commit the cart status change.
+			$wpdb->query( 'COMMIT' );
+
+			// Clear cart items from memory/cache.
+			$this->cart_manager->clear_cart( $conversation->customer_phone );
+
 			// Get order for confirmation details.
 			$order = wc_get_order( $order_id );
 
 			// Build confirmation message.
-			$confirmation_text  = "✅ *Order Confirmed!*\n\n";
-			$confirmation_text .= sprintf( "Order Number: *#%s*\n\n", $order->get_order_number() );
-			$confirmation_text .= sprintf( "Total: *%s*\n\n", wc_price( $order->get_total() ) );
+			$confirmation_text = "✅ *Order Confirmed!*\n\n";
+			if ( $order ) {
+				$confirmation_text .= sprintf( "Order Number: *#%s*\n\n", $order->get_order_number() );
+				$confirmation_text .= sprintf( "Total: *%s*\n\n", wc_price( $order->get_total() ) );
+			} else {
+				// Fallback if order retrieval fails (should not happen in normal flow).
+				$confirmation_text .= sprintf( "Order ID: *#%d*\n\n", $order_id );
+			}
 			$confirmation_text .= "We'll send you updates about your order status.\n\n";
 			$confirmation_text .= 'Thank you for shopping with us! 🎉';
 
@@ -895,6 +1258,9 @@ class WCH_Checkout_Controller {
 			);
 
 		} catch ( Exception $e ) {
+			// Rollback on any exception.
+			$wpdb->query( 'ROLLBACK' );
+
 			WCH_Logger::error(
 				'Error confirming order',
 				'checkout',

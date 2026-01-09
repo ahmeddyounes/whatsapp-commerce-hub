@@ -1036,6 +1036,74 @@ class WCH_Admin_Settings {
 	}
 
 	/**
+	 * Get whitelist of allowed import settings per section.
+	 *
+	 * @return array Associative array of section => allowed keys.
+	 */
+	private static function get_importable_settings_whitelist() {
+		return array(
+			'general'       => array(
+				'enable_bot',
+				'business_name',
+				'welcome_message',
+				'fallback_message',
+				'operating_hours',
+				'timezone',
+			),
+			'catalog'       => array(
+				'sync_enabled',
+				'sync_products',
+				'include_out_of_stock',
+				'price_format',
+				'currency_symbol',
+			),
+			'checkout'      => array(
+				'enabled_payment_methods',
+				'cod_enabled',
+				'cod_extra_charge',
+				'min_order_amount',
+				'max_order_amount',
+				'require_phone_verification',
+			),
+			'notifications' => array(
+				'order_confirmation',
+				'order_status_updates',
+				'shipping_updates',
+				'abandoned_cart_reminder',
+				'abandoned_cart_delay_hours',
+			),
+			'inventory'     => array(
+				'enable_realtime_sync',
+				'low_stock_threshold',
+				'notify_low_stock',
+				'auto_fix_discrepancies',
+			),
+			'ai'            => array(
+				'enable_ai',
+				'ai_model',
+				'ai_temperature',
+				'ai_max_tokens',
+				'ai_system_prompt',
+				'monthly_budget_cap',
+				// Note: openai_api_key is intentionally excluded (sensitive)
+			),
+			'recovery'      => array(
+				'enabled',
+				'delay_sequence_1',
+				'delay_sequence_2',
+				'delay_sequence_3',
+				'template_sequence_1',
+				'template_sequence_2',
+				'template_sequence_3',
+				'discount_enabled',
+				'discount_type',
+				'discount_amount',
+			),
+			// Note: 'api' section is intentionally excluded (contains sensitive credentials)
+		);
+	}
+
+	/**
 	 * AJAX: Import settings
 	 */
 	public static function ajax_import_settings() {
@@ -1055,24 +1123,161 @@ class WCH_Admin_Settings {
 			wp_send_json_error( array( 'message' => __( 'Invalid JSON format', 'whatsapp-commerce-hub' ) ) );
 		}
 
+		// Get the whitelist of importable settings.
+		$whitelist = self::get_importable_settings_whitelist();
+
 		try {
-			$settings = WCH_Settings::getInstance();
+			$settings        = WCH_Settings::getInstance();
+			$imported_count  = 0;
+			$skipped_count   = 0;
+			$skipped_reasons = array();
 
 			foreach ( $import_data as $section => $values ) {
-				if ( is_array( $values ) ) {
-					foreach ( $values as $key => $value ) {
-						// Skip sensitive fields
-						if ( ! in_array( $key, array( 'access_token', 'webhook_verify_token', 'openai_api_key' ), true ) ) {
-							$settings->set( $section . '.' . $key, $value );
-						}
+				// Reject unknown sections.
+				if ( ! isset( $whitelist[ $section ] ) ) {
+					$skipped_count++;
+					$skipped_reasons[] = sprintf(
+						/* translators: %s is section name */
+						__( 'Section "%s" is not allowed for import', 'whatsapp-commerce-hub' ),
+						sanitize_text_field( $section )
+					);
+					continue;
+				}
+
+				if ( ! is_array( $values ) ) {
+					$skipped_count++;
+					continue;
+				}
+
+				$allowed_keys = $whitelist[ $section ];
+
+				foreach ( $values as $key => $value ) {
+					// Reject keys not in whitelist for this section.
+					if ( ! in_array( $key, $allowed_keys, true ) ) {
+						$skipped_count++;
+						continue;
+					}
+
+					// Sanitize value based on expected type.
+					$sanitized_value = self::sanitize_import_value( $section, $key, $value );
+
+					if ( null !== $sanitized_value ) {
+						$settings->set( $section . '.' . $key, $sanitized_value );
+						$imported_count++;
+					} else {
+						$skipped_count++;
 					}
 				}
 			}
 
-			wp_send_json_success( array( 'message' => __( 'Settings imported successfully', 'whatsapp-commerce-hub' ) ) );
+			$message = sprintf(
+				/* translators: 1: imported count, 2: skipped count */
+				__( 'Settings imported: %1$d, Skipped: %2$d', 'whatsapp-commerce-hub' ),
+				$imported_count,
+				$skipped_count
+			);
+
+			wp_send_json_success( array( 'message' => $message ) );
 		} catch ( Exception $e ) {
 			wp_send_json_error( array( 'message' => $e->getMessage() ) );
 		}
+	}
+
+	/**
+	 * Sanitize an import value based on expected type.
+	 *
+	 * @param string $section The settings section.
+	 * @param string $key     The setting key.
+	 * @param mixed  $value   The value to sanitize.
+	 * @return mixed|null Sanitized value or null if invalid.
+	 */
+	private static function sanitize_import_value( $section, $key, $value ) {
+		// Boolean fields.
+		$boolean_fields = array(
+			'enable_bot',
+			'sync_enabled',
+			'include_out_of_stock',
+			'cod_enabled',
+			'require_phone_verification',
+			'order_confirmation',
+			'order_status_updates',
+			'shipping_updates',
+			'abandoned_cart_reminder',
+			'enable_realtime_sync',
+			'notify_low_stock',
+			'auto_fix_discrepancies',
+			'enable_ai',
+			'enabled',
+			'discount_enabled',
+		);
+
+		// Numeric fields.
+		$numeric_fields = array(
+			'cod_extra_charge',
+			'min_order_amount',
+			'max_order_amount',
+			'abandoned_cart_delay_hours',
+			'low_stock_threshold',
+			'ai_temperature',
+			'ai_max_tokens',
+			'monthly_budget_cap',
+			'delay_sequence_1',
+			'delay_sequence_2',
+			'delay_sequence_3',
+			'discount_amount',
+		);
+
+		// Array fields.
+		$array_fields = array(
+			'operating_hours',
+			'enabled_payment_methods',
+		);
+
+		// Enum fields with allowed values.
+		$enum_fields = array(
+			'sync_products'  => array( 'all', 'published', 'selected' ),
+			'ai_model'       => array( 'gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo' ),
+			'discount_type'  => array( 'percent', 'fixed' ),
+		);
+
+		if ( in_array( $key, $boolean_fields, true ) ) {
+			return (bool) $value;
+		}
+
+		if ( in_array( $key, $numeric_fields, true ) ) {
+			if ( ! is_numeric( $value ) ) {
+				return null;
+			}
+			return floatval( $value );
+		}
+
+		if ( in_array( $key, $array_fields, true ) ) {
+			if ( ! is_array( $value ) ) {
+				return null;
+			}
+			// Sanitize array values recursively.
+			return array_map( 'sanitize_text_field', $value );
+		}
+
+		if ( isset( $enum_fields[ $key ] ) ) {
+			if ( ! in_array( $value, $enum_fields[ $key ], true ) ) {
+				return null;
+			}
+			return $value;
+		}
+
+		// Default: treat as string and sanitize.
+		if ( is_string( $value ) ) {
+			// Allow HTML in specific fields (like messages).
+			$html_allowed_fields = array( 'welcome_message', 'fallback_message', 'ai_system_prompt' );
+			if ( in_array( $key, $html_allowed_fields, true ) ) {
+				return wp_kses_post( $value );
+			}
+			return sanitize_text_field( $value );
+		}
+
+		// Reject other types.
+		return null;
 	}
 
 	/**

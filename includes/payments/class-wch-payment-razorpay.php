@@ -232,6 +232,23 @@ class WCH_Payment_Razorpay implements WCH_Payment_Gateway {
 	public function handle_callback( $data ) {
 		$event = $data['event'] ?? '';
 
+		// Validate webhook timestamp to prevent replay attacks (5-minute tolerance).
+		$webhook_timestamp = intval( $data['created_at'] ?? 0 );
+		if ( $webhook_timestamp > 0 && abs( time() - $webhook_timestamp ) > 300 ) {
+			WCH_Logger::warning(
+				'Razorpay webhook timestamp expired',
+				array(
+					'event'     => $event,
+					'timestamp' => $webhook_timestamp,
+					'current'   => time(),
+				)
+			);
+			return array(
+				'success' => false,
+				'message' => __( 'Webhook timestamp expired.', 'whatsapp-commerce-hub' ),
+			);
+		}
+
 		if ( $event === 'payment.captured' ) {
 			$payment  = $data['payload']['payment']['entity'] ?? array();
 			$notes    = $payment['notes'] ?? array();
@@ -240,6 +257,25 @@ class WCH_Payment_Razorpay implements WCH_Payment_Gateway {
 			if ( $order_id ) {
 				$order = wc_get_order( $order_id );
 				if ( $order ) {
+					// SECURITY: Check if order still needs payment to prevent double-spend.
+					// This prevents race conditions where concurrent webhooks could both complete the payment.
+					if ( ! $order->needs_payment() ) {
+						WCH_Logger::info(
+							'Razorpay payment webhook skipped - order already paid',
+							array(
+								'order_id'       => $order_id,
+								'order_status'   => $order->get_status(),
+								'transaction_id' => $payment['id'] ?? 'unknown',
+							)
+						);
+						return array(
+							'success'  => true,
+							'order_id' => $order_id,
+							'status'   => 'already_completed',
+							'message'  => __( 'Order already paid.', 'whatsapp-commerce-hub' ),
+						);
+					}
+
 					$order->payment_complete( $payment['id'] );
 					$order->add_order_note(
 						sprintf(
@@ -265,14 +301,17 @@ class WCH_Payment_Razorpay implements WCH_Payment_Gateway {
 			if ( $order_id ) {
 				$order = wc_get_order( $order_id );
 				if ( $order ) {
-					$order->update_status(
-						'failed',
-						sprintf(
-							/* translators: %s: Error message */
-							__( 'Razorpay payment failed: %s', 'whatsapp-commerce-hub' ),
-							$payment['error_description'] ?? __( 'Unknown error', 'whatsapp-commerce-hub' )
-						)
-					);
+					// Only fail orders that are still pending payment.
+					if ( $order->needs_payment() ) {
+						$order->update_status(
+							'failed',
+							sprintf(
+								/* translators: %s: Error message */
+								__( 'Razorpay payment failed: %s', 'whatsapp-commerce-hub' ),
+								$payment['error_description'] ?? __( 'Unknown error', 'whatsapp-commerce-hub' )
+							)
+						);
+					}
 
 					return array(
 						'success'  => true,

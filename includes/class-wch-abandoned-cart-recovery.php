@@ -235,52 +235,50 @@ class WCH_Abandoned_Cart_Recovery {
 
 		$reminder_field = "reminder_{$sequence}_sent_at";
 
+		// Note: We check for both 'active' AND 'abandoned' status because:
+		// - 'active' = customer may still be shopping
+		// - 'abandoned' = cart explicitly marked as abandoned by the system
+		// We exclude: 'completed', 'converted', 'expired', 'processing'
+		$eligible_statuses = array( 'active', 'abandoned' );
+		$status_placeholders = implode( ', ', array_fill( 0, count( $eligible_statuses ), '%s' ) );
+
 		// Build query based on sequence.
 		if ( 1 === $sequence ) {
 			// First reminder: cart updated before delay and no reminder 1 sent.
-			$carts = $wpdb->get_results(
-				$wpdb->prepare(
-					"SELECT * FROM {$table_name}
-					WHERE status = %s
-					AND updated_at < %s
-					AND items IS NOT NULL
-					AND JSON_LENGTH(items) > 0
-					AND reminder_1_sent_at IS NULL",
-					'active',
-					$delay_date
-				),
-				ARRAY_A
+			$query = $wpdb->prepare(
+				"SELECT * FROM {$table_name}
+				WHERE status IN ({$status_placeholders})
+				AND updated_at < %s
+				AND items IS NOT NULL
+				AND JSON_LENGTH(items) > 0
+				AND reminder_1_sent_at IS NULL",
+				array_merge( $eligible_statuses, array( $delay_date ) )
 			);
+			$carts = $wpdb->get_results( $query, ARRAY_A );
 		} elseif ( 2 === $sequence ) {
 			// Second reminder: reminder 1 sent, but not reminder 2, and cart still not converted.
-			$carts = $wpdb->get_results(
-				$wpdb->prepare(
-					"SELECT * FROM {$table_name}
-					WHERE status = %s
-					AND reminder_1_sent_at IS NOT NULL
-					AND reminder_1_sent_at < %s
-					AND reminder_2_sent_at IS NULL
-					AND recovered = 0",
-					'active',
-					$delay_date
-				),
-				ARRAY_A
+			$query = $wpdb->prepare(
+				"SELECT * FROM {$table_name}
+				WHERE status IN ({$status_placeholders})
+				AND reminder_1_sent_at IS NOT NULL
+				AND reminder_1_sent_at < %s
+				AND reminder_2_sent_at IS NULL
+				AND recovered = 0",
+				array_merge( $eligible_statuses, array( $delay_date ) )
 			);
+			$carts = $wpdb->get_results( $query, ARRAY_A );
 		} else {
 			// Third reminder: reminder 2 sent, but not reminder 3, and cart still not converted.
-			$carts = $wpdb->get_results(
-				$wpdb->prepare(
-					"SELECT * FROM {$table_name}
-					WHERE status = %s
-					AND reminder_2_sent_at IS NOT NULL
-					AND reminder_2_sent_at < %s
-					AND reminder_3_sent_at IS NULL
-					AND recovered = 0",
-					'active',
-					$delay_date
-				),
-				ARRAY_A
+			$query = $wpdb->prepare(
+				"SELECT * FROM {$table_name}
+				WHERE status IN ({$status_placeholders})
+				AND reminder_2_sent_at IS NOT NULL
+				AND reminder_2_sent_at < %s
+				AND reminder_3_sent_at IS NULL
+				AND recovered = 0",
+				array_merge( $eligible_statuses, array( $delay_date ) )
 			);
+			$carts = $wpdb->get_results( $query, ARRAY_A );
 		}
 
 		return $carts ?: array();
@@ -315,8 +313,9 @@ class WCH_Abandoned_Cart_Recovery {
 	 * @return bool True if eligible, false otherwise.
 	 */
 	private function is_cart_eligible( $cart, $sequence ) {
-		// Cart must be active.
-		if ( 'active' !== $cart['status'] ) {
+		// Cart must be active or abandoned (not completed, converted, expired, or processing).
+		$eligible_statuses = array( 'active', 'abandoned' );
+		if ( ! in_array( $cart['status'], $eligible_statuses, true ) ) {
 			return false;
 		}
 

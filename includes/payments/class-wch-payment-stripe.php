@@ -312,6 +312,25 @@ class WCH_Payment_Stripe implements WCH_Payment_Gateway {
 			if ( $order_id ) {
 				$order = wc_get_order( $order_id );
 				if ( $order ) {
+					// SECURITY: Check if order still needs payment to prevent double-spend.
+					// This prevents race conditions where concurrent webhooks could both complete the payment.
+					if ( ! $order->needs_payment() ) {
+						WCH_Logger::info(
+							'Stripe payment webhook skipped - order already paid',
+							array(
+								'order_id'       => $order_id,
+								'order_status'   => $order->get_status(),
+								'transaction_id' => $payment_intent['id'] ?? 'unknown',
+							)
+						);
+						return array(
+							'success'  => true,
+							'order_id' => $order_id,
+							'status'   => 'already_completed',
+							'message'  => __( 'Order already paid.', 'whatsapp-commerce-hub' ),
+						);
+					}
+
 					$order->payment_complete( $payment_intent['id'] );
 					$order->add_order_note(
 						sprintf(
@@ -337,14 +356,17 @@ class WCH_Payment_Stripe implements WCH_Payment_Gateway {
 			if ( $order_id ) {
 				$order = wc_get_order( $order_id );
 				if ( $order ) {
-					$order->update_status(
-						'failed',
-						sprintf(
-							/* translators: %s: Error message */
-							__( 'Stripe payment failed: %s', 'whatsapp-commerce-hub' ),
-							$payment_intent['last_payment_error']['message'] ?? __( 'Unknown error', 'whatsapp-commerce-hub' )
-						)
-					);
+					// Only fail orders that are still pending payment.
+					if ( $order->needs_payment() ) {
+						$order->update_status(
+							'failed',
+							sprintf(
+								/* translators: %s: Error message */
+								__( 'Stripe payment failed: %s', 'whatsapp-commerce-hub' ),
+								$payment_intent['last_payment_error']['message'] ?? __( 'Unknown error', 'whatsapp-commerce-hub' )
+							)
+						);
+					}
 
 					return array(
 						'success'  => true,

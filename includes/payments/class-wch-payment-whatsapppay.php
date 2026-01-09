@@ -237,6 +237,24 @@ class WCH_Payment_WhatsAppPay implements WCH_Payment_Gateway {
 						$payment_status = $order_info['payment_status'] ?? '';
 
 						if ( $payment_status === 'captured' || $payment_status === 'completed' ) {
+							// SECURITY: Check if order still needs payment to prevent double-spend.
+							if ( ! $order->needs_payment() ) {
+								WCH_Logger::info(
+									'WhatsApp Pay payment webhook skipped - order already paid',
+									array(
+										'order_id'       => $order_id,
+										'order_status'   => $order->get_status(),
+										'transaction_id' => $reference_id,
+									)
+								);
+								return array(
+									'success'  => true,
+									'order_id' => $order_id,
+									'status'   => 'already_completed',
+									'message'  => __( 'Order already paid.', 'whatsapp-commerce-hub' ),
+								);
+							}
+
 							$order->payment_complete( $reference_id );
 							$order->add_order_note(
 								sprintf(
@@ -253,7 +271,10 @@ class WCH_Payment_WhatsAppPay implements WCH_Payment_Gateway {
 								'message'  => __( 'Payment completed successfully.', 'whatsapp-commerce-hub' ),
 							);
 						} elseif ( $payment_status === 'failed' ) {
-							$order->update_status( 'failed', __( 'WhatsApp Pay payment failed.', 'whatsapp-commerce-hub' ) );
+							// Only fail orders that are still pending payment.
+							if ( $order->needs_payment() ) {
+								$order->update_status( 'failed', __( 'WhatsApp Pay payment failed.', 'whatsapp-commerce-hub' ) );
+							}
 
 							return array(
 								'success'  => true,

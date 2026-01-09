@@ -5,6 +5,9 @@
  * Handles all interactions with the WhatsApp Business Cloud API.
  *
  * @package WhatsApp_Commerce_Hub
+ *
+ * @deprecated 2.0.0 Use WhatsAppApiClient via DI container instead:
+ *             `WhatsAppCommerceHub\Container\Container::getInstance()->get(WhatsAppClientInterface::class)`
  */
 
 // Exit if accessed directly.
@@ -12,12 +15,33 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+use WhatsAppCommerceHub\Container\Container;
+use WhatsAppCommerceHub\Contracts\Clients\WhatsAppClientInterface;
+use WhatsAppCommerceHub\Resilience\CircuitBreaker;
+use WhatsAppCommerceHub\Resilience\CircuitBreakerRegistry;
+
 /**
  * Class WCH_WhatsApp_API_Client
  *
  * HTTP client for WhatsApp Business Cloud API.
+ *
+ * @deprecated 2.0.0 This class is a backward compatibility facade.
+ *             Use WhatsAppClientInterface via DI container for new code.
  */
 class WCH_WhatsApp_API_Client {
+
+	/**
+	 * Get the WhatsAppApiClient from the DI container.
+	 *
+	 * This is the recommended way to access WhatsApp functionality in new code.
+	 * The DI-based client includes CircuitBreaker protection.
+	 *
+	 * @since 2.0.0
+	 * @return WhatsAppClientInterface
+	 */
+	public static function getClient(): WhatsAppClientInterface {
+		return Container::getInstance()->get( WhatsAppClientInterface::class );
+	}
 	/**
 	 * Phone number ID.
 	 *
@@ -45,6 +69,13 @@ class WCH_WhatsApp_API_Client {
 	 * @var string
 	 */
 	private $base_url;
+
+	/**
+	 * Circuit breaker instance.
+	 *
+	 * @var CircuitBreaker|null
+	 */
+	private $circuit_breaker;
 
 	/**
 	 * Maximum retry attempts.
@@ -79,6 +110,70 @@ class WCH_WhatsApp_API_Client {
 		$this->access_token    = $config['access_token'];
 		$this->api_version     = $config['api_version'] ?? 'v18.0';
 		$this->base_url        = 'https://graph.facebook.com/' . $this->api_version . '/';
+
+		// Initialize circuit breaker from DI container if available.
+		$this->circuit_breaker = $this->initCircuitBreaker();
+	}
+
+	/**
+	 * Initialize circuit breaker from DI container.
+	 *
+	 * @return CircuitBreaker|null
+	 */
+	private function initCircuitBreaker(): ?CircuitBreaker {
+		try {
+			$container = Container::getInstance();
+			if ( $container->has( CircuitBreakerRegistry::class ) ) {
+				$registry = $container->get( CircuitBreakerRegistry::class );
+				return $registry->get( 'whatsapp' );
+			}
+		} catch ( \Throwable $e ) {
+			// Circuit breaker not available, continue without protection.
+			WCH_Logger::debug(
+				'Circuit breaker not available for legacy client',
+				array( 'error' => $e->getMessage() )
+			);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Check if the WhatsApp API is available (circuit is not open).
+	 *
+	 * @since 2.0.0
+	 * @return bool True if available.
+	 */
+	public function is_available(): bool {
+		if ( null === $this->circuit_breaker ) {
+			return true; // No circuit breaker, assume available.
+		}
+
+		return $this->circuit_breaker->isAvailable();
+	}
+
+	/**
+	 * Get circuit breaker health status.
+	 *
+	 * @since 2.0.0
+	 * @return array{healthy: bool, state: string, metrics: array}
+	 */
+	public function get_health_status(): array {
+		if ( null === $this->circuit_breaker ) {
+			return array(
+				'healthy' => true,
+				'state'   => 'no_circuit_breaker',
+				'metrics' => array(),
+			);
+		}
+
+		$metrics = $this->circuit_breaker->getMetrics();
+
+		return array(
+			'healthy' => $this->circuit_breaker->isAvailable(),
+			'state'   => $metrics['state'] ?? 'unknown',
+			'metrics' => $metrics,
+		);
 	}
 
 	/**
@@ -112,6 +207,78 @@ class WCH_WhatsApp_API_Client {
 	 * @throws WCH_API_Exception If API request fails.
 	 */
 	private function request( $method, $endpoint, $body = array() ) {
+		// Use circuit breaker if available.
+		if ( null !== $this->circuit_breaker ) {
+			return $this->requestWithCircuitBreaker( $method, $endpoint, $body );
+		}
+
+		// Fallback to direct request without circuit breaker.
+		return $this->executeRequest( $method, $endpoint, $body );
+	}
+
+	/**
+	 * Make HTTP request with circuit breaker protection.
+	 *
+	 * @param string $method   HTTP method.
+	 * @param string $endpoint API endpoint.
+	 * @param array  $body     Request body data.
+	 * @return array Response data.
+	 * @throws WCH_API_Exception If API request fails.
+	 */
+	private function requestWithCircuitBreaker( $method, $endpoint, $body = array() ) {
+		try {
+			return $this->circuit_breaker->call(
+				function () use ( $method, $endpoint, $body ) {
+					return $this->executeRequest( $method, $endpoint, $body );
+				},
+				function () use ( $method, $endpoint ) {
+					// Fallback when circuit is open.
+					WCH_Logger::warning(
+						'WhatsApp API circuit breaker open',
+						array(
+							'method'   => $method,
+							'endpoint' => $endpoint,
+						)
+					);
+
+					throw new WCH_API_Exception(
+						'WhatsApp API is temporarily unavailable. Please try again later.',
+						null,
+						'circuit_open',
+						null,
+						503,
+						array(
+							'endpoint' => $endpoint,
+							'circuit'  => 'open',
+						)
+					);
+				}
+			);
+		} catch ( WCH_API_Exception $e ) {
+			throw $e;
+		} catch ( \Throwable $e ) {
+			// Convert generic exceptions to API exceptions.
+			throw new WCH_API_Exception(
+				$e->getMessage(),
+				null,
+				'circuit_breaker_error',
+				null,
+				500,
+				array( 'endpoint' => $endpoint )
+			);
+		}
+	}
+
+	/**
+	 * Execute the actual HTTP request with retry logic.
+	 *
+	 * @param string $method   HTTP method (GET, POST, etc.).
+	 * @param string $endpoint API endpoint.
+	 * @param array  $body     Request body data.
+	 * @return array Response data.
+	 * @throws WCH_API_Exception If API request fails.
+	 */
+	private function executeRequest( $method, $endpoint, $body = array() ) {
 		$url     = $this->base_url . $endpoint;
 		$attempt = 0;
 
@@ -182,6 +349,21 @@ class WCH_WhatsApp_API_Client {
 			}
 
 			$data = json_decode( $response_body, true );
+
+			// Validate JSON decode succeeded.
+			if ( null === $data && JSON_ERROR_NONE !== json_last_error() ) {
+				throw new WCH_API_Exception(
+					'Invalid JSON response from API',
+					null,
+					'json_decode_error',
+					null,
+					$response_code,
+					array(
+						'endpoint'   => $endpoint,
+						'json_error' => json_last_error_msg(),
+					)
+				);
+			}
 
 			// Check for 5xx errors or rate limits - retry.
 			if ( $response_code >= 500 || $response_code === 429 ) {
@@ -642,8 +824,19 @@ class WCH_WhatsApp_API_Client {
 
 		$boundary = wp_generate_password( 24, false );
 
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Reading local file for upload.
 		$file_data = file_get_contents( $file_path );
-		$filename  = basename( $file_path );
+
+		if ( false === $file_data ) {
+			throw new WCH_Exception(
+				'Failed to read file',
+				'file_read_error',
+				500,
+				array( 'file_path' => $file_path )
+			);
+		}
+
+		$filename = basename( $file_path );
 
 		$body  = "--{$boundary}\r\n";
 		$body .= "Content-Disposition: form-data; name=\"messaging_product\"\r\n\r\n";
@@ -701,6 +894,21 @@ class WCH_WhatsApp_API_Client {
 		}
 
 		$data = json_decode( $response_body, true );
+
+		// Validate JSON decode succeeded.
+		if ( null === $data && JSON_ERROR_NONE !== json_last_error() ) {
+			throw new WCH_API_Exception(
+				'Invalid JSON response from media upload API',
+				null,
+				'json_decode_error',
+				null,
+				$response_code,
+				array(
+					'file_path'  => $file_path,
+					'json_error' => json_last_error_msg(),
+				)
+			);
+		}
 
 		if ( $response_code >= 400 ) {
 			$error_message = 'Media upload failed';

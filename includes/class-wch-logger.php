@@ -120,7 +120,8 @@ class WCH_Logger {
 	 * @return array Sanitized context.
 	 */
 	private static function sanitize_context( array $context ) {
-		$sensitive_patterns = array(
+		// Credential patterns (always fully redact).
+		$credential_patterns = array(
 			'access_token',
 			'access-token',
 			'accessToken',
@@ -133,22 +134,206 @@ class WCH_Logger {
 			'apiKey',
 			'auth',
 			'authorization',
+			'bearer',
+		);
+
+		// PII patterns (mask but keep partial for debugging).
+		$pii_patterns = array(
+			'phone',
+			'customer_phone',
+			'billing_phone',
+			'from',
+			'to',
+			'recipient',
+			'wa_id',
+			'email',
+			'customer_email',
+			'billing_email',
+			'name',
+			'customer_name',
+			'billing_name',
+			'address',
+			'billing_address',
+			'shipping_address',
+			'street',
 		);
 
 		array_walk_recursive(
 			$context,
-			function ( &$value, $key ) use ( $sensitive_patterns ) {
+			function ( &$value, $key ) use ( $credential_patterns, $pii_patterns ) {
+				if ( ! is_string( $value ) ) {
+					return;
+				}
+
 				$key_lower = strtolower( $key );
-				foreach ( $sensitive_patterns as $pattern ) {
+
+				// Check credential patterns first (full redaction).
+				foreach ( $credential_patterns as $pattern ) {
 					if ( stripos( $key_lower, $pattern ) !== false ) {
 						$value = '***REDACTED***';
-						break;
+						return;
 					}
+				}
+
+				// Check PII patterns (masked redaction).
+				foreach ( $pii_patterns as $pattern ) {
+					if ( stripos( $key_lower, $pattern ) !== false ) {
+						$value = self::mask_pii_value( $value, $pattern );
+						return;
+					}
+				}
+
+				// Final pass: scan ALL string values for phone number patterns
+				// regardless of key name to catch phone numbers in arbitrary keys.
+				// Skip if already masked (contains asterisks) to avoid double-masking.
+				if ( strpos( $value, '***' ) === false ) {
+					$value = self::mask_phone_numbers_in_string( $value );
 				}
 			}
 		);
 
 		return $context;
+	}
+
+	/**
+	 * Mask PII value while keeping partial info for debugging.
+	 *
+	 * @param string $value   The value to mask.
+	 * @param string $pattern The pattern that matched.
+	 * @return string Masked value.
+	 */
+	private static function mask_pii_value( string $value, string $pattern ): string {
+		// Handle phone numbers (keep country code and last 2 digits).
+		if ( in_array( $pattern, array( 'phone', 'customer_phone', 'billing_phone', 'from', 'to', 'recipient', 'wa_id' ), true ) ) {
+			if ( preg_match( '/^\+?\d{10,15}$/', preg_replace( '/\s+/', '', $value ) ) ) {
+				$clean = preg_replace( '/\s+/', '', $value );
+				if ( strlen( $clean ) > 6 ) {
+					return substr( $clean, 0, 4 ) . str_repeat( '*', strlen( $clean ) - 6 ) . substr( $clean, -2 );
+				}
+				return str_repeat( '*', strlen( $clean ) );
+			}
+		}
+
+		// Handle email addresses.
+		if ( in_array( $pattern, array( 'email', 'customer_email', 'billing_email' ), true ) ) {
+			if ( filter_var( $value, FILTER_VALIDATE_EMAIL ) ) {
+				$parts = explode( '@', $value );
+				$local = $parts[0];
+				$domain = $parts[1] ?? 'example.com';
+				$masked_local = strlen( $local ) > 2 ? substr( $local, 0, 1 ) . '***' . substr( $local, -1 ) : '***';
+				$domain_parts = explode( '.', $domain );
+				$masked_domain = '***.' . end( $domain_parts );
+				return $masked_local . '@' . $masked_domain;
+			}
+		}
+
+		// Default: keep first 3 chars and mask rest.
+		if ( strlen( $value ) > 6 ) {
+			return substr( $value, 0, 3 ) . str_repeat( '*', min( 10, strlen( $value ) - 3 ) );
+		}
+
+		return '***REDACTED***';
+	}
+
+	/**
+	 * Check if a number looks like a Unix timestamp rather than a phone number.
+	 *
+	 * @param string $number The number to check.
+	 * @return bool True if it looks like a timestamp.
+	 */
+	private static function looks_like_timestamp( string $number ): bool {
+		// Unix timestamps are typically 10 digits starting with 1 (years 2001-2033).
+		// We check if the number is within a reasonable range of current time.
+		if ( ! ctype_digit( $number ) ) {
+			return false;
+		}
+
+		$num_length = strlen( $number );
+
+		// Use a narrower time window (5 years) to reduce false positives.
+		// 20 years was too broad and matched valid phone numbers (e.g., Indian phones 14xx-19xx).
+		$current_time = time();
+		$five_years   = 5 * 365 * 24 * 60 * 60;
+
+		// 10-digit numbers could be timestamps (seconds since epoch).
+		if ( 10 === $num_length ) {
+			$as_int = (int) $number;
+			// Check if within 5 years of current time (conservative timestamp range).
+			if ( $as_int >= ( $current_time - $five_years ) && $as_int <= ( $current_time + $five_years ) ) {
+				return true;
+			}
+		}
+
+		// 13-digit numbers could be millisecond timestamps.
+		if ( 13 === $num_length ) {
+			// Convert to int first, then divide to avoid string division issues.
+			$as_int = intdiv( (int) $number, 1000 );
+			if ( $as_int >= ( $current_time - $five_years ) && $as_int <= ( $current_time + $five_years ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Mask phone numbers in a string for GDPR compliance.
+	 *
+	 * Detects and masks phone numbers in various formats.
+	 *
+	 * @param string $text The text to sanitize.
+	 * @return string Text with phone numbers masked.
+	 */
+	private static function mask_phone_numbers_in_string( string $text ): string {
+		// Pattern to match international phone numbers in various formats:
+		// +1234567890, +12 345 6789, +1-234-567-890, etc.
+		$patterns = array(
+			// International format with country code (must start with +).
+			'/\+\d{1,4}[\s\-]?\d{2,4}[\s\-]?\d{2,4}[\s\-]?\d{2,6}/',
+			// WhatsApp ID format (country code without +) - labeled context.
+			'/(?:wa_id|from|to|phone)[\s]*[:=][\s]*["\']?(\d{10,15})["\']?/i',
+			// Standard 10+ digit numbers (but exclude timestamps).
+			'/(?<!\d)\d{10,15}(?!\d)/',
+		);
+
+		foreach ( $patterns as $index => $pattern ) {
+			$text = preg_replace_callback(
+				$pattern,
+				function ( $matches ) use ( $index ) {
+					$phone = $matches[0];
+					// Clean the phone number for processing.
+					$clean = preg_replace( '/[\s\-]/', '', $phone );
+
+					// For the generic digit pattern (index 2), check if it's a timestamp.
+					if ( 2 === $index ) {
+						$digits_only = preg_replace( '/\D/', '', $clean );
+						if ( self::looks_like_timestamp( $digits_only ) ) {
+							return $phone; // Don't mask timestamps.
+						}
+					}
+
+					// Keep context (like "from:" prefix) but mask the number.
+					if ( preg_match( '/(wa_id|from|to|phone)[\s]*[:=][\s]*["\']?/i', $phone, $prefix_match ) ) {
+						$prefix = $prefix_match[0];
+						$number_part = preg_replace( '/^' . preg_quote( $prefix, '/' ) . '/', '', $phone );
+						$clean_number = preg_replace( '/["\'\s\-]/', '', $number_part );
+						if ( strlen( $clean_number ) > 6 ) {
+							return $prefix . substr( $clean_number, 0, 4 ) . str_repeat( '*', strlen( $clean_number ) - 6 ) . substr( $clean_number, -2 );
+						}
+						return $prefix . str_repeat( '*', strlen( $clean_number ) );
+					}
+
+					// Regular phone number.
+					if ( strlen( $clean ) > 6 ) {
+						return substr( $clean, 0, 4 ) . str_repeat( '*', strlen( $clean ) - 6 ) . substr( $clean, -2 );
+					}
+					return str_repeat( '*', strlen( $clean ) );
+				},
+				$text
+			);
+		}
+
+		return $text;
 	}
 
 	/**
@@ -163,6 +348,9 @@ class WCH_Logger {
 		$timestamp  = gmdate( 'Y-m-d H:i:s' );
 		$request_id = self::get_request_id();
 
+		// Sanitize phone numbers in message string for GDPR compliance.
+		$sanitized_message = self::mask_phone_numbers_in_string( $message );
+
 		// Sanitize context.
 		$sanitized_context = self::sanitize_context( $context );
 
@@ -174,7 +362,7 @@ class WCH_Logger {
 			$timestamp,
 			$level,
 			$request_id,
-			$message,
+			$sanitized_message,
 			$context_json
 		);
 	}
@@ -228,6 +416,44 @@ class WCH_Logger {
 				wp_delete_file( $file );
 			}
 		}
+	}
+
+	/**
+	 * Legacy log method for backward compatibility.
+	 *
+	 * Supports both old signature: log($level, $message, $context, $context_array)
+	 * and simple signature: log($message, $level)
+	 *
+	 * @param string       $level_or_message Log level or message.
+	 * @param string|array $message_or_level Message or level (for simple signature).
+	 * @param string       $context_name     Optional. Context name (legacy).
+	 * @param array        $context_data     Optional. Context data.
+	 */
+	public static function log( $level_or_message, $message_or_level = 'info', $context_name = '', $context_data = array() ) {
+		// Detect signature type.
+		$valid_levels = array( 'debug', 'info', 'warning', 'error', 'critical' );
+
+		if ( in_array( strtolower( $level_or_message ), $valid_levels, true ) ) {
+			// Old signature: log($level, $message, $context_name, $context_array)
+			$level   = strtoupper( $level_or_message );
+			$message = is_string( $message_or_level ) ? $message_or_level : '';
+			$context = is_array( $context_data ) ? $context_data : array();
+			if ( ! empty( $context_name ) ) {
+				$context['source'] = $context_name;
+			}
+		} elseif ( is_string( $message_or_level ) && in_array( strtolower( $message_or_level ), $valid_levels, true ) ) {
+			// Simple signature: log($message, $level)
+			$level   = strtoupper( $message_or_level );
+			$message = $level_or_message;
+			$context = array();
+		} else {
+			// Default to info level.
+			$level   = self::LEVEL_INFO;
+			$message = $level_or_message;
+			$context = is_array( $message_or_level ) ? $message_or_level : array();
+		}
+
+		self::write_log( $level, $message, $context );
 	}
 
 	/**

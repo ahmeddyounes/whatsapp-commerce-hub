@@ -14,6 +14,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Class WCH_Encryption
+ *
+ * @deprecated 2.0.0 Use SecureVault for new code. This class is maintained for backward compatibility.
  */
 class WCH_Encryption {
 	/**
@@ -24,11 +26,30 @@ class WCH_Encryption {
 	const ENCRYPTION_METHOD = 'aes-256-cbc';
 
 	/**
+	 * Singleton instance.
+	 *
+	 * @var WCH_Encryption|null
+	 */
+	private static $instance = null;
+
+	/**
 	 * Encryption key.
 	 *
 	 * @var string
 	 */
 	private $key;
+
+	/**
+	 * Get singleton instance.
+	 *
+	 * @return WCH_Encryption
+	 */
+	public static function instance(): WCH_Encryption {
+		if ( null === self::$instance ) {
+			self::$instance = new self();
+		}
+		return self::$instance;
+	}
 
 	/**
 	 * Constructor.
@@ -49,9 +70,9 @@ class WCH_Encryption {
 			return '';
 		}
 
-		// Generate an initialization vector.
+		// Generate an initialization vector using cryptographically secure RNG.
 		$iv_length = openssl_cipher_iv_length( self::ENCRYPTION_METHOD );
-		$iv        = openssl_random_pseudo_bytes( $iv_length );
+		$iv        = random_bytes( $iv_length );
 
 		// Encrypt the value.
 		$encrypted = openssl_encrypt(
@@ -90,6 +111,12 @@ class WCH_Encryption {
 
 		// Extract IV and encrypted data.
 		$iv_length = openssl_cipher_iv_length( self::ENCRYPTION_METHOD );
+
+		// Validate decoded data has sufficient length for IV extraction.
+		if ( strlen( $decoded ) <= $iv_length ) {
+			return false;
+		}
+
 		$iv        = substr( $decoded, 0, $iv_length );
 		$encrypted = substr( $decoded, $iv_length );
 

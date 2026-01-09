@@ -408,6 +408,24 @@ class WCH_Payment_PIX implements WCH_Payment_Gateway {
 					$status = $payment['status'] ?? '';
 
 					if ( $order && $status === 'approved' ) {
+						// SECURITY: Check if order still needs payment to prevent double-spend.
+						if ( ! $order->needs_payment() ) {
+							WCH_Logger::info(
+								'PIX payment webhook skipped - order already paid',
+								array(
+									'order_id'       => $order_id,
+									'order_status'   => $order->get_status(),
+									'transaction_id' => $payment_id,
+								)
+							);
+							return array(
+								'success'  => true,
+								'order_id' => $order_id,
+								'status'   => 'already_completed',
+								'message'  => __( 'Order already paid.', 'whatsapp-commerce-hub' ),
+							);
+						}
+
 						$order->payment_complete( $payment_id );
 						$order->add_order_note(
 							sprintf(
@@ -475,6 +493,24 @@ class WCH_Payment_PIX implements WCH_Payment_Gateway {
 			$order = wc_get_order( $reference_id );
 
 			if ( $order ) {
+				// SECURITY: Check if order still needs payment to prevent double-spend.
+				if ( ! $order->needs_payment() ) {
+					WCH_Logger::info(
+						'PagSeguro PIX payment webhook skipped - order already paid',
+						array(
+							'order_id'       => $order->get_id(),
+							'order_status'   => $order->get_status(),
+							'transaction_id' => $data['id'] ?? 'unknown',
+						)
+					);
+					return array(
+						'success'  => true,
+						'order_id' => $order->get_id(),
+						'status'   => 'already_completed',
+						'message'  => __( 'Order already paid.', 'whatsapp-commerce-hub' ),
+					);
+				}
+
 				$order->payment_complete( $data['id'] ?? '' );
 				$order->add_order_note(
 					sprintf(

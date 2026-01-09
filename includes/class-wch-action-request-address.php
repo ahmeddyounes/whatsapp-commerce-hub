@@ -37,9 +37,10 @@ class WCH_Action_RequestAddress extends WCH_Flow_Action {
 			$customer = $this->get_customer_profile( $conversation->customer_phone );
 
 			// Check for saved addresses.
+			// saved_addresses is already decrypted and returned as an array by customer service.
 			$saved_addresses = array();
-			if ( $customer && ! empty( $customer->saved_addresses ) ) {
-				$saved_addresses = json_decode( $customer->saved_addresses, true );
+			if ( $customer && ! empty( $customer->saved_addresses ) && is_array( $customer->saved_addresses ) ) {
+				$saved_addresses = $customer->saved_addresses;
 			}
 
 			// Build message based on saved addresses.

@@ -224,7 +224,7 @@ class WCH_AI_Assistant {
 			);
 		}
 
-		// Check rate limit.
+		// Check rate limit (uses persistent storage).
 		$conversation_id = $context['conversation_id'] ?? null;
 		if ( $conversation_id && ! $this->check_rate_limit( $conversation_id ) ) {
 			WCH_Logger::warning(
@@ -239,10 +239,14 @@ class WCH_AI_Assistant {
 		}
 
 		try {
-			// Build system prompt dynamically.
+			// SECURITY: Sanitize user input to prevent prompt injection attacks.
+			$sanitized_message = $this->sanitize_user_input( $user_message );
+
+			// Build system prompt dynamically with injection protection.
 			$system_prompt = $this->build_system_prompt( $context );
 
-			// Build messages array.
+			// Build messages array with clear boundary markers.
+			// The system prompt now includes injection-resistant instructions.
 			$messages = array(
 				array(
 					'role'    => 'system',
@@ -250,7 +254,7 @@ class WCH_AI_Assistant {
 				),
 				array(
 					'role'    => 'user',
-					'content' => $user_message,
+					'content' => $sanitized_message,
 				),
 			);
 
@@ -560,7 +564,75 @@ class WCH_AI_Assistant {
 	}
 
 	/**
+	 * Sanitize user input to prevent prompt injection attacks.
+	 *
+	 * Removes or neutralizes common injection patterns while preserving
+	 * legitimate user intent.
+	 *
+	 * @param string $input Raw user input.
+	 * @return string Sanitized input.
+	 */
+	private function sanitize_user_input( $input ) {
+		// Normalize whitespace and trim.
+		$sanitized = trim( preg_replace( '/\s+/', ' ', $input ) );
+
+		// Remove or escape potential injection patterns.
+		$injection_patterns = array(
+			// Instruction override attempts.
+			'/ignore\s+(all\s+)?(previous|above|prior)\s+(instructions?|prompts?|rules?)/i',
+			'/forget\s+(everything|all|your)\s+(you\s+)?(know|were\s+told)/i',
+			'/you\s+are\s+now\s+(a\s+)?different/i',
+			'/pretend\s+(to\s+be|you\s+are)/i',
+			'/act\s+as\s+(if\s+)?you/i',
+			'/your\s+new\s+(instructions?|role|persona)/i',
+			// System prompt extraction attempts.
+			'/repeat\s+(your\s+)?(system\s+)?prompt/i',
+			'/show\s+(me\s+)?(your\s+)?instructions/i',
+			'/what\s+(are\s+)?your\s+(system\s+)?instructions/i',
+			'/output\s+(your\s+)?initialization/i',
+			// Role playing escalation.
+			'/\[system\]/i',
+			'/\[assistant\]/i',
+			'/\[developer\]/i',
+			'/developer\s+mode/i',
+			'/jailbreak/i',
+		);
+
+		foreach ( $injection_patterns as $pattern ) {
+			if ( preg_match( $pattern, $sanitized ) ) {
+				WCH_Logger::warning(
+					'Potential prompt injection detected',
+					array(
+						'pattern' => $pattern,
+						'input'   => substr( $sanitized, 0, 100 ) . '...',
+					)
+				);
+
+				// Replace the malicious pattern with a safe placeholder.
+				$sanitized = preg_replace( $pattern, '[FILTERED]', $sanitized );
+			}
+		}
+
+		// Escape any remaining special sequences that could be interpreted as commands.
+		$sanitized = str_replace(
+			array( '```', '<<<', '>>>' ),
+			array( '` ` `', '< < <', '> > >' ),
+			$sanitized
+		);
+
+		// Limit length to prevent context window abuse.
+		$max_length = 2000;
+		if ( mb_strlen( $sanitized ) > $max_length ) {
+			$sanitized = mb_substr( $sanitized, 0, $max_length ) . '...';
+		}
+
+		return $sanitized;
+	}
+
+	/**
 	 * Process a function call.
+	 *
+	 * SECURITY: Validates authorization before executing sensitive functions.
 	 *
 	 * @param string $function_name Function name.
 	 * @param array  $arguments Function arguments.
@@ -568,6 +640,49 @@ class WCH_AI_Assistant {
 	 * @return array Function result.
 	 */
 	public function process_function_call( $function_name, $arguments, $context = array() ) {
+		// SECURITY: Validate function is in the allowed list.
+		$allowed_functions = array(
+			'suggest_products',
+			'get_product_details',
+			'add_to_cart',
+			'apply_coupon',
+			'escalate_to_human',
+		);
+
+		if ( ! in_array( $function_name, $allowed_functions, true ) ) {
+			WCH_Logger::warning(
+				'Unauthorized AI function call attempted',
+				array(
+					'function'  => $function_name,
+					'context'   => $context['conversation_id'] ?? 'unknown',
+				)
+			);
+
+			return array(
+				'success' => false,
+				'error'   => 'Function not authorized',
+			);
+		}
+
+		// SECURITY: Validate context for functions that modify state.
+		$state_modifying_functions = array( 'add_to_cart', 'apply_coupon' );
+		if ( in_array( $function_name, $state_modifying_functions, true ) ) {
+			// Require customer phone for cart operations.
+			if ( empty( $context['customer_phone'] ) ) {
+				WCH_Logger::warning(
+					'AI function call missing customer context',
+					array(
+						'function' => $function_name,
+					)
+				);
+
+				return array(
+					'success' => false,
+					'error'   => 'Customer context required for this operation',
+				);
+			}
+		}
+
 		WCH_Logger::info(
 			'Processing AI function call',
 			array(
@@ -826,35 +941,102 @@ class WCH_AI_Assistant {
 	/**
 	 * Check rate limit for conversation.
 	 *
+	 * Uses database-backed transients for persistent rate limiting.
+	 * wp_cache is not persistent by default and can be easily bypassed.
+	 *
 	 * @param int $conversation_id Conversation ID.
 	 * @return bool True if within limit, false if exceeded.
 	 */
 	private function check_rate_limit( $conversation_id ) {
-		$cache_key = 'wch_ai_rate_limit_' . $conversation_id;
-		$calls     = wp_cache_get( $cache_key, 'wch_ai' );
+		global $wpdb;
+
+		// Use database-backed rate limiting for persistence.
+		$rate_table = $wpdb->prefix . 'wch_rate_limits';
+
+		// Check if rate_limits table exists, fall back to transients if not.
+		$table_exists = $wpdb->get_var(
+			$wpdb->prepare( 'SHOW TABLES LIKE %s', $rate_table )
+		);
+
+		if ( $table_exists ) {
+			// Database-backed rate limiting (most secure).
+			$window_start = gmdate( 'Y-m-d H:00:00' ); // Current hour window.
+			$identifier   = 'ai_' . $conversation_id;
+
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$calls = (int) $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT request_count FROM $rate_table
+					WHERE identifier_hash = %s AND limit_type = %s AND window_start = %s",
+					hash( 'sha256', $identifier ),
+					'ai_calls',
+					$window_start
+				)
+			);
+
+			return $calls < self::RATE_LIMIT_CALLS_PER_HOUR;
+		}
+
+		// Fallback to transients (persistent, but not as robust).
+		$transient_key = 'wch_ai_rate_' . $conversation_id;
+		$calls         = get_transient( $transient_key );
 
 		if ( false === $calls ) {
 			return true; // No calls yet.
 		}
 
-		return $calls < self::RATE_LIMIT_CALLS_PER_HOUR;
+		return (int) $calls < self::RATE_LIMIT_CALLS_PER_HOUR;
 	}
 
 	/**
 	 * Increment rate limit counter.
 	 *
+	 * Uses database-backed storage for persistence.
+	 *
 	 * @param int $conversation_id Conversation ID.
 	 */
 	private function increment_rate_limit( $conversation_id ) {
-		$cache_key = 'wch_ai_rate_limit_' . $conversation_id;
-		$calls     = wp_cache_get( $cache_key, 'wch_ai' );
+		global $wpdb;
+
+		$rate_table = $wpdb->prefix . 'wch_rate_limits';
+
+		// Check if rate_limits table exists.
+		$table_exists = $wpdb->get_var(
+			$wpdb->prepare( 'SHOW TABLES LIKE %s', $rate_table )
+		);
+
+		if ( $table_exists ) {
+			// Database-backed rate limiting with atomic increment.
+			$window_start   = gmdate( 'Y-m-d H:00:00' );
+			$identifier     = 'ai_' . $conversation_id;
+			$identifier_hash = hash( 'sha256', $identifier );
+
+			// Use INSERT ... ON DUPLICATE KEY UPDATE for atomic operation.
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$wpdb->query(
+				$wpdb->prepare(
+					"INSERT INTO $rate_table (identifier_hash, limit_type, request_count, window_start, created_at)
+					VALUES (%s, %s, 1, %s, %s)
+					ON DUPLICATE KEY UPDATE request_count = request_count + 1",
+					$identifier_hash,
+					'ai_calls',
+					$window_start,
+					current_time( 'mysql', true )
+				)
+			);
+			return;
+		}
+
+		// Fallback to transients.
+		$transient_key = 'wch_ai_rate_' . $conversation_id;
+		$calls         = get_transient( $transient_key );
 
 		if ( false === $calls ) {
 			$calls = 0;
 		}
 
 		++$calls;
-		wp_cache_set( $cache_key, $calls, 'wch_ai', HOUR_IN_SECONDS );
+		set_transient( $transient_key, $calls, HOUR_IN_SECONDS );
 	}
 
 	/**

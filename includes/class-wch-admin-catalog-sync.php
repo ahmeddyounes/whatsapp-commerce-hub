@@ -25,6 +25,9 @@ class WCH_Admin_Catalog_Sync {
 		add_action( 'wp_ajax_wch_save_sync_settings', array( __CLASS__, 'ajax_save_sync_settings' ) );
 		add_action( 'wp_ajax_wch_dry_run_sync', array( __CLASS__, 'ajax_dry_run_sync' ) );
 		add_action( 'wp_ajax_wch_retry_failed', array( __CLASS__, 'ajax_retry_failed' ) );
+		add_action( 'wp_ajax_wch_get_bulk_sync_progress', array( __CLASS__, 'ajax_get_bulk_sync_progress' ) );
+		add_action( 'wp_ajax_wch_retry_failed_bulk', array( __CLASS__, 'ajax_retry_failed_bulk' ) );
+		add_action( 'wp_ajax_wch_clear_sync_progress', array( __CLASS__, 'ajax_clear_sync_progress' ) );
 	}
 
 	/**
@@ -861,5 +864,152 @@ class WCH_Admin_Catalog_Sync {
 		$history = array_slice( $history, 0, 100 );
 
 		update_option( 'wch_sync_history', $history );
+	}
+
+	/**
+	 * AJAX: Get bulk sync progress
+	 *
+	 * Returns real-time progress of an ongoing bulk sync operation.
+	 */
+	public static function ajax_get_bulk_sync_progress() {
+		check_ajax_referer( 'wch_catalog_sync_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Permission denied', 'whatsapp-commerce-hub' ) ) );
+		}
+
+		$sync_service = WCH_Product_Sync_Service::instance();
+		$progress     = $sync_service->get_sync_progress();
+
+		if ( ! $progress ) {
+			wp_send_json_success(
+				array(
+					'has_progress' => false,
+					'message'      => __( 'No sync operation in progress', 'whatsapp-commerce-hub' ),
+				)
+			);
+		}
+
+		// Format timestamps for display.
+		$progress['started_at_formatted'] = ! empty( $progress['started_at'] )
+			? date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), strtotime( $progress['started_at'] ) )
+			: '';
+
+		$progress['completed_at_formatted'] = ! empty( $progress['completed_at'] )
+			? date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), strtotime( $progress['completed_at'] ) )
+			: '';
+
+		// Format elapsed time.
+		if ( isset( $progress['elapsed_seconds'] ) ) {
+			$progress['elapsed_formatted'] = self::format_duration( $progress['elapsed_seconds'] );
+		}
+
+		// Format ETA.
+		if ( isset( $progress['estimated_remaining_seconds'] ) ) {
+			$progress['eta_formatted'] = self::format_duration( $progress['estimated_remaining_seconds'] );
+		}
+
+		$progress['has_progress'] = true;
+
+		wp_send_json_success( $progress );
+	}
+
+	/**
+	 * AJAX: Retry failed items from bulk sync
+	 *
+	 * Uses the new retry_failed_items method from WCH_Product_Sync_Service.
+	 */
+	public static function ajax_retry_failed_bulk() {
+		check_ajax_referer( 'wch_catalog_sync_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Permission denied', 'whatsapp-commerce-hub' ) ) );
+		}
+
+		$sync_service = WCH_Product_Sync_Service::instance();
+		$sync_id      = $sync_service->retry_failed_items();
+
+		if ( ! $sync_id ) {
+			wp_send_json_error(
+				array( 'message' => __( 'No failed items to retry', 'whatsapp-commerce-hub' ) )
+			);
+		}
+
+		wp_send_json_success(
+			array(
+				'message' => __( 'Retry sync started', 'whatsapp-commerce-hub' ),
+				'sync_id' => $sync_id,
+			)
+		);
+	}
+
+	/**
+	 * AJAX: Clear sync progress data
+	 */
+	public static function ajax_clear_sync_progress() {
+		check_ajax_referer( 'wch_catalog_sync_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Permission denied', 'whatsapp-commerce-hub' ) ) );
+		}
+
+		$sync_service = WCH_Product_Sync_Service::instance();
+
+		// Atomically check and clear (handles race conditions internally).
+		$cleared = $sync_service->clear_sync_progress();
+
+		if ( ! $cleared ) {
+			wp_send_json_error(
+				array( 'message' => __( 'Cannot clear progress while sync is in progress', 'whatsapp-commerce-hub' ) )
+			);
+		}
+
+		wp_send_json_success(
+			array( 'message' => __( 'Sync progress cleared', 'whatsapp-commerce-hub' ) )
+		);
+	}
+
+	/**
+	 * Format duration in seconds to human-readable string.
+	 *
+	 * @param int $seconds Duration in seconds.
+	 * @return string Formatted duration.
+	 */
+	private static function format_duration( int $seconds ): string {
+		// Handle negative or zero values.
+		if ( $seconds <= 0 ) {
+			return __( '0 seconds', 'whatsapp-commerce-hub' );
+		}
+
+		if ( $seconds < 60 ) {
+			/* translators: %d: number of seconds */
+			return sprintf( _n( '%d second', '%d seconds', $seconds, 'whatsapp-commerce-hub' ), $seconds );
+		}
+
+		$minutes = floor( $seconds / 60 );
+		$remaining_seconds = $seconds % 60;
+
+		if ( $minutes < 60 ) {
+			if ( $remaining_seconds > 0 ) {
+				/* translators: 1: number of minutes, 2: number of seconds */
+				return sprintf(
+					__( '%1$d min %2$d sec', 'whatsapp-commerce-hub' ),
+					$minutes,
+					$remaining_seconds
+				);
+			}
+			/* translators: %d: number of minutes */
+			return sprintf( _n( '%d minute', '%d minutes', $minutes, 'whatsapp-commerce-hub' ), $minutes );
+		}
+
+		$hours = floor( $minutes / 60 );
+		$remaining_minutes = $minutes % 60;
+
+		/* translators: 1: number of hours, 2: number of minutes */
+		return sprintf(
+			__( '%1$dh %2$dm', 'whatsapp-commerce-hub' ),
+			$hours,
+			$remaining_minutes
+		);
 	}
 }

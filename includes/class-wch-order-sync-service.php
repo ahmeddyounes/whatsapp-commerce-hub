@@ -101,8 +101,14 @@ class WCH_Order_Sync_Service {
 		$wpdb->query( 'START TRANSACTION' );
 
 		try {
-			// Validate cart items are in stock.
-			$this->validate_cart_items( $cart_data['items'] ?? array() );
+			$items = $cart_data['items'] ?? array();
+
+			// Validate cart items and acquire locks on stock rows.
+			$this->validate_cart_items( $items, true );
+
+			// Reduce stock atomically BEFORE order creation.
+			// This ensures stock is locked and reduced within the transaction.
+			$this->reduce_stock_atomically( $items );
 
 			// Create WC_Order.
 			$order = wc_create_order();
@@ -145,8 +151,8 @@ class WCH_Order_Sync_Service {
 			// Save order.
 			$order->save();
 
-			// Reduce stock levels atomically.
-			wc_reduce_stock_levels( $order->get_id() );
+			// Note: Stock was already reduced atomically at the start of the transaction
+			// via reduce_stock_atomically() to ensure proper locking and atomicity.
 
 			// Add order note about WhatsApp origin.
 			$order->add_order_note(
@@ -161,8 +167,8 @@ class WCH_Order_Sync_Service {
 
 			WCH_Logger::info(
 				'Order created from WhatsApp cart',
-				'order-sync',
 				array(
+					'category'       => 'order-sync',
 					'order_id'       => $order->get_id(),
 					'customer_phone' => $customer_phone,
 					'status'         => $status,
@@ -177,8 +183,8 @@ class WCH_Order_Sync_Service {
 
 			WCH_Logger::error(
 				'Failed to create order from cart',
-				'order-sync',
 				array(
+					'category'       => 'order-sync',
 					'customer_phone' => $customer_phone,
 					'error'          => $e->getMessage(),
 				)
@@ -189,12 +195,15 @@ class WCH_Order_Sync_Service {
 	}
 
 	/**
-	 * Validate that cart items are still in stock.
+	 * Validate that cart items are still in stock with row-level locking.
 	 *
-	 * @param array $items Cart items.
+	 * @param array $items        Cart items.
+	 * @param bool  $acquire_lock Whether to acquire FOR UPDATE lock (requires active transaction).
 	 * @throws WCH_Exception If validation fails.
 	 */
-	private function validate_cart_items( $items ) {
+	private function validate_cart_items( $items, $acquire_lock = false ) {
+		global $wpdb;
+
 		if ( empty( $items ) ) {
 			throw new WCH_Exception( 'Cart is empty' );
 		}
@@ -225,7 +234,22 @@ class WCH_Order_Sync_Service {
 
 			// Check stock quantity if managing stock.
 			if ( $product->managing_stock() ) {
-				$stock_quantity = $product->get_stock_quantity();
+				// Acquire row lock if requested (within transaction).
+				if ( $acquire_lock ) {
+					// Lock the product's stock meta row for update to prevent race conditions.
+					$stock_quantity = $wpdb->get_var(
+						$wpdb->prepare(
+							"SELECT meta_value FROM {$wpdb->postmeta}
+							 WHERE post_id = %d AND meta_key = '_stock'
+							 FOR UPDATE",
+							$product_id
+						)
+					);
+					$stock_quantity = (int) $stock_quantity;
+				} else {
+					$stock_quantity = $product->get_stock_quantity();
+				}
+
 				if ( $stock_quantity < $quantity ) {
 					throw new WCH_Exception(
 						sprintf(
@@ -237,6 +261,52 @@ class WCH_Order_Sync_Service {
 					);
 				}
 			}
+		}
+	}
+
+	/**
+	 * Reduce stock levels atomically within transaction.
+	 *
+	 * @param array $items Cart items with product_id and quantity.
+	 * @throws WCH_Exception If stock reduction fails.
+	 */
+	private function reduce_stock_atomically( $items ) {
+		global $wpdb;
+
+		foreach ( $items as $item ) {
+			$product_id = $item['product_id'] ?? 0;
+			$quantity   = $item['quantity'] ?? 0;
+
+			if ( ! $product_id || ! $quantity ) {
+				continue;
+			}
+
+			$product = wc_get_product( $product_id );
+
+			if ( ! $product || ! $product->managing_stock() ) {
+				continue;
+			}
+
+			// Atomic stock decrement using SQL to stay within transaction.
+			$result = $wpdb->query(
+				$wpdb->prepare(
+					"UPDATE {$wpdb->postmeta}
+					 SET meta_value = GREATEST(0, CAST(meta_value AS SIGNED) - %d)
+					 WHERE post_id = %d AND meta_key = '_stock'",
+					$quantity,
+					$product_id
+				)
+			);
+
+			if ( false === $result ) {
+				throw new WCH_Exception(
+					sprintf( 'Failed to reduce stock for product %d', $product_id )
+				);
+			}
+
+			// Clear WooCommerce product cache so it picks up new stock value.
+			wc_delete_product_transients( $product_id );
+			wp_cache_delete( $product_id, 'post_meta' );
 		}
 	}
 
@@ -385,8 +455,8 @@ class WCH_Order_Sync_Service {
 
 		WCH_Logger::info(
 			'Order status notification queued',
-			'order-sync',
 			array(
+				'category'   => 'order-sync',
 				'order_id'   => $order_id,
 				'old_status' => $old_status,
 				'new_status' => $new_status,
@@ -474,8 +544,8 @@ class WCH_Order_Sync_Service {
 
 		WCH_Logger::info(
 			'Tracking info added to order',
-			'order-sync',
 			array(
+				'category'        => 'order-sync',
 				'order_id'        => $order_id,
 				'tracking_number' => $tracking_number,
 				'carrier'         => $carrier,
@@ -760,8 +830,8 @@ class WCH_Order_Sync_Service {
 		// For now, just log the attempt.
 		WCH_Logger::info(
 			'Quick message send requested',
-			'order-sync',
 			array(
+				'category' => 'order-sync',
 				'phone'    => $phone,
 				'order_id' => $order_id,
 				'message'  => $message,

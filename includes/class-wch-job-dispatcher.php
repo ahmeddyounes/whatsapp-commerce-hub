@@ -266,7 +266,7 @@ class WCH_Job_Dispatcher {
 				'id'        => $action_id,
 				'hook'      => $action->get_hook(),
 				'args'      => $action->get_args(),
-				'scheduled' => $action->get_schedule()->get_date()->format( 'Y-m-d H:i:s' ),
+				'scheduled' => $action->get_schedule()?->get_date()?->format( 'Y-m-d H:i:s' ) ?? current_time( 'mysql' ),
 			);
 		}
 

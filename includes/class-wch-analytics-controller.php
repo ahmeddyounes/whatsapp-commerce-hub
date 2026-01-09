@@ -65,6 +65,7 @@ class WCH_Analytics_Controller extends WCH_REST_Controller {
 							'required'          => false,
 							'default'           => 30,
 							'sanitize_callback' => 'absint',
+							'validate_callback' => array( $this, 'validate_days' ),
 						),
 					),
 				),
@@ -84,6 +85,7 @@ class WCH_Analytics_Controller extends WCH_REST_Controller {
 							'required'          => false,
 							'default'           => 30,
 							'sanitize_callback' => 'absint',
+							'validate_callback' => array( $this, 'validate_days' ),
 						),
 					),
 				),
@@ -103,11 +105,13 @@ class WCH_Analytics_Controller extends WCH_REST_Controller {
 							'required'          => false,
 							'default'           => 10,
 							'sanitize_callback' => 'absint',
+							'validate_callback' => array( $this, 'validate_limit' ),
 						),
 						'days'  => array(
 							'required'          => false,
 							'default'           => 30,
 							'sanitize_callback' => 'absint',
+							'validate_callback' => array( $this, 'validate_days' ),
 						),
 					),
 				),
@@ -127,6 +131,7 @@ class WCH_Analytics_Controller extends WCH_REST_Controller {
 							'required'          => false,
 							'default'           => 7,
 							'sanitize_callback' => 'absint',
+							'validate_callback' => array( $this, 'validate_days' ),
 						),
 					),
 				),
@@ -146,6 +151,7 @@ class WCH_Analytics_Controller extends WCH_REST_Controller {
 							'required'          => false,
 							'default'           => 30,
 							'sanitize_callback' => 'absint',
+							'validate_callback' => array( $this, 'validate_days' ),
 						),
 					),
 				),
@@ -165,6 +171,7 @@ class WCH_Analytics_Controller extends WCH_REST_Controller {
 							'required'          => false,
 							'default'           => 30,
 							'sanitize_callback' => 'absint',
+							'validate_callback' => array( $this, 'validate_days' ),
 						),
 					),
 				),
@@ -184,6 +191,7 @@ class WCH_Analytics_Controller extends WCH_REST_Controller {
 							'required'          => false,
 							'default'           => 30,
 							'sanitize_callback' => 'absint',
+							'validate_callback' => array( $this, 'validate_days' ),
 						),
 					),
 				),
@@ -207,6 +215,7 @@ class WCH_Analytics_Controller extends WCH_REST_Controller {
 							'required'          => false,
 							'default'           => 30,
 							'sanitize_callback' => 'absint',
+							'validate_callback' => array( $this, 'validate_days' ),
 						),
 					),
 				),
@@ -533,6 +542,88 @@ class WCH_Analytics_Controller extends WCH_REST_Controller {
 	 */
 	public function validate_period( $value ) {
 		return in_array( $value, array( 'today', 'week', 'month' ), true );
+	}
+
+	/**
+	 * Validate days parameter (1-365 range).
+	 *
+	 * Prevents excessive date ranges that could cause expensive database queries
+	 * or potential DoS attacks via resource exhaustion.
+	 *
+	 * @param mixed           $value   Value to validate.
+	 * @param WP_REST_Request $request The request object.
+	 * @param string          $param   Parameter name.
+	 * @return bool|WP_Error True if valid, WP_Error otherwise.
+	 */
+	public function validate_days( $value, $request, $param ) {
+		$days = absint( $value );
+
+		if ( $days < 1 ) {
+			return new WP_Error(
+				'rest_invalid_param',
+				sprintf(
+					/* translators: %s: parameter name */
+					__( '%s must be at least 1.', 'whatsapp-commerce-hub' ),
+					$param
+				),
+				array( 'status' => 400 )
+			);
+		}
+
+		if ( $days > 365 ) {
+			return new WP_Error(
+				'rest_invalid_param',
+				sprintf(
+					/* translators: %s: parameter name */
+					__( '%s cannot exceed 365 days.', 'whatsapp-commerce-hub' ),
+					$param
+				),
+				array( 'status' => 400 )
+			);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Validate limit parameter (1-100 range).
+	 *
+	 * Prevents excessively large result sets that could cause memory exhaustion
+	 * or slow response times.
+	 *
+	 * @param mixed           $value   Value to validate.
+	 * @param WP_REST_Request $request The request object.
+	 * @param string          $param   Parameter name.
+	 * @return bool|WP_Error True if valid, WP_Error otherwise.
+	 */
+	public function validate_limit( $value, $request, $param ) {
+		$limit = absint( $value );
+
+		if ( $limit < 1 ) {
+			return new WP_Error(
+				'rest_invalid_param',
+				sprintf(
+					/* translators: %s: parameter name */
+					__( '%s must be at least 1.', 'whatsapp-commerce-hub' ),
+					$param
+				),
+				array( 'status' => 400 )
+			);
+		}
+
+		if ( $limit > 100 ) {
+			return new WP_Error(
+				'rest_invalid_param',
+				sprintf(
+					/* translators: %s: parameter name */
+					__( '%s cannot exceed 100.', 'whatsapp-commerce-hub' ),
+					$param
+				),
+				array( 'status' => 400 )
+			);
+		}
+
+		return true;
 	}
 
 	/**

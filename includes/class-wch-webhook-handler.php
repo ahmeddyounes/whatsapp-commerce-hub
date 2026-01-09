@@ -141,13 +141,8 @@ class WCH_Webhook_Handler extends WCH_REST_Controller {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function handle_webhook( $request ) {
-		// Check rate limit.
-		$rate_limit_check = $this->check_rate_limit( 'webhook' );
-		if ( is_wp_error( $rate_limit_check ) ) {
-			return $rate_limit_check;
-		}
-
-		// Validate webhook signature.
+		// SECURITY: Validate webhook signature FIRST before any other processing.
+		// This prevents attackers from consuming rate limit resources with unsigned requests.
 		$signature_check = $this->check_webhook_signature( $request );
 		if ( is_wp_error( $signature_check ) ) {
 			WCH_Logger::log(
@@ -159,6 +154,13 @@ class WCH_Webhook_Handler extends WCH_REST_Controller {
 				)
 			);
 			return $signature_check;
+		}
+
+		// Check rate limit AFTER signature validation.
+		// Only authenticated requests count against the rate limit.
+		$rate_limit_check = $this->check_rate_limit( 'webhook' );
+		if ( is_wp_error( $rate_limit_check ) ) {
+			return $rate_limit_check;
 		}
 
 		// Get request body and parse JSON.
@@ -272,19 +274,39 @@ class WCH_Webhook_Handler extends WCH_REST_Controller {
 			return;
 		}
 
+		// Use the DataValidator for input validation.
+		$validator_class = '\\WhatsAppCommerceHub\\Validation\\DataValidator';
+
 		foreach ( $value['messages'] as $message ) {
-			// Extract message ID for idempotency.
-			$message_id = $message['id'] ?? '';
-			if ( empty( $message_id ) ) {
+			// Extract and validate message ID for idempotency.
+			$raw_message_id = $message['id'] ?? '';
+			if ( empty( $raw_message_id ) ) {
 				continue;
 			}
 
-			// Check idempotency using transient.
-			$transient_key = 'wch_msg_' . $message_id;
-			if ( get_transient( $transient_key ) ) {
+			// Validate message ID format.
+			$message_id = class_exists( $validator_class )
+				? $validator_class::validateMessageId( $raw_message_id )
+				: $raw_message_id;
+
+			if ( null === $message_id ) {
+				WCH_Logger::log(
+					'warning',
+					'Invalid message ID format rejected',
+					'webhook',
+					array(
+						'raw_message_id' => substr( $raw_message_id, 0, 50 ),
+					)
+				);
+				continue;
+			}
+
+			// Atomic idempotency check using database INSERT IGNORE.
+			// This prevents TOCTOU race conditions that can occur with transients.
+			if ( ! $this->claim_message_processing( $message_id ) ) {
 				WCH_Logger::log(
 					'debug',
-					'Duplicate message ignored',
+					'Duplicate message ignored (atomic check)',
 					'webhook',
 					array(
 						'message_id' => $message_id,
@@ -293,14 +315,56 @@ class WCH_Webhook_Handler extends WCH_REST_Controller {
 				continue;
 			}
 
-			// Set transient for 1 hour.
-			set_transient( $transient_key, true, HOUR_IN_SECONDS );
+			// Validate phone number (from field).
+			$raw_phone = $message['from'] ?? '';
+			$phone = '';
+			if ( class_exists( $validator_class ) ) {
+				$phone = $validator_class::validatePhone( $raw_phone );
+				if ( null === $phone ) {
+					WCH_Logger::log(
+						'warning',
+						'Invalid phone number format in message',
+						'webhook',
+						array(
+							'message_id' => $message_id,
+							'raw_phone'  => substr( $raw_phone, 0, 20 ),
+						)
+					);
+					// Continue processing but use sanitized version.
+					$phone = $validator_class::sanitizePhone( $raw_phone );
+				}
+			} else {
+				$phone = $raw_phone;
+			}
 
-			// Extract message data.
+			// Validate timestamp.
+			$raw_timestamp = $message['timestamp'] ?? time();
+			$timestamp = time();
+			if ( class_exists( $validator_class ) ) {
+				$validated_ts = $validator_class::validateTimestamp( $raw_timestamp );
+				if ( null === $validated_ts ) {
+					WCH_Logger::log(
+						'warning',
+						'Invalid timestamp in message, using current time',
+						'webhook',
+						array(
+							'message_id'    => $message_id,
+							'raw_timestamp' => $raw_timestamp,
+						)
+					);
+					$timestamp = time();
+				} else {
+					$timestamp = $validated_ts;
+				}
+			} else {
+				$timestamp = is_numeric( $raw_timestamp ) ? (int) $raw_timestamp : time();
+			}
+
+			// Extract message data with validated fields.
 			$message_data = array(
 				'message_id' => $message_id,
-				'from'       => $message['from'] ?? '',
-				'timestamp'  => $message['timestamp'] ?? time(),
+				'from'       => $phone,
+				'timestamp'  => $timestamp,
 				'type'       => $message['type'] ?? 'text',
 				'content'    => $this->extract_message_content( $message ),
 				'context'    => isset( $message['context']['id'] ) ? $message['context']['id'] : null,
@@ -338,18 +402,57 @@ class WCH_Webhook_Handler extends WCH_REST_Controller {
 			return;
 		}
 
+		// Use the DataValidator for input validation.
+		$validator_class = '\\WhatsAppCommerceHub\\Validation\\DataValidator';
+
 		foreach ( $value['statuses'] as $status ) {
-			// Extract status data.
-			$message_id = $status['id'] ?? '';
-			if ( empty( $message_id ) ) {
+			// Extract and validate message ID.
+			$raw_message_id = $status['id'] ?? '';
+			if ( empty( $raw_message_id ) ) {
 				continue;
+			}
+
+			// Validate message ID format.
+			$message_id = class_exists( $validator_class )
+				? $validator_class::validateMessageId( $raw_message_id )
+				: $raw_message_id;
+
+			if ( null === $message_id ) {
+				WCH_Logger::log(
+					'warning',
+					'Invalid message ID format in status event',
+					'webhook',
+					array(
+						'raw_message_id' => substr( $raw_message_id, 0, 50 ),
+					)
+				);
+				continue;
+			}
+
+			// Validate timestamp.
+			$raw_timestamp = $status['timestamp'] ?? time();
+			$timestamp = time();
+			if ( class_exists( $validator_class ) ) {
+				$validated_ts = $validator_class::validateTimestamp( $raw_timestamp );
+				$timestamp = $validated_ts ?? time();
+			} else {
+				$timestamp = is_numeric( $raw_timestamp ) ? (int) $raw_timestamp : time();
+			}
+
+			// Validate recipient_id (phone number).
+			$raw_recipient = $status['recipient_id'] ?? '';
+			$recipient_id = '';
+			if ( class_exists( $validator_class ) && '' !== $raw_recipient ) {
+				$recipient_id = $validator_class::validatePhone( $raw_recipient ) ?? $validator_class::sanitizePhone( $raw_recipient );
+			} else {
+				$recipient_id = $raw_recipient;
 			}
 
 			$status_data = array(
 				'message_id'   => $message_id,
 				'status'       => $status['status'] ?? 'unknown',
-				'timestamp'    => $status['timestamp'] ?? time(),
-				'recipient_id' => $status['recipient_id'] ?? '',
+				'timestamp'    => $timestamp,
+				'recipient_id' => $recipient_id,
 				'errors'       => isset( $status['errors'] ) ? $status['errors'] : array(),
 			);
 
@@ -501,6 +604,36 @@ class WCH_Webhook_Handler extends WCH_REST_Controller {
 				'payload'      => $raw_payload,
 			)
 		);
+	}
+
+	/**
+	 * Atomically claim exclusive processing rights for a message.
+	 *
+	 * Uses database INSERT IGNORE with unique constraint to prevent TOCTOU race conditions.
+	 * Only one process can successfully claim a message ID due to atomic insert behavior.
+	 *
+	 * @param string $message_id WhatsApp message ID.
+	 * @return bool True if claim successful (first processor), false if already claimed.
+	 */
+	private function claim_message_processing( $message_id ) {
+		global $wpdb;
+
+		$table_name = $wpdb->prefix . 'wch_webhook_idempotency';
+
+		// Use INSERT IGNORE for atomic claim - only succeeds if no duplicate exists.
+		// The UNIQUE KEY on message_id ensures atomicity.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+		$result = $wpdb->query(
+			$wpdb->prepare(
+				"INSERT IGNORE INTO {$table_name} (message_id, processed_at)
+				VALUES (%s, %s)",
+				$message_id,
+				current_time( 'mysql' )
+			)
+		);
+
+		// INSERT IGNORE returns 1 if inserted (we got the claim), 0 if duplicate exists.
+		return 1 === $result;
 	}
 
 	/**
