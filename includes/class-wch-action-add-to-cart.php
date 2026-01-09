@@ -25,12 +25,17 @@ class WCH_Action_AddToCart extends WCH_Flow_Action {
 	/**
 	 * Execute the action
 	 *
+	 * SECURITY: Uses database locking to prevent TOCTOU race condition where
+	 * stock could be depleted between the check and the cart update.
+	 *
 	 * @param WCH_Conversation_Context $conversation Current conversation.
 	 * @param array                    $context Action context.
 	 * @param array                    $payload Event payload with product_id, variant_id, quantity.
 	 * @return WCH_Action_Result
 	 */
 	public function execute( $conversation, $context, $payload ) {
+		global $wpdb;
+
 		try {
 			// Validate required fields.
 			if ( empty( $payload['product_id'] ) ) {
@@ -61,44 +66,78 @@ class WCH_Action_AddToCart extends WCH_Flow_Action {
 				return $this->error( 'Please select a variant for this product.' );
 			}
 
-			// Validate stock.
+			// SECURITY: Acquire exclusive lock on the product to prevent TOCTOU race condition.
+			// This ensures that stock check and cart update happen atomically.
 			$check_product_id = $variant_id ? $variant_id : $product_id;
-			if ( ! $this->has_stock( $product_id, $quantity, $variant_id ) ) {
-				return $this->error( 'Sorry, this product is out of stock or the requested quantity is not available.' );
-			}
-
-			// Get or create cart.
-			$cart = $this->get_or_create_cart( $conversation->customer_phone );
-
-			if ( ! $cart ) {
-				$this->log( 'Failed to get/create cart', array(), 'error' );
-				return $this->error( 'Failed to access your cart. Please try again.' );
-			}
-
-			// Add item to cart (idempotent operation).
-			$cart = $this->add_item_to_cart( $cart, $product_id, $variant_id, $quantity );
-
-			// Recalculate total.
-			$cart['total'] = $this->calculate_cart_total( $cart['items'] );
-
-			// Update cart in database.
-			if ( ! $this->update_cart( $cart['id'], $cart ) ) {
-				$this->log( 'Failed to update cart', array( 'cart_id' => $cart['id'] ), 'error' );
-				return $this->error( 'Failed to update cart. Please try again.' );
-			}
-
-			// Build confirmation message.
-			$messages = $this->build_confirmation_messages( $product, $variant_id, $quantity, $cart );
-
-			return WCH_Action_Result::success(
-				$messages,
-				null,
-				array(
-					'cart_id'         => $cart['id'],
-					'cart_item_count' => count( $cart['items'] ),
-					'cart_total'      => $cart['total'],
+			$lockKey          = 'wch_stock_lock_' . $check_product_id;
+			$lockAcquired     = $wpdb->get_var(
+				$wpdb->prepare(
+					'SELECT GET_LOCK(%s, 5)',
+					$lockKey
 				)
 			);
+
+			if ( ! $lockAcquired ) {
+				$this->log(
+					'Failed to acquire stock lock',
+					array( 'product_id' => $check_product_id ),
+					'warning'
+				);
+				return $this->error( 'The product is being updated. Please try again in a moment.' );
+			}
+
+			try {
+				// SECURITY: Clear WooCommerce product cache and re-validate stock within the lock.
+				// This prevents race conditions where concurrent requests could exceed available stock.
+				clean_post_cache( $check_product_id );
+				wc_delete_product_transients( $check_product_id );
+
+				if ( ! $this->has_stock( $product_id, $quantity, $variant_id ) ) {
+					return $this->error( 'Sorry, this product is out of stock or the requested quantity is not available.' );
+				}
+
+				// Get or create cart.
+				$cart = $this->get_or_create_cart( $conversation->customer_phone );
+
+				if ( ! $cart ) {
+					$this->log( 'Failed to get/create cart', array(), 'error' );
+					return $this->error( 'Failed to access your cart. Please try again.' );
+				}
+
+				// Add item to cart (idempotent operation).
+				$cart = $this->add_item_to_cart( $cart, $product_id, $variant_id, $quantity );
+
+				// Recalculate total.
+				$cart['total'] = $this->calculate_cart_total( $cart['items'] );
+
+				// Update cart in database.
+				if ( ! $this->update_cart( $cart['id'], $cart ) ) {
+					$this->log( 'Failed to update cart', array( 'cart_id' => $cart['id'] ), 'error' );
+					return $this->error( 'Failed to update cart. Please try again.' );
+				}
+
+				// Build confirmation message.
+				$messages = $this->build_confirmation_messages( $product, $variant_id, $quantity, $cart );
+
+				return WCH_Action_Result::success(
+					$messages,
+					null,
+					array(
+						'cart_id'         => $cart['id'],
+						'cart_item_count' => count( $cart['items'] ),
+						'cart_total'      => $cart['total'],
+					)
+				);
+
+			} finally {
+				// SECURITY: Always release the lock.
+				$wpdb->query(
+					$wpdb->prepare(
+						'SELECT RELEASE_LOCK(%s)',
+						$lockKey
+					)
+				);
+			}
 
 		} catch ( Exception $e ) {
 			$this->log( 'Error adding to cart', array( 'error' => $e->getMessage() ), 'error' );

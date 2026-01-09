@@ -240,24 +240,36 @@ class WCH_Error_Handler {
 	/**
 	 * Display detailed error information.
 	 *
+	 * SECURITY: Stack traces and file paths are only shown to administrators.
+	 * Non-admin users in debug mode see limited error information.
+	 *
 	 * @param Throwable $throwable The exception.
 	 */
 	private static function display_error( Throwable $throwable ) {
+		// SECURITY: Only show sensitive details (file paths, line numbers, traces) to admins.
+		$is_admin = current_user_can( 'manage_options' );
+
 		if ( wp_doing_ajax() || defined( 'REST_REQUEST' ) ) {
 			// For AJAX/REST requests, send JSON response.
 			header( 'Content-Type: application/json' );
 			http_response_code( $throwable instanceof WCH_Exception ? $throwable->get_http_status() : 500 );
 
+			$error_data = array(
+				'message' => $throwable->getMessage(),
+				'code'    => $throwable instanceof WCH_Exception ? $throwable->get_error_code() : 'internal_error',
+			);
+
+			// SECURITY: Only include sensitive debugging info for administrators.
+			if ( $is_admin ) {
+				$error_data['file']  = $throwable->getFile();
+				$error_data['line']  = $throwable->getLine();
+				$error_data['trace'] = $throwable->getTraceAsString();
+			}
+
 			echo wp_json_encode(
 				array(
 					'success' => false,
-					'error'   => array(
-						'message' => $throwable->getMessage(),
-						'code'    => $throwable instanceof WCH_Exception ? $throwable->get_error_code() : 'internal_error',
-						'file'    => $throwable->getFile(),
-						'line'    => $throwable->getLine(),
-						'trace'   => $throwable->getTraceAsString(),
-					),
+					'error'   => $error_data,
 				)
 			);
 		} else {
@@ -282,14 +294,19 @@ class WCH_Error_Handler {
 					<?php if ( $throwable instanceof WCH_Exception ) : ?>
 						<p><strong>Error Code:</strong> <?php echo esc_html( $throwable->get_error_code() ); ?></p>
 					<?php endif; ?>
-					<div class="error-details">
-						<p><strong>File:</strong> <?php echo esc_html( $throwable->getFile() ); ?></p>
-						<p><strong>Line:</strong> <?php echo esc_html( $throwable->getLine() ); ?></p>
-					</div>
-					<details>
-						<summary><strong>Stack Trace</strong></summary>
-						<div class="trace"><?php echo esc_html( $throwable->getTraceAsString() ); ?></div>
-					</details>
+					<?php // SECURITY: Only show sensitive file/line/trace info to administrators. ?>
+					<?php if ( $is_admin ) : ?>
+						<div class="error-details">
+							<p><strong>File:</strong> <?php echo esc_html( $throwable->getFile() ); ?></p>
+							<p><strong>Line:</strong> <?php echo esc_html( $throwable->getLine() ); ?></p>
+						</div>
+						<details>
+							<summary><strong>Stack Trace</strong></summary>
+							<div class="trace"><?php echo esc_html( $throwable->getTraceAsString() ); ?></div>
+						</details>
+					<?php else : ?>
+						<p><em>Contact an administrator for more details.</em></p>
+					<?php endif; ?>
 				</div>
 			</body>
 			</html>
@@ -300,6 +317,8 @@ class WCH_Error_Handler {
 	/**
 	 * Display fatal error information.
 	 *
+	 * SECURITY: Sensitive details only shown to administrators.
+	 *
 	 * @param array $error Error details.
 	 */
 	private static function display_fatal_error( array $error ) {
@@ -307,16 +326,25 @@ class WCH_Error_Handler {
 			header( 'Content-Type: application/json' );
 			http_response_code( 500 );
 
+			// SECURITY: Only show sensitive details to administrators.
+			$is_admin = current_user_can( 'manage_options' );
+
+			$error_data = array(
+				'message' => $error['message'],
+				'code'    => 'fatal_error',
+			);
+
+			// SECURITY: Only include file/line info for administrators.
+			if ( $is_admin ) {
+				$error_data['file'] = $error['file'];
+				$error_data['line'] = $error['line'];
+				$error_data['type'] = self::get_error_type_name( $error['type'] );
+			}
+
 			echo wp_json_encode(
 				array(
 					'success' => false,
-					'error'   => array(
-						'message' => $error['message'],
-						'code'    => 'fatal_error',
-						'file'    => $error['file'],
-						'line'    => $error['line'],
-						'type'    => self::get_error_type_name( $error['type'] ),
-					),
+					'error'   => $error_data,
 				)
 			);
 		}

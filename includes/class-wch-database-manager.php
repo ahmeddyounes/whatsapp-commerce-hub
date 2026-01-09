@@ -21,7 +21,7 @@ class WCH_Database_Manager {
 	 *
 	 * @var string
 	 */
-	const DB_VERSION = '2.2.0';
+	const DB_VERSION = '2.4.0';
 
 	/**
 	 * Option name for storing DB version.
@@ -341,13 +341,18 @@ class WCH_Database_Manager {
 		) $charset_collate;";
 
 		// Create wch_webhook_idempotency table for atomic message deduplication.
+		// Supports multiple scopes (webhook, notification, order, broadcast, sync) for different processing contexts.
 		$sql_webhook_idempotency = 'CREATE TABLE ' . $this->get_table_name( 'webhook_idempotency' ) . " (
 			id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
 			message_id VARCHAR(100) NOT NULL,
+			scope VARCHAR(20) NOT NULL DEFAULT 'webhook',
 			processed_at DATETIME NOT NULL,
+			expires_at DATETIME NULL,
 			PRIMARY KEY (id),
-			UNIQUE KEY message_id (message_id),
-			KEY processed_at (processed_at)
+			UNIQUE KEY message_id_scope (message_id, scope),
+			KEY processed_at (processed_at),
+			KEY scope (scope),
+			KEY expires_at (expires_at)
 		) $charset_collate;";
 
 		// Create wch_saga_state table for saga orchestration.
@@ -397,6 +402,23 @@ class WCH_Database_Manager {
 			KEY created_at (created_at)
 		) $charset_collate;";
 
+		// SECURITY: Create wch_coupon_phone_usage table to track coupon usage by phone number.
+		// This prevents bypass of per-user coupon limits when customers:
+		// 1. Don't have a WooCommerce account (WhatsApp-only customers)
+		// 2. Change their phone number to circumvent usage limits
+		$sql_coupon_phone_usage = 'CREATE TABLE ' . $this->get_table_name( 'coupon_phone_usage' ) . " (
+			id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+			coupon_id BIGINT(20) UNSIGNED NOT NULL,
+			phone VARCHAR(20) NOT NULL,
+			order_id BIGINT(20) UNSIGNED NULL,
+			used_at DATETIME NOT NULL,
+			PRIMARY KEY (id),
+			UNIQUE KEY coupon_phone (coupon_id, phone, order_id),
+			KEY coupon_id (coupon_id),
+			KEY phone (phone),
+			KEY used_at (used_at)
+		) $charset_collate;";
+
 		// Execute dbDelta for all tables.
 		dbDelta( $sql_conversations );
 		dbDelta( $sql_messages );
@@ -417,6 +439,7 @@ class WCH_Database_Manager {
 		dbDelta( $sql_saga_state );
 		dbDelta( $sql_security_log );
 		dbDelta( $sql_webhook_events );
+		dbDelta( $sql_coupon_phone_usage );
 
 		// Update the database version.
 		update_option( self::DB_VERSION_OPTION, self::DB_VERSION );
@@ -452,6 +475,7 @@ class WCH_Database_Manager {
 			'saga_state',
 			'security_log',
 			'webhook_events',
+			'coupon_phone_usage',
 		);
 
 		foreach ( $tables as $table ) {
@@ -471,9 +495,209 @@ class WCH_Database_Manager {
 	public function run_migrations() {
 		$current_version = get_option( self::DB_VERSION_OPTION, '0.0.0' );
 
-		// If versions don't match, reinstall (for now, we only have one version).
+		// Run specific migrations in order.
+		if ( version_compare( $current_version, '2.3.0', '<' ) ) {
+			$this->migrate_to_2_3_0();
+		}
+
+		// Run install to ensure all tables have latest schema.
 		if ( version_compare( $current_version, self::DB_VERSION, '<' ) ) {
 			$this->install();
+		}
+	}
+
+	/**
+	 * Migrate to version 2.3.0.
+	 *
+	 * Updates the webhook_idempotency table with scope and expires_at columns.
+	 * Uses transaction for atomicity and proper error handling.
+	 *
+	 * @return bool True on success, false on failure.
+	 */
+	private function migrate_to_2_3_0() {
+		$table_name = $this->get_table_name( 'webhook_idempotency' );
+
+		// Check if table exists.
+		$table_exists = $this->wpdb->get_var(
+			$this->wpdb->prepare(
+				'SHOW TABLES LIKE %s',
+				$table_name
+			)
+		);
+
+		if ( ! $table_exists ) {
+			// Table doesn't exist yet, install() will create it.
+			return true;
+		}
+
+		// SECURITY: Use transaction for atomicity.
+		// Note: InnoDB supports transactions, MyISAM does not.
+		// We check and handle both cases.
+		$engine = $this->wpdb->get_var(
+			$this->wpdb->prepare(
+				"SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s",
+				DB_NAME,
+				$table_name
+			)
+		);
+
+		$use_transaction = ( strtolower( $engine ) === 'innodb' );
+		$migration_errors = array();
+
+		if ( $use_transaction ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$this->wpdb->query( 'START TRANSACTION' );
+		}
+
+		try {
+			// Check if scope column exists.
+			// Note: Using direct query since SHOW COLUMNS doesn't work well with prepare().
+			// Table name is internally generated and safe.
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$scope_exists = $this->wpdb->get_results(
+				"SHOW COLUMNS FROM `{$table_name}` LIKE 'scope'"
+			);
+
+			if ( empty( $scope_exists ) ) {
+				// Add scope column.
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$result = $this->wpdb->query(
+					"ALTER TABLE `{$table_name}` ADD COLUMN scope VARCHAR(20) NOT NULL DEFAULT 'webhook' AFTER message_id"
+				);
+
+				if ( false === $result ) {
+					$migration_errors[] = 'Failed to add scope column: ' . $this->wpdb->last_error;
+					throw new \Exception( 'Migration failed: scope column' );
+				}
+
+				// Add scope index.
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$result = $this->wpdb->query(
+					"ALTER TABLE `{$table_name}` ADD INDEX scope (scope)"
+				);
+
+				if ( false === $result ) {
+					$migration_errors[] = 'Failed to add scope index: ' . $this->wpdb->last_error;
+					throw new \Exception( 'Migration failed: scope index' );
+				}
+			}
+
+			// Check if expires_at column exists.
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$expires_exists = $this->wpdb->get_results(
+				"SHOW COLUMNS FROM `{$table_name}` LIKE 'expires_at'"
+			);
+
+			if ( empty( $expires_exists ) ) {
+				// Add expires_at column.
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$result = $this->wpdb->query(
+					"ALTER TABLE `{$table_name}` ADD COLUMN expires_at DATETIME NULL AFTER processed_at"
+				);
+
+				if ( false === $result ) {
+					$migration_errors[] = 'Failed to add expires_at column: ' . $this->wpdb->last_error;
+					throw new \Exception( 'Migration failed: expires_at column' );
+				}
+
+				// Add expires_at index.
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$result = $this->wpdb->query(
+					"ALTER TABLE `{$table_name}` ADD INDEX expires_at (expires_at)"
+				);
+
+				if ( false === $result ) {
+					$migration_errors[] = 'Failed to add expires_at index: ' . $this->wpdb->last_error;
+					throw new \Exception( 'Migration failed: expires_at index' );
+				}
+			}
+
+			// Update unique key to include scope (need to drop old and create new).
+			// CRITICAL: This must be atomic - if we drop the old key but fail to add new one,
+			// we lose uniqueness constraint which could allow duplicate processing.
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$old_key_exists = $this->wpdb->get_results(
+				"SHOW INDEX FROM `{$table_name}` WHERE Key_name = 'message_id'"
+			);
+
+			if ( ! empty( $old_key_exists ) ) {
+				// SECURITY: Check if new key already exists before dropping old one.
+				// This prevents data integrity issues if migration is interrupted.
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$new_key_exists = $this->wpdb->get_results(
+					"SHOW INDEX FROM `{$table_name}` WHERE Key_name = 'message_id_scope'"
+				);
+
+				if ( empty( $new_key_exists ) ) {
+					// Create new unique key FIRST, then drop old one.
+					// This ensures we never lose uniqueness constraint.
+					// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					$result = $this->wpdb->query(
+						"ALTER TABLE `{$table_name}` ADD UNIQUE KEY message_id_scope (message_id, scope)"
+					);
+
+					if ( false === $result ) {
+						$migration_errors[] = 'Failed to add new unique key: ' . $this->wpdb->last_error;
+						throw new \Exception( 'Migration failed: new unique key' );
+					}
+
+					// Now safe to drop old unique key.
+					// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					$result = $this->wpdb->query(
+						"ALTER TABLE `{$table_name}` DROP INDEX message_id"
+					);
+
+					if ( false === $result ) {
+						// Non-fatal: we have the new key, old key just wasn't cleaned up.
+						// Log but don't fail the migration.
+						// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+						error_log( 'WCH Migration 2.3.0: Could not drop old message_id index: ' . $this->wpdb->last_error );
+					}
+				}
+			}
+
+			// Commit transaction if we made it this far.
+			if ( $use_transaction ) {
+				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+				$this->wpdb->query( 'COMMIT' );
+			}
+
+			return true;
+
+		} catch ( \Exception $e ) {
+			// Rollback on any error.
+			if ( $use_transaction ) {
+				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+				$this->wpdb->query( 'ROLLBACK' );
+			}
+
+			// Log all errors.
+			foreach ( $migration_errors as $error ) {
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				error_log( 'WCH Migration 2.3.0 ERROR: ' . $error );
+			}
+
+			// Also log to WCH_Logger if available.
+			if ( class_exists( 'WCH_Logger' ) ) {
+				WCH_Logger::error(
+					'Database migration 2.3.0 failed',
+					array(
+						'errors'     => $migration_errors,
+						'table'      => $table_name,
+						'engine'     => $engine,
+						'rolled_back' => $use_transaction,
+					)
+				);
+			}
+
+			// Set a transient to notify admin of migration failure.
+			set_transient( 'wch_migration_failed', array(
+				'version' => '2.3.0',
+				'errors'  => $migration_errors,
+				'time'    => current_time( 'mysql' ),
+			), DAY_IN_SECONDS );
+
+			return false;
 		}
 	}
 }

@@ -67,20 +67,32 @@ class WCH_REST_API {
 	 * Register REST API routes.
 	 */
 	public function register_routes() {
-		// Register base namespace endpoint for API discovery.
+		// SECURITY: API discovery endpoint requires admin authentication.
+		// This prevents information disclosure about available endpoints and auth methods.
 		register_rest_route(
 			self::NAMESPACE,
 			'/',
 			array(
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => array( $this, 'get_api_info' ),
-				'permission_callback' => '__return_true',
+				'permission_callback' => array( $this, 'check_admin_permission' ),
 			)
 		);
 
 		// Load and register all controllers.
 		$this->load_controllers();
 		$this->register_controllers();
+	}
+
+	/**
+	 * Check if the current user has admin permission.
+	 *
+	 * SECURITY: Used to protect API discovery endpoint from information disclosure.
+	 *
+	 * @return bool True if user has permission, false otherwise.
+	 */
+	public function check_admin_permission(): bool {
+		return current_user_can( 'manage_woocommerce' );
 	}
 
 	/**

@@ -331,6 +331,72 @@ class WCH_Payment_Stripe implements WCH_Payment_Gateway {
 						);
 					}
 
+					// SECURITY: Validate payment currency matches order currency to prevent fraud.
+					// An attacker could pay 100 INR instead of 100 USD if currency isn't validated.
+					$paid_currency     = strtoupper( $payment_intent['currency'] ?? '' );
+					$expected_currency = strtoupper( $order->get_currency() );
+
+					if ( $paid_currency !== $expected_currency ) {
+						WCH_Logger::error(
+							'Stripe payment currency mismatch - possible fraud attempt',
+							array(
+								'order_id'          => $order_id,
+								'paid_currency'     => $paid_currency,
+								'expected_currency' => $expected_currency,
+								'transaction_id'    => $payment_intent['id'] ?? 'unknown',
+							)
+						);
+						$order->update_status(
+							'on-hold',
+							sprintf(
+								/* translators: %1$s: Paid currency, %2$s: Expected currency */
+								__( 'Payment currency mismatch. Paid in: %1$s, Expected: %2$s. Manual review required.', 'whatsapp-commerce-hub' ),
+								$paid_currency,
+								$expected_currency
+							)
+						);
+						return array(
+							'success'  => false,
+							'order_id' => $order_id,
+							'status'   => 'currency_mismatch',
+							'message'  => __( 'Payment currency does not match order currency.', 'whatsapp-commerce-hub' ),
+						);
+					}
+
+					// SECURITY: Validate payment amount matches order total to prevent underpayment attacks.
+					// Stripe amounts are in cents (smallest currency unit).
+					$paid_amount     = intval( $payment_intent['amount_received'] ?? $payment_intent['amount'] ?? 0 );
+					$expected_amount = intval( round( floatval( $order->get_total() ) * 100 ) );
+
+					// Allow 1 cent tolerance for rounding differences.
+					if ( abs( $paid_amount - $expected_amount ) > 1 ) {
+						WCH_Logger::error(
+							'Stripe payment amount mismatch - possible fraud attempt',
+							array(
+								'order_id'        => $order_id,
+								'paid_amount'     => $paid_amount,
+								'expected_amount' => $expected_amount,
+								'currency'        => $payment_intent['currency'] ?? 'unknown',
+								'transaction_id'  => $payment_intent['id'] ?? 'unknown',
+							)
+						);
+						$order->update_status(
+							'on-hold',
+							sprintf(
+								/* translators: %1$s: Paid amount, %2$s: Expected amount */
+								__( 'Payment amount mismatch. Paid: %1$s, Expected: %2$s. Manual review required.', 'whatsapp-commerce-hub' ),
+								$paid_amount / 100,
+								$expected_amount / 100
+							)
+						);
+						return array(
+							'success'  => false,
+							'order_id' => $order_id,
+							'status'   => 'amount_mismatch',
+							'message'  => __( 'Payment amount does not match order total.', 'whatsapp-commerce-hub' ),
+						);
+					}
+
 					$order->payment_complete( $payment_intent['id'] );
 					$order->add_order_note(
 						sprintf(

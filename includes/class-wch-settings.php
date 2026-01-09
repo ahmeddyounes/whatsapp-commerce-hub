@@ -133,7 +133,14 @@ class WCH_Settings {
 		// Decrypt if this is an encrypted field.
 		if ( $this->is_encrypted_field( $key ) && ! empty( $value ) ) {
 			$decrypted = $this->encryption->decrypt( $value );
-			return false !== $decrypted ? $decrypted : $value;
+			if ( false === $decrypted ) {
+				// Decryption failed - likely key rotation or data corruption.
+				// Return false instead of ciphertext to prevent using encrypted data as credentials.
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				error_log( sprintf( 'WCH_Settings: Failed to decrypt field %s - possible key rotation or data corruption', $key ) );
+				return false;
+			}
+			return $decrypted;
 		}
 
 		return $value;
@@ -171,19 +178,29 @@ class WCH_Settings {
 		// Encrypt if this is an encrypted field.
 		if ( $this->is_encrypted_field( $key ) && ! empty( $value ) ) {
 			$encrypted = $this->encryption->encrypt( $value );
-			if ( false !== $encrypted ) {
-				$value = $encrypted;
+			if ( false === $encrypted ) {
+				// Encryption failed - reject the write to prevent storing plaintext credentials.
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				error_log( sprintf( 'WCH_Settings: CRITICAL - Failed to encrypt sensitive field %s, rejecting write', $key ) );
+				return false;
 			}
+			$value = $encrypted;
 		}
 
 		// Set the value.
 		$settings[ $section ][ $setting_key ] = $value;
 
+		// Clear cache BEFORE database write to prevent race conditions.
+		// This ensures concurrent reads don't cache stale data during the update.
+		$this->settings_cache = null;
+
 		// Save to database.
 		$result = update_option( self::OPTION_NAME, $settings );
 
-		// Clear cache.
-		$this->settings_cache = null;
+		if ( ! $result ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( sprintf( 'WCH_Settings: Failed to update setting %s - check database permissions', $key ) );
+		}
 
 		return $result;
 	}
@@ -244,11 +261,11 @@ class WCH_Settings {
 			unset( $settings[ $section ] );
 		}
 
+		// Clear cache BEFORE database write to prevent race conditions.
+		$this->settings_cache = null;
+
 		// Save to database.
 		$result = update_option( self::OPTION_NAME, $settings );
-
-		// Clear cache.
-		$this->settings_cache = null;
 
 		return $result;
 	}
@@ -268,16 +285,13 @@ class WCH_Settings {
 			return isset( $defaults[ $section ] ) ? $defaults[ $section ] : array();
 		}
 
-		// Decrypt encrypted fields in this section.
-		$section_settings = $settings[ $section ];
-		foreach ( $section_settings as $key => $value ) {
+		// Decrypt encrypted fields in this section using get() for consistency.
+		// This ensures decryption failures are handled the same way everywhere.
+		$section_settings = array();
+		foreach ( $settings[ $section ] as $key => $value ) {
 			$full_key = $section . '.' . $key;
-			if ( $this->is_encrypted_field( $full_key ) && ! empty( $value ) ) {
-				$decrypted = $this->encryption->decrypt( $value );
-				if ( false !== $decrypted ) {
-					$section_settings[ $key ] = $decrypted;
-				}
-			}
+			// Use get() to ensure consistent decryption and error handling.
+			$section_settings[ $key ] = $this->get( $full_key, $value );
 		}
 
 		return $section_settings;
@@ -417,24 +431,31 @@ class WCH_Settings {
 	 * @return array
 	 */
 	private function get_defaults() {
+		// Safe defaults that handle missing WordPress/WooCommerce functions.
+		// This allows settings to work during early initialization, CLI, or tests.
+		$business_name   = function_exists( 'get_bloginfo' ) ? get_bloginfo( 'name' ) : 'My Store';
+		$timezone        = function_exists( 'wp_timezone_string' ) ? wp_timezone_string() : 'UTC';
+		$price_format    = function_exists( 'get_woocommerce_price_format' ) ? get_woocommerce_price_format() : '%1$s%2$s';
+		$currency_symbol = function_exists( 'get_woocommerce_currency_symbol' ) ? get_woocommerce_currency_symbol() : '$';
+
 		$defaults = array(
 			'api'           => array(
 				'api_version' => 'v18.0',
 			),
 			'general'       => array(
 				'enable_bot'       => false,
-				'business_name'    => get_bloginfo( 'name' ),
+				'business_name'    => $business_name,
 				'welcome_message'  => __( 'Welcome! How can we help you today?', 'whatsapp-commerce-hub' ),
 				'fallback_message' => __( 'Sorry, I didn\'t understand that. Please try again or type "help" for assistance.', 'whatsapp-commerce-hub' ),
 				'operating_hours'  => array(),
-				'timezone'         => wp_timezone_string(),
+				'timezone'         => $timezone,
 			),
 			'catalog'       => array(
 				'sync_enabled'         => false,
 				'sync_products'        => 'all',
 				'include_out_of_stock' => false,
-				'price_format'         => get_woocommerce_price_format(),
-				'currency_symbol'      => get_woocommerce_currency_symbol(),
+				'price_format'         => $price_format,
+				'currency_symbol'      => $currency_symbol,
 			),
 			'checkout'      => array(
 				'enabled_payment_methods'    => array(),

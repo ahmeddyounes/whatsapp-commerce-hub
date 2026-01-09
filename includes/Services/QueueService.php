@@ -75,6 +75,54 @@ class QueueService implements QueueServiceInterface {
 	}
 
 	/**
+	 * SECURITY: Check if current context is authorized for job management.
+	 *
+	 * @return bool True if authorized.
+	 */
+	private function isAuthorizedForJobManagement(): bool {
+		// Allow CLI context (WP-CLI, cron jobs).
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+			return true;
+		}
+
+		// Allow cron context.
+		if ( defined( 'DOING_CRON' ) && DOING_CRON ) {
+			return true;
+		}
+
+		// Allow Action Scheduler callbacks.
+		if ( did_action( 'action_scheduler_run_queue' ) ) {
+			return true;
+		}
+
+		// Otherwise, require admin capability.
+		return current_user_can( 'manage_woocommerce' );
+	}
+
+	/**
+	 * SECURITY: Log an unauthorized access attempt.
+	 *
+	 * @param string $operation The operation that was attempted.
+	 * @param array  $context   Additional context.
+	 * @return void
+	 */
+	private function logUnauthorizedAttempt( string $operation, array $context = array() ): void {
+		do_action(
+			'wch_log_warning',
+			sprintf( 'Unauthorized QueueService %s attempt blocked', $operation ),
+			array_merge(
+				array(
+					'user_id' => get_current_user_id(),
+					'ip'      => isset( $_SERVER['REMOTE_ADDR'] )
+						? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) )
+						: 'unknown',
+				),
+				$context
+			)
+		);
+	}
+
+	/**
 	 * Dispatch a job to the queue.
 	 *
 	 * @param string $hook     Action hook name.
@@ -308,9 +356,15 @@ class QueueService implements QueueServiceInterface {
 	 * @return bool Success status.
 	 */
 	public function retryJob( int $job_id ): bool {
+		// SECURITY: Verify authorization before retrying jobs.
+		if ( ! $this->isAuthorizedForJobManagement() ) {
+			$this->logUnauthorizedAttempt( 'retryJob', array( 'job_id' => $job_id ) );
+			return false;
+		}
+
 		// Try DLQ first.
 		if ( $this->dead_letter_queue ) {
-			$result = $this->dead_letter_queue->retry( $job_id );
+			$result = $this->dead_letter_queue->replay( $job_id );
 			if ( $result ) {
 				return true;
 			}
@@ -359,6 +413,12 @@ class QueueService implements QueueServiceInterface {
 	 * @return bool Success status.
 	 */
 	public function dismissJob( int $job_id ): bool {
+		// SECURITY: Verify authorization before dismissing jobs.
+		if ( ! $this->isAuthorizedForJobManagement() ) {
+			$this->logUnauthorizedAttempt( 'dismissJob', array( 'job_id' => $job_id ) );
+			return false;
+		}
+
 		// Try DLQ first.
 		if ( $this->dead_letter_queue ) {
 			$result = $this->dead_letter_queue->dismiss( $job_id );
@@ -474,6 +534,12 @@ class QueueService implements QueueServiceInterface {
 	 * @return int Number of jobs cleared.
 	 */
 	public function clearFailed( int $age_seconds = 604800 ): int {
+		// SECURITY: Verify authorization before clearing failed jobs.
+		if ( ! $this->isAuthorizedForJobManagement() ) {
+			$this->logUnauthorizedAttempt( 'clearFailed', array( 'age_seconds' => $age_seconds ) );
+			return 0;
+		}
+
 		global $wpdb;
 
 		$cleared = 0;

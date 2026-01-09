@@ -430,13 +430,16 @@ class PriorityQueue {
 	 * Retry a failed job.
 	 *
 	 * Handles both v1 (legacy) and v2 (wrapped) payload formats.
+	 * Uses atomic locking to prevent race conditions where multiple
+	 * concurrent retry calls could result in duplicate DLQ entries
+	 * or duplicate retry jobs.
 	 *
 	 * @param string $hook       The action hook name.
 	 * @param array  $payload    Original payload (may be v1 or v2 format).
 	 * @param int    $attempt    Current attempt number.
 	 * @param int    $max_retries Maximum retry attempts.
 	 *
-	 * @return bool True if rescheduled, false if max retries reached.
+	 * @return bool True if rescheduled, false if max retries reached or already processed.
 	 */
 	public function retry(
 		string $hook,
@@ -444,68 +447,120 @@ class PriorityQueue {
 		int $attempt = 1,
 		int $max_retries = 3
 	): bool {
+		global $wpdb;
+
 		// Unwrap to get user args and metadata.
 		$unwrapped = self::unwrapPayload( $payload );
 		$user_args = $unwrapped['args'];
 		$meta = $unwrapped['meta'];
 
-		if ( $attempt >= $max_retries ) {
-			// Move to dead letter queue with original user args.
-			if ( $this->dead_letter_queue ) {
-				// Reconstruct for DLQ (include meta for debugging).
-				$dlq_args = $user_args;
-				$dlq_args['_wch_job_meta'] = $meta;
-				$dlq_result = $this->dead_letter_queue->push( $hook, $dlq_args, DeadLetterQueue::REASON_MAX_RETRIES );
+		// SECURITY: Atomic lock to prevent race conditions.
+		// Create unique key based on hook, args, and attempt to prevent duplicate retries.
+		$retry_key = 'wch_retry_' . md5( $hook . wp_json_encode( $user_args ) . '_attempt_' . $attempt );
 
-				// If DLQ push fails, log critical error - job data may be lost.
-				if ( false === $dlq_result ) {
-					do_action( 'wch_log_critical', 'Failed to push failed job to DLQ - job data may be lost', array(
-						'hook'    => $hook,
-						'attempt' => $attempt,
-						'meta'    => $meta,
-					) );
-				}
-			} else {
-				// No DLQ configured - log that job is being dropped.
-				do_action( 'wch_log_warning', 'Job exceeded max retries with no DLQ configured', array(
+		// Acquire advisory lock (5 second timeout).
+		$lock_acquired = $wpdb->get_var(
+			$wpdb->prepare( 'SELECT GET_LOCK(%s, 5)', $retry_key )
+		);
+
+		// GET_LOCK returns 1 on success, 0 if held by another session, NULL on error.
+		if ( '1' !== (string) $lock_acquired ) {
+			// Another process is handling this retry - let it proceed.
+			do_action( 'wch_log_info', 'Retry skipped - another process is handling', array(
+				'hook'    => $hook,
+				'attempt' => $attempt,
+			) );
+			return false;
+		}
+
+		try {
+			// Check idempotency - has this retry already been processed?
+			$idempotency_table = $wpdb->prefix . 'wch_webhook_idempotency';
+			$idempotency_hash = hash( 'sha256', $retry_key );
+			$now = current_time( 'mysql' );
+
+			// Atomic claim using INSERT IGNORE.
+			$claim_result = $wpdb->query(
+				$wpdb->prepare(
+					"INSERT IGNORE INTO {$idempotency_table} (message_id, scope, processed_at, expires_at)
+					 VALUES (%s, %s, %s, DATE_ADD(%s, INTERVAL 1 HOUR))",
+					$idempotency_hash,
+					'queue_retry',
+					$now,
+					$now
+				)
+			);
+
+			// If 0 rows affected, this retry was already processed.
+			if ( 0 === $claim_result ) {
+				do_action( 'wch_log_info', 'Retry already processed by another request', array(
 					'hook'    => $hook,
 					'attempt' => $attempt,
 				) );
+				return false;
 			}
-			return false;
+
+			if ( $attempt >= $max_retries ) {
+				// Move to dead letter queue with original user args.
+				if ( $this->dead_letter_queue ) {
+					// Reconstruct for DLQ (include meta for debugging).
+					$dlq_args = $user_args;
+					$dlq_args['_wch_job_meta'] = $meta;
+					$dlq_result = $this->dead_letter_queue->push( $hook, $dlq_args, DeadLetterQueue::REASON_MAX_RETRIES );
+
+					// If DLQ push fails, log critical error - job data may be lost.
+					if ( false === $dlq_result ) {
+						do_action( 'wch_log_critical', 'Failed to push failed job to DLQ - job data may be lost', array(
+							'hook'    => $hook,
+							'attempt' => $attempt,
+							'meta'    => $meta,
+						) );
+					}
+				} else {
+					// No DLQ configured - log that job is being dropped.
+					do_action( 'wch_log_warning', 'Job exceeded max retries with no DLQ configured', array(
+						'hook'    => $hook,
+						'attempt' => $attempt,
+					) );
+				}
+				return false;
+			}
+
+			// Exponential backoff: 30s, 90s, 270s.
+			$delay = 30 * pow( 3, $attempt );
+
+			// Get priority from meta.
+			$priority = $meta['priority'] ?? self::PRIORITY_NORMAL;
+
+			// Schedule with incremented attempt using wrapped format.
+			$job_payload = array(
+				'_wch_version' => 2,
+				'_wch_meta'    => array(
+					'priority'     => $priority,
+					'scheduled_at' => $meta['scheduled_at'] ?? time(),
+					'attempt'      => $attempt + 1,
+					'last_retry'   => time(),
+				),
+				'args'         => $user_args,
+			);
+
+			if ( ! function_exists( 'as_schedule_single_action' ) ) {
+				return false;
+			}
+
+			$group = $this->getGroup( $priority );
+			as_schedule_single_action(
+				time() + $delay,
+				$hook,
+				array( $job_payload ),
+				$group
+			);
+
+			return true;
+		} finally {
+			// Always release the lock.
+			$wpdb->query( $wpdb->prepare( 'SELECT RELEASE_LOCK(%s)', $retry_key ) );
 		}
-
-		// Exponential backoff: 30s, 90s, 270s.
-		$delay = 30 * pow( 3, $attempt );
-
-		// Get priority from meta.
-		$priority = $meta['priority'] ?? self::PRIORITY_NORMAL;
-
-		// Schedule with incremented attempt using wrapped format.
-		$job_payload = array(
-			'_wch_version' => 2,
-			'_wch_meta'    => array(
-				'priority'     => $priority,
-				'scheduled_at' => $meta['scheduled_at'] ?? time(),
-				'attempt'      => $attempt + 1,
-				'last_retry'   => time(),
-			),
-			'args'         => $user_args,
-		);
-
-		if ( ! function_exists( 'as_schedule_single_action' ) ) {
-			return false;
-		}
-
-		$group = $this->getGroup( $priority );
-		as_schedule_single_action(
-			time() + $delay,
-			$hook,
-			array( $job_payload ),
-			$group
-		);
-
-		return true;
 	}
 
 	/**

@@ -154,8 +154,11 @@ class WCH_Conversations_Controller extends WCH_REST_Controller {
 	}
 
 	public function get_conversations( $request ) {
-		if ( ! $this->check_rate_limit( 'admin' ) ) {
-			return new WP_Error( 'rate_limit_exceeded', __( 'Rate limit exceeded', 'whatsapp-commerce-hub' ), array( 'status' => 429 ) );
+		// SECURITY FIX: check_rate_limit returns true|WP_Error, not bool.
+		// The previous `! $this->check_rate_limit()` pattern was always false.
+		$rate_limit_result = $this->check_rate_limit( 'admin' );
+		if ( is_wp_error( $rate_limit_result ) ) {
+			return $rate_limit_result;
 		}
 
 		global $wpdb;
@@ -246,8 +249,10 @@ class WCH_Conversations_Controller extends WCH_REST_Controller {
 	}
 
 	public function get_conversation( $request ) {
-		if ( ! $this->check_rate_limit( 'admin' ) ) {
-			return new WP_Error( 'rate_limit_exceeded', __( 'Rate limit exceeded', 'whatsapp-commerce-hub' ), array( 'status' => 429 ) );
+		// SECURITY FIX: check_rate_limit returns true|WP_Error, not bool.
+		$rate_limit_result = $this->check_rate_limit( 'admin' );
+		if ( is_wp_error( $rate_limit_result ) ) {
+			return $rate_limit_result;
 		}
 
 		global $wpdb;
@@ -287,8 +292,10 @@ class WCH_Conversations_Controller extends WCH_REST_Controller {
 	}
 
 	public function get_messages( $request ) {
-		if ( ! $this->check_rate_limit( 'admin' ) ) {
-			return new WP_Error( 'rate_limit_exceeded', __( 'Rate limit exceeded', 'whatsapp-commerce-hub' ), array( 'status' => 429 ) );
+		// SECURITY FIX: check_rate_limit returns true|WP_Error, not bool.
+		$rate_limit_result = $this->check_rate_limit( 'admin' );
+		if ( is_wp_error( $rate_limit_result ) ) {
+			return $rate_limit_result;
 		}
 
 		global $wpdb;
@@ -327,8 +334,10 @@ class WCH_Conversations_Controller extends WCH_REST_Controller {
 	}
 
 	public function send_message( $request ) {
-		if ( ! $this->check_rate_limit( 'admin' ) ) {
-			return new WP_Error( 'rate_limit_exceeded', __( 'Rate limit exceeded', 'whatsapp-commerce-hub' ), array( 'status' => 429 ) );
+		// SECURITY FIX: check_rate_limit returns true|WP_Error, not bool.
+		$rate_limit_result = $this->check_rate_limit( 'admin' );
+		if ( is_wp_error( $rate_limit_result ) ) {
+			return $rate_limit_result;
 		}
 
 		$conversation_id = $request['id'];
@@ -378,8 +387,10 @@ class WCH_Conversations_Controller extends WCH_REST_Controller {
 	}
 
 	public function update_conversation( $request ) {
-		if ( ! $this->check_rate_limit( 'admin' ) ) {
-			return new WP_Error( 'rate_limit_exceeded', __( 'Rate limit exceeded', 'whatsapp-commerce-hub' ), array( 'status' => 429 ) );
+		// SECURITY FIX: check_rate_limit returns true|WP_Error, not bool.
+		$rate_limit_result = $this->check_rate_limit( 'admin' );
+		if ( is_wp_error( $rate_limit_result ) ) {
+			return $rate_limit_result;
 		}
 
 		global $wpdb;
@@ -421,8 +432,10 @@ class WCH_Conversations_Controller extends WCH_REST_Controller {
 	}
 
 	public function bulk_update( $request ) {
-		if ( ! $this->check_rate_limit( 'admin' ) ) {
-			return new WP_Error( 'rate_limit_exceeded', __( 'Rate limit exceeded', 'whatsapp-commerce-hub' ), array( 'status' => 429 ) );
+		// SECURITY FIX: check_rate_limit returns true|WP_Error, not bool.
+		$rate_limit_result = $this->check_rate_limit( 'admin' );
+		if ( is_wp_error( $rate_limit_result ) ) {
+			return $rate_limit_result;
 		}
 
 		global $wpdb;
@@ -478,8 +491,10 @@ class WCH_Conversations_Controller extends WCH_REST_Controller {
 	}
 
 	public function suggest_reply( $request ) {
-		if ( ! $this->check_rate_limit( 'admin' ) ) {
-			return new WP_Error( 'rate_limit_exceeded', __( 'Rate limit exceeded', 'whatsapp-commerce-hub' ), array( 'status' => 429 ) );
+		// SECURITY FIX: check_rate_limit returns true|WP_Error, not bool.
+		$rate_limit_result = $this->check_rate_limit( 'admin' );
+		if ( is_wp_error( $rate_limit_result ) ) {
+			return $rate_limit_result;
 		}
 
 		$conversation_id = $request->get_param( 'conversation_id' );

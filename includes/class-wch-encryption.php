@@ -76,6 +76,9 @@ class WCH_Encryption {
 	/**
 	 * Encrypt a string.
 	 *
+	 * Uses AES-256-CBC with HMAC-SHA256 for authenticated encryption.
+	 * Format: base64(HMAC + IV + ciphertext)
+	 *
 	 * @param string $value The value to encrypt.
 	 * @return string|false The encrypted value or false on failure.
 	 */
@@ -88,12 +91,12 @@ class WCH_Encryption {
 		$iv_length = openssl_cipher_iv_length( self::ENCRYPTION_METHOD );
 		$iv        = random_bytes( $iv_length );
 
-		// Encrypt the value.
+		// Encrypt the value using raw output for HMAC calculation.
 		$encrypted = openssl_encrypt(
 			$value,
 			self::ENCRYPTION_METHOD,
 			$this->get_key(),
-			0,
+			OPENSSL_RAW_DATA,
 			$iv
 		);
 
@@ -101,12 +104,20 @@ class WCH_Encryption {
 			return false;
 		}
 
-		// Combine IV and encrypted data, then base64 encode.
-		return base64_encode( $iv . $encrypted );
+		// Generate HMAC for authentication (prevents padding oracle attacks).
+		// HMAC covers IV + ciphertext to prevent tampering with either.
+		$hmac = hash_hmac( 'sha256', $iv . $encrypted, $this->get_hmac_key(), true );
+
+		// Combine HMAC + IV + encrypted data, then base64 encode.
+		// Format: [32 bytes HMAC][16 bytes IV][ciphertext]
+		return base64_encode( $hmac . $iv . $encrypted );
 	}
 
 	/**
 	 * Decrypt a string.
+	 *
+	 * Verifies HMAC before decrypting to prevent padding oracle attacks.
+	 * Supports both new format (HMAC + IV + ciphertext) and legacy format (IV + ciphertext).
 	 *
 	 * @param string $value The value to decrypt.
 	 * @return string|false The decrypted value or false on failure.
@@ -123,25 +134,58 @@ class WCH_Encryption {
 			return false;
 		}
 
-		// Extract IV and encrypted data.
-		$iv_length = openssl_cipher_iv_length( self::ENCRYPTION_METHOD );
+		// Extract components.
+		$iv_length   = openssl_cipher_iv_length( self::ENCRYPTION_METHOD );
+		$hmac_length = 32; // SHA-256 produces 32 bytes.
 
-		// Validate decoded data has sufficient length for IV extraction.
-		if ( strlen( $decoded ) <= $iv_length ) {
-			return false;
+		// Check if this is new format (with HMAC) or legacy format.
+		// New format minimum: 32 (HMAC) + 16 (IV) + 1 (ciphertext) = 49 bytes.
+		// Legacy format minimum: 16 (IV) + 1 (ciphertext) = 17 bytes.
+		$is_new_format = strlen( $decoded ) >= ( $hmac_length + $iv_length + 1 );
+
+		if ( $is_new_format ) {
+			// New format: HMAC + IV + ciphertext.
+			$hmac      = substr( $decoded, 0, $hmac_length );
+			$iv        = substr( $decoded, $hmac_length, $iv_length );
+			$encrypted = substr( $decoded, $hmac_length + $iv_length );
+
+			// Verify HMAC BEFORE decrypting (prevents padding oracle attacks).
+			$expected_hmac = hash_hmac( 'sha256', $iv . $encrypted, $this->get_hmac_key(), true );
+
+			if ( ! hash_equals( $expected_hmac, $hmac ) ) {
+				// HMAC verification failed - data was tampered with or wrong key.
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				error_log( 'WCH_Encryption: HMAC verification failed - possible tampering or key mismatch' );
+				return false;
+			}
+
+			// Decrypt the value (raw data).
+			$decrypted = openssl_decrypt(
+				$encrypted,
+				self::ENCRYPTION_METHOD,
+				$this->get_key(),
+				OPENSSL_RAW_DATA,
+				$iv
+			);
+		} else {
+			// Legacy format: IV + base64(ciphertext) - no HMAC.
+			// Validate decoded data has sufficient length for IV extraction.
+			if ( strlen( $decoded ) <= $iv_length ) {
+				return false;
+			}
+
+			$iv        = substr( $decoded, 0, $iv_length );
+			$encrypted = substr( $decoded, $iv_length );
+
+			// Decrypt the value (legacy used non-raw mode).
+			$decrypted = openssl_decrypt(
+				$encrypted,
+				self::ENCRYPTION_METHOD,
+				$this->get_key(),
+				0,
+				$iv
+			);
 		}
-
-		$iv        = substr( $decoded, 0, $iv_length );
-		$encrypted = substr( $decoded, $iv_length );
-
-		// Decrypt the value.
-		$decrypted = openssl_decrypt(
-			$encrypted,
-			self::ENCRYPTION_METHOD,
-			$this->get_key(),
-			0,
-			$iv
-		);
 
 		return $decrypted;
 	}
@@ -154,6 +198,20 @@ class WCH_Encryption {
 	private function get_key() {
 		// Hash the key to ensure it's the correct length for AES-256.
 		return hash( 'sha256', $this->key, true );
+	}
+
+	/**
+	 * Get the HMAC key derived from WordPress salt.
+	 *
+	 * Uses a different derivation than the encryption key for security.
+	 * Encrypt-then-MAC requires separate keys for encryption and authentication.
+	 *
+	 * @return string
+	 */
+	private function get_hmac_key() {
+		// Derive HMAC key separately from encryption key using HKDF-like approach.
+		// Using 'hmac' context ensures this key differs from the encryption key.
+		return hash( 'sha256', $this->key . 'hmac_authentication', true );
 	}
 
 	/**

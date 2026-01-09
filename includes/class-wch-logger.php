@@ -2,10 +2,19 @@
 /**
  * Logger class for WhatsApp Commerce Hub.
  *
- * Provides comprehensive logging with multiple severity levels,
- * log rotation, and sensitive data sanitization.
+ * This class serves as a backward compatibility facade that delegates to
+ * the new LoggerService when available. New code should use the DI container:
+ *
+ * @example
+ * // Preferred: Use DI container
+ * $logger = wch_get_container()->get(LoggerService::class);
+ * $logger->info('Message', 'context', ['data' => 'value']);
+ *
+ * // Legacy: Static methods still work but are deprecated
+ * WCH_Logger::info('Message', ['data' => 'value']);
  *
  * @package WhatsApp_Commerce_Hub
+ * @deprecated 3.0.0 Use WhatsAppCommerceHub\Services\LoggerService instead.
  */
 
 // Exit if accessed directly.
@@ -13,10 +22,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+use WhatsAppCommerceHub\Services\LoggerService;
+use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
+
 /**
  * Class WCH_Logger
  *
- * Handles all logging operations for the plugin.
+ * Backward compatibility facade for LoggerService.
+ * All static methods delegate to the container-resolved LoggerService.
+ *
+ * @deprecated 3.0.0 Use LoggerService via DI container instead.
  */
 class WCH_Logger {
 	/**
@@ -36,6 +51,17 @@ class WCH_Logger {
 	private static $request_id = null;
 
 	/**
+	 * Request timestamp used to detect new requests.
+	 *
+	 * In persistent PHP environments (PHP-FPM, swoole), static variables
+	 * may persist across requests. We track the request time to detect
+	 * when a new request starts and regenerate the request ID.
+	 *
+	 * @var float|null
+	 */
+	private static $request_time = null;
+
+	/**
 	 * Log directory path.
 	 *
 	 * @var string
@@ -50,14 +76,73 @@ class WCH_Logger {
 	private static $wc_logger = null;
 
 	/**
+	 * Cached LoggerService instance.
+	 *
+	 * @var LoggerInterface|null
+	 */
+	private static $logger_service = null;
+
+	/**
+	 * Flag to track if we've successfully resolved the logger.
+	 *
+	 * @var bool
+	 */
+	private static $logger_service_resolved = false;
+
+	/**
+	 * Get the LoggerService instance from the container.
+	 *
+	 * Falls back to legacy behavior if container is not available.
+	 * Note: Only caches successful retrievals to avoid permanently
+	 * caching null if called before container initialization.
+	 *
+	 * @return LoggerInterface|null
+	 */
+	private static function get_logger_service(): ?LoggerInterface {
+		// Only return cached value if we've successfully resolved before.
+		if ( self::$logger_service_resolved ) {
+			return self::$logger_service;
+		}
+
+		// Try to get LoggerService from container.
+		if ( function_exists( 'wch_get_container' ) ) {
+			try {
+				$container = wch_get_container();
+				if ( $container->has( LoggerService::class ) ) {
+					self::$logger_service = $container->get( LoggerService::class );
+					self::$logger_service_resolved = true;
+					return self::$logger_service;
+				}
+			} catch ( \Throwable $e ) {
+				// Don't cache failures - try again next time.
+			}
+		}
+
+		// Return null but don't cache it - container may be available later.
+		return null;
+	}
+
+	/**
 	 * Get or generate unique request ID.
+	 *
+	 * Detects new requests in persistent PHP environments by comparing
+	 * the current request time with the stored request time. This ensures
+	 * each HTTP request gets a unique ID even when static variables persist.
 	 *
 	 * @return string
 	 */
 	private static function get_request_id() {
-		if ( null === self::$request_id ) {
-			self::$request_id = uniqid( 'wch_', true );
+		// Get current request time (available in web contexts).
+		$currentRequestTime = $_SERVER['REQUEST_TIME_FLOAT'] ?? microtime( true );
+
+		// Detect if this is a new request (different timestamp).
+		$isNewRequest = ( null === self::$request_time || self::$request_time !== $currentRequestTime );
+
+		if ( $isNewRequest || null === self::$request_id ) {
+			self::$request_time = $currentRequestTime;
+			self::$request_id   = uniqid( 'wch_', true );
 		}
+
 		return self::$request_id;
 	}
 
@@ -68,23 +153,34 @@ class WCH_Logger {
 	 */
 	private static function get_log_dir() {
 		if ( null === self::$log_dir ) {
-			$upload_dir    = wp_upload_dir();
-			self::$log_dir = $upload_dir['basedir'] . '/wch-logs';
+			$upload_dir = wp_upload_dir();
+
+			// Handle wp_upload_dir() error state - fall back to WP_CONTENT_DIR.
+			if ( ! empty( $upload_dir['error'] ) || empty( $upload_dir['basedir'] ) ) {
+				self::$log_dir = WP_CONTENT_DIR . '/wch-logs';
+			} else {
+				self::$log_dir = $upload_dir['basedir'] . '/wch-logs';
+			}
 
 			// Create directory if it doesn't exist.
 			if ( ! file_exists( self::$log_dir ) ) {
-				wp_mkdir_p( self::$log_dir );
+				$created = wp_mkdir_p( self::$log_dir );
 
-				// Add .htaccess to prevent direct access.
-				$htaccess_file = self::$log_dir . '/.htaccess';
-				if ( ! file_exists( $htaccess_file ) ) {
-					file_put_contents( $htaccess_file, "deny from all\n" );
-				}
+				// Only create protection files if directory was created.
+				if ( $created ) {
+					// Add .htaccess to prevent direct access.
+					$htaccess_file = self::$log_dir . '/.htaccess';
+					if ( ! file_exists( $htaccess_file ) ) {
+						// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+						file_put_contents( $htaccess_file, "deny from all\n" );
+					}
 
-				// Add index.php to prevent directory listing.
-				$index_file = self::$log_dir . '/index.php';
-				if ( ! file_exists( $index_file ) ) {
-					file_put_contents( $index_file, "<?php\n// Silence is golden.\n" );
+					// Add index.php to prevent directory listing.
+					$index_file = self::$log_dir . '/index.php';
+					if ( ! file_exists( $index_file ) ) {
+						// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+						file_put_contents( $index_file, "<?php\n// Silence is golden.\n" );
+					}
 				}
 			}
 		}
@@ -424,6 +520,7 @@ class WCH_Logger {
 	 * Supports both old signature: log($level, $message, $context, $context_array)
 	 * and simple signature: log($message, $level)
 	 *
+	 * @deprecated 3.0.0 Use LoggerService::log() via DI container.
 	 * @param string       $level_or_message Log level or message.
 	 * @param string|array $message_or_level Message or level (for simple signature).
 	 * @param string       $context_name     Optional. Context name (legacy).
@@ -435,34 +532,52 @@ class WCH_Logger {
 
 		if ( in_array( strtolower( $level_or_message ), $valid_levels, true ) ) {
 			// Old signature: log($level, $message, $context_name, $context_array)
-			$level   = strtoupper( $level_or_message );
+			$level   = strtolower( $level_or_message );
 			$message = is_string( $message_or_level ) ? $message_or_level : '';
 			$context = is_array( $context_data ) ? $context_data : array();
-			if ( ! empty( $context_name ) ) {
-				$context['source'] = $context_name;
-			}
+			$context_str = ! empty( $context_name ) ? $context_name : 'legacy';
 		} elseif ( is_string( $message_or_level ) && in_array( strtolower( $message_or_level ), $valid_levels, true ) ) {
 			// Simple signature: log($message, $level)
-			$level   = strtoupper( $message_or_level );
+			$level   = strtolower( $message_or_level );
 			$message = $level_or_message;
 			$context = array();
+			$context_str = 'legacy';
 		} else {
 			// Default to info level.
-			$level   = self::LEVEL_INFO;
-			$message = $level_or_message;
-			$context = is_array( $message_or_level ) ? $message_or_level : array();
+			$level       = 'info';
+			$message     = $level_or_message;
+			$context     = is_array( $message_or_level ) ? $message_or_level : array();
+			$context_str = 'legacy';
 		}
 
-		self::write_log( $level, $message, $context );
+		// Try to delegate to LoggerService.
+		$logger = self::get_logger_service();
+
+		if ( null !== $logger ) {
+			$logger->log( $level, $message, $context_str, $context );
+			return;
+		}
+
+		// Legacy fallback.
+		self::write_log( strtoupper( $level ), $message, $context );
 	}
 
 	/**
 	 * Log debug message.
 	 *
+	 * @deprecated 3.0.0 Use LoggerService::debug() via DI container.
 	 * @param string $message Log message.
 	 * @param array  $context Optional. Context data with keys: conversation_id, customer_phone, order_id, exception.
 	 */
 	public static function debug( $message, array $context = array() ) {
+		$logger = self::get_logger_service();
+
+		if ( null !== $logger ) {
+			$logger->debug( $message, 'legacy', $context );
+			return;
+		}
+
+		// Legacy fallback.
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			self::write_log( self::LEVEL_DEBUG, $message, $context );
 		}
@@ -471,49 +586,107 @@ class WCH_Logger {
 	/**
 	 * Log info message.
 	 *
+	 * @deprecated 3.0.0 Use LoggerService::info() via DI container.
 	 * @param string $message Log message.
 	 * @param array  $context Optional. Context data with keys: conversation_id, customer_phone, order_id, exception.
 	 */
 	public static function info( $message, array $context = array() ) {
+		$logger = self::get_logger_service();
+
+		if ( null !== $logger ) {
+			$logger->info( $message, 'legacy', $context );
+			return;
+		}
+
+		// Legacy fallback.
 		self::write_log( self::LEVEL_INFO, $message, $context );
 	}
 
 	/**
 	 * Log warning message.
 	 *
+	 * @deprecated 3.0.0 Use LoggerService::warning() via DI container.
 	 * @param string $message Log message.
 	 * @param array  $context Optional. Context data with keys: conversation_id, customer_phone, order_id, exception.
 	 */
 	public static function warning( $message, array $context = array() ) {
+		$logger = self::get_logger_service();
+
+		if ( null !== $logger ) {
+			$logger->warning( $message, 'legacy', $context );
+			return;
+		}
+
+		// Legacy fallback.
 		self::write_log( self::LEVEL_WARNING, $message, $context );
 	}
 
 	/**
 	 * Log error message.
 	 *
+	 * @deprecated 3.0.0 Use LoggerService::error() via DI container.
 	 * @param string $message Log message.
 	 * @param array  $context Optional. Context data with keys: conversation_id, customer_phone, order_id, exception.
 	 */
 	public static function error( $message, array $context = array() ) {
+		$logger = self::get_logger_service();
+
+		if ( null !== $logger ) {
+			$logger->error( $message, 'legacy', $context );
+			return;
+		}
+
+		// Legacy fallback.
 		self::write_log( self::LEVEL_ERROR, $message, $context );
 	}
 
 	/**
 	 * Log critical message.
 	 *
+	 * @deprecated 3.0.0 Use LoggerService::critical() via DI container.
 	 * @param string $message Log message.
 	 * @param array  $context Optional. Context data with keys: conversation_id, customer_phone, order_id, exception.
 	 */
 	public static function critical( $message, array $context = array() ) {
+		$logger = self::get_logger_service();
+
+		if ( null !== $logger ) {
+			$logger->critical( $message, 'legacy', $context );
+			return;
+		}
+
+		// Legacy fallback.
 		self::write_log( self::LEVEL_CRITICAL, $message, $context );
 	}
 
 	/**
 	 * Get all log files.
 	 *
+	 * @deprecated 3.0.0 Use LoggerService::getLogFiles() via DI container.
 	 * @return array Array of log files with their details.
 	 */
 	public static function get_log_files() {
+		// Try to delegate to LoggerService.
+		$logger = self::get_logger_service();
+
+		if ( null !== $logger && method_exists( $logger, 'getLogFiles' ) ) {
+			$files = $logger->getLogFiles();
+
+			// Map to legacy format.
+			return array_map(
+				function ( $file ) {
+					return array(
+						'name'     => $file['filename'],
+						'path'     => '', // Not provided by new service.
+						'size'     => $file['size'],
+						'modified' => $file['modified'],
+					);
+				},
+				$files
+			);
+		}
+
+		// Legacy fallback.
 		$log_dir = self::get_log_dir();
 		$files   = glob( $log_dir . '/wch-*.log' );
 
@@ -545,12 +718,34 @@ class WCH_Logger {
 	/**
 	 * Read log file with optional filtering.
 	 *
+	 * @deprecated 3.0.0 Use LoggerService::readLog() via DI container.
 	 * @param string      $filename Log file name.
 	 * @param string|null $level    Optional. Filter by log level.
 	 * @param int         $limit    Optional. Maximum lines to return. Default 1000.
 	 * @return array Array of log entries.
 	 */
 	public static function read_log( $filename, $level = null, $limit = 1000 ) {
+		// Try to delegate to LoggerService.
+		$logger = self::get_logger_service();
+
+		if ( null !== $logger && method_exists( $logger, 'readLog' ) ) {
+			$content = $logger->readLog( $filename, $limit );
+			$lines   = explode( "\n", $content );
+
+			// Filter by level if specified.
+			if ( $level ) {
+				$lines = array_filter(
+					$lines,
+					function ( $line ) use ( $level ) {
+						return stripos( $line, '[' . strtoupper( $level ) . ']' ) !== false;
+					}
+				);
+			}
+
+			return array_values( $lines );
+		}
+
+		// Legacy fallback.
 		$log_dir  = self::get_log_dir();
 		$filepath = $log_dir . '/' . $filename;
 

@@ -12,6 +12,10 @@ namespace WhatsAppCommerceHub\Providers;
 
 use WhatsAppCommerceHub\Container\ContainerInterface;
 use WhatsAppCommerceHub\Container\ServiceProviderInterface;
+use WhatsAppCommerceHub\Services\LoggerService;
+use WhatsAppCommerceHub\Services\SettingsService;
+use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
+use WhatsAppCommerceHub\Contracts\Services\SettingsInterface;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -200,7 +204,10 @@ class CoreServiceProvider implements ServiceProviderInterface {
 					public function flush( string $prefix = '' ): void {
 						global $wpdb;
 
-						$pattern = self::PREFIX . $prefix . '%';
+						// Escape SQL LIKE wildcards (%, _) to prevent SQL injection.
+						// Without this, a prefix like "test%" would match unintended transients.
+						$escapedPrefix = $wpdb->esc_like( self::PREFIX . $prefix );
+						$pattern       = $escapedPrefix . '%';
 
 						// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 						$wpdb->query(
@@ -261,6 +268,41 @@ class CoreServiceProvider implements ServiceProviderInterface {
 		$container->singleton(
 			'wch.settings.manager',
 			static fn( ContainerInterface $c ) => $c->get( \WCH_Settings::class )
+		);
+
+		// Register LoggerService (new namespaced service).
+		$container->singleton(
+			LoggerService::class,
+			static function ( ContainerInterface $c ) {
+				$settings = $c->has( 'wch.settings' ) ? $c->get( 'wch.settings' ) : array();
+
+				// Explicit boolean cast to handle string values like "false", "0", etc.
+				$debugEnabled = (bool) ( $settings['enable_debug_logging'] ?? false );
+				$minLevel     = $debugEnabled ? LoggerService::LEVEL_DEBUG : LoggerService::LEVEL_INFO;
+
+				return new LoggerService( $minLevel );
+			}
+		);
+
+		// Alias LoggerInterface to LoggerService.
+		$container->singleton(
+			LoggerInterface::class,
+			static fn( ContainerInterface $c ) => $c->get( LoggerService::class )
+		);
+
+		// Register SettingsService (new namespaced service).
+		$container->singleton(
+			SettingsService::class,
+			static function ( ContainerInterface $c ) {
+				$legacySettings = $c->get( \WCH_Settings::class );
+				return new SettingsService( $legacySettings );
+			}
+		);
+
+		// Alias SettingsInterface to SettingsService.
+		$container->singleton(
+			SettingsInterface::class,
+			static fn( ContainerInterface $c ) => $c->get( SettingsService::class )
 		);
 
 		// Register order sync service.
@@ -349,6 +391,10 @@ class CoreServiceProvider implements ServiceProviderInterface {
 			'wch.database',
 			\WCH_Settings::class,
 			'wch.settings.manager',
+			LoggerService::class,
+			LoggerInterface::class,
+			SettingsService::class,
+			SettingsInterface::class,
 			\WCH_Order_Sync_Service::class,
 			'wch.order_sync',
 			\WCH_Template_Manager::class,

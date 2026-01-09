@@ -28,6 +28,59 @@ class DeadLetterQueue {
 	private const TABLE_NAME = 'wch_dead_letter_queue';
 
 	/**
+	 * SECURITY: Check if current context is authorized for DLQ operations.
+	 *
+	 * Allows operations when:
+	 * - Running from CLI (WP-CLI, cron)
+	 * - Running from Action Scheduler callback
+	 * - User has manage_woocommerce capability
+	 *
+	 * @return bool True if authorized.
+	 */
+	private function isAuthorized(): bool {
+		// Allow CLI context (WP-CLI, cron jobs).
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+			return true;
+		}
+
+		// Allow cron context.
+		if ( defined( 'DOING_CRON' ) && DOING_CRON ) {
+			return true;
+		}
+
+		// Allow Action Scheduler callbacks (internal job chaining).
+		if ( did_action( 'action_scheduler_run_queue' ) ) {
+			return true;
+		}
+
+		// Otherwise, require admin capability.
+		return current_user_can( 'manage_woocommerce' );
+	}
+
+	/**
+	 * SECURITY: Log an unauthorized access attempt.
+	 *
+	 * @param string $operation The operation that was attempted.
+	 * @param array  $context   Additional context.
+	 * @return void
+	 */
+	private function logUnauthorizedAttempt( string $operation, array $context = array() ): void {
+		do_action(
+			'wch_log_warning',
+			sprintf( 'Unauthorized DLQ %s attempt blocked', $operation ),
+			array_merge(
+				array(
+					'user_id' => get_current_user_id(),
+					'ip'      => isset( $_SERVER['REMOTE_ADDR'] )
+						? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) )
+						: 'unknown',
+				),
+				$context
+			)
+		);
+	}
+
+	/**
 	 * Failure reasons.
 	 */
 	public const REASON_MAX_RETRIES    = 'max_retries_exceeded';
@@ -173,6 +226,12 @@ class DeadLetterQueue {
 	 * @throws \RuntimeException If entry data is corrupted.
 	 */
 	public function replay( int $id, int $delay = 0, ?int $new_priority = null ): bool {
+		// SECURITY: Verify authorization before replaying jobs.
+		if ( ! $this->isAuthorized() ) {
+			$this->logUnauthorizedAttempt( 'replay', array( 'dlq_id' => $id ) );
+			return false;
+		}
+
 		$table = $this->getTableName();
 
 		$entry = $this->wpdb->get_row(
@@ -294,6 +353,12 @@ class DeadLetterQueue {
 	 * @return bool True on success.
 	 */
 	public function dismiss( int $id, string $reason = '' ): bool {
+		// SECURITY: Verify authorization before dismissing jobs.
+		if ( ! $this->isAuthorized() ) {
+			$this->logUnauthorizedAttempt( 'dismiss', array( 'dlq_id' => $id ) );
+			return false;
+		}
+
 		$table = $this->getTableName();
 
 		// Validate JSON encoding.
@@ -388,6 +453,12 @@ class DeadLetterQueue {
 	 * @return int Number of deleted entries.
 	 */
 	public function cleanup( int $days_old = 30 ): int {
+		// SECURITY: Verify authorization before cleaning up jobs.
+		if ( ! $this->isAuthorized() ) {
+			$this->logUnauthorizedAttempt( 'cleanup', array( 'days_old' => $days_old ) );
+			return 0;
+		}
+
 		$table = $this->getTableName();
 
 		$cutoff = gmdate( 'Y-m-d H:i:s', strtotime( "-{$days_old} days" ) );

@@ -9,6 +9,8 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Container;
 
 // Exit if accessed directly.
@@ -225,26 +227,40 @@ class Container implements ContainerInterface {
 	 *
 	 * @param string $abstract The abstract type.
 	 * @return mixed
+	 * @throws ContainerException If circular dependency detected.
 	 */
 	protected function resolve( string $abstract ): mixed {
-		$binding  = $this->bindings[ $abstract ];
-		$concrete = $binding['concrete'];
-
-		// Resolve the concrete implementation.
-		if ( $concrete instanceof \Closure ) {
-			$object = $concrete( $this );
-		} elseif ( is_string( $concrete ) && $concrete !== $abstract ) {
-			$object = $this->get( $concrete );
-		} else {
-			$object = $this->make( is_string( $concrete ) ? $concrete : $abstract );
+		// Check for circular dependency - this catches alias chains like A->B->C->A.
+		if ( in_array( $abstract, $this->resolving, true ) ) {
+			$chain   = $this->resolving;
+			$chain[] = $abstract;
+			throw ContainerException::circularDependency( $chain );
 		}
 
-		// Store if shared.
-		if ( $binding['shared'] ) {
-			$this->instances[ $abstract ] = $object;
-		}
+		$this->resolving[] = $abstract;
 
-		return $object;
+		try {
+			$binding  = $this->bindings[ $abstract ];
+			$concrete = $binding['concrete'];
+
+			// Resolve the concrete implementation.
+			if ( $concrete instanceof \Closure ) {
+				$object = $concrete( $this );
+			} elseif ( is_string( $concrete ) && $concrete !== $abstract ) {
+				$object = $this->get( $concrete );
+			} else {
+				$object = $this->make( is_string( $concrete ) ? $concrete : $abstract );
+			}
+
+			// Store if shared.
+			if ( $binding['shared'] ) {
+				$this->instances[ $abstract ] = $object;
+			}
+
+			return $object;
+		} finally {
+			array_pop( $this->resolving );
+		}
 	}
 
 	/**
@@ -382,6 +398,9 @@ class Container implements ContainerInterface {
 	/**
 	 * Flush the container of all bindings and resolved instances.
 	 *
+	 * Clears all state including the resolving stack to prevent stale
+	 * circular dependency detection after container reset.
+	 *
 	 * @return void
 	 */
 	public function flush(): void {
@@ -389,6 +408,7 @@ class Container implements ContainerInterface {
 		$this->instances = array();
 		$this->providers = array();
 		$this->booted    = false;
+		$this->resolving = array();
 	}
 
 	/**

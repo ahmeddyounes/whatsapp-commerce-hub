@@ -538,14 +538,36 @@ class OrderSyncService implements OrderSyncServiceInterface {
 	/**
 	 * Cancel order.
 	 *
-	 * @param int    $order_id Order ID.
-	 * @param string $reason   Cancellation reason.
+	 * SECURITY: Requires authorization - either admin capability or matching customer phone.
+	 * This prevents unauthorized users from canceling orders they don't own.
+	 *
+	 * @param int    $order_id       Order ID.
+	 * @param string $reason         Cancellation reason.
+	 * @param string $customer_phone Customer phone for authorization (required for non-admin callers).
 	 * @return bool Success status.
 	 */
-	public function cancelOrder( int $order_id, string $reason = '' ): bool {
+	public function cancelOrder( int $order_id, string $reason = '', string $customer_phone = '' ): bool {
 		$order = wc_get_order( $order_id );
 		if ( ! $order ) {
 			return false;
+		}
+
+		// SECURITY: Authorization check - must be admin or order owner.
+		$is_admin = current_user_can( 'manage_woocommerce' );
+
+		if ( ! $is_admin ) {
+			// Non-admin callers must provide matching customer phone.
+			$customer_phone = $this->sanitizePhone( $customer_phone );
+			$order_phone    = $this->sanitizePhone( $order->get_meta( self::META_CUSTOMER_PHONE ) ?: $order->get_billing_phone() );
+
+			if ( empty( $customer_phone ) || $customer_phone !== $order_phone ) {
+				do_action( 'wch_log_warning', 'OrderSyncService: Unauthorized order cancellation attempt', array(
+					'order_id'             => $order_id,
+					'provided_phone'       => $customer_phone ? substr( $customer_phone, 0, 4 ) . '****' : 'none',
+					'caller_context'       => defined( 'DOING_CRON' ) && DOING_CRON ? 'cron' : 'request',
+				) );
+				return false;
+			}
 		}
 
 		// Check if order can be cancelled.

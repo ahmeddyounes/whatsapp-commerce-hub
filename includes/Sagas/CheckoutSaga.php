@@ -295,6 +295,21 @@ class CheckoutSaga {
 
 				$order->save();
 
+				// SECURITY: Record coupon phone usage to prevent bypass of per-user limits.
+				// This tracks coupon usage by phone number for WhatsApp customers who may not
+				// have WooCommerce accounts or could change phone numbers.
+				// Recording happens AFTER save so we have the actual order_id for audit trail.
+				if ( ! empty( $cart->coupon_code ) ) {
+					$coupon = new \WC_Coupon( $cart->coupon_code );
+					if ( $coupon->get_id() && $coupon->get_usage_limit_per_user() > 0 ) {
+						$this->cart_service->recordCouponPhoneUsage(
+							$coupon->get_id(),
+							$phone,
+							$order->get_id()
+						);
+					}
+				}
+
 				return array(
 					'order_id'     => $order->get_id(),
 					'order_number' => $order->get_order_number(),

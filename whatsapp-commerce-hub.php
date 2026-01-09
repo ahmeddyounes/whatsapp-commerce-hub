@@ -124,16 +124,37 @@ function wch_get_container(): \WhatsAppCommerceHub\Container\ContainerInterface 
 		// IMPORTANT: Order matters! Dependencies must be registered before dependents.
 		// ResilienceServiceProvider must come before ApiClientServiceProvider (CircuitBreakerRegistry).
 		$providers = array(
+			// Foundation layer.
 			new \WhatsAppCommerceHub\Providers\CoreServiceProvider(),
 			new \WhatsAppCommerceHub\Providers\ResilienceServiceProvider(),
+			new \WhatsAppCommerceHub\Providers\SecurityServiceProvider(),
+
+			// Infrastructure.
 			new \WhatsAppCommerceHub\Providers\RepositoryServiceProvider(),
+			new \WhatsAppCommerceHub\Providers\QueueServiceProvider(),
+
+			// Core services.
 			new \WhatsAppCommerceHub\Providers\ApiClientServiceProvider(),
 			new \WhatsAppCommerceHub\Providers\BusinessServiceProvider(),
+
+			// Feature services.
+			new \WhatsAppCommerceHub\Providers\ActionServiceProvider(),
+			new \WhatsAppCommerceHub\Providers\ProductSyncServiceProvider(),
+			new \WhatsAppCommerceHub\Providers\ReengagementServiceProvider(),
+			new \WhatsAppCommerceHub\Providers\NotificationServiceProvider(),
+			new \WhatsAppCommerceHub\Providers\PaymentServiceProvider(),
+			new \WhatsAppCommerceHub\Providers\CheckoutServiceProvider(),
+			new \WhatsAppCommerceHub\Providers\BroadcastsServiceProvider(),
+			new \WhatsAppCommerceHub\Providers\AdminSettingsServiceProvider(),
+
+			// Orchestration.
 			new \WhatsAppCommerceHub\Providers\SagaServiceProvider(),
-			new \WhatsAppCommerceHub\Providers\QueueServiceProvider(),
-			new \WhatsAppCommerceHub\Providers\SecurityServiceProvider(),
 			new \WhatsAppCommerceHub\Providers\EventServiceProvider(),
 			new \WhatsAppCommerceHub\Providers\MonitoringServiceProvider(),
+
+			// Controllers & Admin UI.
+			new \WhatsAppCommerceHub\Providers\ControllerServiceProvider(),
+			new \WhatsAppCommerceHub\Providers\AdminServiceProvider(),
 		);
 
 		foreach ( $providers as $provider ) {

@@ -82,14 +82,39 @@ class WCH_Webhook_Handler extends WCH_REST_Controller {
 	}
 
 	/**
+	 * Rate limit for webhook verification (stricter than normal endpoints).
+	 *
+	 * @var int
+	 */
+	private const VERIFY_RATE_LIMIT = 10;
+
+	/**
 	 * Verify webhook for Meta setup.
 	 *
 	 * Responds to GET requests with hub.challenge if hub.verify_token matches.
+	 *
+	 * SECURITY: Rate limited to prevent brute-force attacks on the verify token.
 	 *
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function verify_webhook( $request ) {
+		// SECURITY: Apply rate limiting BEFORE token comparison to prevent brute-force attacks.
+		// This is stricter than webhook POST rate limit since verification is a one-time setup,
+		// and failed attempts could indicate token enumeration attacks.
+		$rate_limit_check = $this->check_rate_limit_verification();
+		if ( is_wp_error( $rate_limit_check ) ) {
+			WCH_Logger::log(
+				'warning',
+				'Webhook verification rate limit exceeded',
+				'webhook',
+				array(
+					'client_ip' => $this->get_client_ip(),
+				)
+			);
+			return $rate_limit_check;
+		}
+
 		// Get query parameters.
 		$mode      = $request->get_param( 'hub_mode' );
 		$token     = $request->get_param( 'hub_verify_token' );
@@ -133,6 +158,14 @@ class WCH_Webhook_Handler extends WCH_REST_Controller {
 	}
 
 	/**
+	 * Maximum webhook payload size in bytes (1MB).
+	 * WhatsApp webhooks should never exceed this size.
+	 *
+	 * @var int
+	 */
+	private const MAX_PAYLOAD_SIZE = 1048576;
+
+	/**
 	 * Handle incoming webhook events.
 	 *
 	 * Validates signature, checks idempotency, and processes events asynchronously.
@@ -141,6 +174,37 @@ class WCH_Webhook_Handler extends WCH_REST_Controller {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function handle_webhook( $request ) {
+		// SECURITY: Validate payload size FIRST to prevent memory exhaustion DoS.
+		// Must be checked before any parsing or processing.
+		$body = $request->get_body();
+		$payload_size = strlen( $body );
+
+		if ( $payload_size > self::MAX_PAYLOAD_SIZE ) {
+			WCH_Logger::log(
+				'warning',
+				'Webhook payload size exceeded',
+				'webhook',
+				array(
+					'size'      => $payload_size,
+					'max_size'  => self::MAX_PAYLOAD_SIZE,
+				)
+			);
+			return new WP_Error(
+				'wch_webhook_payload_too_large',
+				__( 'Webhook payload exceeds maximum allowed size.', 'whatsapp-commerce-hub' ),
+				array( 'status' => 413 )
+			);
+		}
+
+		// SECURITY: Reject empty payloads early.
+		if ( $payload_size === 0 ) {
+			return new WP_Error(
+				'wch_webhook_empty_payload',
+				__( 'Webhook payload cannot be empty.', 'whatsapp-commerce-hub' ),
+				array( 'status' => 400 )
+			);
+		}
+
 		// SECURITY: Validate webhook signature FIRST before any other processing.
 		// This prevents attackers from consuming rate limit resources with unsigned requests.
 		$signature_check = $this->check_webhook_signature( $request );
@@ -163,8 +227,7 @@ class WCH_Webhook_Handler extends WCH_REST_Controller {
 			return $rate_limit_check;
 		}
 
-		// Get request body and parse JSON.
-		$body    = $request->get_body();
+		// Parse JSON (body already retrieved above for size check).
 		$payload = json_decode( $body, true );
 
 		if ( json_last_error() !== JSON_ERROR_NONE ) {
@@ -575,35 +638,47 @@ class WCH_Webhook_Handler extends WCH_REST_Controller {
 	}
 
 	/**
-	 * Store raw webhook payload in database for debugging.
+	 * Store raw webhook payload reference for debugging.
+	 *
+	 * SECURITY: Raw payloads contain PII (phone numbers, message content).
+	 * We log only metadata (not the full payload) to minimize data exposure.
+	 * Full payload storage should be done in a dedicated, encrypted table
+	 * with proper access controls and retention policies.
 	 *
 	 * @param string $reference_id Reference ID (message ID or error ID).
 	 * @param string $raw_payload  Raw webhook payload.
 	 * @param string $event_type   Event type (message, status, error).
 	 */
 	private function store_raw_webhook( $reference_id, $raw_payload, $event_type ) {
-		global $wpdb;
+		// SECURITY: Do NOT log raw payloads as they contain PII (phone numbers, messages).
+		// Only log sanitized metadata for debugging purposes.
+		$payload_data = json_decode( $raw_payload, true );
+		$sanitized_meta = array(
+			'reference_id'  => $reference_id,
+			'event_type'    => $event_type,
+			'payload_size'  => strlen( $raw_payload ),
+			'payload_valid' => is_array( $payload_data ),
+		);
 
-		$table_name = $wpdb->prefix . 'wch_messages';
+		// Extract only non-PII metadata from payload for debugging.
+		if ( is_array( $payload_data ) ) {
+			$sanitized_meta['object_type'] = $payload_data['object'] ?? 'unknown';
+			$sanitized_meta['entry_count'] = isset( $payload_data['entry'] ) ? count( $payload_data['entry'] ) : 0;
+		}
 
-		// Store as a special record for debugging.
-		// We'll use direction='inbound' for webhook raw data.
-		// Note: This will insert a raw webhook data record, not a regular message.
-		// For production, you might want a separate table or field for raw webhooks.
-
-		// For now, we'll log it instead of storing in messages table
-		// to avoid schema conflicts.
 		WCH_Logger::log(
 			'debug',
-			'Raw webhook payload stored',
+			'Webhook payload received',
 			'webhook',
-			array(
-				'reference_id' => $reference_id,
-				'event_type'   => $event_type,
-				'payload_size' => strlen( $raw_payload ),
-				'payload'      => $raw_payload,
-			)
+			$sanitized_meta
 		);
+
+		// NOTE: If full payload storage is needed for debugging/compliance,
+		// store in a dedicated encrypted table with:
+		// - Access limited to administrators only
+		// - Automatic expiration/cleanup (e.g., 7 days)
+		// - Encryption at rest
+		// - Audit logging of access
 	}
 
 	/**
@@ -667,5 +742,83 @@ class WCH_Webhook_Handler extends WCH_REST_Controller {
 				)
 			);
 		}
+	}
+
+	/**
+	 * Check rate limit specifically for webhook verification endpoint.
+	 *
+	 * SECURITY: Uses a stricter rate limit than normal endpoints because:
+	 * 1. Webhook verification is a one-time setup operation
+	 * 2. Repeated verification attempts may indicate brute-force token guessing
+	 * 3. Even failed attempts consume server resources with token comparison
+	 *
+	 * @return bool|WP_Error True if within limit, WP_Error if limit exceeded.
+	 */
+	protected function check_rate_limit_verification() {
+		$client_id = $this->get_client_identifier();
+		$limit     = self::VERIFY_RATE_LIMIT;
+
+		// Try to use the new database-backed RateLimiter if available.
+		if ( function_exists( 'wch_get_container' ) ) {
+			try {
+				$container = wch_get_container();
+				$limiter_class = '\\WhatsAppCommerceHub\\Security\\RateLimiter';
+				if ( $container->has( $limiter_class ) ) {
+					$rate_limiter = $container->get( $limiter_class );
+					// Use checkAndHit() for atomic check + record.
+					$result = $rate_limiter->checkAndHit( $client_id, 'webhook_verify', $limit, 60 );
+
+					if ( ! $result['allowed'] ) {
+						return new WP_Error(
+							'wch_webhook_verify_rate_limit',
+							sprintf(
+								/* translators: %d: rate limit */
+								__( 'Too many verification attempts. Maximum %d per minute allowed.', 'whatsapp-commerce-hub' ),
+								$limit
+							),
+							array(
+								'status'      => 429,
+								'retry_after' => $result['retry_after'] ?? 60,
+							)
+						);
+					}
+
+					return true;
+				}
+			} catch ( \Throwable $e ) {
+				// Fall through to transient-based fallback.
+				do_action( 'wch_log_warning', sprintf(
+					'Webhook verification rate limiter fallback: %s',
+					$e->getMessage()
+				) );
+			}
+		}
+
+		// Fallback: Transient-based rate limiting.
+		$transient_key = 'wch_verify_limit_' . md5( $client_id );
+		$count         = get_transient( $transient_key );
+
+		if ( false === $count ) {
+			set_transient( $transient_key, 1, MINUTE_IN_SECONDS );
+			return true;
+		}
+
+		if ( $count >= $limit ) {
+			return new WP_Error(
+				'wch_webhook_verify_rate_limit',
+				sprintf(
+					/* translators: %d: rate limit */
+					__( 'Too many verification attempts. Maximum %d per minute allowed.', 'whatsapp-commerce-hub' ),
+					$limit
+				),
+				array(
+					'status'      => 429,
+					'retry_after' => 60,
+				)
+			);
+		}
+
+		set_transient( $transient_key, $count + 1, MINUTE_IN_SECONDS );
+		return true;
 	}
 }

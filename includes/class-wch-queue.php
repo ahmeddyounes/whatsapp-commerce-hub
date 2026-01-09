@@ -247,15 +247,22 @@ class WCH_Queue {
 
 	/**
 	 * Process webhook messages event.
+	 * Delegates to WebhookMessageProcessor if available via DI container.
 	 *
 	 * @param array $args Arguments containing message data.
 	 */
 	public function process_webhook_messages( $args ) {
+		// Try to delegate to the new processor via container.
+		if ( $this->delegateToProcessor( 'wch.processor.webhook_message', $args ) ) {
+			return;
+		}
+
+		// Fallback: log the event (legacy behavior).
 		$data = $args['data'] ?? array();
 
 		WCH_Logger::log(
 			'info',
-			'Processing webhook message event',
+			'Processing webhook message event (legacy)',
 			'queue',
 			array(
 				'message_id' => $data['message_id'] ?? '',
@@ -263,58 +270,73 @@ class WCH_Queue {
 				'type'       => $data['type'] ?? '',
 			)
 		);
-
-		// TODO: Implement actual message processing logic when conversation handler is available.
-		// This is a placeholder for future implementation.
 	}
 
 	/**
 	 * Process webhook status event.
 	 *
+	 * Delegates to WebhookStatusProcessor if available via DI container.
+	 *
 	 * @param array $args Arguments containing status data.
 	 */
 	public function process_webhook_statuses( $args ) {
+		// Try to delegate to the new processor via container.
+		if ( $this->delegateToProcessor( 'wch.processor.webhook_status', $args ) ) {
+			return;
+		}
+
+		// Fallback: log the event (legacy behavior).
 		$data = $args['data'] ?? array();
 
 		WCH_Logger::log(
 			'info',
-			'Processing webhook status event',
+			'Processing webhook status event (legacy)',
 			'queue',
 			array(
 				'message_id' => $data['message_id'] ?? '',
 				'status'     => $data['status'] ?? '',
 			)
 		);
-
-		// TODO: Implement actual status update logic when message handler is available.
-		// This is a placeholder for future implementation.
 	}
 
 	/**
 	 * Process webhook error event.
 	 *
+	 * Delegates to WebhookErrorProcessor if available via DI container.
+	 *
 	 * @param array $args Arguments containing error data.
 	 */
 	public function process_webhook_errors( $args ) {
+		// Try to delegate to the new processor via container.
+		if ( $this->delegateToProcessor( 'wch.processor.webhook_error', $args ) ) {
+			return;
+		}
+
+		// Fallback: log the event (legacy behavior).
 		$data = $args['data'] ?? array();
 
 		WCH_Logger::log(
 			'error',
-			'Processing webhook error event',
+			'Processing webhook error event (legacy)',
 			'queue',
 			$data
 		);
-
-		// TODO: Implement actual error handling logic when error handler is available.
-		// This is a placeholder for future implementation.
 	}
 
 	/**
 	 * Send order notification to customer.
 	 *
+	 * Delegates to OrderNotificationProcessor if available via DI container.
+	 *
 	 * @param array $args Arguments containing notification data.
 	 */
 	public function send_order_notification( $args ) {
+		// Try to delegate to the new processor via container.
+		if ( $this->delegateToProcessor( 'wch.processor.order_notification', $args ) ) {
+			return;
+		}
+
+		// Fallback: legacy behavior with basic logging.
 		$customer_phone = $args['customer_phone'] ?? '';
 		$template_name  = $args['template_name'] ?? '';
 		$order_id       = $args['order_id'] ?? 0;
@@ -329,7 +351,7 @@ class WCH_Queue {
 		}
 
 		WCH_Logger::info(
-			'Processing order notification',
+			'Processing order notification (legacy)',
 			'queue',
 			array(
 				'customer_phone' => $customer_phone,
@@ -337,9 +359,44 @@ class WCH_Queue {
 				'order_id'       => $order_id,
 			)
 		);
+	}
 
-		// TODO: Implement actual notification sending when WhatsApp API integration is complete.
-		// This is a placeholder for future implementation.
+	/**
+	 * Delegate job processing to a container-registered processor.
+	 *
+	 * @param string $processorKey The container key for the processor.
+	 * @param array  $args         The job arguments.
+	 * @return bool True if delegation succeeded, false if fallback needed.
+	 */
+	private function delegateToProcessor( string $processorKey, array $args ): bool {
+		if ( ! function_exists( 'wch_get_container' ) ) {
+			return false;
+		}
+
+		try {
+			$container = wch_get_container();
+			if ( ! $container->has( $processorKey ) ) {
+				return false;
+			}
+
+			$processor = $container->get( $processorKey );
+			if ( method_exists( $processor, 'execute' ) ) {
+				$processor->execute( $args );
+				return true;
+			}
+		} catch ( \Throwable $e ) {
+			WCH_Logger::log(
+				'warning',
+				'Processor delegation failed, using legacy handler',
+				'queue',
+				array(
+					'processor' => $processorKey,
+					'error'     => $e->getMessage(),
+				)
+			);
+		}
+
+		return false;
 	}
 
 	/**

@@ -463,10 +463,7 @@ class CheckoutService implements CheckoutServiceInterface {
 				if ( ! empty( $state['coupon_code'] ) ) {
 					$coupon = new \WC_Coupon( $state['coupon_code'] );
 					if ( $coupon->get_id() ) {
-						$discount = $coupon->get_amount();
-						if ( $coupon->is_type( 'percent' ) ) {
-							$discount = $subtotal * ( $discount / 100 );
-						}
+						$discount = $this->calculateCouponDiscount( $coupon, $subtotal );
 					}
 				}
 			}
@@ -748,10 +745,7 @@ class CheckoutService implements CheckoutServiceInterface {
 			$subtotal = $cart ? $cart->total : 0;
 		}
 
-		$discount = $coupon->get_amount();
-		if ( $coupon->is_type( 'percent' ) ) {
-			$discount = $subtotal * ( $discount / 100 );
-		}
+		$discount = $this->calculateCouponDiscount( $coupon, $subtotal );
 
 		// Update state.
 		$state['coupon_code'] = $coupon_code;
@@ -784,6 +778,50 @@ class CheckoutService implements CheckoutServiceInterface {
 		$this->saveState( $phone, $state );
 
 		return true;
+	}
+
+	/**
+	 * Calculate the actual discount amount from a coupon.
+	 *
+	 * SECURITY: This method properly respects the coupon's maximum_amount cap.
+	 * Without this, a "10% off (max $50)" coupon on a $1000 order would give
+	 * $100 discount instead of the intended $50 max.
+	 *
+	 * @param \WC_Coupon $coupon   Coupon object.
+	 * @param float      $subtotal Order subtotal.
+	 * @return float Calculated discount amount.
+	 */
+	private function calculateCouponDiscount( \WC_Coupon $coupon, float $subtotal ): float {
+		$discount = $coupon->get_amount();
+
+		// Calculate percentage discount.
+		if ( $coupon->is_type( 'percent' ) ) {
+			$discount = $subtotal * ( $discount / 100 );
+		}
+
+		// SECURITY: Apply maximum amount cap if set.
+		// This prevents percentage coupons from giving more discount than intended.
+		$maxAmount = $coupon->get_maximum_amount();
+		if ( $maxAmount > 0 && $discount > $maxAmount ) {
+			$this->log(
+				'Coupon discount capped by maximum_amount',
+				array(
+					'coupon_code'       => $coupon->get_code(),
+					'calculated'        => $discount,
+					'max_amount'        => $maxAmount,
+					'subtotal'          => $subtotal,
+				)
+			);
+			$discount = $maxAmount;
+		}
+
+		// Ensure discount doesn't exceed subtotal.
+		if ( $discount > $subtotal ) {
+			$discount = $subtotal;
+		}
+
+		// Ensure non-negative.
+		return max( 0.0, $discount );
 	}
 
 	/**

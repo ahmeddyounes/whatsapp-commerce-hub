@@ -24,6 +24,60 @@ class WCH_Job_Dispatcher {
 	const GROUP_NAME = 'wch';
 
 	/**
+	 * Internal system hooks that bypass capability checks.
+	 * These are only triggered by internal WordPress hooks, not user actions.
+	 *
+	 * @var array
+	 */
+	private static $internal_hooks = array(
+		'wch_process_webhook_message',
+		'wch_process_webhook_status',
+		'wch_process_webhook_error',
+		'wch_send_order_notification',
+		'wch_process_abandoned_cart',
+		'wch_sync_product_batch',
+		'wch_cleanup_expired_carts',
+		'wch_send_broadcast_batch',
+	);
+
+	/**
+	 * SECURITY: Check if the current context is allowed to dispatch jobs.
+	 *
+	 * Returns true if:
+	 * - Running from CLI (WP-CLI, cron)
+	 * - Running from Action Scheduler callback
+	 * - User has manage_woocommerce capability
+	 * - Hook is in the internal whitelist
+	 *
+	 * @param string $hook The hook being dispatched.
+	 * @return bool True if allowed.
+	 */
+	private static function can_dispatch_jobs( $hook = '' ) {
+		// Allow CLI context (WP-CLI, cron jobs).
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+			return true;
+		}
+
+		// Allow cron context.
+		if ( defined( 'DOING_CRON' ) && DOING_CRON ) {
+			return true;
+		}
+
+		// Allow Action Scheduler callbacks (internal job chaining).
+		if ( did_action( 'action_scheduler_run_queue' ) ) {
+			return true;
+		}
+
+		// Allow internal hooks without user check (they're triggered by system events).
+		if ( ! empty( $hook ) && in_array( $hook, self::$internal_hooks, true ) ) {
+			return true;
+		}
+
+		// Otherwise, require admin capability.
+		return current_user_can( 'manage_woocommerce' );
+	}
+
+	/**
 	 * Dispatch a single job.
 	 *
 	 * @param string $hook          Action hook name.
@@ -32,6 +86,21 @@ class WCH_Job_Dispatcher {
 	 * @return int Action ID on success, 0 on failure.
 	 */
 	public static function dispatch( $hook, $args = array(), $delay_seconds = 0 ) {
+		// SECURITY: Verify dispatch authorization.
+		if ( ! self::can_dispatch_jobs( $hook ) ) {
+			WCH_Logger::log(
+				'warning',
+				'Unauthorized job dispatch attempt blocked',
+				'queue',
+				array(
+					'hook'    => $hook,
+					'user_id' => get_current_user_id(),
+					'ip'      => isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : 'unknown',
+				)
+			);
+			return 0;
+		}
+
 		if ( ! function_exists( 'as_schedule_single_action' ) ) {
 			WCH_Logger::log(
 				'error',
@@ -147,6 +216,20 @@ class WCH_Job_Dispatcher {
 	 * @return int Number of cancelled actions.
 	 */
 	public static function cancel( $hook, $args = array() ) {
+		// SECURITY: Cancelling jobs requires admin privileges.
+		if ( ! self::can_dispatch_jobs( $hook ) ) {
+			WCH_Logger::log(
+				'warning',
+				'Unauthorized job cancel attempt blocked',
+				'queue',
+				array(
+					'hook'    => $hook,
+					'user_id' => get_current_user_id(),
+				)
+			);
+			return 0;
+		}
+
 		if ( ! function_exists( 'as_unschedule_action' ) ) {
 			return 0;
 		}
@@ -280,6 +363,21 @@ class WCH_Job_Dispatcher {
 	 * @return int New action ID on success, 0 on failure.
 	 */
 	public static function retry_failed_job( $action_id ) {
+		// SECURITY: Retrying jobs requires admin privileges.
+		// Pass empty hook to require admin check (no whitelist bypass).
+		if ( ! self::can_dispatch_jobs( '' ) ) {
+			WCH_Logger::log(
+				'warning',
+				'Unauthorized job retry attempt blocked',
+				'queue',
+				array(
+					'action_id' => $action_id,
+					'user_id'   => get_current_user_id(),
+				)
+			);
+			return 0;
+		}
+
 		if ( ! function_exists( 'ActionScheduler_Store' ) ) {
 			return 0;
 		}

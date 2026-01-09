@@ -1,0 +1,177 @@
+<?php
+/**
+ * API Exception Class
+ *
+ * Exception for WhatsApp Graph API errors.
+ *
+ * @package WhatsApp_Commerce_Hub
+ * @since 3.0.0
+ */
+
+declare(strict_types=1);
+
+namespace WhatsAppCommerceHub\Exceptions;
+
+// Exit if accessed directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/**
+ * Class ApiException
+ *
+ * Custom exception for WhatsApp Graph API errors.
+ */
+class ApiException extends WchException {
+
+	/**
+	 * Graph API error code.
+	 *
+	 * @var int|null
+	 */
+	protected ?int $apiErrorCode;
+
+	/**
+	 * Graph API error type.
+	 *
+	 * @var string|null
+	 */
+	protected ?string $apiErrorType;
+
+	/**
+	 * Graph API error subcode.
+	 *
+	 * @var int|null
+	 */
+	protected ?int $apiErrorSubcode;
+
+	/**
+	 * Constructor.
+	 *
+	 * @param string          $message         Exception message.
+	 * @param int|null        $apiErrorCode    Graph API error code.
+	 * @param string|null     $apiErrorType    Graph API error type.
+	 * @param int|null        $apiErrorSubcode Graph API error subcode.
+	 * @param int             $httpStatus      HTTP status code.
+	 * @param array           $context         Additional context data.
+	 * @param \Throwable|null $previous        Previous exception.
+	 */
+	public function __construct(
+		string $message = '',
+		?int $apiErrorCode = null,
+		?string $apiErrorType = null,
+		?int $apiErrorSubcode = null,
+		int $httpStatus = 500,
+		array $context = array(),
+		?\Throwable $previous = null
+	) {
+		$errorCode = 'api_error';
+		if ( null !== $apiErrorCode ) {
+			$errorCode = 'api_error_' . $apiErrorCode;
+		}
+
+		parent::__construct( $message, $errorCode, $httpStatus, $context, 0, $previous );
+
+		$this->apiErrorCode    = $apiErrorCode;
+		$this->apiErrorType    = $apiErrorType;
+		$this->apiErrorSubcode = $apiErrorSubcode;
+	}
+
+	/**
+	 * Get Graph API error code.
+	 *
+	 * @return int|null
+	 */
+	public function getApiErrorCode(): ?int {
+		return $this->apiErrorCode;
+	}
+
+	/**
+	 * Get Graph API error type.
+	 *
+	 * @return string|null
+	 */
+	public function getApiErrorType(): ?string {
+		return $this->apiErrorType;
+	}
+
+	/**
+	 * Get Graph API error subcode.
+	 *
+	 * @return int|null
+	 */
+	public function getApiErrorSubcode(): ?int {
+		return $this->apiErrorSubcode;
+	}
+
+	/**
+	 * Check if this is a rate limit error.
+	 *
+	 * @return bool
+	 */
+	public function isRateLimitError(): bool {
+		$rateLimitCodes = array( 4, 17, 32, 613, 130429, 131048, 131056 );
+		return in_array( $this->apiErrorCode, $rateLimitCodes, true );
+	}
+
+	/**
+	 * Check if this is an authentication error.
+	 *
+	 * @return bool
+	 */
+	public function isAuthError(): bool {
+		$authCodes = array( 190, 200, 10, 100 );
+		return in_array( $this->apiErrorCode, $authCodes, true );
+	}
+
+	/**
+	 * Check if this is a temporary error that can be retried.
+	 *
+	 * @return bool
+	 */
+	public function isRetryable(): bool {
+		// Rate limits and temporary failures are retryable.
+		if ( $this->isRateLimitError() ) {
+			return true;
+		}
+
+		// 5xx errors are generally retryable.
+		if ( $this->httpStatus >= 500 && $this->httpStatus < 600 ) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function toArray( bool $includeTrace = false ): array {
+		$data = parent::toArray( $includeTrace );
+
+		$data['api_error_code']    = $this->apiErrorCode;
+		$data['api_error_type']    = $this->apiErrorType;
+		$data['api_error_subcode'] = $this->apiErrorSubcode;
+
+		return $data;
+	}
+
+	/**
+	 * Create from API response error.
+	 *
+	 * @param array $error   Error data from API response.
+	 * @param int   $status  HTTP status code.
+	 * @param array $context Additional context.
+	 * @return static
+	 */
+	public static function fromApiResponse( array $error, int $status = 500, array $context = array() ): static {
+		return new static(
+			$error['message'] ?? 'Unknown API error',
+			isset( $error['code'] ) ? (int) $error['code'] : null,
+			$error['type'] ?? null,
+			isset( $error['error_subcode'] ) ? (int) $error['error_subcode'] : null,
+			$status,
+			$context
+		);
+	}
+}

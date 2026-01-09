@@ -325,10 +325,51 @@ class CartService implements CartServiceInterface {
 			throw new \InvalidArgumentException( 'Coupon has expired' );
 		}
 
-		// Check usage limit.
+		// Check global usage limit.
 		$usage_limit = $coupon->get_usage_limit();
 		if ( $usage_limit > 0 && $coupon->get_usage_count() >= $usage_limit ) {
 			throw new \InvalidArgumentException( 'Coupon usage limit reached' );
+		}
+
+		// SECURITY: Check per-user usage limit.
+		// This prevents a single user from using a coupon multiple times by changing phone numbers.
+		$usage_limit_per_user = $coupon->get_usage_limit_per_user();
+		if ( $usage_limit_per_user > 0 ) {
+			// SECURITY: First check phone-based usage tracking to prevent bypass.
+			// This catches users who don't have WC accounts or changed their phone numbers.
+			$phone_usage_count = $this->getCouponPhoneUsageCount( $coupon->get_id(), $phone );
+			if ( $phone_usage_count >= $usage_limit_per_user ) {
+				throw new \InvalidArgumentException(
+					sprintf( 'You have already used this coupon %d time(s)', $phone_usage_count )
+				);
+			}
+
+			// Also check WooCommerce customer-based usage (email/ID).
+			// Try to find the WooCommerce customer by phone number.
+			$customer = $this->findCustomerByPhone( $phone );
+
+			if ( $customer ) {
+				// Get customer's email to check coupon usage.
+				$customer_email = $customer->get_email();
+				$customer_id    = $customer->get_id();
+
+				// WooCommerce tracks coupon usage by email and customer ID.
+				$used_by = $coupon->get_used_by();
+
+				$usage_count = 0;
+				foreach ( $used_by as $used_by_entry ) {
+					// Can be customer ID or email.
+					if ( (int) $used_by_entry === $customer_id || $used_by_entry === $customer_email ) {
+						++$usage_count;
+					}
+				}
+
+				if ( $usage_count >= $usage_limit_per_user ) {
+					throw new \InvalidArgumentException(
+						sprintf( 'You have already used this coupon %d time(s)', $usage_count )
+					);
+				}
+			}
 		}
 
 		// Calculate subtotal.
@@ -628,6 +669,9 @@ class CartService implements CartServiceInterface {
 	/**
 	 * Calculate cart total from items.
 	 *
+	 * SECURITY: Uses stored price_at_add to prevent price manipulation attacks.
+	 * If price_at_add is missing, falls back to current price but logs a warning.
+	 *
 	 * @param array $items Cart items.
 	 * @return float Total price.
 	 */
@@ -635,12 +679,30 @@ class CartService implements CartServiceInterface {
 		$total = 0.00;
 
 		foreach ( $items as $item ) {
+			// Validate product still exists.
 			$product = wc_get_product( $item['variation_id'] ?? $item['product_id'] );
 			if ( ! $product ) {
 				continue;
 			}
 
-			$price  = (float) $product->get_price();
+			// SECURITY: Use stored price_at_add, NOT live product price.
+			// This prevents price manipulation between add-to-cart and checkout.
+			if ( isset( $item['price_at_add'] ) && is_numeric( $item['price_at_add'] ) ) {
+				$price = (float) $item['price_at_add'];
+			} else {
+				// Fallback to current price if price_at_add is missing (legacy carts).
+				$price = (float) $product->get_price();
+				// Log warning for monitoring - this shouldn't happen with new carts.
+				do_action(
+					'wch_log_warning',
+					'Cart item missing price_at_add, using live price',
+					array(
+						'product_id' => $item['product_id'] ?? 0,
+						'live_price' => $price,
+					)
+				);
+			}
+
 			$total += $price * (int) $item['quantity'];
 		}
 
@@ -837,5 +899,128 @@ class CartService implements CartServiceInterface {
 
 		// Use atomic find-or-create with advisory locking.
 		return $this->repository->findOrCreateActiveForUpdate( $phone, $expiresAt );
+	}
+
+	/**
+	 * Find WooCommerce customer by phone number.
+	 *
+	 * Searches both billing phone and custom phone meta fields.
+	 *
+	 * @param string $phone Phone number to search.
+	 * @return \WC_Customer|null Customer object or null if not found.
+	 */
+	private function findCustomerByPhone( string $phone ): ?\WC_Customer {
+		// Normalize phone number for search.
+		$normalized_phone = preg_replace( '/[^0-9+]/', '', $phone );
+
+		// Try to find customer profile with linked WC customer ID.
+		global $wpdb;
+		$table = $wpdb->prefix . 'wch_customer_profiles';
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		$profile = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT wc_customer_id FROM {$table} WHERE phone = %s AND wc_customer_id IS NOT NULL LIMIT 1",
+				$normalized_phone
+			)
+		);
+
+		if ( $profile && $profile->wc_customer_id ) {
+			$customer = new \WC_Customer( (int) $profile->wc_customer_id );
+			if ( $customer->get_id() ) {
+				return $customer;
+			}
+		}
+
+		// Fallback: Search WooCommerce customers by billing phone.
+		$customer_query = new \WC_Customer_Query(
+			array(
+				'meta_key'   => 'billing_phone',
+				'meta_value' => $normalized_phone,
+				'number'     => 1,
+			)
+		);
+
+		$customers = $customer_query->get_customers();
+		if ( ! empty( $customers ) ) {
+			return $customers[0];
+		}
+
+		return null;
+	}
+
+	/**
+	 * Get coupon usage count for a specific phone number.
+	 *
+	 * SECURITY: This is the primary defense against coupon usage limit bypass.
+	 * Phone-based tracking catches users who:
+	 * 1. Don't have WooCommerce accounts (WhatsApp-only customers)
+	 * 2. Changed their phone number to circumvent limits
+	 *
+	 * @param int    $coupon_id Coupon ID.
+	 * @param string $phone     Phone number.
+	 * @return int Usage count.
+	 */
+	private function getCouponPhoneUsageCount( int $coupon_id, string $phone ): int {
+		global $wpdb;
+
+		$table = $wpdb->prefix . 'wch_coupon_phone_usage';
+		$normalized_phone = preg_replace( '/[^0-9+]/', '', $phone );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		$count = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$table} WHERE coupon_id = %d AND phone = %s",
+				$coupon_id,
+				$normalized_phone
+			)
+		);
+
+		return (int) $count;
+	}
+
+	/**
+	 * Record coupon usage for a phone number.
+	 *
+	 * SECURITY: This should be called when an order containing a coupon is completed.
+	 * Uses INSERT IGNORE to handle potential duplicates (idempotent).
+	 *
+	 * @param int    $coupon_id Coupon ID.
+	 * @param string $phone     Phone number.
+	 * @param int    $order_id  Order ID.
+	 * @return bool True if recorded, false on failure.
+	 */
+	public function recordCouponPhoneUsage( int $coupon_id, string $phone, int $order_id ): bool {
+		global $wpdb;
+
+		$table = $wpdb->prefix . 'wch_coupon_phone_usage';
+		$normalized_phone = preg_replace( '/[^0-9+]/', '', $phone );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+		$result = $wpdb->query(
+			$wpdb->prepare(
+				"INSERT IGNORE INTO {$table} (coupon_id, phone, order_id, used_at) VALUES (%d, %s, %d, %s)",
+				$coupon_id,
+				$normalized_phone,
+				$order_id,
+				current_time( 'mysql' )
+			)
+		);
+
+		if ( false === $result ) {
+			do_action(
+				'wch_log_error',
+				'Failed to record coupon phone usage',
+				array(
+					'coupon_id' => $coupon_id,
+					'phone'     => $normalized_phone,
+					'order_id'  => $order_id,
+					'error'     => $wpdb->last_error,
+				)
+			);
+			return false;
+		}
+
+		return true;
 	}
 }

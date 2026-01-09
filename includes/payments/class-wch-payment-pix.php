@@ -426,6 +426,40 @@ class WCH_Payment_PIX implements WCH_Payment_Gateway {
 							);
 						}
 
+						// SECURITY: Validate payment amount matches order total to prevent underpayment attacks.
+						// MercadoPago uses full currency amount (not cents) for BRL.
+						$paid_amount     = floatval( $payment['transaction_amount'] ?? 0 );
+						$expected_amount = floatval( $order->get_total() );
+
+						// Allow 0.01 BRL tolerance for rounding differences.
+						if ( abs( $paid_amount - $expected_amount ) > 0.01 ) {
+							WCH_Logger::error(
+								'MercadoPago PIX payment amount mismatch - possible fraud attempt',
+								array(
+									'order_id'        => $order_id,
+									'paid_amount'     => $paid_amount,
+									'expected_amount' => $expected_amount,
+									'currency'        => $payment['currency_id'] ?? 'BRL',
+									'transaction_id'  => $payment_id,
+								)
+							);
+							$order->update_status(
+								'on-hold',
+								sprintf(
+									/* translators: %1$s: Paid amount, %2$s: Expected amount */
+									__( 'Payment amount mismatch. Paid: %1$s, Expected: %2$s. Manual review required.', 'whatsapp-commerce-hub' ),
+									$paid_amount,
+									$expected_amount
+								)
+							);
+							return array(
+								'success'  => false,
+								'order_id' => $order_id,
+								'status'   => 'amount_mismatch',
+								'message'  => __( 'Payment amount does not match order total.', 'whatsapp-commerce-hub' ),
+							);
+						}
+
 						$order->payment_complete( $payment_id );
 						$order->add_order_note(
 							sprintf(
@@ -508,6 +542,40 @@ class WCH_Payment_PIX implements WCH_Payment_Gateway {
 						'order_id' => $order->get_id(),
 						'status'   => 'already_completed',
 						'message'  => __( 'Order already paid.', 'whatsapp-commerce-hub' ),
+					);
+				}
+
+				// SECURITY: Validate payment amount matches order total to prevent underpayment attacks.
+				// PagSeguro uses centavos (smallest currency unit, 1/100 of BRL).
+				$paid_amount     = intval( $data['charges'][0]['amount']['value'] ?? 0 );
+				$expected_amount = intval( round( floatval( $order->get_total() ) * 100 ) );
+
+				// Allow 1 centavo tolerance for rounding differences.
+				if ( abs( $paid_amount - $expected_amount ) > 1 ) {
+					WCH_Logger::error(
+						'PagSeguro PIX payment amount mismatch - possible fraud attempt',
+						array(
+							'order_id'        => $order->get_id(),
+							'paid_amount'     => $paid_amount,
+							'expected_amount' => $expected_amount,
+							'currency'        => 'BRL',
+							'transaction_id'  => $data['id'] ?? 'unknown',
+						)
+					);
+					$order->update_status(
+						'on-hold',
+						sprintf(
+							/* translators: %1$s: Paid amount, %2$s: Expected amount */
+							__( 'Payment amount mismatch. Paid: %1$s, Expected: %2$s. Manual review required.', 'whatsapp-commerce-hub' ),
+							$paid_amount / 100,
+							$expected_amount / 100
+						)
+					);
+					return array(
+						'success'  => false,
+						'order_id' => $order->get_id(),
+						'status'   => 'amount_mismatch',
+						'message'  => __( 'Payment amount does not match order total.', 'whatsapp-commerce-hub' ),
 					);
 				}
 
