@@ -241,7 +241,7 @@ class AnalyticsController extends RestController {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error
 	 */
-	public function getSummary( WP_REST_Request $request ) {
+	public function getSummary( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$rateLimitResult = $this->checkRateLimit( 'admin' );
 		if ( is_wp_error( $rateLimitResult ) ) {
 			return $rateLimitResult;
@@ -277,7 +277,7 @@ class AnalyticsController extends RestController {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error
 	 */
-	public function getOrders( WP_REST_Request $request ) {
+	public function getOrders( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$rateLimitResult = $this->checkRateLimit( 'admin' );
 		if ( is_wp_error( $rateLimitResult ) ) {
 			return $rateLimitResult;
@@ -313,7 +313,7 @@ class AnalyticsController extends RestController {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error
 	 */
-	public function getRevenue( WP_REST_Request $request ) {
+	public function getRevenue( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$rateLimitResult = $this->checkRateLimit( 'admin' );
 		if ( is_wp_error( $rateLimitResult ) ) {
 			return $rateLimitResult;
@@ -349,7 +349,7 @@ class AnalyticsController extends RestController {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error
 	 */
-	public function getTopProducts( WP_REST_Request $request ) {
+	public function getTopProducts( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$rateLimitResult = $this->checkRateLimit( 'admin' );
 		if ( is_wp_error( $rateLimitResult ) ) {
 			return $rateLimitResult;
@@ -386,7 +386,7 @@ class AnalyticsController extends RestController {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error
 	 */
-	public function getConversations( WP_REST_Request $request ) {
+	public function getConversations( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$rateLimitResult = $this->checkRateLimit( 'admin' );
 		if ( is_wp_error( $rateLimitResult ) ) {
 			return $rateLimitResult;
@@ -422,7 +422,7 @@ class AnalyticsController extends RestController {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error
 	 */
-	public function getMetrics( WP_REST_Request $request ) {
+	public function getMetrics( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$rateLimitResult = $this->checkRateLimit( 'admin' );
 		if ( is_wp_error( $rateLimitResult ) ) {
 			return $rateLimitResult;
@@ -458,7 +458,7 @@ class AnalyticsController extends RestController {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error
 	 */
-	public function getCustomerInsights( WP_REST_Request $request ) {
+	public function getCustomerInsights( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$rateLimitResult = $this->checkRateLimit( 'admin' );
 		if ( is_wp_error( $rateLimitResult ) ) {
 			return $rateLimitResult;
@@ -494,7 +494,7 @@ class AnalyticsController extends RestController {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error
 	 */
-	public function getFunnel( WP_REST_Request $request ) {
+	public function getFunnel( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$rateLimitResult = $this->checkRateLimit( 'admin' );
 		if ( is_wp_error( $rateLimitResult ) ) {
 			return $rateLimitResult;
@@ -530,7 +530,7 @@ class AnalyticsController extends RestController {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error
 	 */
-	public function exportData( WP_REST_Request $request ) {
+	public function exportData( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$rateLimitResult = $this->checkRateLimit( 'admin' );
 		if ( is_wp_error( $rateLimitResult ) ) {
 			return $rateLimitResult;

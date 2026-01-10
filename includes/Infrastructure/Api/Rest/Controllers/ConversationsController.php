@@ -248,7 +248,7 @@ class ConversationsController extends RestController {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error
 	 */
-	public function getConversations( WP_REST_Request $request ) {
+	public function getConversations( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$rateLimitResult = $this->checkRateLimit( 'admin' );
 		if ( is_wp_error( $rateLimitResult ) ) {
 			return $rateLimitResult;
@@ -354,7 +354,7 @@ class ConversationsController extends RestController {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error
 	 */
-	public function getConversation( WP_REST_Request $request ) {
+	public function getConversation( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$rateLimitResult = $this->checkRateLimit( 'admin' );
 		if ( is_wp_error( $rateLimitResult ) ) {
 			return $rateLimitResult;
@@ -413,7 +413,7 @@ class ConversationsController extends RestController {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error
 	 */
-	public function getMessages( WP_REST_Request $request ) {
+	public function getMessages( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$rateLimitResult = $this->checkRateLimit( 'admin' );
 		if ( is_wp_error( $rateLimitResult ) ) {
 			return $rateLimitResult;
@@ -465,7 +465,7 @@ class ConversationsController extends RestController {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error
 	 */
-	public function sendMessage( WP_REST_Request $request ) {
+	public function sendMessage( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$rateLimitResult = $this->checkRateLimit( 'admin' );
 		if ( is_wp_error( $rateLimitResult ) ) {
 			return $rateLimitResult;
@@ -538,7 +538,7 @@ class ConversationsController extends RestController {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error
 	 */
-	public function updateConversation( WP_REST_Request $request ) {
+	public function updateConversation( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$rateLimitResult = $this->checkRateLimit( 'admin' );
 		if ( is_wp_error( $rateLimitResult ) ) {
 			return $rateLimitResult;
@@ -613,7 +613,7 @@ class ConversationsController extends RestController {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error
 	 */
-	public function bulkUpdate( WP_REST_Request $request ) {
+	public function bulkUpdate( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$rateLimitResult = $this->checkRateLimit( 'admin' );
 		if ( is_wp_error( $rateLimitResult ) ) {
 			return $rateLimitResult;
@@ -732,7 +732,7 @@ class ConversationsController extends RestController {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error
 	 */
-	public function suggestReply( WP_REST_Request $request ) {
+	public function suggestReply( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$rateLimitResult = $this->checkRateLimit( 'admin' );
 		if ( is_wp_error( $rateLimitResult ) ) {
 			return $rateLimitResult;
