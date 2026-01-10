@@ -80,7 +80,7 @@ class CartRecoveredHandler implements EventHandlerInterface {
 				$customer_service->update_customer_profile(
 					$payload['customer_phone'],
 					array(
-						'cart_recovery_count' => ( $profile['cart_recovery_count'] ?? 0 ) + 1,
+						'cart_recovery_count'    => ( $profile['cart_recovery_count'] ?? 0 ) + 1,
 						'last_cart_recovered_at' => current_time( 'mysql' ),
 					)
 				);

@@ -476,24 +476,32 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 	 * {@inheritdoc}
 	 */
 	public function updateCatalogProduct( string $catalog_id, string $product_id, array $product_data ): array {
-		return $this->request( 'POST', $catalog_id . '/products', array_merge(
-			$product_data,
-			array( 'retailer_id' => $product_id )
-		) );
+		return $this->request(
+			'POST',
+			$catalog_id . '/products',
+			array_merge(
+				$product_data,
+				array( 'retailer_id' => $product_id )
+			)
+		);
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
 	public function deleteCatalogProduct( string $catalog_id, string $product_id ): array {
-		return $this->request( 'DELETE', $catalog_id . '/products', array(
-			'requests' => array(
-				array(
-					'method'      => 'DELETE',
-					'retailer_id' => $product_id,
+		return $this->request(
+			'DELETE',
+			$catalog_id . '/products',
+			array(
+				'requests' => array(
+					array(
+						'method'      => 'DELETE',
+						'retailer_id' => $product_id,
+					),
 				),
-			),
-		) );
+			)
+		);
 	}
 
 	/**
@@ -690,7 +698,7 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 
 			$response = wp_remote_request( $url, $args );
 
-			$duration_ms = (int) ( ( microtime( true ) - $start ) * 1000 );
+			$duration_ms        = (int) ( ( microtime( true ) - $start ) * 1000 );
 			$this->last_request = array(
 				'url'         => $url,
 				'method'      => $method,
@@ -786,7 +794,7 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 			);
 		}
 
-		$body = '--' . $boundary . "\r\n";
+		$body  = '--' . $boundary . "\r\n";
 		$body .= 'Content-Disposition: form-data; name="messaging_product"' . "\r\n\r\n";
 		$body .= 'whatsapp' . "\r\n";
 

@@ -68,12 +68,12 @@ final class PaymentResult {
 	/**
 	 * Constructor.
 	 *
-	 * @param bool        $success       Success status.
-	 * @param string      $transactionId Transaction ID.
-	 * @param string      $paymentUrl    Payment URL.
-	 * @param string      $message       Customer message.
-	 * @param array|null  $error         Error details.
-	 * @param array       $metadata      Additional metadata.
+	 * @param bool       $success       Success status.
+	 * @param string     $transactionId Transaction ID.
+	 * @param string     $paymentUrl    Payment URL.
+	 * @param string     $message       Customer message.
+	 * @param array|null $error         Error details.
+	 * @param array      $metadata      Additional metadata.
 	 */
 	private function __construct(
 		bool $success,

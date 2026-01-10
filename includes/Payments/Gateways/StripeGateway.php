@@ -125,7 +125,13 @@ class StripeGateway extends AbstractGateway {
 			);
 			$order->save();
 
-			$this->log( 'Stripe session created', array( 'order_id' => $orderId, 'session_id' => $session['id'] ) );
+			$this->log(
+				'Stripe session created',
+				array(
+					'order_id'   => $orderId,
+					'session_id' => $session['id'],
+				)
+			);
 
 			return PaymentResult::success(
 				$session['id'],
@@ -248,7 +254,10 @@ class StripeGateway extends AbstractGateway {
 		if ( ! $this->orderNeedsPayment( $order ) ) {
 			$this->log(
 				'Stripe webhook skipped - order already paid',
-				array( 'order_id' => $orderId, 'session_id' => $session['id'] ?? '' )
+				array(
+					'order_id'   => $orderId,
+					'session_id' => $session['id'] ?? '',
+				)
 			);
 			return WebhookResult::alreadyCompleted( $orderId, $session['id'] ?? '' );
 		}
@@ -376,7 +385,7 @@ class StripeGateway extends AbstractGateway {
 		}
 
 		// Parse signature header.
-		$elements = explode( ',', $signature );
+		$elements      = explode( ',', $signature );
 		$signatureData = array();
 
 		foreach ( $elements as $element ) {
@@ -386,7 +395,7 @@ class StripeGateway extends AbstractGateway {
 			}
 		}
 
-		$timestamp = $signatureData['t'] ?? '';
+		$timestamp         = $signatureData['t'] ?? '';
 		$expectedSignature = $signatureData['v1'] ?? '';
 
 		if ( empty( $timestamp ) || empty( $expectedSignature ) ) {
@@ -400,7 +409,7 @@ class StripeGateway extends AbstractGateway {
 		}
 
 		// Compute expected signature.
-		$signedPayload = $timestamp . '.' . $payload;
+		$signedPayload     = $timestamp . '.' . $payload;
 		$computedSignature = hash_hmac( 'sha256', $signedPayload, $this->webhookSecret );
 
 		return hash_equals( $expectedSignature, $computedSignature );
@@ -440,12 +449,12 @@ class StripeGateway extends AbstractGateway {
 
 			if ( $paymentIntent ) {
 				$statusMap = array(
-					'succeeded'             => PaymentStatus::COMPLETED,
-					'canceled'              => PaymentStatus::FAILED,
+					'succeeded'               => PaymentStatus::COMPLETED,
+					'canceled'                => PaymentStatus::FAILED,
 					'requires_payment_method' => PaymentStatus::PENDING,
-					'requires_confirmation' => PaymentStatus::PENDING,
-					'requires_action'       => PaymentStatus::PENDING,
-					'processing'            => PaymentStatus::PENDING,
+					'requires_confirmation'   => PaymentStatus::PENDING,
+					'requires_action'         => PaymentStatus::PENDING,
+					'processing'              => PaymentStatus::PENDING,
 				);
 
 				return new PaymentStatus(
@@ -478,7 +487,7 @@ class StripeGateway extends AbstractGateway {
 		// Get payment intent from transaction ID.
 		$paymentIntentId = $transactionId;
 		if ( strpos( $transactionId, 'cs_' ) === 0 ) {
-			$session = $this->stripeRequest( "checkout/sessions/{$transactionId}", array(), 'GET' );
+			$session         = $this->stripeRequest( "checkout/sessions/{$transactionId}", array(), 'GET' );
 			$paymentIntentId = $session['payment_intent'] ?? '';
 		}
 
@@ -492,7 +501,7 @@ class StripeGateway extends AbstractGateway {
 		);
 
 		if ( $reason ) {
-			$data['reason'] = 'requested_by_customer';
+			$data['reason']   = 'requested_by_customer';
 			$data['metadata'] = array( 'reason' => $reason );
 		}
 
@@ -505,7 +514,13 @@ class StripeGateway extends AbstractGateway {
 			);
 		}
 
-		$this->log( 'Stripe refund processed', array( 'order_id' => $orderId, 'refund_id' => $refund['id'] ) );
+		$this->log(
+			'Stripe refund processed',
+			array(
+				'order_id'  => $orderId,
+				'refund_id' => $refund['id'],
+			)
+		);
 
 		return RefundResult::success(
 			$refund['id'],

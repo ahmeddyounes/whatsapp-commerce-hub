@@ -56,150 +56,171 @@ class HealthCheck {
 	 */
 	private function registerDefaultChecks(): void {
 		// Database connectivity check.
-		$this->register( 'database', function (): array {
-			global $wpdb;
+		$this->register(
+			'database',
+			function (): array {
+				global $wpdb;
 
-			$start = microtime( true );
-			$result = $wpdb->get_var( 'SELECT 1' );
-			$latency = ( microtime( true ) - $start ) * 1000;
+				$start   = microtime( true );
+				$result  = $wpdb->get_var( 'SELECT 1' );
+				$latency = ( microtime( true ) - $start ) * 1000;
 
-			return array(
-				'status'  => '1' === $result ? 'healthy' : 'unhealthy',
-				'latency' => round( $latency, 2 ),
-			);
-		} );
+				return array(
+					'status'  => '1' === $result ? 'healthy' : 'unhealthy',
+					'latency' => round( $latency, 2 ),
+				);
+			}
+		);
 
 		// WooCommerce check.
-		$this->register( 'woocommerce', function (): array {
-			return array(
-				'status'  => class_exists( 'WooCommerce' ) ? 'healthy' : 'unhealthy',
-				'version' => defined( 'WC_VERSION' ) ? WC_VERSION : 'unknown',
-			);
-		} );
+		$this->register(
+			'woocommerce',
+			function (): array {
+				return array(
+					'status'  => class_exists( 'WooCommerce' ) ? 'healthy' : 'unhealthy',
+					'version' => defined( 'WC_VERSION' ) ? WC_VERSION : 'unknown',
+				);
+			}
+		);
 
 		// Action Scheduler check.
-		$this->register( 'action_scheduler', function (): array {
-			if ( ! function_exists( 'as_has_scheduled_action' ) ) {
-				return array( 'status' => 'unavailable' );
+		$this->register(
+			'action_scheduler',
+			function (): array {
+				if ( ! function_exists( 'as_has_scheduled_action' ) ) {
+					return array( 'status' => 'unavailable' );
+				}
+
+				global $wpdb;
+				$table = $wpdb->prefix . 'actionscheduler_actions';
+
+				$pending = (int) $wpdb->get_var(
+					"SELECT COUNT(*) FROM {$table} WHERE status = 'pending'"
+				);
+
+				$failed = (int) $wpdb->get_var(
+					"SELECT COUNT(*) FROM {$table} WHERE status = 'failed'"
+				);
+
+				$status = 'healthy';
+				if ( $pending > 1000 ) {
+					$status = 'warning';
+				}
+				if ( $failed > 100 ) {
+					$status = 'degraded';
+				}
+
+				return array(
+					'status'  => $status,
+					'pending' => $pending,
+					'failed'  => $failed,
+				);
 			}
-
-			global $wpdb;
-			$table = $wpdb->prefix . 'actionscheduler_actions';
-
-			$pending = (int) $wpdb->get_var(
-				"SELECT COUNT(*) FROM {$table} WHERE status = 'pending'"
-			);
-
-			$failed = (int) $wpdb->get_var(
-				"SELECT COUNT(*) FROM {$table} WHERE status = 'failed'"
-			);
-
-			$status = 'healthy';
-			if ( $pending > 1000 ) {
-				$status = 'warning';
-			}
-			if ( $failed > 100 ) {
-				$status = 'degraded';
-			}
-
-			return array(
-				'status'  => $status,
-				'pending' => $pending,
-				'failed'  => $failed,
-			);
-		} );
+		);
 
 		// Queue health check.
-		$this->register( 'queue', function (): array {
-			try {
-				$monitor = $this->container->get( JobMonitor::class );
-				$health = $monitor->getHealthStatus();
+		$this->register(
+			'queue',
+			function (): array {
+				try {
+					$monitor = $this->container->get( JobMonitor::class );
+					$health  = $monitor->getHealthStatus();
 
-				return array(
-					'status'     => $health['status'],
-					'pending'    => $health['queue']['totals']['pending'] ?? 0,
-					'throughput' => $health['throughput']['jobs_per_minute'] ?? 0,
-				);
-			} catch ( \Throwable $e ) {
-				return array(
-					'status' => 'error',
-					'error'  => $e->getMessage(),
-				);
+					return array(
+						'status'     => $health['status'],
+						'pending'    => $health['queue']['totals']['pending'] ?? 0,
+						'throughput' => $health['throughput']['jobs_per_minute'] ?? 0,
+					);
+				} catch ( \Throwable $e ) {
+					return array(
+						'status' => 'error',
+						'error'  => $e->getMessage(),
+					);
+				}
 			}
-		} );
+		);
 
 		// Circuit breakers check.
-		$this->register( 'circuit_breakers', function (): array {
-			try {
-				$registry = $this->container->get( CircuitBreakerRegistry::class );
-				$summary = $registry->getHealthSummary();
+		$this->register(
+			'circuit_breakers',
+			function (): array {
+				try {
+					$registry = $this->container->get( CircuitBreakerRegistry::class );
+					$summary  = $registry->getHealthSummary();
 
-				return array(
-					'status' => $summary['status'],
-					'open'   => $summary['open'],
-					'total'  => $summary['total'],
-				);
-			} catch ( \Throwable $e ) {
-				return array(
-					'status' => 'unknown',
-				);
+					return array(
+						'status' => $summary['status'],
+						'open'   => $summary['open'],
+						'total'  => $summary['total'],
+					);
+				} catch ( \Throwable $e ) {
+					return array(
+						'status' => 'unknown',
+					);
+				}
 			}
-		} );
+		);
 
 		// Disk space check.
-		$this->register( 'disk', function (): array {
-			$upload_dir = wp_upload_dir();
-			$path = $upload_dir['basedir'];
+		$this->register(
+			'disk',
+			function (): array {
+				$upload_dir = wp_upload_dir();
+				$path       = $upload_dir['basedir'];
 
-			if ( ! is_dir( $path ) ) {
-				return array( 'status' => 'error' );
+				if ( ! is_dir( $path ) ) {
+					return array( 'status' => 'error' );
+				}
+
+				$free  = disk_free_space( $path );
+				$total = disk_total_space( $path );
+
+				$free_percent = $total > 0 ? ( $free / $total ) * 100 : 0;
+
+				$status = 'healthy';
+				if ( $free_percent < 20 ) {
+					$status = 'warning';
+				}
+				if ( $free_percent < 5 ) {
+					$status = 'critical';
+				}
+
+				return array(
+					'status'       => $status,
+					'free_percent' => round( $free_percent, 1 ),
+					'free_gb'      => round( $free / ( 1024 * 1024 * 1024 ), 2 ),
+				);
 			}
-
-			$free = disk_free_space( $path );
-			$total = disk_total_space( $path );
-
-			$free_percent = $total > 0 ? ( $free / $total ) * 100 : 0;
-
-			$status = 'healthy';
-			if ( $free_percent < 20 ) {
-				$status = 'warning';
-			}
-			if ( $free_percent < 5 ) {
-				$status = 'critical';
-			}
-
-			return array(
-				'status'       => $status,
-				'free_percent' => round( $free_percent, 1 ),
-				'free_gb'      => round( $free / ( 1024 * 1024 * 1024 ), 2 ),
-			);
-		} );
+		);
 
 		// Memory check.
-		$this->register( 'memory', function (): array {
-			$limit = ini_get( 'memory_limit' );
-			$limit_bytes = $this->parseMemoryLimit( $limit );
-			$usage = memory_get_usage( true );
-			$peak = memory_get_peak_usage( true );
+		$this->register(
+			'memory',
+			function (): array {
+				$limit       = ini_get( 'memory_limit' );
+				$limit_bytes = $this->parseMemoryLimit( $limit );
+				$usage       = memory_get_usage( true );
+				$peak        = memory_get_peak_usage( true );
 
-			$usage_percent = $limit_bytes > 0 ? ( $usage / $limit_bytes ) * 100 : 0;
+				$usage_percent = $limit_bytes > 0 ? ( $usage / $limit_bytes ) * 100 : 0;
 
-			$status = 'healthy';
-			if ( $usage_percent > 70 ) {
-				$status = 'warning';
+				$status = 'healthy';
+				if ( $usage_percent > 70 ) {
+					$status = 'warning';
+				}
+				if ( $usage_percent > 90 ) {
+					$status = 'critical';
+				}
+
+				return array(
+					'status'        => $status,
+					'limit'         => $limit,
+					'usage_percent' => round( $usage_percent, 1 ),
+					'usage_mb'      => round( $usage / ( 1024 * 1024 ), 2 ),
+					'peak_mb'       => round( $peak / ( 1024 * 1024 ), 2 ),
+				);
 			}
-			if ( $usage_percent > 90 ) {
-				$status = 'critical';
-			}
-
-			return array(
-				'status'        => $status,
-				'limit'         => $limit,
-				'usage_percent' => round( $usage_percent, 1 ),
-				'usage_mb'      => round( $usage / ( 1024 * 1024 ), 2 ),
-				'peak_mb'       => round( $peak / ( 1024 * 1024 ), 2 ),
-			);
-		} );
+		);
 	}
 
 	/**
@@ -221,8 +242,8 @@ class HealthCheck {
 	 * @return array<string, mixed> Health status.
 	 */
 	public function check(): array {
-		$results = array();
-		$overall_status = 'healthy';
+		$results         = array();
+		$overall_status  = 'healthy';
 		$status_priority = array(
 			'healthy'   => 0,
 			'unknown'   => 1,
@@ -235,12 +256,12 @@ class HealthCheck {
 
 		foreach ( $this->checks as $name => $check ) {
 			try {
-				$start = microtime( true );
-				$result = $check();
+				$start    = microtime( true );
+				$result   = $check();
 				$duration = ( microtime( true ) - $start ) * 1000;
 
 				$result['duration_ms'] = round( $duration, 2 );
-				$results[ $name ] = $result;
+				$results[ $name ]      = $result;
 
 				// Update overall status.
 				$check_status = $result['status'] ?? 'unknown';
@@ -252,7 +273,7 @@ class HealthCheck {
 					'status' => 'error',
 					'error'  => $e->getMessage(),
 				);
-				$overall_status = 'error';
+				$overall_status   = 'error';
 			}
 		}
 
@@ -301,7 +322,7 @@ class HealthCheck {
 		}
 
 		$value = (int) $limit;
-		$unit = substr( $limit, -1 );
+		$unit  = substr( $limit, -1 );
 
 		switch ( $unit ) {
 			case 'g':
@@ -342,8 +363,8 @@ class HealthCheck {
 		$ready = 'healthy' === ( $db['status'] ?? '' ) && 'healthy' === ( $wc['status'] ?? '' );
 
 		return array(
-			'ready'    => $ready,
-			'database' => $db['status'] ?? 'unknown',
+			'ready'       => $ready,
+			'database'    => $db['status'] ?? 'unknown',
 			'woocommerce' => $wc['status'] ?? 'unknown',
 		);
 	}

@@ -88,10 +88,10 @@ class OrderCreatedHandler implements EventHandlerInterface {
 				$customer_service->update_customer_profile(
 					$phone,
 					array(
-						'total_orders'    => ( $profile['total_orders'] ?? 0 ) + 1,
-						'total_spent'     => ( $profile['total_spent'] ?? 0 ) + ( $payload['total'] ?? 0 ),
-						'last_order_at'   => current_time( 'mysql' ),
-						'last_order_id'   => $payload['order_id'] ?? 0,
+						'total_orders'  => ( $profile['total_orders'] ?? 0 ) + 1,
+						'total_spent'   => ( $profile['total_spent'] ?? 0 ) + ( $payload['total'] ?? 0 ),
+						'last_order_at' => current_time( 'mysql' ),
+						'last_order_id' => $payload['order_id'] ?? 0,
 					)
 				);
 			}

@@ -26,11 +26,11 @@ final class WebhookResult {
 	/**
 	 * Payment status constants.
 	 */
-	public const STATUS_COMPLETED        = 'completed';
-	public const STATUS_PENDING          = 'pending';
-	public const STATUS_FAILED           = 'failed';
+	public const STATUS_COMPLETED         = 'completed';
+	public const STATUS_PENDING           = 'pending';
+	public const STATUS_FAILED            = 'failed';
 	public const STATUS_ALREADY_COMPLETED = 'already_completed';
-	public const STATUS_UNKNOWN          = 'unknown';
+	public const STATUS_UNKNOWN           = 'unknown';
 
 	/**
 	 * Whether the webhook was processed successfully.

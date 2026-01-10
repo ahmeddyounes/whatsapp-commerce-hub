@@ -13,10 +13,10 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Features\AbandonedCart;
 
-use WhatsAppCommerceHub\Support\Logger;
+use WhatsAppCommerceHub\Core\Logger;
 
-if (!defined('ABSPATH')) {
-    exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
 }
 
 /**
@@ -24,172 +24,180 @@ if (!defined('ABSPATH')) {
  *
  * Removes expired and stale carts from the database.
  */
-class CleanupHandler
-{
-    /**
-     * Cart expiry time in hours
-     */
-    private const CART_EXPIRY_HOURS = 72;
+class CleanupHandler {
 
-    /**
-     * Constructor
-     *
-     * @param Logger $logger Logger instance
-     */
-    public function __construct(
-        private readonly Logger $logger
-    ) {
-    }
+	/**
+	 * Cart expiry time in hours
+	 */
+	private const CART_EXPIRY_HOURS = 72;
 
-    /**
-     * Process cart cleanup job
-     *
-     * Deletes carts that have been inactive for more than 72 hours.
-     *
-     * @param array<string, mixed> $args Job arguments (not used)
-     */
-    public function process(array $args = []): void
-    {
-        global $wpdb;
+	/**
+	 * Constructor
+	 *
+	 * @param Logger $logger Logger instance
+	 */
+	public function __construct(
+		private readonly Logger $logger
+	) {
+	}
 
-        $this->logger->info('Starting cart cleanup job');
+	/**
+	 * Process cart cleanup job
+	 *
+	 * Deletes carts that have been inactive for more than 72 hours.
+	 *
+	 * @param array<string, mixed> $args Job arguments (not used)
+	 */
+	public function process( array $args = [] ): void {
+		global $wpdb;
 
-        $tableName = $wpdb->prefix . 'wch_carts';
+		$this->logger->info( 'Starting cart cleanup job' );
 
-        // Check if table exists
-        if ($wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $tableName)) !== $tableName) {
-            $this->logger->warning('Cart table does not exist, skipping cleanup');
-            return;
-        }
+		$tableName = $wpdb->prefix . 'wch_carts';
 
-        $expiryTimestamp = time() - (self::CART_EXPIRY_HOURS * HOUR_IN_SECONDS);
-        $expiryDate = gmdate('Y-m-d H:i:s', $expiryTimestamp);
+		// Check if table exists
+		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $tableName ) ) !== $tableName ) {
+			$this->logger->warning( 'Cart table does not exist, skipping cleanup' );
+			return;
+		}
 
-        // Count expired carts
-        $count = (int) $wpdb->get_var(
-            $wpdb->prepare(
-                "SELECT COUNT(*) FROM {$tableName} WHERE updated_at < %s AND status = %s",
-                $expiryDate,
-                'active'
-            )
-        );
+		$expiryTimestamp = time() - ( self::CART_EXPIRY_HOURS * HOUR_IN_SECONDS );
+		$expiryDate      = gmdate( 'Y-m-d H:i:s', $expiryTimestamp );
 
-        if ($count === 0) {
-            $this->logger->info('No expired carts to clean up');
-            return;
-        }
+		// Count expired carts
+		$count = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$tableName} WHERE updated_at < %s AND status = %s",
+				$expiryDate,
+				'active'
+			)
+		);
 
-        // Delete expired carts
-        $deleted = $wpdb->query(
-            $wpdb->prepare(
-                "DELETE FROM {$tableName} WHERE updated_at < %s AND status = %s",
-                $expiryDate,
-                'active'
-            )
-        );
+		if ( $count === 0 ) {
+			$this->logger->info( 'No expired carts to clean up' );
+			return;
+		}
 
-        if ($deleted === false) {
-            $this->logger->error('Failed to delete expired carts', [
-                'error' => $wpdb->last_error,
-            ]);
-            return;
-        }
+		// Delete expired carts
+		$deleted = $wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$tableName} WHERE updated_at < %s AND status = %s",
+				$expiryDate,
+				'active'
+			)
+		);
 
-        $this->logger->info('Cart cleanup completed', [
-            'expired_count' => $count,
-            'deleted_count' => $deleted,
-        ]);
+		if ( $deleted === false ) {
+			$this->logger->error(
+				'Failed to delete expired carts',
+				[
+					'error' => $wpdb->last_error,
+				]
+			);
+			return;
+		}
 
-        // Also clean up abandoned carts older than 30 days
-        $this->cleanupOldAbandonedCarts();
-    }
+		$this->logger->info(
+			'Cart cleanup completed',
+			[
+				'expired_count' => $count,
+				'deleted_count' => $deleted,
+			]
+		);
 
-    /**
-     * Clean up old abandoned carts
-     *
-     * Removes abandoned carts older than 30 days to prevent table bloat.
-     */
-    private function cleanupOldAbandonedCarts(): void
-    {
-        global $wpdb;
-        $tableName = $wpdb->prefix . 'wch_carts';
+		// Also clean up abandoned carts older than 30 days
+		$this->cleanupOldAbandonedCarts();
+	}
 
-        $threshold = gmdate('Y-m-d H:i:s', time() - (30 * DAY_IN_SECONDS));
+	/**
+	 * Clean up old abandoned carts
+	 *
+	 * Removes abandoned carts older than 30 days to prevent table bloat.
+	 */
+	private function cleanupOldAbandonedCarts(): void {
+		global $wpdb;
+		$tableName = $wpdb->prefix . 'wch_carts';
 
-        $deleted = $wpdb->query(
-            $wpdb->prepare(
-                "DELETE FROM {$tableName} WHERE abandoned_at < %s AND status = %s",
-                $threshold,
-                'abandoned'
-            )
-        );
+		$threshold = gmdate( 'Y-m-d H:i:s', time() - ( 30 * DAY_IN_SECONDS ) );
 
-        if ($deleted && $deleted > 0) {
-            $this->logger->info('Cleaned up old abandoned carts', [
-                'deleted_count' => $deleted,
-            ]);
-        }
-    }
+		$deleted = $wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$tableName} WHERE abandoned_at < %s AND status = %s",
+				$threshold,
+				'abandoned'
+			)
+		);
 
-    /**
-     * Clean up recovered carts
-     *
-     * Archives or removes recovered carts older than 90 days.
-     */
-    public function cleanupRecoveredCarts(): void
-    {
-        global $wpdb;
-        $tableName = $wpdb->prefix . 'wch_carts';
+		if ( $deleted && $deleted > 0 ) {
+			$this->logger->info(
+				'Cleaned up old abandoned carts',
+				[
+					'deleted_count' => $deleted,
+				]
+			);
+		}
+	}
 
-        $threshold = gmdate('Y-m-d H:i:s', time() - (90 * DAY_IN_SECONDS));
+	/**
+	 * Clean up recovered carts
+	 *
+	 * Archives or removes recovered carts older than 90 days.
+	 */
+	public function cleanupRecoveredCarts(): void {
+		global $wpdb;
+		$tableName = $wpdb->prefix . 'wch_carts';
 
-        $deleted = $wpdb->query(
-            $wpdb->prepare(
-                "DELETE FROM {$tableName} WHERE recovered_at < %s AND status = %s",
-                $threshold,
-                'recovered'
-            )
-        );
+		$threshold = gmdate( 'Y-m-d H:i:s', time() - ( 90 * DAY_IN_SECONDS ) );
 
-        if ($deleted && $deleted > 0) {
-            $this->logger->info('Cleaned up old recovered carts', [
-                'deleted_count' => $deleted,
-            ]);
-        }
-    }
+		$deleted = $wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$tableName} WHERE recovered_at < %s AND status = %s",
+				$threshold,
+				'recovered'
+			)
+		);
 
-    /**
-     * Get cleanup statistics
-     *
-     * @return array<string, int> Statistics about cart cleanup
-     */
-    public function getCleanupStats(): array
-    {
-        global $wpdb;
-        $tableName = $wpdb->prefix . 'wch_carts';
+		if ( $deleted && $deleted > 0 ) {
+			$this->logger->info(
+				'Cleaned up old recovered carts',
+				[
+					'deleted_count' => $deleted,
+				]
+			);
+		}
+	}
 
-        $expiryDate = gmdate('Y-m-d H:i:s', time() - (self::CART_EXPIRY_HOURS * HOUR_IN_SECONDS));
-        $abandonedThreshold = gmdate('Y-m-d H:i:s', time() - (30 * DAY_IN_SECONDS));
-        $recoveredThreshold = gmdate('Y-m-d H:i:s', time() - (90 * DAY_IN_SECONDS));
+	/**
+	 * Get cleanup statistics
+	 *
+	 * @return array<string, int> Statistics about cart cleanup
+	 */
+	public function getCleanupStats(): array {
+		global $wpdb;
+		$tableName = $wpdb->prefix . 'wch_carts';
 
-        $stats = $wpdb->get_row(
-            $wpdb->prepare(
-                "SELECT 
+		$expiryDate         = gmdate( 'Y-m-d H:i:s', time() - ( self::CART_EXPIRY_HOURS * HOUR_IN_SECONDS ) );
+		$abandonedThreshold = gmdate( 'Y-m-d H:i:s', time() - ( 30 * DAY_IN_SECONDS ) );
+		$recoveredThreshold = gmdate( 'Y-m-d H:i:s', time() - ( 90 * DAY_IN_SECONDS ) );
+
+		$stats = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT 
                     SUM(CASE WHEN updated_at < %s AND status = 'active' THEN 1 ELSE 0 END) as expired_active,
                     SUM(CASE WHEN abandoned_at < %s AND status = 'abandoned' THEN 1 ELSE 0 END) as old_abandoned,
                     SUM(CASE WHEN recovered_at < %s AND status = 'recovered' THEN 1 ELSE 0 END) as old_recovered
                 FROM {$tableName}",
-                $expiryDate,
-                $abandonedThreshold,
-                $recoveredThreshold
-            ),
-            ARRAY_A
-        );
+				$expiryDate,
+				$abandonedThreshold,
+				$recoveredThreshold
+			),
+			ARRAY_A
+		);
 
-        return [
-            'expired_active' => (int) ($stats['expired_active'] ?? 0),
-            'old_abandoned' => (int) ($stats['old_abandoned'] ?? 0),
-            'old_recovered' => (int) ($stats['old_recovered'] ?? 0),
-        ];
-    }
+		return [
+			'expired_active' => (int) ( $stats['expired_active'] ?? 0 ),
+			'old_abandoned'  => (int) ( $stats['old_abandoned'] ?? 0 ),
+			'old_recovered'  => (int) ( $stats['old_recovered'] ?? 0 ),
+		];
+	}
 }

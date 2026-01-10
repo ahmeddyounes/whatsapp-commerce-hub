@@ -468,9 +468,12 @@ class Container implements ContainerInterface {
 	 * @return void
 	 */
 	public function resolving( string $abstract, callable $callback ): void {
-		$this->extend( $abstract, function ( $object, Container $container ) use ( $callback ) {
-			$callback( $object, $container );
-			return $object;
-		} );
+		$this->extend(
+			$abstract,
+			function ( $object, Container $container ) use ( $callback ) {
+				$callback( $object, $container );
+				return $object;
+			}
+		);
 	}
 }

@@ -194,7 +194,7 @@ class ActionResult {
 	 * @return static New instance with message added.
 	 */
 	public function withMessage( mixed $message ): static {
-		$new            = clone $this;
+		$new             = clone $this;
 		$new->messages[] = $message;
 		return $new;
 	}

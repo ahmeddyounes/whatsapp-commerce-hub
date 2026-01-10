@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Infrastructure\Queue\Handlers;
 
-use WhatsAppCommerceHub\Infrastructure\Logging\Logger;
+use WhatsAppCommerceHub\Core\Logger;
 use WhatsAppCommerceHub\Infrastructure\Queue\JobDispatcher;
 
 /**
@@ -14,338 +14,358 @@ use WhatsAppCommerceHub\Infrastructure\Queue\JobDispatcher;
  *
  * @package WhatsAppCommerceHub\Infrastructure\Queue\Handlers
  */
-class SyncJobHandler
-{
-    /**
-     * Maximum retry attempts
-     */
-    private const MAX_RETRIES = 3;
+class SyncJobHandler {
 
-    /**
-     * Retry delays in seconds (exponential backoff)
-     */
-    private const RETRY_DELAYS = [60, 300, 900]; // 1 min, 5 min, 15 min
+	/**
+	 * Maximum retry attempts
+	 */
+	private const MAX_RETRIES = 3;
 
-    /**
-     * Constructor
-     */
-    public function __construct(
-        private readonly Logger $logger,
-        private readonly JobDispatcher $dispatcher
-    ) {
-    }
+	/**
+	 * Retry delays in seconds (exponential backoff)
+	 */
+	private const RETRY_DELAYS = [ 60, 300, 900 ]; // 1 min, 5 min, 15 min
 
-    /**
-     * Process a sync job
-     */
-    public function process(array $args): void
-    {
-        $jobId = $args['job_id'] ?? uniqid('sync_');
-        $syncType = $args['sync_type'] ?? 'unknown';
-        $entityId = $args['entity_id'] ?? null;
-        $retryCount = $args['retry_count'] ?? 0;
+	/**
+	 * Constructor
+	 */
+	public function __construct(
+		private readonly Logger $logger,
+		private readonly JobDispatcher $dispatcher
+	) {
+	}
 
-        $this->logger->info('Processing sync job', [
-            'job_id' => $jobId,
-            'sync_type' => $syncType,
-            'entity_id' => $entityId,
-            'retry_count' => $retryCount,
-        ]);
+	/**
+	 * Process a sync job
+	 */
+	public function process( array $args ): void {
+		$jobId      = $args['job_id'] ?? uniqid( 'sync_' );
+		$syncType   = $args['sync_type'] ?? 'unknown';
+		$entityId   = $args['entity_id'] ?? null;
+		$retryCount = $args['retry_count'] ?? 0;
 
-        try {
-            // Execute the sync
-            $result = $this->executeSync($syncType, $entityId, $args);
+		$this->logger->info(
+			'Processing sync job',
+			[
+				'job_id'      => $jobId,
+				'sync_type'   => $syncType,
+				'entity_id'   => $entityId,
+				'retry_count' => $retryCount,
+			]
+		);
 
-            if ($result['success']) {
-                $this->storeJobResult($jobId, 'success', $result);
+		try {
+			// Execute the sync
+			$result = $this->executeSync( $syncType, $entityId, $args );
 
-                $this->logger->info('Sync job completed successfully', [
-                    'job_id' => $jobId,
-                    'sync_type' => $syncType,
-                    'duration' => $result['duration'] ?? 0,
-                ]);
-            } else {
-                $this->handleFailure($jobId, $syncType, $entityId, $retryCount, $result);
-            }
-        } catch (\Exception $e) {
-            $this->handleFailure(
-                $jobId,
-                $syncType,
-                $entityId,
-                $retryCount,
-                [
-                    'success' => false,
-                    'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString(),
-                ]
-            );
-        }
-    }
+			if ( $result['success'] ) {
+				$this->storeJobResult( $jobId, 'success', $result );
 
-    /**
-     * Execute sync based on type
-     */
-    private function executeSync(string $syncType, ?int $entityId, array $args): array
-    {
-        $startTime = microtime(true);
+				$this->logger->info(
+					'Sync job completed successfully',
+					[
+						'job_id'    => $jobId,
+						'sync_type' => $syncType,
+						'duration'  => $result['duration'] ?? 0,
+					]
+				);
+			} else {
+				$this->handleFailure( $jobId, $syncType, $entityId, $retryCount, $result );
+			}
+		} catch ( \Exception $e ) {
+			$this->handleFailure(
+				$jobId,
+				$syncType,
+				$entityId,
+				$retryCount,
+				[
+					'success' => false,
+					'error'   => $e->getMessage(),
+					'trace'   => $e->getTraceAsString(),
+				]
+			);
+		}
+	}
 
-        $result = match ($syncType) {
-            'product' => $this->syncProduct($entityId, $args),
-            'product_batch' => $this->syncProductBatch($args),
-            'order' => $this->syncOrder($entityId, $args),
-            'inventory' => $this->syncInventory($entityId, $args),
-            'catalog' => $this->syncCatalog($args),
-            default => [
-                'success' => false,
-                'error' => "Unknown sync type: {$syncType}",
-            ],
-        };
+	/**
+	 * Execute sync based on type
+	 */
+	private function executeSync( string $syncType, ?int $entityId, array $args ): array {
+		$startTime = microtime( true );
 
-        $duration = microtime(true) - $startTime;
-        $result['duration'] = round($duration, 2);
+		$result = match ( $syncType ) {
+			'product' => $this->syncProduct( $entityId, $args ),
+			'product_batch' => $this->syncProductBatch( $args ),
+			'order' => $this->syncOrder( $entityId, $args ),
+			'inventory' => $this->syncInventory( $entityId, $args ),
+			'catalog' => $this->syncCatalog( $args ),
+			default => [
+				'success' => false,
+				'error'   => "Unknown sync type: {$syncType}",
+			],
+		};
 
-        return $result;
-    }
+		$duration           = microtime( true ) - $startTime;
+		$result['duration'] = round( $duration, 2 );
 
-    /**
-     * Sync a single product
-     */
-    private function syncProduct(int $productId, array $args): array
-    {
-        if (empty($productId)) {
-            return ['success' => false, 'error' => 'Product ID is required'];
-        }
+		return $result;
+	}
 
-        // Trigger sync action
-        do_action('wch_sync_product', $productId, $args);
+	/**
+	 * Sync a single product
+	 */
+	private function syncProduct( int $productId, array $args ): array {
+		if ( empty( $productId ) ) {
+			return [
+				'success' => false,
+				'error'   => 'Product ID is required',
+			];
+		}
 
-        return [
-            'success' => true,
-            'product_id' => $productId,
-            'synced_at' => time(),
-        ];
-    }
+		// Trigger sync action
+		do_action( 'wch_sync_product', $productId, $args );
 
-    /**
-     * Sync a batch of products
-     */
-    private function syncProductBatch(array $args): array
-    {
-        $productIds = $args['product_ids'] ?? [];
-        
-        if (empty($productIds)) {
-            return ['success' => false, 'error' => 'No products to sync'];
-        }
+		return [
+			'success'    => true,
+			'product_id' => $productId,
+			'synced_at'  => time(),
+		];
+	}
 
-        $synced = 0;
-        $failed = 0;
+	/**
+	 * Sync a batch of products
+	 */
+	private function syncProductBatch( array $args ): array {
+		$productIds = $args['product_ids'] ?? [];
 
-        foreach ($productIds as $productId) {
-            try {
-                do_action('wch_sync_product', $productId, $args);
-                $synced++;
-            } catch (\Exception $e) {
-                $failed++;
-                
-                $this->logger->error('Product sync failed in batch', [
-                    'product_id' => $productId,
-                    'error' => $e->getMessage(),
-                ]);
-            }
-        }
+		if ( empty( $productIds ) ) {
+			return [
+				'success' => false,
+				'error'   => 'No products to sync',
+			];
+		}
 
-        return [
-            'success' => $failed === 0,
-            'synced' => $synced,
-            'failed' => $failed,
-            'total' => count($productIds),
-        ];
-    }
+		$synced = 0;
+		$failed = 0;
 
-    /**
-     * Sync an order
-     */
-    private function syncOrder(int $orderId, array $args): array
-    {
-        if (empty($orderId)) {
-            return ['success' => false, 'error' => 'Order ID is required'];
-        }
+		foreach ( $productIds as $productId ) {
+			try {
+				do_action( 'wch_sync_product', $productId, $args );
+				++$synced;
+			} catch ( \Exception $e ) {
+				++$failed;
 
-        // Trigger sync action
-        do_action('wch_sync_order', $orderId, $args);
+				$this->logger->error(
+					'Product sync failed in batch',
+					[
+						'product_id' => $productId,
+						'error'      => $e->getMessage(),
+					]
+				);
+			}
+		}
 
-        return [
-            'success' => true,
-            'order_id' => $orderId,
-            'synced_at' => time(),
-        ];
-    }
+		return [
+			'success' => $failed === 0,
+			'synced'  => $synced,
+			'failed'  => $failed,
+			'total'   => count( $productIds ),
+		];
+	}
 
-    /**
-     * Sync inventory for a product
-     */
-    private function syncInventory(int $productId, array $args): array
-    {
-        if (empty($productId)) {
-            return ['success' => false, 'error' => 'Product ID is required'];
-        }
+	/**
+	 * Sync an order
+	 */
+	private function syncOrder( int $orderId, array $args ): array {
+		if ( empty( $orderId ) ) {
+			return [
+				'success' => false,
+				'error'   => 'Order ID is required',
+			];
+		}
 
-        // Trigger inventory sync action
-        do_action('wch_sync_inventory', $productId, $args);
+		// Trigger sync action
+		do_action( 'wch_sync_order', $orderId, $args );
 
-        return [
-            'success' => true,
-            'product_id' => $productId,
-            'synced_at' => time(),
-        ];
-    }
+		return [
+			'success'   => true,
+			'order_id'  => $orderId,
+			'synced_at' => time(),
+		];
+	}
 
-    /**
-     * Sync entire catalog
-     */
-    private function syncCatalog(array $args): array
-    {
-        // Trigger catalog sync action
-        do_action('wch_sync_catalog', $args);
+	/**
+	 * Sync inventory for a product
+	 */
+	private function syncInventory( int $productId, array $args ): array {
+		if ( empty( $productId ) ) {
+			return [
+				'success' => false,
+				'error'   => 'Product ID is required',
+			];
+		}
 
-        return [
-            'success' => true,
-            'synced_at' => time(),
-        ];
-    }
+		// Trigger inventory sync action
+		do_action( 'wch_sync_inventory', $productId, $args );
 
-    /**
-     * Handle sync failure
-     */
-    private function handleFailure(
-        string $jobId,
-        string $syncType,
-        ?int $entityId,
-        int $retryCount,
-        array $result
-    ): void {
-        $this->logger->warning('Sync job failed', [
-            'job_id' => $jobId,
-            'sync_type' => $syncType,
-            'entity_id' => $entityId,
-            'retry_count' => $retryCount,
-            'error' => $result['error'] ?? 'Unknown error',
-        ]);
+		return [
+			'success'    => true,
+			'product_id' => $productId,
+			'synced_at'  => time(),
+		];
+	}
 
-        // Check if we should retry
-        if ($retryCount < self::MAX_RETRIES) {
-            $delay = self::RETRY_DELAYS[$retryCount] ?? 900;
+	/**
+	 * Sync entire catalog
+	 */
+	private function syncCatalog( array $args ): array {
+		// Trigger catalog sync action
+		do_action( 'wch_sync_catalog', $args );
 
-            // Schedule retry
-            $this->dispatcher->schedule(
-                'wch_process_sync_job',
-                time() + $delay,
-                [
-                    'job_id' => $jobId,
-                    'sync_type' => $syncType,
-                    'entity_id' => $entityId,
-                    'retry_count' => $retryCount + 1,
-                ]
-            );
+		return [
+			'success'   => true,
+			'synced_at' => time(),
+		];
+	}
 
-            $this->logger->info('Sync job retry scheduled', [
-                'job_id' => $jobId,
-                'retry_count' => $retryCount + 1,
-                'delay' => $delay,
-            ]);
-        } else {
-            // Max retries exceeded
-            $this->storeJobResult($jobId, 'failed', $result);
+	/**
+	 * Handle sync failure
+	 */
+	private function handleFailure(
+		string $jobId,
+		string $syncType,
+		?int $entityId,
+		int $retryCount,
+		array $result
+	): void {
+		$this->logger->warning(
+			'Sync job failed',
+			[
+				'job_id'      => $jobId,
+				'sync_type'   => $syncType,
+				'entity_id'   => $entityId,
+				'retry_count' => $retryCount,
+				'error'       => $result['error'] ?? 'Unknown error',
+			]
+		);
 
-            $this->logger->error('Sync job failed permanently', [
-                'job_id' => $jobId,
-                'sync_type' => $syncType,
-                'entity_id' => $entityId,
-                'max_retries' => self::MAX_RETRIES,
-            ]);
+		// Check if we should retry
+		if ( $retryCount < self::MAX_RETRIES ) {
+			$delay = self::RETRY_DELAYS[ $retryCount ] ?? 900;
 
-            // Trigger failure notification
-            do_action('wch_sync_job_failed', $jobId, $syncType, $entityId, $result);
-        }
-    }
+			// Schedule retry
+			$this->dispatcher->schedule(
+				'wch_process_sync_job',
+				time() + $delay,
+				[
+					'job_id'      => $jobId,
+					'sync_type'   => $syncType,
+					'entity_id'   => $entityId,
+					'retry_count' => $retryCount + 1,
+				]
+			);
 
-    /**
-     * Store job result
-     */
-    private function storeJobResult(string $jobId, string $status, array $result): void
-    {
-        global $wpdb;
+			$this->logger->info(
+				'Sync job retry scheduled',
+				[
+					'job_id'      => $jobId,
+					'retry_count' => $retryCount + 1,
+					'delay'       => $delay,
+				]
+			);
+		} else {
+			// Max retries exceeded
+			$this->storeJobResult( $jobId, 'failed', $result );
 
-        $tableName = $wpdb->prefix . 'wch_sync_jobs';
+			$this->logger->error(
+				'Sync job failed permanently',
+				[
+					'job_id'      => $jobId,
+					'sync_type'   => $syncType,
+					'entity_id'   => $entityId,
+					'max_retries' => self::MAX_RETRIES,
+				]
+			);
 
-        $wpdb->replace(
-            $tableName,
-            [
-                'job_id' => $jobId,
-                'status' => $status,
-                'result' => wp_json_encode($result),
-                'completed_at' => current_time('mysql'),
-            ],
-            ['%s', '%s', '%s', '%s']
-        );
-    }
+			// Trigger failure notification
+			do_action( 'wch_sync_job_failed', $jobId, $syncType, $entityId, $result );
+		}
+	}
 
-    /**
-     * Get job result
-     */
-    public function getJobResult(string $jobId): ?array
-    {
-        global $wpdb;
+	/**
+	 * Store job result
+	 */
+	private function storeJobResult( string $jobId, string $status, array $result ): void {
+		global $wpdb;
 
-        $tableName = $wpdb->prefix . 'wch_sync_jobs';
+		$tableName = $wpdb->prefix . 'wch_sync_jobs';
 
-        $row = $wpdb->get_row(
-            $wpdb->prepare(
-                "SELECT * FROM {$tableName} WHERE job_id = %s",
-                $jobId
-            ),
-            ARRAY_A
-        );
+		$wpdb->replace(
+			$tableName,
+			[
+				'job_id'       => $jobId,
+				'status'       => $status,
+				'result'       => wp_json_encode( $result ),
+				'completed_at' => current_time( 'mysql' ),
+			],
+			[ '%s', '%s', '%s', '%s' ]
+		);
+	}
 
-        if (!$row) {
-            return null;
-        }
+	/**
+	 * Get job result
+	 */
+	public function getJobResult( string $jobId ): ?array {
+		global $wpdb;
 
-        $row['result'] = json_decode($row['result'], true);
+		$tableName = $wpdb->prefix . 'wch_sync_jobs';
 
-        return $row;
-    }
+		$row = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT * FROM {$tableName} WHERE job_id = %s",
+				$jobId
+			),
+			ARRAY_A
+		);
 
-    /**
-     * Get job statistics
-     */
-    public function getJobStats(string $syncType = ''): array
-    {
-        global $wpdb;
+		if ( ! $row ) {
+			return null;
+		}
 
-        $tableName = $wpdb->prefix . 'wch_sync_jobs';
+		$row['result'] = json_decode( $row['result'], true );
 
-        $where = '';
-        if (!empty($syncType)) {
-            $where = $wpdb->prepare(' WHERE result LIKE %s', '%"sync_type":"' . $syncType . '"%');
-        }
+		return $row;
+	}
 
-        $stats = $wpdb->get_row(
-            "SELECT 
+	/**
+	 * Get job statistics
+	 */
+	public function getJobStats( string $syncType = '' ): array {
+		global $wpdb;
+
+		$tableName = $wpdb->prefix . 'wch_sync_jobs';
+
+		$where = '';
+		if ( ! empty( $syncType ) ) {
+			$where = $wpdb->prepare( ' WHERE result LIKE %s', '%"sync_type":"' . $syncType . '"%' );
+		}
+
+		$stats = $wpdb->get_row(
+			"SELECT 
                 COUNT(*) as total,
                 SUM(CASE WHEN status = 'success' THEN 1 ELSE 0 END) as success,
                 SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed
              FROM {$tableName}{$where}",
-            ARRAY_A
-        );
+			ARRAY_A
+		);
 
-        return [
-            'total' => (int) ($stats['total'] ?? 0),
-            'success' => (int) ($stats['success'] ?? 0),
-            'failed' => (int) ($stats['failed'] ?? 0),
-            'success_rate' => $stats['total'] > 0 
-                ? round(($stats['success'] / $stats['total']) * 100, 2) 
-                : 0,
-        ];
-    }
+		return [
+			'total'        => (int) ( $stats['total'] ?? 0 ),
+			'success'      => (int) ( $stats['success'] ?? 0 ),
+			'failed'       => (int) ( $stats['failed'] ?? 0 ),
+			'success_rate' => $stats['total'] > 0
+				? round( ( $stats['success'] / $stats['total'] ) * 100, 2 )
+				: 0,
+		];
+	}
 }

@@ -74,11 +74,11 @@ class OrderCreatedEvent extends Event {
 		bool $from_recovery = false
 	) {
 		parent::__construct();
-		$this->order_id = $order_id;
-		$this->customer_phone = $customer_phone;
-		$this->total = $total;
+		$this->order_id        = $order_id;
+		$this->customer_phone  = $customer_phone;
+		$this->total           = $total;
 		$this->conversation_id = $conversation_id;
-		$this->from_recovery = $from_recovery;
+		$this->from_recovery   = $from_recovery;
 	}
 
 	/**

@@ -229,7 +229,7 @@ class OpenAIClient implements OpenAIClientInterface {
 	 * {@inheritdoc}
 	 */
 	public function registerFunction( string $name, array $definition, callable $handler ): void {
-		$this->functions[] = array_merge( $definition, array( 'name' => $name ) );
+		$this->functions[]                = array_merge( $definition, array( 'name' => $name ) );
 		$this->function_handlers[ $name ] = $handler;
 	}
 
@@ -238,7 +238,7 @@ class OpenAIClient implements OpenAIClientInterface {
 	 */
 	public function isEnabled(): bool {
 		return ! empty( $this->api_key ) &&
-		       get_option( 'wch_ai_enabled', false ) === true;
+				get_option( 'wch_ai_enabled', false ) === true;
 	}
 
 	/**
@@ -262,11 +262,14 @@ class OpenAIClient implements OpenAIClientInterface {
 	 */
 	public function getMonthlyUsage(): array {
 		$month_key = 'wch_ai_usage_' . gmdate( 'Y_m' );
-		$usage     = get_option( $month_key, array(
-			'tokens' => 0,
-			'cost'   => 0.0,
-			'calls'  => 0,
-		) );
+		$usage     = get_option(
+			$month_key,
+			array(
+				'tokens' => 0,
+				'cost'   => 0.0,
+				'calls'  => 0,
+			)
+		);
 
 		return array(
 			'tokens' => (int) ( $usage['tokens'] ?? 0 ),
@@ -401,19 +404,22 @@ class OpenAIClient implements OpenAIClientInterface {
 
 		// Add function calling if functions are defined.
 		if ( ! empty( $this->functions ) ) {
-			$request_body['functions']      = $this->functions;
-			$request_body['function_call']  = 'auto';
+			$request_body['functions']     = $this->functions;
+			$request_body['function_call'] = 'auto';
 		}
 
 		// Make API request.
-		$response = wp_remote_post( self::API_ENDPOINT, array(
-			'headers' => array(
-				'Authorization' => 'Bearer ' . $this->api_key,
-				'Content-Type'  => 'application/json',
-			),
-			'body'    => wp_json_encode( $request_body ),
-			'timeout' => $this->timeout,
-		) );
+		$response = wp_remote_post(
+			self::API_ENDPOINT,
+			array(
+				'headers' => array(
+					'Authorization' => 'Bearer ' . $this->api_key,
+					'Content-Type'  => 'application/json',
+				),
+				'body'    => wp_json_encode( $request_body ),
+				'timeout' => $this->timeout,
+			)
+		);
 
 		$this->last_latency_ms = (int) ( ( microtime( true ) - $start ) * 1000 );
 
@@ -456,9 +462,9 @@ class OpenAIClient implements OpenAIClientInterface {
 			if ( ! isset( $message['function_call']['name'] ) ) {
 				do_action( 'wch_log_warning', 'OpenAI function_call missing name field' );
 			} else {
-				$function_name    = $message['function_call']['name'];
-				$raw_arguments    = $message['function_call']['arguments'] ?? '{}';
-				$arguments        = json_decode( $raw_arguments, true );
+				$function_name = $message['function_call']['name'];
+				$raw_arguments = $message['function_call']['arguments'] ?? '{}';
+				$arguments     = json_decode( $raw_arguments, true );
 
 				// Validate arguments JSON.
 				if ( ! is_array( $arguments ) ) {
@@ -501,8 +507,8 @@ class OpenAIClient implements OpenAIClientInterface {
 
 		if ( empty( $prompt ) ) {
 			$prompt = 'You are a helpful shopping assistant for an e-commerce store. ' .
-			          'Help customers find products, answer questions, and assist with their orders. ' .
-			          'Be friendly, professional, and concise.';
+						'Help customers find products, answer questions, and assist with their orders. ' .
+						'Be friendly, professional, and concise.';
 		}
 
 		// Add context to prompt.
@@ -530,11 +536,14 @@ class OpenAIClient implements OpenAIClientInterface {
 	 */
 	private function trackUsage( int $conversation_id, array $response ): void {
 		$month_key = 'wch_ai_usage_' . gmdate( 'Y_m' );
-		$usage     = get_option( $month_key, array(
-			'tokens' => 0,
-			'cost'   => 0.0,
-			'calls'  => 0,
-		) );
+		$usage     = get_option(
+			$month_key,
+			array(
+				'tokens' => 0,
+				'cost'   => 0.0,
+				'calls'  => 0,
+			)
+		);
 
 		// Estimate tokens (rough approximation).
 		$text_length = strlen( $response['text'] ?? '' );
@@ -550,11 +559,14 @@ class OpenAIClient implements OpenAIClientInterface {
 
 		update_option( $month_key, $usage, false );
 
-		do_action( 'wch_ai_usage_tracked', array(
-			'conversation_id' => $conversation_id,
-			'tokens'          => $tokens,
-			'cost'            => $cost,
-		) );
+		do_action(
+			'wch_ai_usage_tracked',
+			array(
+				'conversation_id' => $conversation_id,
+				'tokens'          => $tokens,
+				'cost'            => $cost,
+			)
+		);
 	}
 
 	/**
@@ -581,7 +593,7 @@ class OpenAIClient implements OpenAIClientInterface {
 							'default'     => 5,
 						),
 					),
-					'required' => array( 'query' ),
+					'required'   => array( 'query' ),
 				),
 			),
 			function ( array $args, array $context ) {
@@ -602,7 +614,7 @@ class OpenAIClient implements OpenAIClientInterface {
 							'description' => 'The WooCommerce product ID',
 						),
 					),
-					'required' => array( 'product_id' ),
+					'required'   => array( 'product_id' ),
 				),
 			),
 			function ( array $args, array $context ) {
@@ -622,13 +634,13 @@ class OpenAIClient implements OpenAIClientInterface {
 							'type'        => 'integer',
 							'description' => 'The WooCommerce product ID',
 						),
-						'quantity' => array(
+						'quantity'   => array(
 							'type'        => 'integer',
 							'description' => 'Quantity to add',
 							'default'     => 1,
 						),
 					),
-					'required' => array( 'product_id' ),
+					'required'   => array( 'product_id' ),
 				),
 			),
 			function ( array $args, array $context ) {
@@ -649,7 +661,7 @@ class OpenAIClient implements OpenAIClientInterface {
 							'description' => 'Reason for escalation',
 						),
 					),
-					'required' => array( 'reason' ),
+					'required'   => array( 'reason' ),
 				),
 			),
 			function ( array $args, array $context ) {

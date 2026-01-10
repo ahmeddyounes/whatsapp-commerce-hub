@@ -42,17 +42,17 @@ final class SyncResponse {
 	/**
 	 * Constructor.
 	 *
-	 * @param string   $type          Sync type.
-	 * @param string   $status        Overall status.
-	 * @param int      $total_items   Total items to sync.
-	 * @param int      $synced_count  Successfully synced count.
-	 * @param int      $failed_count  Failed count.
-	 * @param int      $skipped_count Skipped count.
-	 * @param array    $errors        Array of error messages.
-	 * @param array    $synced_ids    IDs of successfully synced items.
-	 * @param array    $failed_ids    IDs of failed items.
-	 * @param array    $details       Additional sync details.
-	 * @param float    $duration      Sync duration in seconds.
+	 * @param string $type          Sync type.
+	 * @param string $status        Overall status.
+	 * @param int    $total_items   Total items to sync.
+	 * @param int    $synced_count  Successfully synced count.
+	 * @param int    $failed_count  Failed count.
+	 * @param int    $skipped_count Skipped count.
+	 * @param array  $errors        Array of error messages.
+	 * @param array  $synced_ids    IDs of successfully synced items.
+	 * @param array  $failed_ids    IDs of failed items.
+	 * @param array  $details       Additional sync details.
+	 * @param float  $duration      Sync duration in seconds.
 	 */
 	public function __construct(
 		public readonly string $type,

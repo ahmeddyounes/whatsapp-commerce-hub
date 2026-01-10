@@ -27,10 +27,10 @@ interface CampaignTypeResolverInterface {
 	/**
 	 * Campaign type constants.
 	 */
-	public const TYPE_WE_MISS_YOU = 'we_miss_you';
-	public const TYPE_NEW_ARRIVALS = 'new_arrivals';
-	public const TYPE_BACK_IN_STOCK = 'back_in_stock';
-	public const TYPE_PRICE_DROP = 'price_drop';
+	public const TYPE_WE_MISS_YOU    = 'we_miss_you';
+	public const TYPE_NEW_ARRIVALS   = 'new_arrivals';
+	public const TYPE_BACK_IN_STOCK  = 'back_in_stock';
+	public const TYPE_PRICE_DROP     = 'price_drop';
 	public const TYPE_LOYALTY_REWARD = 'loyalty_reward';
 
 	/**

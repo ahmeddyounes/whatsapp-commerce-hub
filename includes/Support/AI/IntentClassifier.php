@@ -16,103 +16,103 @@ use WhatsAppCommerceHub\Domain\Conversation\Intent;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
-exit;
+	exit;
 }
 
 /**
  * Class IntentClassifier
  *
  * Classifies user messages into intents using pattern matching and AI.
- * 
+ *
  * Note: This is a transitional class. Full migration will integrate
  * with proper AI services in a future phase.
  */
 class IntentClassifier {
-/**
- * Confidence threshold for intent classification.
- */
-private const CONFIDENCE_THRESHOLD = 0.7;
+	/**
+	 * Confidence threshold for intent classification.
+	 */
+	private const CONFIDENCE_THRESHOLD = 0.7;
 
-/**
- * Pattern-based intent rules.
- */
-private array $patterns = array(
-Intent::INTENT_GREETING     => array( '/^(hi|hello|hey|good\s+(morning|afternoon|evening))/i' ),
-Intent::INTENT_BROWSE       => array( '/^(browse|show|list|catalog|products)/i' ),
-Intent::INTENT_SEARCH       => array( '/^(search|find|looking for)/i' ),
-Intent::INTENT_VIEW_CART    => array( '/^(cart|basket|my cart)/i' ),
-Intent::INTENT_CHECKOUT     => array( '/^(checkout|buy|purchase|order)/i' ),
-Intent::INTENT_ORDER_STATUS => array( '/^(order|status|where|track)/i' ),
-Intent::INTENT_HELP         => array( '/^(help|support|assist)/i' ),
-Intent::INTENT_CANCEL       => array( '/^(cancel|stop|nevermind)/i' ),
-);
+	/**
+	 * Pattern-based intent rules.
+	 */
+	private array $patterns = array(
+		Intent::INTENT_GREETING     => array( '/^(hi|hello|hey|good\s+(morning|afternoon|evening))/i' ),
+		Intent::INTENT_BROWSE       => array( '/^(browse|show|list|catalog|products)/i' ),
+		Intent::INTENT_SEARCH       => array( '/^(search|find|looking for)/i' ),
+		Intent::INTENT_VIEW_CART    => array( '/^(cart|basket|my cart)/i' ),
+		Intent::INTENT_CHECKOUT     => array( '/^(checkout|buy|purchase|order)/i' ),
+		Intent::INTENT_ORDER_STATUS => array( '/^(order|status|where|track)/i' ),
+		Intent::INTENT_HELP         => array( '/^(help|support|assist)/i' ),
+		Intent::INTENT_CANCEL       => array( '/^(cancel|stop|nevermind)/i' ),
+	);
 
-/**
- * Classify message into intent.
- *
- * @param string $message User message.
- * @param array  $context Optional conversation context.
- * @return Intent
- */
-public function classify( string $message, array $context = array() ): Intent {
-$message = trim( $message );
+	/**
+	 * Classify message into intent.
+	 *
+	 * @param string $message User message.
+	 * @param array  $context Optional conversation context.
+	 * @return Intent
+	 */
+	public function classify( string $message, array $context = array() ): Intent {
+		$message = trim( $message );
 
-// Try pattern matching first.
-foreach ( $this->patterns as $intentName => $patterns ) {
-foreach ( $patterns as $pattern ) {
-if ( preg_match( $pattern, $message ) ) {
-return new Intent(
-$intentName,
-0.9,
-$this->extractEntities( $message ),
-array( 'method' => 'pattern_matching' )
-);
-}
-}
-}
+		// Try pattern matching first.
+		foreach ( $this->patterns as $intentName => $patterns ) {
+			foreach ( $patterns as $pattern ) {
+				if ( preg_match( $pattern, $message ) ) {
+					return new Intent(
+						$intentName,
+						0.9,
+						$this->extractEntities( $message ),
+						array( 'method' => 'pattern_matching' )
+					);
+				}
+			}
+		}
 
-// Fallback to unknown intent.
-return new Intent(
-Intent::INTENT_UNKNOWN,
-0.5,
-array(),
-array( 'method' => 'fallback' )
-);
-}
+		// Fallback to unknown intent.
+		return new Intent(
+			Intent::INTENT_UNKNOWN,
+			0.5,
+			array(),
+			array( 'method' => 'fallback' )
+		);
+	}
 
-/**
- * Extract entities from message.
- *
- * @param string $message User message.
- * @return array
- */
-private function extractEntities( string $message ): array {
-$entities = array();
+	/**
+	 * Extract entities from message.
+	 *
+	 * @param string $message User message.
+	 * @return array
+	 */
+	private function extractEntities( string $message ): array {
+		$entities = array();
 
-// Extract numbers (potential product IDs, quantities).
-if ( preg_match_all( '/\b\d+\b/', $message, $matches ) ) {
-$entities['numbers'] = $matches[0];
-}
+		// Extract numbers (potential product IDs, quantities).
+		if ( preg_match_all( '/\b\d+\b/', $message, $matches ) ) {
+			$entities['numbers'] = $matches[0];
+		}
 
-// Extract email addresses.
-if ( preg_match( '/[\w\.-]+@[\w\.-]+\.\w+/', $message, $matches ) ) {
-$entities['email'] = $matches[0];
-}
+		// Extract email addresses.
+		if ( preg_match( '/[\w\.-]+@[\w\.-]+\.\w+/', $message, $matches ) ) {
+			$entities['email'] = $matches[0];
+		}
 
-// Extract phone numbers (basic pattern).
-if ( preg_match( '/\b\d{10,}\b/', $message, $matches ) ) {
-$entities['phone'] = $matches[0];
-}
+		// Extract phone numbers (basic pattern).
+		if ( preg_match( '/\b\d{10,}\b/', $message, $matches ) ) {
+			$entities['phone'] = $matches[0];
+		}
 
-return $entities;
-}
+		return $entities;
+	}
 
-/**
- * Get confidence threshold.
- *
- * @return float
- */
-public function getConfidenceThreshold(): float {
-return self::CONFIDENCE_THRESHOLD;
-}
+	/**
+	 * Get confidence threshold.
+	 *
+	 * @return float
+	 */
+	public function getConfidenceThreshold(): float {
+		return self::CONFIDENCE_THRESHOLD;
+	}
 }

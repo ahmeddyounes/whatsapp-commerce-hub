@@ -259,7 +259,7 @@ class SettingsManager {
 		// Decrypt encrypted fields in this section using get() for consistency.
 		$sectionSettings = array();
 		foreach ( $settings[ $section ] as $key => $value ) {
-			$fullKey                   = $section . '.' . $key;
+			$fullKey                 = $section . '.' . $key;
 			$sectionSettings[ $key ] = $this->get( $fullKey, $value );
 		}
 

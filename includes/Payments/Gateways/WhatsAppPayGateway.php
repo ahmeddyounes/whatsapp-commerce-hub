@@ -245,7 +245,10 @@ class WhatsAppPayGateway extends AbstractGateway {
 						if ( ! $this->orderNeedsPayment( $order ) ) {
 							$this->log(
 								'WhatsApp Pay webhook skipped - order already paid',
-								array( 'order_id' => $orderId, 'reference' => $referenceId )
+								array(
+									'order_id'  => $orderId,
+									'reference' => $referenceId,
+								)
 							);
 							return WebhookResult::alreadyCompleted( $orderId, $referenceId );
 						}
@@ -302,7 +305,7 @@ class WhatsAppPayGateway extends AbstractGateway {
 			$order   = $this->getOrder( $orderId );
 
 			if ( $order ) {
-				$status = $order->get_status();
+				$status      = $order->get_status();
 				$isCompleted = in_array( $status, array( 'completed', 'processing' ), true );
 
 				return new PaymentStatus(

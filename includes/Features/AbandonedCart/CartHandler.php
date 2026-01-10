@@ -12,12 +12,12 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Features\AbandonedCart;
 
-use WhatsAppCommerceHub\Core\SettingsManager;
-use WhatsAppCommerceHub\Support\Logger;
-use WhatsAppCommerceHub\Infrastructure\Clients\WhatsAppApiClient;
+use WhatsAppCommerceHub\Infrastructure\Configuration\SettingsManager;
+use WhatsAppCommerceHub\Core\Logger;
+use WhatsAppCommerceHub\Clients\WhatsAppApiClient;
 
-if (!defined('ABSPATH')) {
-    exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
 }
 
 /**
@@ -25,246 +25,250 @@ if (!defined('ABSPATH')) {
  *
  * Tracks cart activity and detects abandonment.
  */
-class CartHandler
-{
-    /**
-     * Constructor
-     *
-     * @param SettingsManager $settings Settings manager
-     * @param Logger $logger Logger instance
-     * @param WhatsAppApiClient $apiClient WhatsApp API client
-     */
-    public function __construct(
-        private readonly SettingsManager $settings,
-        private readonly Logger $logger,
-        private readonly WhatsAppApiClient $apiClient
-    ) {
-    }
+class CartHandler {
 
-    /**
-     * Process abandoned cart reminder job
-     *
-     * @param array<string, mixed> $args Job arguments with cart_id
-     */
-    public function process(array $args): void
-    {
-        $cartId = $args['cart_id'] ?? null;
+	/**
+	 * Constructor
+	 *
+	 * @param SettingsManager   $settings Settings manager
+	 * @param Logger            $logger Logger instance
+	 * @param WhatsAppApiClient $apiClient WhatsApp API client
+	 */
+	public function __construct(
+		private readonly SettingsManager $settings,
+		private readonly Logger $logger,
+		private readonly WhatsAppApiClient $apiClient
+	) {
+	}
 
-        if (!$cartId) {
-            $this->logger->error('Invalid cart ID for abandoned cart job');
-            return;
-        }
+	/**
+	 * Process abandoned cart reminder job
+	 *
+	 * @param array<string, mixed> $args Job arguments with cart_id
+	 */
+	public function process( array $args ): void {
+		$cartId = $args['cart_id'] ?? null;
 
-        $this->logger->info('Processing abandoned cart reminder', ['cart_id' => $cartId]);
+		if ( ! $cartId ) {
+			$this->logger->error( 'Invalid cart ID for abandoned cart job' );
+			return;
+		}
 
-        $cart = $this->getCart((int) $cartId);
+		$this->logger->info( 'Processing abandoned cart reminder', [ 'cart_id' => $cartId ] );
 
-        if (!$cart) {
-            $this->logger->warning('Cart not found for abandoned cart reminder', ['cart_id' => $cartId]);
-            return;
-        }
+		$cart = $this->getCart( (int) $cartId );
 
-        // Check if cart is still active
-        if ($cart['status'] !== 'active') {
-            $this->logger->info('Cart is no longer active, skipping reminder', [
-                'cart_id' => $cartId,
-                'status' => $cart['status'],
-            ]);
-            return;
-        }
+		if ( ! $cart ) {
+			$this->logger->warning( 'Cart not found for abandoned cart reminder', [ 'cart_id' => $cartId ] );
+			return;
+		}
 
-        // Check if cart is idle for configured hours
-        $delayHours = (int) $this->settings->get('notifications.abandoned_cart_delay_hours', 24);
-        $idleTimestamp = time() - ($delayHours * HOUR_IN_SECONDS);
-        $updatedAt = strtotime($cart['updated_at']);
+		// Check if cart is still active
+		if ( $cart['status'] !== 'active' ) {
+			$this->logger->info(
+				'Cart is no longer active, skipping reminder',
+				[
+					'cart_id' => $cartId,
+					'status'  => $cart['status'],
+				]
+			);
+			return;
+		}
 
-        if ($updatedAt > $idleTimestamp) {
-            $this->logger->info('Cart is not idle long enough, skipping reminder', [
-                'cart_id' => $cartId,
-                'delay_hours' => $delayHours,
-                'updated_at' => $cart['updated_at'],
-            ]);
-            return;
-        }
+		// Check if cart is idle for configured hours
+		$delayHours    = (int) $this->settings->get( 'notifications.abandoned_cart_delay_hours', 24 );
+		$idleTimestamp = time() - ( $delayHours * HOUR_IN_SECONDS );
+		$updatedAt     = strtotime( $cart['updated_at'] );
 
-        // Send reminder message
-        $result = $this->sendReminder($cart);
+		if ( $updatedAt > $idleTimestamp ) {
+			$this->logger->info(
+				'Cart is not idle long enough, skipping reminder',
+				[
+					'cart_id'     => $cartId,
+					'delay_hours' => $delayHours,
+					'updated_at'  => $cart['updated_at'],
+				]
+			);
+			return;
+		}
 
-        if ($result['success']) {
-            $this->markReminderSent((int) $cartId);
+		// Send reminder message
+		$result = $this->sendReminder( $cart );
 
-            $this->logger->info('Abandoned cart reminder sent successfully', [
-                'cart_id' => $cartId,
-                'phone' => $cart['phone'],
-            ]);
-        } else {
-            $this->logger->error('Failed to send abandoned cart reminder', [
-                'cart_id' => $cartId,
-                'error' => $result['error'] ?? 'Unknown error',
-            ]);
-        }
-    }
+		if ( $result['success'] ) {
+			$this->markReminderSent( (int) $cartId );
 
-    /**
-     * Get cart by ID
-     *
-     * @param int $cartId Cart ID
-     * @return array<string, mixed>|null Cart data or null if not found
-     */
-    private function getCart(int $cartId): ?array
-    {
-        global $wpdb;
-        $tableName = $wpdb->prefix . 'wch_carts';
+			$this->logger->info(
+				'Abandoned cart reminder sent successfully',
+				[
+					'cart_id' => $cartId,
+					'phone'   => $cart['phone'],
+				]
+			);
+		} else {
+			$this->logger->error(
+				'Failed to send abandoned cart reminder',
+				[
+					'cart_id' => $cartId,
+					'error'   => $result['error'] ?? 'Unknown error',
+				]
+			);
+		}
+	}
 
-        $cart = $wpdb->get_row(
-            $wpdb->prepare("SELECT * FROM {$tableName} WHERE id = %d", $cartId),
-            ARRAY_A
-        );
+	/**
+	 * Get cart by ID
+	 *
+	 * @param int $cartId Cart ID
+	 * @return array<string, mixed>|null Cart data or null if not found
+	 */
+	private function getCart( int $cartId ): ?array {
+		global $wpdb;
+		$tableName = $wpdb->prefix . 'wch_carts';
 
-        return $cart ?: null;
-    }
+		$cart = $wpdb->get_row(
+			$wpdb->prepare( "SELECT * FROM {$tableName} WHERE id = %d", $cartId ),
+			ARRAY_A
+		);
 
-    /**
-     * Send reminder message
-     *
-     * @param array<string, mixed> $cart Cart data
-     * @return array<string, mixed> Result with success status
-     */
-    private function sendReminder(array $cart): array
-    {
-        try {
-            $phone = $cart['phone'];
-            $message = $this->buildReminderMessage($cart);
+		return $cart ?: null;
+	}
 
-            $result = $this->apiClient->sendMessage($phone, $message);
+	/**
+	 * Send reminder message
+	 *
+	 * @param array<string, mixed> $cart Cart data
+	 * @return array<string, mixed> Result with success status
+	 */
+	private function sendReminder( array $cart ): array {
+		try {
+			$phone   = $cart['phone'];
+			$message = $this->buildReminderMessage( $cart );
 
-            return [
-                'success' => true,
-                'message_id' => $result['id'] ?? null,
-            ];
-        } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'error' => $e->getMessage(),
-            ];
-        }
-    }
+			$result = $this->apiClient->sendMessage( $phone, $message );
 
-    /**
-     * Build reminder message
-     *
-     * @param array<string, mixed> $cart Cart data
-     * @return string Reminder message
-     */
-    private function buildReminderMessage(array $cart): string
-    {
-        $customerName = $cart['customer_name'] ?? 'there';
-        $itemCount = (int) ($cart['item_count'] ?? 0);
-        $total = number_format((float) ($cart['total'] ?? 0), 2);
+			return [
+				'success'    => true,
+				'message_id' => $result['id'] ?? null,
+			];
+		} catch ( \Exception $e ) {
+			return [
+				'success' => false,
+				'error'   => $e->getMessage(),
+			];
+		}
+	}
 
-        return sprintf(
-            "Hi %s! 👋\n\nYou have %d item(s) in your cart totaling $%s.\n\n" .
-            "Complete your order now! Reply 'CART' to continue.",
-            $customerName,
-            $itemCount,
-            $total
-        );
-    }
+	/**
+	 * Build reminder message
+	 *
+	 * @param array<string, mixed> $cart Cart data
+	 * @return string Reminder message
+	 */
+	private function buildReminderMessage( array $cart ): string {
+		$customerName = $cart['customer_name'] ?? 'there';
+		$itemCount    = (int) ( $cart['item_count'] ?? 0 );
+		$total        = number_format( (float) ( $cart['total'] ?? 0 ), 2 );
 
-    /**
-     * Mark reminder as sent
-     *
-     * @param int $cartId Cart ID
-     */
-    private function markReminderSent(int $cartId): void
-    {
-        global $wpdb;
-        $tableName = $wpdb->prefix . 'wch_carts';
+		return sprintf(
+			"Hi %s! 👋\n\nYou have %d item(s) in your cart totaling $%s.\n\n" .
+			"Complete your order now! Reply 'CART' to continue.",
+			$customerName,
+			$itemCount,
+			$total
+		);
+	}
 
-        $wpdb->update(
-            $tableName,
-            [
-                'reminder_sent_at' => current_time('mysql'),
-                'reminder_count' => new \stdClass(), // Will be incremented by DB
-            ],
-            ['id' => $cartId],
-            ['%s'],
-            ['%d']
-        );
+	/**
+	 * Mark reminder as sent
+	 *
+	 * @param int $cartId Cart ID
+	 */
+	private function markReminderSent( int $cartId ): void {
+		global $wpdb;
+		$tableName = $wpdb->prefix . 'wch_carts';
 
-        // Increment reminder count
-        $wpdb->query(
-            $wpdb->prepare(
-                "UPDATE {$tableName} SET reminder_count = reminder_count + 1 WHERE id = %d",
-                $cartId
-            )
-        );
-    }
+		$wpdb->update(
+			$tableName,
+			[
+				'reminder_sent_at' => current_time( 'mysql' ),
+				'reminder_count'   => new \stdClass(), // Will be incremented by DB
+			],
+			[ 'id' => $cartId ],
+			[ '%s' ],
+			[ '%d' ]
+		);
 
-    /**
-     * Track cart activity
-     *
-     * Updates the cart's last activity timestamp.
-     *
-     * @param int $cartId Cart ID
-     */
-    public function trackActivity(int $cartId): void
-    {
-        global $wpdb;
-        $tableName = $wpdb->prefix . 'wch_carts';
+		// Increment reminder count
+		$wpdb->query(
+			$wpdb->prepare(
+				"UPDATE {$tableName} SET reminder_count = reminder_count + 1 WHERE id = %d",
+				$cartId
+			)
+		);
+	}
 
-        $wpdb->update(
-            $tableName,
-            ['updated_at' => current_time('mysql')],
-            ['id' => $cartId],
-            ['%s'],
-            ['%d']
-        );
-    }
+	/**
+	 * Track cart activity
+	 *
+	 * Updates the cart's last activity timestamp.
+	 *
+	 * @param int $cartId Cart ID
+	 */
+	public function trackActivity( int $cartId ): void {
+		global $wpdb;
+		$tableName = $wpdb->prefix . 'wch_carts';
 
-    /**
-     * Mark cart as abandoned
-     *
-     * @param int $cartId Cart ID
-     */
-    public function markAbandoned(int $cartId): void
-    {
-        global $wpdb;
-        $tableName = $wpdb->prefix . 'wch_carts';
+		$wpdb->update(
+			$tableName,
+			[ 'updated_at' => current_time( 'mysql' ) ],
+			[ 'id' => $cartId ],
+			[ '%s' ],
+			[ '%d' ]
+		);
+	}
 
-        $wpdb->update(
-            $tableName,
-            [
-                'status' => 'abandoned',
-                'abandoned_at' => current_time('mysql'),
-            ],
-            ['id' => $cartId],
-            ['%s', '%s'],
-            ['%d']
-        );
+	/**
+	 * Mark cart as abandoned
+	 *
+	 * @param int $cartId Cart ID
+	 */
+	public function markAbandoned( int $cartId ): void {
+		global $wpdb;
+		$tableName = $wpdb->prefix . 'wch_carts';
 
-        $this->logger->info('Cart marked as abandoned', ['cart_id' => $cartId]);
-    }
+		$wpdb->update(
+			$tableName,
+			[
+				'status'       => 'abandoned',
+				'abandoned_at' => current_time( 'mysql' ),
+			],
+			[ 'id' => $cartId ],
+			[ '%s', '%s' ],
+			[ '%d' ]
+		);
 
-    /**
-     * Mark cart as active
-     *
-     * @param int $cartId Cart ID
-     */
-    public function markActive(int $cartId): void
-    {
-        global $wpdb;
-        $tableName = $wpdb->prefix . 'wch_carts';
+		$this->logger->info( 'Cart marked as abandoned', [ 'cart_id' => $cartId ] );
+	}
 
-        $wpdb->update(
-            $tableName,
-            [
-                'status' => 'active',
-                'updated_at' => current_time('mysql'),
-            ],
-            ['id' => $cartId],
-            ['%s', '%s'],
-            ['%d']
-        );
-    }
+	/**
+	 * Mark cart as active
+	 *
+	 * @param int $cartId Cart ID
+	 */
+	public function markActive( int $cartId ): void {
+		global $wpdb;
+		$tableName = $wpdb->prefix . 'wch_carts';
+
+		$wpdb->update(
+			$tableName,
+			[
+				'status'     => 'active',
+				'updated_at' => current_time( 'mysql' ),
+			],
+			[ 'id' => $cartId ],
+			[ '%s', '%s' ],
+			[ '%d' ]
+		);
+	}
 }

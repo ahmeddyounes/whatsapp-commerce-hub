@@ -49,9 +49,9 @@ abstract class Event {
 	 * @param array $metadata Optional event metadata.
 	 */
 	public function __construct( array $metadata = array() ) {
-		$this->id = $this->generateId();
+		$this->id          = $this->generateId();
 		$this->occurred_at = new \DateTimeImmutable();
-		$this->metadata = array_merge(
+		$this->metadata    = array_merge(
 			array(
 				'source'     => 'wch',
 				'version'    => WCH_VERSION,
@@ -107,9 +107,13 @@ abstract class Event {
 			// This is NOT cryptographically secure but ensures system continuity.
 			// Log the event for monitoring - this should never happen in production.
 			if ( function_exists( 'do_action' ) ) {
-				do_action( 'wch_log_warning', 'Event ID generated without secure entropy', array(
-					'error' => $e->getMessage(),
-				) );
+				do_action(
+					'wch_log_warning',
+					'Event ID generated without secure entropy',
+					array(
+						'error' => $e->getMessage(),
+					)
+				);
 			}
 
 			// Generate pseudo-random data using available sources.

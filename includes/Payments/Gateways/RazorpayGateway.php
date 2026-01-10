@@ -139,7 +139,13 @@ class RazorpayGateway extends AbstractGateway {
 			);
 			$order->save();
 
-			$this->log( 'Razorpay payment link created', array( 'order_id' => $orderId, 'link_id' => $paymentLink['id'] ) );
+			$this->log(
+				'Razorpay payment link created',
+				array(
+					'order_id' => $orderId,
+					'link_id'  => $paymentLink['id'],
+				)
+			);
 
 			return PaymentResult::success(
 				$paymentLink['id'],
@@ -166,7 +172,7 @@ class RazorpayGateway extends AbstractGateway {
 	 * @return array|null
 	 */
 	private function createPaymentLink( \WC_Order $order, array $conversation ): ?array {
-		$amount = intval( $order->get_total() * 100 ); // Convert to paise.
+		$amount        = intval( $order->get_total() * 100 ); // Convert to paise.
 		$customerPhone = $this->getCustomerPhone( $conversation );
 
 		$data = array(
@@ -250,7 +256,10 @@ class RazorpayGateway extends AbstractGateway {
 		if ( ! $this->orderNeedsPayment( $order ) ) {
 			$this->log(
 				'Razorpay webhook skipped - order already paid',
-				array( 'order_id' => $orderId, 'payment_id' => $payment['id'] ?? '' )
+				array(
+					'order_id'   => $orderId,
+					'payment_id' => $payment['id'] ?? '',
+				)
 			);
 			return WebhookResult::alreadyCompleted( $orderId, $payment['id'] ?? '' );
 		}
@@ -400,7 +409,7 @@ class RazorpayGateway extends AbstractGateway {
 			return null;
 		}
 
-		$body = wp_remote_retrieve_body( $response );
+		$body   = wp_remote_retrieve_body( $response );
 		$result = json_decode( $body, true );
 
 		if ( isset( $result['error'] ) ) {

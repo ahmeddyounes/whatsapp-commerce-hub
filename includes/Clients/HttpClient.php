@@ -239,13 +239,13 @@ class HttpClient implements HttpClientInterface {
 		}
 
 		// Execute with retry policy.
-		$attempt       = 0;
-		$max_attempts  = $this->retry_policy ? $this->max_retries : 1;
-		$last_error    = null;
-		$start_time    = microtime( true );
+		$attempt      = 0;
+		$max_attempts = $this->retry_policy ? $this->max_retries : 1;
+		$last_error   = null;
+		$start_time   = microtime( true );
 
 		while ( $attempt < $max_attempts ) {
-			$attempt++;
+			++$attempt;
 			$attempt_start = microtime( true );
 
 			try {
@@ -513,18 +513,18 @@ class HttpClient implements HttpClientInterface {
 	 * @return array Health status.
 	 */
 	public function getHealthStatus(): array {
-		$circuit_state    = 'closed';
-		$average_latency  = null;
+		$circuit_state   = 'closed';
+		$average_latency = null;
 
 		if ( $this->circuit_breaker ) {
-			$state = $this->circuit_breaker->getState( $this->service_name );
+			$state         = $this->circuit_breaker->getState( $this->service_name );
 			$circuit_state = $state['state'] ?? 'closed';
 		}
 
 		// Calculate average latency from recent requests.
 		$recent_requests = $this->getRequestHistory( 10 );
 		if ( ! empty( $recent_requests ) ) {
-			$total_duration = array_sum( array_column( $recent_requests, 'duration_ms' ) );
+			$total_duration  = array_sum( array_column( $recent_requests, 'duration_ms' ) );
 			$average_latency = (int) ( $total_duration / count( $recent_requests ) );
 		}
 
@@ -580,7 +580,7 @@ class HttpClient implements HttpClientInterface {
 			'timestamp'   => time(),
 		);
 
-		$this->last_request     = $request_info;
+		$this->last_request      = $request_info;
 		$this->request_history[] = $request_info;
 
 		// Trim history if too large.

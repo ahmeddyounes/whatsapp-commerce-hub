@@ -66,7 +66,7 @@ class PaymentGatewayRegistry implements PaymentGatewayRegistryInterface {
 	/**
 	 * Register a payment gateway.
 	 *
-	 * @param string                $id Gateway identifier.
+	 * @param string               $id Gateway identifier.
 	 * @param \WCH_Payment_Gateway $gateway Gateway instance.
 	 * @return void
 	 */
@@ -240,7 +240,7 @@ class PaymentGatewayRegistry implements PaymentGatewayRegistryInterface {
 	 * @return void
 	 */
 	private function loadGatewayFiles(): void {
-		$gateway_dir = defined( 'WCH_PLUGIN_DIR' ) ? WCH_PLUGIN_DIR . 'includes/payments/' : '';
+		$gateway_dir = defined( 'WCH_PLUGIN_DIR' ) ? WCH_PLUGIN_DIR . 'includes/Payments/' : '';
 
 		if ( empty( $gateway_dir ) || ! is_dir( $gateway_dir ) ) {
 			return;

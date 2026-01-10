@@ -13,146 +13,138 @@ use WP_REST_Server;
  *
  * @package WhatsAppCommerceHub\Infrastructure\Api\Rest
  */
-class RestApi
-{
-    /**
-     * REST API namespace
-     */
-    public const NAMESPACE = 'wch/v1';
+class RestApi {
 
-    /**
-     * Registered controllers
-     *
-     * @var array<RestController>
-     */
-    private array $controllers = [];
+	/**
+	 * REST API namespace
+	 */
+	public const NAMESPACE = 'wch/v1';
 
-    /**
-     * Constructor
-     */
-    public function __construct()
-    {
-        $this->init();
-    }
+	/**
+	 * Registered controllers
+	 *
+	 * @var array<RestController>
+	 */
+	private array $controllers = [];
 
-    /**
-     * Initialize the REST API
-     */
-    private function init(): void
-    {
-        add_action('rest_api_init', [$this, 'registerRoutes']);
-    }
+	/**
+	 * Constructor
+	 */
+	public function __construct() {
+		$this->init();
+	}
 
-    /**
-     * Register REST API routes
-     */
-    public function registerRoutes(): void
-    {
-        // SECURITY: API discovery endpoint requires admin authentication
-        // This prevents information disclosure about available endpoints and auth methods
-        register_rest_route(
-            self::NAMESPACE,
-            '/',
-            [
-                'methods' => WP_REST_Server::READABLE,
-                'callback' => [$this, 'getApiInfo'],
-                'permission_callback' => [$this, 'checkAdminPermission'],
-            ]
-        );
+	/**
+	 * Initialize the REST API
+	 */
+	private function init(): void {
+		add_action( 'rest_api_init', [ $this, 'registerRoutes' ] );
+	}
 
-        // Load and register all controllers
-        $this->loadControllers();
-        $this->registerControllers();
-    }
+	/**
+	 * Register REST API routes
+	 */
+	public function registerRoutes(): void {
+		// SECURITY: API discovery endpoint requires admin authentication
+		// This prevents information disclosure about available endpoints and auth methods
+		register_rest_route(
+			self::NAMESPACE,
+			'/',
+			[
+				'methods'             => WP_REST_Server::READABLE,
+				'callback'            => [ $this, 'getApiInfo' ],
+				'permission_callback' => [ $this, 'checkAdminPermission' ],
+			]
+		);
 
-    /**
-     * Check if the current user has admin permission
-     *
-     * SECURITY: Used to protect API discovery endpoint from information disclosure
-     */
-    public function checkAdminPermission(): bool
-    {
-        return current_user_can('manage_woocommerce');
-    }
+		// Load and register all controllers
+		$this->loadControllers();
+		$this->registerControllers();
+	}
 
-    /**
-     * Get API information
-     */
-    public function getApiInfo(): array
-    {
-        return [
-            'name' => 'WhatsApp Commerce Hub API',
-            'version' => 'v1',
-            'namespace' => self::NAMESPACE,
-            'description' => __('REST API for WhatsApp Commerce Hub admin and external integrations.', 'whatsapp-commerce-hub'),
-            'endpoints' => [
-                '/settings' => 'Settings management (GET/POST)',
-                '/conversations' => 'List conversations (GET/POST)',
-                '/conversations/{id}' => 'Single conversation (GET/PATCH)',
-                '/conversations/{id}/messages' => 'Conversation messages (GET/POST)',
-                '/customers' => 'List customers (GET)',
-                '/customers/{phone}' => 'Single customer (GET/PATCH)',
-                '/analytics' => 'Analytics data (GET)',
-                '/broadcasts' => 'Broadcast campaigns (GET/POST)',
-                '/broadcasts/{id}' => 'Single broadcast (GET/PATCH/DELETE)',
-                '/webhook' => 'WhatsApp webhook (POST)',
-            ],
-            'authentication' => [
-                'admin' => 'WordPress authentication or X-WCH-API-Key header',
-                'webhook' => 'X-Hub-Signature-256 header',
-            ],
-        ];
-    }
+	/**
+	 * Check if the current user has admin permission
+	 *
+	 * SECURITY: Used to protect API discovery endpoint from information disclosure
+	 */
+	public function checkAdminPermission(): bool {
+		return current_user_can( 'manage_woocommerce' );
+	}
 
-    /**
-     * Load controller classes
-     */
-    private function loadControllers(): void
-    {
-        // Built-in controller class names
-        $builtInControllers = [
-            'WhatsAppCommerceHub\Infrastructure\Api\Rest\Controllers\WebhookController',
-            'WhatsAppCommerceHub\Infrastructure\Api\Rest\Controllers\ConversationsController',
-            'WhatsAppCommerceHub\Infrastructure\Api\Rest\Controllers\AnalyticsController',
-        ];
+	/**
+	 * Get API information
+	 */
+	public function getApiInfo(): array {
+		return [
+			'name'           => 'WhatsApp Commerce Hub API',
+			'version'        => 'v1',
+			'namespace'      => self::NAMESPACE,
+			'description'    => __( 'REST API for WhatsApp Commerce Hub admin and external integrations.', 'whatsapp-commerce-hub' ),
+			'endpoints'      => [
+				'/settings'                    => 'Settings management (GET/POST)',
+				'/conversations'               => 'List conversations (GET/POST)',
+				'/conversations/{id}'          => 'Single conversation (GET/PATCH)',
+				'/conversations/{id}/messages' => 'Conversation messages (GET/POST)',
+				'/customers'                   => 'List customers (GET)',
+				'/customers/{phone}'           => 'Single customer (GET/PATCH)',
+				'/analytics'                   => 'Analytics data (GET)',
+				'/broadcasts'                  => 'Broadcast campaigns (GET/POST)',
+				'/broadcasts/{id}'             => 'Single broadcast (GET/PATCH/DELETE)',
+				'/webhook'                     => 'WhatsApp webhook (POST)',
+			],
+			'authentication' => [
+				'admin'   => 'WordPress authentication or X-WCH-API-Key header',
+				'webhook' => 'X-Hub-Signature-256 header',
+			],
+		];
+	}
 
-        foreach ($builtInControllers as $controllerClass) {
-            if (class_exists($controllerClass)) {
-                $this->controllers[] = new $controllerClass();
-            }
-        }
+	/**
+	 * Load controller classes
+	 */
+	private function loadControllers(): void {
+		// Built-in controller class names
+		$builtInControllers = [
+			'WhatsAppCommerceHub\Infrastructure\Api\Rest\Controllers\WebhookController',
+			'WhatsAppCommerceHub\Infrastructure\Api\Rest\Controllers\ConversationsController',
+			'WhatsAppCommerceHub\Infrastructure\Api\Rest\Controllers\AnalyticsController',
+		];
 
-        /**
-         * Filter to add custom controllers
-         *
-         * @param array $controllers Array of controller instances
-         */
-        $customControllers = apply_filters('wch_rest_api_controllers', []);
+		foreach ( $builtInControllers as $controllerClass ) {
+			if ( class_exists( $controllerClass ) ) {
+				$this->controllers[] = new $controllerClass();
+			}
+		}
 
-        foreach ($customControllers as $controller) {
-            if ($controller instanceof RestController) {
-                $this->controllers[] = $controller;
-            }
-        }
-    }
+		/**
+		 * Filter to add custom controllers
+		 *
+		 * @param array $controllers Array of controller instances
+		 */
+		$customControllers = apply_filters( 'wch_rest_api_controllers', [] );
 
-    /**
-     * Register all controllers
-     */
-    private function registerControllers(): void
-    {
-        foreach ($this->controllers as $controller) {
-            if (method_exists($controller, 'registerRoutes')) {
-                $controller->registerRoutes();
-            }
-        }
-    }
+		foreach ( $customControllers as $controller ) {
+			if ( $controller instanceof RestController ) {
+				$this->controllers[] = $controller;
+			}
+		}
+	}
 
-    /**
-     * Get registered controllers
-     */
-    public function getControllers(): array
-    {
-        return $this->controllers;
-    }
+	/**
+	 * Register all controllers
+	 */
+	private function registerControllers(): void {
+		foreach ( $this->controllers as $controller ) {
+			if ( method_exists( $controller, 'registerRoutes' ) ) {
+				$controller->registerRoutes();
+			}
+		}
+	}
+
+	/**
+	 * Get registered controllers
+	 */
+	public function getControllers(): array {
+		return $this->controllers;
+	}
 }

@@ -429,9 +429,9 @@ class ConversationsController extends RestController {
 
 		global $wpdb;
 		$tableMessages = $wpdb->prefix . 'wch_messages';
-		$page           = max( 1, (int) $request->get_param( 'page' ) );
-		$perPage        = min( self::MAX_PER_PAGE, max( 1, (int) $request->get_param( 'per_page' ) ) );
-		$offset         = ( $page - 1 ) * $perPage;
+		$page          = max( 1, (int) $request->get_param( 'page' ) );
+		$perPage       = min( self::MAX_PER_PAGE, max( 1, (int) $request->get_param( 'per_page' ) ) );
+		$offset        = ( $page - 1 ) * $perPage;
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 		$messages = $wpdb->get_results(
@@ -786,7 +786,7 @@ class ConversationsController extends RestController {
 			);
 		}
 
-		$aiService     = \WCH_AI_Service::getInstance();
+		$aiService      = \WCH_AI_Service::getInstance();
 		$suggestedReply = $aiService->suggest_agent_reply( $conversationHistory, $context );
 
 		if ( is_wp_error( $suggestedReply ) ) {
@@ -841,7 +841,7 @@ class ConversationsController extends RestController {
 
 		$csvContent = '';
 		foreach ( $csvData as $row ) {
-			$escapedRow = array_map(
+			$escapedRow  = array_map(
 				function ( $field ) {
 					return '"' . str_replace( '"', '""', (string) $field ) . '"';
 				},

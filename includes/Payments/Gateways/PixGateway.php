@@ -139,7 +139,13 @@ class PixGateway extends AbstractGateway {
 			$customerPhone = $this->getCustomerPhone( $conversation );
 			$this->sendPixQrCode( $customerPhone, $pixData );
 
-			$this->log( 'PIX payment created', array( 'order_id' => $orderId, 'transaction_id' => $pixData['transaction_id'] ) );
+			$this->log(
+				'PIX payment created',
+				array(
+					'order_id'       => $orderId,
+					'transaction_id' => $pixData['transaction_id'],
+				)
+			);
 
 			return PaymentResult::success(
 				$pixData['transaction_id'],
@@ -219,7 +225,7 @@ class PixGateway extends AbstractGateway {
 			return null;
 		}
 
-		$body = wp_remote_retrieve_body( $response );
+		$body   = wp_remote_retrieve_body( $response );
 		$result = json_decode( $body, true );
 
 		if ( isset( $result['point_of_interaction']['transaction_data'] ) ) {
@@ -242,7 +248,7 @@ class PixGateway extends AbstractGateway {
 	 * @return array|null
 	 */
 	private function generatePagSeguroPix( \WC_Order $order, array $conversation ): ?array {
-		$url  = 'https://api.pagseguro.com/orders';
+		$url = 'https://api.pagseguro.com/orders';
 
 		$items = array();
 		foreach ( $order->get_items() as $item ) {
@@ -290,7 +296,7 @@ class PixGateway extends AbstractGateway {
 			return null;
 		}
 
-		$body = wp_remote_retrieve_body( $response );
+		$body   = wp_remote_retrieve_body( $response );
 		$result = json_decode( $body, true );
 
 		if ( isset( $result['qr_codes'][0] ) ) {

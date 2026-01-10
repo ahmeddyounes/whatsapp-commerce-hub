@@ -54,8 +54,8 @@ class MessageReceivedEvent extends Event {
 	 */
 	public function __construct( Message $message, string $from, int $conversation_id ) {
 		parent::__construct();
-		$this->message = $message;
-		$this->from = $from;
+		$this->message         = $message;
+		$this->from            = $from;
 		$this->conversation_id = $conversation_id;
 	}
 

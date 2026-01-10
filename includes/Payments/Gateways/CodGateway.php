@@ -141,7 +141,7 @@ class CodGateway extends AbstractGateway {
 			$order   = $this->getOrder( $orderId );
 
 			if ( $order ) {
-				$status = $order->get_status();
+				$status      = $order->get_status();
 				$isCompleted = $status === 'completed';
 
 				return new PaymentStatus(

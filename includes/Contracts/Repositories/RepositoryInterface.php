@@ -41,10 +41,10 @@ interface RepositoryInterface {
 	/**
 	 * Find all entities matching criteria.
 	 *
-	 * @param array<string, mixed> $criteria The search criteria.
+	 * @param array<string, mixed>  $criteria The search criteria.
 	 * @param array<string, string> $orderBy  Column => direction pairs.
-	 * @param int|null             $limit    Maximum number of results.
-	 * @param int                  $offset   Number of results to skip.
+	 * @param int|null              $limit    Maximum number of results.
+	 * @param int                   $offset   Number of results to skip.
 	 * @return array<object> Array of entities.
 	 */
 	public function findAll(

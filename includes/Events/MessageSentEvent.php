@@ -47,7 +47,7 @@ class MessageSentEvent extends Event {
 	public function __construct( Message $message, string $to ) {
 		parent::__construct();
 		$this->message = $message;
-		$this->to = $to;
+		$this->to      = $to;
 	}
 
 	/**

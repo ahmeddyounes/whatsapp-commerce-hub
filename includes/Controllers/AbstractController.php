@@ -189,11 +189,11 @@ abstract class AbstractController extends WP_REST_Controller {
 	 * @return array<string>
 	 */
 	protected function getAllowedOrigins(): array {
-		$siteUrl  = get_site_url();
-		$parsed   = wp_parse_url( $siteUrl );
-		$scheme   = $parsed['scheme'] ?? 'https';
-		$host     = $parsed['host'] ?? '';
-		$origin   = "{$scheme}://{$host}";
+		$siteUrl = get_site_url();
+		$parsed  = wp_parse_url( $siteUrl );
+		$scheme  = $parsed['scheme'] ?? 'https';
+		$host    = $parsed['host'] ?? '';
+		$origin  = "{$scheme}://{$host}";
 
 		if ( isset( $parsed['port'] ) ) {
 			$origin .= ':' . $parsed['port'];
@@ -534,7 +534,7 @@ abstract class AbstractController extends WP_REST_Controller {
 		}
 
 		list( $subnet, $bits ) = explode( '/', $range, 2 );
-		$bits = (int) $bits;
+		$bits                  = (int) $bits;
 
 		// IPv6
 		if ( filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6 ) ) {
@@ -561,7 +561,7 @@ abstract class AbstractController extends WP_REST_Controller {
 
 		// IPv4
 		if ( ! filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 ) ||
-			 ! filter_var( $subnet, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 ) ) {
+			! filter_var( $subnet, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 ) ) {
 			return false;
 		}
 

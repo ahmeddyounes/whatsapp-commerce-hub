@@ -132,8 +132,8 @@ interface CartServiceInterface {
 	/**
 	 * Mark cart reminder as sent.
 	 *
-	 * @param int    $cart_id        Cart ID.
-	 * @param int    $reminder_number Reminder number (1, 2, or 3).
+	 * @param int $cart_id        Cart ID.
+	 * @param int $reminder_number Reminder number (1, 2, or 3).
 	 * @return bool Success status.
 	 */
 	public function markReminderSent( int $cart_id, int $reminder_number = 1 ): bool;

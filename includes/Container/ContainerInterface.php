@@ -86,4 +86,13 @@ interface ContainerInterface {
 	 * @return mixed
 	 */
 	public function make( string $concrete, array $parameters = array() ): mixed;
+
+	/**
+	 * Create an alias for an abstract binding.
+	 *
+	 * @param string $abstract The abstract type.
+	 * @param string $alias    The alias name.
+	 * @return void
+	 */
+	public function alias( string $abstract, string $alias ): void;
 }

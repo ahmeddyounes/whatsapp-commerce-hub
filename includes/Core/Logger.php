@@ -28,6 +28,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Logger implements LoggerInterface {
 
 	/**
+	 * Singleton instance.
+	 *
+	 * @var self|null
+	 */
+	private static ?self $instance = null;
+
+	/**
 	 * Log levels in order of severity.
 	 */
 	public const LEVEL_DEBUG    = 'debug';
@@ -94,6 +101,32 @@ class Logger implements LoggerInterface {
 	public function __construct( string $minLevel = '', string $requestId = '' ) {
 		$this->minLevel  = $minLevel ?: $this->getDefaultMinLevel();
 		$this->requestId = $requestId ?: $this->generateRequestId();
+	}
+
+	/**
+	 * Get singleton instance.
+	 *
+	 * @return self
+	 */
+	public static function instance(): self {
+		if ( null === self::$instance ) {
+			self::$instance = new self();
+		}
+		return self::$instance;
+	}
+
+	/**
+	 * Static log method for backwards compatibility.
+	 *
+	 * @param string $message Message to log.
+	 * @param array  $context Context data (first element used as context string if available).
+	 * @param string $level   Log level.
+	 * @return void
+	 */
+	public static function logStatic( string $message, array $context = array(), string $level = self::LEVEL_INFO ): void {
+		$contextStr = isset( $context['category'] ) ? $context['category'] : 'general';
+		unset( $context['category'] );
+		self::instance()->log( $level, $message, $contextStr, $context );
 	}
 
 	/**

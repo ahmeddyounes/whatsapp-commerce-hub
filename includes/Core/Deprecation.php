@@ -76,7 +76,7 @@ class Deprecation {
 			);
 		}
 
-		self::$deprecations[ $key ]['count']++;
+		++self::$deprecations[ $key ]['count'];
 		self::$deprecations[ $key ]['last'] = time();
 
 		// Store in WordPress option for persistence.
@@ -139,12 +139,14 @@ class Deprecation {
 				<?php
 				printf(
 					/* translators: %d: number of deprecated classes */
-					esc_html( _n(
-						'%d deprecated class is being used.',
-						'%d deprecated classes are being used.',
-						$count,
-						'whatsapp-commerce-hub'
-					) ),
+					esc_html(
+						_n(
+							'%d deprecated class is being used.',
+							'%d deprecated classes are being used.',
+							$count,
+							'whatsapp-commerce-hub'
+						)
+					),
 					absint( $count )
 				);
 				?>

@@ -46,7 +46,7 @@ class CartRecoveredEvent extends Event {
 	 */
 	public function __construct( Cart $cart, int $order_id ) {
 		parent::__construct();
-		$this->cart = $cart;
+		$this->cart     = $cart;
 		$this->order_id = $order_id;
 	}
 
@@ -62,11 +62,11 @@ class CartRecoveredEvent extends Event {
 	 */
 	public function getPayload(): array {
 		return array(
-			'cart_id'         => $this->cart->id,
-			'order_id'        => $this->order_id,
-			'customer_phone'  => $this->cart->customer_phone,
-			'total'           => $this->cart->total,
-			'reminders_sent'  => $this->cart->getRemindersSent(),
+			'cart_id'        => $this->cart->id,
+			'order_id'       => $this->order_id,
+			'customer_phone' => $this->cart->customer_phone,
+			'total'          => $this->cart->total,
+			'reminders_sent' => $this->cart->getRemindersSent(),
 		);
 	}
 }

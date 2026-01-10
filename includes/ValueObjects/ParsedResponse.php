@@ -365,7 +365,10 @@ class ParsedResponse {
 	public static function location( float $latitude, float $longitude, ?string $name = null, ?string $address = null ): static {
 		return new static(
 			self::TYPE_LOCATION,
-			array( 'latitude' => $latitude, 'longitude' => $longitude ),
+			array(
+				'latitude'  => $latitude,
+				'longitude' => $longitude,
+			),
 			array(
 				'latitude'  => $latitude,
 				'longitude' => $longitude,

@@ -25,7 +25,7 @@ interface PaymentGatewayRegistryInterface {
 	/**
 	 * Register a payment gateway.
 	 *
-	 * @param string                $id Gateway identifier.
+	 * @param string               $id Gateway identifier.
 	 * @param \WCH_Payment_Gateway $gateway Gateway instance.
 	 * @return void
 	 */

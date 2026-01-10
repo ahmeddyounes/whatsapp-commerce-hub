@@ -78,7 +78,7 @@ class EventBus {
 	 * @param object|null $logger The logger service.
 	 */
 	public function __construct( ?object $queue = null, ?object $logger = null ) {
-		$this->queue = $queue;
+		$this->queue  = $queue;
 		$this->logger = $logger;
 	}
 
@@ -100,11 +100,15 @@ class EventBus {
 	public function listen( string $event_name, callable $handler, int $priority = 10 ): bool {
 		// Check total handler limit.
 		if ( $this->total_handler_count >= self::MAX_TOTAL_HANDLERS ) {
-			$this->log( 'warning', 'Total handler limit reached', array(
-				'event'     => $event_name,
-				'limit'     => self::MAX_TOTAL_HANDLERS,
-				'current'   => $this->total_handler_count,
-			) );
+			$this->log(
+				'warning',
+				'Total handler limit reached',
+				array(
+					'event'   => $event_name,
+					'limit'   => self::MAX_TOTAL_HANDLERS,
+					'current' => $this->total_handler_count,
+				)
+			);
 			return false;
 		}
 
@@ -114,10 +118,14 @@ class EventBus {
 
 		// Check per-event handler limit.
 		if ( count( $this->handlers[ $event_name ] ) >= self::MAX_HANDLERS_PER_EVENT ) {
-			$this->log( 'warning', 'Per-event handler limit reached', array(
-				'event' => $event_name,
-				'limit' => self::MAX_HANDLERS_PER_EVENT,
-			) );
+			$this->log(
+				'warning',
+				'Per-event handler limit reached',
+				array(
+					'event' => $event_name,
+					'limit' => self::MAX_HANDLERS_PER_EVENT,
+				)
+			);
 			return false;
 		}
 
@@ -161,9 +169,13 @@ class EventBus {
 	public function dispatch( Event $event ): void {
 		$event_name = $event->getName();
 
-		$this->log( 'debug', "Dispatching event: {$event_name}", array(
-			'event_id' => $event->id,
-		) );
+		$this->log(
+			'debug',
+			"Dispatching event: {$event_name}",
+			array(
+				'event_id' => $event->id,
+			)
+		);
 
 		// Check if event should be async.
 		if ( isset( $this->async_config[ $event_name ] ) && $this->queue ) {
@@ -183,17 +195,21 @@ class EventBus {
 	 */
 	private function dispatchSync( Event $event ): void {
 		$event_name = $event->getName();
-		$handlers = $this->getHandlersFor( $event_name );
+		$handlers   = $this->getHandlersFor( $event_name );
 
 		foreach ( $handlers as $handler_config ) {
 			try {
 				$handler = $handler_config['handler'];
 				$handler( $event );
 			} catch ( \Throwable $e ) {
-				$this->log( 'error', "Handler failed for {$event_name}", array(
-					'event_id' => $event->id,
-					'error'    => $e->getMessage(),
-				) );
+				$this->log(
+					'error',
+					"Handler failed for {$event_name}",
+					array(
+						'event_id' => $event->id,
+						'error'    => $e->getMessage(),
+					)
+				);
 
 				// Continue with other handlers.
 			}
@@ -212,7 +228,7 @@ class EventBus {
 	 */
 	private function dispatchAsync( Event $event ): void {
 		$event_name = $event->getName();
-		$config = $this->async_config[ $event_name ];
+		$config     = $this->async_config[ $event_name ];
 
 		try {
 			// Pass event name and serialized data.
@@ -224,14 +240,22 @@ class EventBus {
 				$config['delay']
 			);
 
-			$this->log( 'debug', "Event queued for async: {$event_name}", array(
-				'event_id' => $event->id,
-			) );
+			$this->log(
+				'debug',
+				"Event queued for async: {$event_name}",
+				array(
+					'event_id' => $event->id,
+				)
+			);
 		} catch ( \Throwable $e ) {
-			$this->log( 'error', "Failed to queue async event: {$event_name}", array(
-				'event_id' => $event->id,
-				'error'    => $e->getMessage(),
-			) );
+			$this->log(
+				'error',
+				"Failed to queue async event: {$event_name}",
+				array(
+					'event_id' => $event->id,
+					'error'    => $e->getMessage(),
+				)
+			);
 
 			// Fall back to sync dispatch to avoid silent event loss.
 			$this->dispatchSync( $event );
@@ -259,10 +283,14 @@ class EventBus {
 				// Pass the AsyncEventData wrapper which has the same interface as Event.
 				$handler( $async_event );
 			} catch ( \Throwable $e ) {
-				$this->log( 'error', "Async handler failed for {$event_name}", array(
-					'event_id' => $event_data['id'] ?? 'unknown',
-					'error'    => $e->getMessage(),
-				) );
+				$this->log(
+					'error',
+					"Async handler failed for {$event_name}",
+					array(
+						'event_id' => $event_data['id'] ?? 'unknown',
+						'error'    => $e->getMessage(),
+					)
+				);
 			}
 		}
 
@@ -377,8 +405,8 @@ class EventBus {
 	public function clearHandlers(): int {
 		$count = $this->total_handler_count;
 
-		$this->handlers = array();
-		$this->async_config = array();
+		$this->handlers            = array();
+		$this->async_config        = array();
 		$this->total_handler_count = 0;
 
 		$this->log( 'debug', "Cleared all handlers ({$count} total)" );

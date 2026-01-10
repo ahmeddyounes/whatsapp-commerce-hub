@@ -85,9 +85,9 @@ class MessageReceivedHandler implements EventHandlerInterface {
 			$customer_service->update_customer_profile(
 				$phone,
 				array(
-					'last_activity_at'   => current_time( 'mysql' ),
-					'last_message_at'    => current_time( 'mysql' ),
-					'total_messages_in'  => 'INCREMENT', // Special handling in update method.
+					'last_activity_at'  => current_time( 'mysql' ),
+					'last_message_at'   => current_time( 'mysql' ),
+					'total_messages_in' => 'INCREMENT', // Special handling in update method.
 				)
 			);
 		} catch ( \Exception $e ) {
