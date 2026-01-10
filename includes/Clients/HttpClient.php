@@ -83,27 +83,6 @@ class HttpClient implements HttpClientInterface {
 	private ?array $last_request = null;
 
 	/**
-	 * Circuit breaker instance.
-	 *
-	 * @var CircuitBreaker|null
-	 */
-	private ?CircuitBreaker $circuit_breaker;
-
-	/**
-	 * Retry policy instance.
-	 *
-	 * @var RetryPolicy|null
-	 */
-	private ?RetryPolicy $retry_policy;
-
-	/**
-	 * Service name for circuit breaker.
-	 *
-	 * @var string
-	 */
-	private string $service_name;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param string              $service_name    Service name for circuit breaker.
@@ -111,13 +90,10 @@ class HttpClient implements HttpClientInterface {
 	 * @param RetryPolicy|null    $retry_policy    Retry policy instance.
 	 */
 	public function __construct(
-		string $service_name = 'http_client',
-		?CircuitBreaker $circuit_breaker = null,
-		?RetryPolicy $retry_policy = null
+		private string $service_name = 'http_client',
+		private ?CircuitBreaker $circuit_breaker = null,
+		private ?RetryPolicy $retry_policy = null
 	) {
-		$this->service_name    = $service_name;
-		$this->circuit_breaker = $circuit_breaker;
-		$this->retry_policy    = $retry_policy;
 	}
 
 	/**

@@ -40,31 +40,15 @@ class SettingsImportExporter implements SettingsImportExporterInterface {
 	protected const OPTION_SCHEMA_VERSION = 'wch_settings_schema_version';
 
 	/**
-	 * Settings service.
-	 *
-	 * @var SettingsInterface
-	 */
-	protected SettingsInterface $settings;
-
-	/**
-	 * Settings sanitizer.
-	 *
-	 * @var SettingsSanitizerInterface
-	 */
-	protected SettingsSanitizerInterface $sanitizer;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param SettingsInterface          $settings  Settings service.
 	 * @param SettingsSanitizerInterface $sanitizer Settings sanitizer.
 	 */
 	public function __construct(
-		SettingsInterface $settings,
-		SettingsSanitizerInterface $sanitizer
+		protected SettingsInterface $settings,
+		protected SettingsSanitizerInterface $sanitizer
 	) {
-		$this->settings  = $settings;
-		$this->sanitizer = $sanitizer;
 	}
 
 	/**

@@ -24,13 +24,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 class PIIEncryptor {
 
 	/**
-	 * The secure vault instance.
-	 *
-	 * @var SecureVault
-	 */
-	private SecureVault $vault;
-
-	/**
 	 * PII field definitions with their encryption requirements.
 	 *
 	 * @var array<string, array>
@@ -66,8 +59,7 @@ class PIIEncryptor {
 	 *
 	 * @param SecureVault $vault The secure vault instance.
 	 */
-	public function __construct( SecureVault $vault ) {
-		$this->vault = $vault;
+	public function __construct( private SecureVault $vault ) {
 	}
 
 	/**
