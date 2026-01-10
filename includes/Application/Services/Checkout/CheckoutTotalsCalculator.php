@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+
 /**
  * Checkout Totals Calculator
  *
@@ -10,7 +11,6 @@ declare(strict_types=1);
  * @since 3.0.0
  */
 
-declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Application\Services\Checkout;
 
@@ -65,8 +65,8 @@ class CheckoutTotalsCalculator implements CheckoutTotalsCalculatorInterface {
 		$subtotal = 0.0;
 
 		foreach ( $items as $item ) {
-			$price    = (float) ( $item['price'] ?? 0 );
-			$quantity = (int) ( $item['quantity'] ?? 1 );
+			$price     = (float) ( $item['price'] ?? 0 );
+			$quantity  = (int) ( $item['quantity'] ?? 1 );
 			$subtotal += $price * $quantity;
 		}
 
@@ -148,23 +148,25 @@ class CheckoutTotalsCalculator implements CheckoutTotalsCalculatorInterface {
 			);
 		}
 
-		$totals = $this->calculateTotals( array(
-			'items'        => $items,
-			'coupon_code'  => $state['coupon_code'] ?? '',
-			'shipping_cost' => $state['shipping_method']['cost'] ?? 0,
-			'payment_fee'  => $state['payment_method']['fee'] ?? 0,
-			'address'      => $state['address'] ?? array(),
-		) );
+		$totals = $this->calculateTotals(
+			array(
+				'items'         => $items,
+				'coupon_code'   => $state['coupon_code'] ?? '',
+				'shipping_cost' => $state['shipping_method']['cost'] ?? 0,
+				'payment_fee'   => $state['payment_method']['fee'] ?? 0,
+				'address'       => $state['address'] ?? array(),
+			)
+		);
 
 		return array(
-			'items'    => $formattedItems,
-			'address'  => $state['address'] ?? array(),
-			'shipping' => array(
+			'items'            => $formattedItems,
+			'address'          => $state['address'] ?? array(),
+			'shipping'         => array(
 				'method' => $state['shipping_method']['label'] ?? '',
 				'cost'   => $state['shipping_method']['cost'] ?? 0,
 			),
-			'payment'  => $state['payment_method']['label'] ?? '',
-			'totals'   => $totals,
+			'payment'          => $state['payment_method']['label'] ?? '',
+			'totals'           => $totals,
 			'totals_formatted' => array(
 				'subtotal'    => $this->formatAmount( $totals['subtotal'] ),
 				'discount'    => $this->formatAmount( $totals['discount'] ),

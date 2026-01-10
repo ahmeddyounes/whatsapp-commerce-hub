@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+
 /**
  * Sync Progress Tracker Service
  *
@@ -10,7 +11,6 @@ declare(strict_types=1);
  * @since 3.0.0
  */
 
-declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Application\Services\ProductSync;
 
@@ -69,9 +69,9 @@ class SyncProgressTracker implements SyncProgressTrackerInterface {
 	 * @param \wpdb|null           $wpdb   WordPress database.
 	 * @param LoggerInterface|null $logger Logger service.
 	 */
-	public function __construct( ?\wpdb $wpdb = null, ?LoggerInterface $logger = null ) {
-		global $wpdb as $globalWpdb;
-		$this->wpdb   = $wpdb ?? $globalWpdb;
+	public function __construct( ?\wpdb $wpdb_instance = null, ?LoggerInterface $logger = null ) {
+		global $wpdb;
+		$this->wpdb   = $wpdb_instance ?? $wpdb;
 		$this->logger = $logger;
 	}
 
@@ -96,10 +96,14 @@ class SyncProgressTracker implements SyncProgressTrackerInterface {
 
 		update_option( self::OPTION_SYNC_PROGRESS, $progress, false );
 
-		$this->log( 'info', 'Initialized bulk sync progress tracking', array(
-			'sync_id'     => $syncId,
-			'total_items' => $totalItems,
-		) );
+		$this->log(
+			'info',
+			'Initialized bulk sync progress tracking',
+			array(
+				'sync_id'     => $syncId,
+				'total_items' => $totalItems,
+			)
+		);
 
 		return $syncId;
 	}
@@ -111,9 +115,13 @@ class SyncProgressTracker implements SyncProgressTrackerInterface {
 		$lockAcquired = $this->acquireLock();
 
 		if ( ! $lockAcquired ) {
-			$this->log( 'warning', 'Failed to acquire sync progress lock', array(
-				'sync_id' => $syncId,
-			) );
+			$this->log(
+				'warning',
+				'Failed to acquire sync progress lock',
+				array(
+					'sync_id' => $syncId,
+				)
+			);
 			return false;
 		}
 
@@ -121,10 +129,14 @@ class SyncProgressTracker implements SyncProgressTrackerInterface {
 			$progress = get_option( self::OPTION_SYNC_PROGRESS );
 
 			if ( ! $progress || $progress['sync_id'] !== $syncId ) {
-				$this->log( 'warning', 'Sync progress not found or ID mismatch', array(
-					'expected_sync_id' => $syncId,
-					'actual_sync_id'   => $progress['sync_id'] ?? 'none',
-				) );
+				$this->log(
+					'warning',
+					'Sync progress not found or ID mismatch',
+					array(
+						'expected_sync_id' => $syncId,
+						'actual_sync_id'   => $progress['sync_id'] ?? 'none',
+					)
+				);
 				return false;
 			}
 
@@ -139,13 +151,17 @@ class SyncProgressTracker implements SyncProgressTrackerInterface {
 				$progress['status']       = 'completed';
 				$progress['completed_at'] = current_time( 'mysql', true );
 
-				$this->log( 'info', 'Bulk sync completed', array(
-					'sync_id'       => $syncId,
-					'total'         => $progress['total_items'],
-					'successful'    => $progress['success_count'],
-					'failed'        => $progress['failed_count'],
-					'duration_secs' => strtotime( $progress['completed_at'] ) - strtotime( $progress['started_at'] ),
-				) );
+				$this->log(
+					'info',
+					'Bulk sync completed',
+					array(
+						'sync_id'       => $syncId,
+						'total'         => $progress['total_items'],
+						'successful'    => $progress['success_count'],
+						'failed'        => $progress['failed_count'],
+						'duration_secs' => strtotime( $progress['completed_at'] ) - strtotime( $progress['started_at'] ),
+					)
+				);
 			}
 
 			update_option( self::OPTION_SYNC_PROGRESS, $progress, false );
@@ -209,14 +225,14 @@ class SyncProgressTracker implements SyncProgressTrackerInterface {
 
 		// Calculate elapsed time.
 		if ( ! empty( $progress['started_at'] ) ) {
-			$endTime = $progress['completed_at'] ?? current_time( 'mysql', true );
+			$endTime                     = $progress['completed_at'] ?? current_time( 'mysql', true );
 			$progress['elapsed_seconds'] = strtotime( $endTime ) - strtotime( $progress['started_at'] );
 		}
 
 		// Estimate remaining time based on current rate.
 		if ( $progress['processed_count'] > 0 && 'in_progress' === $progress['status'] ) {
-			$rate = $progress['processed_count'] / max( 1, $progress['elapsed_seconds'] );
-			$remainingItems = $progress['total_items'] - $progress['processed_count'];
+			$rate                                    = $progress['processed_count'] / max( 1, $progress['elapsed_seconds'] );
+			$remainingItems                          = $progress['total_items'] - $progress['processed_count'];
 			$progress['estimated_remaining_seconds'] = $rate > 0 ? (int) round( $remainingItems / $rate ) : null;
 		}
 
@@ -245,10 +261,14 @@ class SyncProgressTracker implements SyncProgressTrackerInterface {
 			$progress['failure_reason'] = $reason;
 			$progress['completed_at']   = current_time( 'mysql', true );
 
-			$this->log( 'error', 'Bulk sync failed', array(
-				'sync_id' => $syncId,
-				'reason'  => $reason,
-			) );
+			$this->log(
+				'error',
+				'Bulk sync failed',
+				array(
+					'sync_id' => $syncId,
+					'reason'  => $reason,
+				)
+			);
 
 			return update_option( self::OPTION_SYNC_PROGRESS, $progress, false );
 		} finally {

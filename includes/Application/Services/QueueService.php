@@ -65,8 +65,8 @@ class QueueService implements QueueServiceInterface {
 	/**
 	 * Constructor.
 	 *
-	 * @param PriorityQueue|null    $priority_queue    Priority queue instance.
-	 * @param DeadLetterQueue|null  $dead_letter_queue Dead letter queue instance.
+	 * @param PriorityQueue|null   $priority_queue    Priority queue instance.
+	 * @param DeadLetterQueue|null $dead_letter_queue Dead letter queue instance.
 	 */
 	public function __construct(
 		?PriorityQueue $priority_queue = null,
@@ -307,11 +307,11 @@ class QueueService implements QueueServiceInterface {
 		$table = $wpdb->prefix . 'actionscheduler_actions';
 		$limit = max( 1, min( 1000, $limit ) );
 
-		$where = "a.status = 'failed' AND g.slug LIKE 'wch-%'";
+		$where  = "a.status = 'failed' AND g.slug LIKE 'wch-%'";
 		$params = array();
 
 		if ( $hook ) {
-			$where .= ' AND a.hook = %s';
+			$where   .= ' AND a.hook = %s';
 			$params[] = $hook;
 		}
 
@@ -336,14 +336,14 @@ class QueueService implements QueueServiceInterface {
 			$unwrapped = PriorityQueue::unwrapPayload( $payload[0] ?? $payload );
 
 			$as_jobs[] = array(
-				'id'             => (int) $row['action_id'],
-				'hook'           => $row['hook'],
-				'args'           => $unwrapped['args'],
-				'scheduled_at'   => strtotime( $row['scheduled_date_gmt'] . ' UTC' ),
-				'last_attempt'   => strtotime( $row['last_attempt_gmt'] . ' UTC' ),
-				'group'          => $row['group_name'],
-				'source'         => 'action_scheduler',
-				'failure_count'  => $unwrapped['meta']['attempt'] ?? 1,
+				'id'            => (int) $row['action_id'],
+				'hook'          => $row['hook'],
+				'args'          => $unwrapped['args'],
+				'scheduled_at'  => strtotime( $row['scheduled_date_gmt'] . ' UTC' ),
+				'last_attempt'  => strtotime( $row['last_attempt_gmt'] . ' UTC' ),
+				'group'         => $row['group_name'],
+				'source'        => 'action_scheduler',
+				'failure_count' => $unwrapped['meta']['attempt'] ?? 1,
 			);
 		}
 
@@ -432,7 +432,7 @@ class QueueService implements QueueServiceInterface {
 		// Delete from Action Scheduler.
 		global $wpdb;
 
-		$table = $wpdb->prefix . 'actionscheduler_actions';
+		$table   = $wpdb->prefix . 'actionscheduler_actions';
 		$deleted = $wpdb->delete(
 			$table,
 			array(
@@ -469,7 +469,7 @@ class QueueService implements QueueServiceInterface {
 
 		// Add DLQ count to failed.
 		if ( $this->dead_letter_queue ) {
-			$dlq_count = $this->dead_letter_queue->getCount();
+			$dlq_count         = $this->dead_letter_queue->getCount();
 			$totals['failed'] += $dlq_count;
 		}
 
@@ -484,7 +484,7 @@ class QueueService implements QueueServiceInterface {
 	public function getStatsByPriority(): array {
 		$priority_stats = $this->priority_queue->getStats();
 
-		$result = array();
+		$result            = array();
 		$priority_to_group = array(
 			'critical'    => self::PRIORITY_CRITICAL,
 			'urgent'      => self::PRIORITY_URGENT,
@@ -494,7 +494,7 @@ class QueueService implements QueueServiceInterface {
 		);
 
 		foreach ( $priority_stats as $name => $stats ) {
-			$group_name = $priority_to_group[ $name ] ?? $name;
+			$group_name            = $priority_to_group[ $name ] ?? $name;
 			$result[ $group_name ] = array(
 				'pending' => $stats['pending'] ?? 0,
 				'running' => $stats['running'] ?? 0,
@@ -582,7 +582,7 @@ class QueueService implements QueueServiceInterface {
 		// Register with WordPress.
 		add_action(
 			$hook,
-			function( $payload ) use ( $hook, $callback ) {
+			function ( $payload ) use ( $hook, $callback ) {
 				$unwrapped = PriorityQueue::unwrapPayload( $payload );
 				$args      = $unwrapped['args'];
 
@@ -590,10 +590,14 @@ class QueueService implements QueueServiceInterface {
 					call_user_func( $callback, $args );
 				} catch ( \Exception $e ) {
 					// Log and optionally retry.
-					do_action( 'wch_log_error', "Job handler failed for {$hook}", array(
-						'error' => $e->getMessage(),
-						'args'  => $args,
-					) );
+					do_action(
+						'wch_log_error',
+						"Job handler failed for {$hook}",
+						array(
+							'error' => $e->getMessage(),
+							'args'  => $args,
+						)
+					);
 
 					// Re-throw to let Action Scheduler handle retry.
 					throw $e;

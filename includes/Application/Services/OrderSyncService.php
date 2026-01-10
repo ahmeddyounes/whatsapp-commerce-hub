@@ -92,7 +92,7 @@ class OrderSyncService implements OrderSyncServiceInterface {
 	/**
 	 * Constructor.
 	 *
-	 * @param QueueServiceInterface|null      $queue_service       Queue service for notifications.
+	 * @param QueueServiceInterface|null       $queue_service       Queue service for notifications.
 	 * @param CustomerRepositoryInterface|null $customer_repository Customer repository.
 	 */
 	public function __construct(
@@ -200,10 +200,14 @@ class OrderSyncService implements OrderSyncServiceInterface {
 			return $order->get_id();
 
 		} catch ( \Exception $e ) {
-			do_action( 'wch_log_error', 'OrderSyncService: Order creation failed', array(
-				'error'          => $e->getMessage(),
-				'customer_phone' => $customer_phone,
-			) );
+			do_action(
+				'wch_log_error',
+				'OrderSyncService: Order creation failed',
+				array(
+					'error'          => $e->getMessage(),
+					'customer_phone' => $customer_phone,
+				)
+			);
 
 			throw new \RuntimeException( 'Order creation failed: ' . $e->getMessage(), 0, $e );
 		}
@@ -221,7 +225,12 @@ class OrderSyncService implements OrderSyncServiceInterface {
 		if ( empty( $items ) ) {
 			return array(
 				'valid'  => false,
-				'issues' => array( array( 'type' => 'empty_cart', 'message' => 'Cart is empty' ) ),
+				'issues' => array(
+					array(
+						'type'    => 'empty_cart',
+						'message' => 'Cart is empty',
+					),
+				),
 			);
 		}
 
@@ -366,16 +375,18 @@ class OrderSyncService implements OrderSyncServiceInterface {
 		$order->save();
 
 		// Add order note.
-		$order->add_order_note( sprintf(
+		$order->add_order_note(
+			sprintf(
 			/* translators: 1: Carrier name, 2: Tracking number */
-			__( 'Tracking added - %1$s: %2$s', 'whatsapp-commerce-hub' ),
-			$carrier ?: __( 'Unknown carrier', 'whatsapp-commerce-hub' ),
-			$tracking_number
-		) );
+				__( 'Tracking added - %1$s: %2$s', 'whatsapp-commerce-hub' ),
+				$carrier ?: __( 'Unknown carrier', 'whatsapp-commerce-hub' ),
+				$tracking_number
+			)
+		);
 
 		// Send tracking notification if WhatsApp order.
 		if ( $this->isWhatsAppOrder( $order_id ) ) {
-			$template_data = $this->buildTemplateData( $order );
+			$template_data                    = $this->buildTemplateData( $order );
 			$template_data['tracking_number'] = $tracking_number;
 			$template_data['carrier']         = $carrier;
 
@@ -521,13 +532,15 @@ class OrderSyncService implements OrderSyncServiceInterface {
 
 		$limit = max( 1, min( 100, $limit ) );
 
-		$orders = wc_get_orders( array(
-			'limit'      => $limit,
-			'orderby'    => 'date',
-			'order'      => 'DESC',
-			'meta_key'   => self::META_CUSTOMER_PHONE,
-			'meta_value' => $phone,
-		) );
+		$orders = wc_get_orders(
+			array(
+				'limit'      => $limit,
+				'orderby'    => 'date',
+				'order'      => 'DESC',
+				'meta_key'   => self::META_CUSTOMER_PHONE,
+				'meta_value' => $phone,
+			)
+		);
 
 		$result = array();
 		foreach ( $orders as $order ) {
@@ -563,11 +576,15 @@ class OrderSyncService implements OrderSyncServiceInterface {
 			$order_phone    = $this->sanitizePhone( $order->get_meta( self::META_CUSTOMER_PHONE ) ?: $order->get_billing_phone() );
 
 			if ( empty( $customer_phone ) || $customer_phone !== $order_phone ) {
-				do_action( 'wch_log_warning', 'OrderSyncService: Unauthorized order cancellation attempt', array(
-					'order_id'             => $order_id,
-					'provided_phone'       => $customer_phone ? substr( $customer_phone, 0, 4 ) . '****' : 'none',
-					'caller_context'       => defined( 'DOING_CRON' ) && DOING_CRON ? 'cron' : 'request',
-				) );
+				do_action(
+					'wch_log_warning',
+					'OrderSyncService: Unauthorized order cancellation attempt',
+					array(
+						'order_id'       => $order_id,
+						'provided_phone' => $customer_phone ? substr( $customer_phone, 0, 4 ) . '****' : 'none',
+						'caller_context' => defined( 'DOING_CRON' ) && DOING_CRON ? 'cron' : 'request',
+					)
+				);
 				return false;
 			}
 		}
@@ -577,10 +594,14 @@ class OrderSyncService implements OrderSyncServiceInterface {
 		$cancellable    = array( 'pending', 'processing', 'on-hold' );
 
 		if ( ! in_array( $current_status, $cancellable, true ) ) {
-			do_action( 'wch_log_warning', 'OrderSyncService: Cannot cancel order', array(
-				'order_id'       => $order_id,
-				'current_status' => $current_status,
-			) );
+			do_action(
+				'wch_log_warning',
+				'OrderSyncService: Cannot cancel order',
+				array(
+					'order_id'       => $order_id,
+					'current_status' => $current_status,
+				)
+			);
 			return false;
 		}
 
@@ -592,10 +613,14 @@ class OrderSyncService implements OrderSyncServiceInterface {
 
 			return true;
 		} catch ( \Exception $e ) {
-			do_action( 'wch_log_error', 'OrderSyncService: Order cancellation failed', array(
-				'order_id' => $order_id,
-				'error'    => $e->getMessage(),
-			) );
+			do_action(
+				'wch_log_error',
+				'OrderSyncService: Order cancellation failed',
+				array(
+					'order_id' => $order_id,
+					'error'    => $e->getMessage(),
+				)
+			);
 			return false;
 		}
 	}
@@ -682,23 +707,27 @@ class OrderSyncService implements OrderSyncServiceInterface {
 
 		if ( $hpos_enabled ) {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery
-			$results = $wpdb->get_results( $wpdb->prepare(
-				"SELECT o.status, COUNT(*) as count, SUM(o.total_amount) as revenue
+			$results = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT o.status, COUNT(*) as count, SUM(o.total_amount) as revenue
 				FROM {$orders_table} o
 				INNER JOIN {$ordermeta_table} om ON o.id = om.order_id
 				WHERE om.meta_key = %s AND om.meta_value = %s
 				AND o.date_created_gmt BETWEEN %s AND %s
 				GROUP BY o.status",
-				self::META_WHATSAPP_ORDER,
-				'1',
-				$start_str,
-				$end_str
-			), ARRAY_A );
+					self::META_WHATSAPP_ORDER,
+					'1',
+					$start_str,
+					$end_str
+				),
+				ARRAY_A
+			);
 		} else {
 			// Legacy post meta approach.
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery
-			$results = $wpdb->get_results( $wpdb->prepare(
-				"SELECT p.post_status as status, COUNT(*) as count,
+			$results = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT p.post_status as status, COUNT(*) as count,
 				SUM(CAST(pm_total.meta_value AS DECIMAL(10,2))) as revenue
 				FROM {$wpdb->posts} p
 				INNER JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id
@@ -707,11 +736,13 @@ class OrderSyncService implements OrderSyncServiceInterface {
 				AND pm.meta_key = %s AND pm.meta_value = %s
 				AND p.post_date BETWEEN %s AND %s
 				GROUP BY p.post_status",
-				self::META_WHATSAPP_ORDER,
-				'1',
-				$start_str,
-				$end_str
-			), ARRAY_A );
+					self::META_WHATSAPP_ORDER,
+					'1',
+					$start_str,
+					$end_str
+				),
+				ARRAY_A
+			);
 		}
 
 		$total     = 0;
@@ -723,8 +754,8 @@ class OrderSyncService implements OrderSyncServiceInterface {
 			$count  = (int) $row['count'];
 			$rev    = (float) $row['revenue'];
 
-			$total     += $count;
-			$revenue   += $rev;
+			$total               += $count;
+			$revenue             += $rev;
 			$by_status[ $status ] = array(
 				'count'   => $count,
 				'revenue' => $rev,
@@ -823,17 +854,17 @@ class OrderSyncService implements OrderSyncServiceInterface {
 	 */
 	private function buildTemplateData( \WC_Order $order ): array {
 		return array(
-			'order_id'       => $order->get_id(),
-			'order_number'   => $order->get_order_number(),
-			'order_date'     => $order->get_date_created() ? $order->get_date_created()->format( 'Y-m-d' ) : '',
-			'order_total'    => $order->get_formatted_order_total(),
-			'order_status'   => wc_get_order_status_name( $order->get_status() ),
-			'customer_name'  => $order->get_formatted_billing_full_name(),
-			'customer_email' => $order->get_billing_email(),
-			'customer_phone' => $order->get_billing_phone(),
-			'item_count'     => $order->get_item_count(),
-			'payment_method' => $order->get_payment_method_title(),
-			'shipping_method'=> $order->get_shipping_method(),
+			'order_id'        => $order->get_id(),
+			'order_number'    => $order->get_order_number(),
+			'order_date'      => $order->get_date_created() ? $order->get_date_created()->format( 'Y-m-d' ) : '',
+			'order_total'     => $order->get_formatted_order_total(),
+			'order_status'    => wc_get_order_status_name( $order->get_status() ),
+			'customer_name'   => $order->get_formatted_billing_full_name(),
+			'customer_email'  => $order->get_billing_email(),
+			'customer_phone'  => $order->get_billing_phone(),
+			'item_count'      => $order->get_item_count(),
+			'payment_method'  => $order->get_payment_method_title(),
+			'shipping_method' => $order->get_shipping_method(),
 		);
 	}
 
@@ -892,11 +923,15 @@ class OrderSyncService implements OrderSyncServiceInterface {
 			}
 		} catch ( \Exception $e ) {
 			// Non-critical, log and continue.
-			do_action( 'wch_log_warning', 'OrderSyncService: Customer link failed', array(
-				'order_id'       => $order_id,
-				'customer_phone' => $customer_phone,
-				'error'          => $e->getMessage(),
-			) );
+			do_action(
+				'wch_log_warning',
+				'OrderSyncService: Customer link failed',
+				array(
+					'order_id'       => $order_id,
+					'customer_phone' => $customer_phone,
+					'error'          => $e->getMessage(),
+				)
+			);
 		}
 	}
 

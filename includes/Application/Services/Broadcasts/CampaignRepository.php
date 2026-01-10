@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+
 /**
  * Campaign Repository Service
  *
@@ -10,7 +11,6 @@ declare(strict_types=1);
  * @since 3.0.0
  */
 
-declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Application\Services\Broadcasts;
 
@@ -288,14 +288,14 @@ class CampaignRepository implements CampaignRepositoryInterface {
 	 */
 	protected function sanitizeAudienceData( array $data ): array {
 		return array(
-			'audience_all'              => ! empty( $data['audience_all'] ),
-			'audience_recent_orders'    => ! empty( $data['audience_recent_orders'] ),
-			'recent_orders_days'        => absint( $data['recent_orders_days'] ?? 30 ),
-			'audience_category'         => ! empty( $data['audience_category'] ),
-			'category_id'               => absint( $data['category_id'] ?? 0 ),
-			'audience_cart_abandoners'  => ! empty( $data['audience_cart_abandoners'] ),
-			'exclude_recent_broadcast'  => ! empty( $data['exclude_recent_broadcast'] ),
-			'exclude_broadcast_days'    => absint( $data['exclude_broadcast_days'] ?? 7 ),
+			'audience_all'             => ! empty( $data['audience_all'] ),
+			'audience_recent_orders'   => ! empty( $data['audience_recent_orders'] ),
+			'recent_orders_days'       => absint( $data['recent_orders_days'] ?? 30 ),
+			'audience_category'        => ! empty( $data['audience_category'] ),
+			'category_id'              => absint( $data['category_id'] ?? 0 ),
+			'audience_cart_abandoners' => ! empty( $data['audience_cart_abandoners'] ),
+			'exclude_recent_broadcast' => ! empty( $data['exclude_recent_broadcast'] ),
+			'exclude_broadcast_days'   => absint( $data['exclude_broadcast_days'] ?? 7 ),
 		);
 	}
 

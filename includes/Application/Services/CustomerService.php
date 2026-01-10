@@ -59,15 +59,15 @@ class CustomerService implements CustomerServiceInterface {
 		$wc_customer_id = $this->findWooCommerceCustomerByPhone( $phone );
 
 		$data = array(
-			'phone'         => $phone,
+			'phone'          => $phone,
 			'wc_customer_id' => $wc_customer_id,
-			'created_at'    => new \DateTimeImmutable(),
-			'updated_at'    => new \DateTimeImmutable(),
+			'created_at'     => new \DateTimeImmutable(),
+			'updated_at'     => new \DateTimeImmutable(),
 		);
 
 		// If WC customer found, sync data.
 		if ( $wc_customer_id ) {
-			$wc_customer = new \WC_Customer( $wc_customer_id );
+			$wc_customer   = new \WC_Customer( $wc_customer_id );
 			$data['name']  = $wc_customer->get_first_name() . ' ' . $wc_customer->get_last_name();
 			$data['email'] = $wc_customer->get_email();
 		}
@@ -103,12 +103,14 @@ class CustomerService implements CustomerServiceInterface {
 		$variations = $this->buildPhoneVariations( $phone );
 
 		foreach ( $variations as $variation ) {
-			$customers = get_users( array(
-				'meta_key'   => 'billing_phone',
-				'meta_value' => $variation,
-				'fields'     => 'ID',
-				'number'     => 1,
-			) );
+			$customers = get_users(
+				array(
+					'meta_key'   => 'billing_phone',
+					'meta_value' => $variation,
+					'fields'     => 'ID',
+					'number'     => 1,
+				)
+			);
 
 			if ( ! empty( $customers ) ) {
 				return (int) $customers[0];
@@ -156,15 +158,21 @@ class CustomerService implements CustomerServiceInterface {
 		$addresses[] = $address;
 
 		// Update preferences.
-		$this->repository->updatePreferences( $customer->id, array(
-			'saved_addresses' => $addresses,
-		) );
+		$this->repository->updatePreferences(
+			$customer->id,
+			array(
+				'saved_addresses' => $addresses,
+			)
+		);
 
 		// Update last known address.
-		$this->repository->update( $customer->id, array(
-			'last_known_address' => $address,
-			'updated_at'         => new \DateTimeImmutable(),
-		) );
+		$this->repository->update(
+			$customer->id,
+			array(
+				'last_known_address' => $address,
+				'updated_at'         => new \DateTimeImmutable(),
+			)
+		);
 
 		return true;
 	}
@@ -231,9 +239,12 @@ class CustomerService implements CustomerServiceInterface {
 			$addresses[0]['is_default'] = true;
 		}
 
-		return $this->repository->updatePreferences( $customer->id, array(
-			'saved_addresses' => $addresses,
-		) );
+		return $this->repository->updatePreferences(
+			$customer->id,
+			array(
+				'saved_addresses' => $addresses,
+			)
+		);
 	}
 
 	/**
@@ -267,10 +278,13 @@ class CustomerService implements CustomerServiceInterface {
 		$phone    = $this->normalizePhone( $phone );
 		$customer = $this->getOrCreateProfile( $phone );
 
-		return $this->repository->update( $customer->id, array(
-			'name'       => $name,
-			'updated_at' => new \DateTimeImmutable(),
-		) );
+		return $this->repository->update(
+			$customer->id,
+			array(
+				'name'       => $name,
+				'updated_at' => new \DateTimeImmutable(),
+			)
+		);
 	}
 
 	/**
@@ -290,9 +304,12 @@ class CustomerService implements CustomerServiceInterface {
 		$phone    = $this->normalizePhone( $phone );
 		$customer = $this->getOrCreateProfile( $phone );
 
-		return $this->repository->updatePreferences( $customer->id, array(
-			'notifications_opt_out' => $opt_out,
-		) );
+		return $this->repository->updatePreferences(
+			$customer->id,
+			array(
+				'notifications_opt_out' => $opt_out,
+			)
+		);
 	}
 
 	/**
@@ -324,9 +341,9 @@ class CustomerService implements CustomerServiceInterface {
 
 		if ( ! $customer ) {
 			return array(
-				'total_orders'         => 0,
-				'total_spent'          => 0.0,
-				'average_order_value'  => 0.0,
+				'total_orders'          => 0,
+				'total_spent'           => 0.0,
+				'average_order_value'   => 0.0,
 				'days_since_last_order' => null,
 			);
 		}
@@ -341,9 +358,9 @@ class CustomerService implements CustomerServiceInterface {
 		}
 
 		return array(
-			'total_orders'         => $customer->total_orders,
-			'total_spent'          => $customer->total_spent,
-			'average_order_value'  => round( $avg, 2 ),
+			'total_orders'          => $customer->total_orders,
+			'total_spent'           => $customer->total_spent,
+			'average_order_value'   => round( $avg, 2 ),
 			'days_since_last_order' => $days_since_last,
 		);
 	}
@@ -437,7 +454,7 @@ class CustomerService implements CustomerServiceInterface {
 
 		// Common formats with spaces/dashes.
 		if ( strlen( $without_plus ) >= 10 ) {
-			$last10 = substr( $without_plus, -10 );
+			$last10       = substr( $without_plus, -10 );
 			$variations[] = $last10;
 
 			// With country code variants.
@@ -459,12 +476,14 @@ class CustomerService implements CustomerServiceInterface {
 	 * @return array Order data.
 	 */
 	private function getWooCommerceOrders( int $customer_id, int $limit ): array {
-		$orders = wc_get_orders( array(
-			'customer_id' => $customer_id,
-			'limit'       => $limit,
-			'orderby'     => 'date',
-			'order'       => 'DESC',
-		) );
+		$orders = wc_get_orders(
+			array(
+				'customer_id' => $customer_id,
+				'limit'       => $limit,
+				'orderby'     => 'date',
+				'order'       => 'DESC',
+			)
+		);
 
 		$result = array();
 		foreach ( $orders as $order ) {
@@ -493,12 +512,14 @@ class CustomerService implements CustomerServiceInterface {
 		$all_orders = array();
 
 		foreach ( $variations as $variation ) {
-			$orders = wc_get_orders( array(
-				'billing_phone' => $variation,
-				'limit'         => $limit,
-				'orderby'       => 'date',
-				'order'         => 'DESC',
-			) );
+			$orders = wc_get_orders(
+				array(
+					'billing_phone' => $variation,
+					'limit'         => $limit,
+					'orderby'       => 'date',
+					'order'         => 'DESC',
+				)
+			);
 
 			foreach ( $orders as $order ) {
 				$all_orders[ $order->get_id() ] = array(

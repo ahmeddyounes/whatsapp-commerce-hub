@@ -406,7 +406,7 @@ class CatalogSyncService implements CatalogSyncServiceInterface {
 	 */
 	public function dryRunSync( int $limit = 100 ): array {
 		// First get the total count efficiently.
-		$count_args = array(
+		$count_args  = array(
 			'post_type'      => 'product',
 			'posts_per_page' => 1,
 			'post_status'    => 'publish',

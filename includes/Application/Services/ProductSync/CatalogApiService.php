@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+
 /**
  * Catalog API Service
  *
@@ -10,7 +11,6 @@ declare(strict_types=1);
  * @since 3.0.0
  */
 
-declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Application\Services\ProductSync;
 
@@ -102,20 +102,28 @@ class CatalogApiService implements CatalogApiInterface {
 		try {
 			$response = $apiClient->create_catalog_product( $catalogId, $catalogData );
 
-			$this->log( 'info', 'Product synced to WhatsApp catalog', array(
-				'retailer_id' => $catalogData['retailer_id'] ?? 'unknown',
-				'catalog_id'  => $catalogId,
-			) );
+			$this->log(
+				'info',
+				'Product synced to WhatsApp catalog',
+				array(
+					'retailer_id' => $catalogData['retailer_id'] ?? 'unknown',
+					'catalog_id'  => $catalogId,
+				)
+			);
 
 			return array(
 				'success'         => true,
 				'catalog_item_id' => $response['id'] ?? null,
 			);
 		} catch ( Exception $e ) {
-			$this->log( 'error', 'Failed to sync product to WhatsApp catalog', array(
-				'retailer_id' => $catalogData['retailer_id'] ?? 'unknown',
-				'error'       => $e->getMessage(),
-			) );
+			$this->log(
+				'error',
+				'Failed to sync product to WhatsApp catalog',
+				array(
+					'retailer_id' => $catalogData['retailer_id'] ?? 'unknown',
+					'error'       => $e->getMessage(),
+				)
+			);
 
 			return array(
 				'success' => false,
@@ -148,17 +156,25 @@ class CatalogApiService implements CatalogApiInterface {
 		try {
 			$apiClient->delete_catalog_product( $catalogId, $catalogItemId );
 
-			$this->log( 'info', 'Product removed from WhatsApp catalog', array(
-				'catalog_item_id' => $catalogItemId,
-				'catalog_id'      => $catalogId,
-			) );
+			$this->log(
+				'info',
+				'Product removed from WhatsApp catalog',
+				array(
+					'catalog_item_id' => $catalogItemId,
+					'catalog_id'      => $catalogId,
+				)
+			);
 
 			return array( 'success' => true );
 		} catch ( Exception $e ) {
-			$this->log( 'error', 'Failed to delete product from WhatsApp catalog', array(
-				'catalog_item_id' => $catalogItemId,
-				'error'           => $e->getMessage(),
-			) );
+			$this->log(
+				'error',
+				'Failed to delete product from WhatsApp catalog',
+				array(
+					'catalog_item_id' => $catalogItemId,
+					'error'           => $e->getMessage(),
+				)
+			);
 
 			return array(
 				'success' => false,
@@ -268,9 +284,13 @@ class CatalogApiService implements CatalogApiInterface {
 
 			return $this->apiClient;
 		} catch ( Exception $e ) {
-			$this->log( 'error', 'Failed to initialize API client', array(
-				'error' => $e->getMessage(),
-			) );
+			$this->log(
+				'error',
+				'Failed to initialize API client',
+				array(
+					'error' => $e->getMessage(),
+				)
+			);
 			return null;
 		}
 	}

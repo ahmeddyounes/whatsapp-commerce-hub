@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+
 /**
  * Checkout Orchestrator
  *
@@ -10,7 +11,6 @@ declare(strict_types=1);
  * @since 3.0.0
  */
 
-declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Application\Services\Checkout;
 
@@ -179,13 +179,19 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 		$state = $this->stateManager->loadState( $phone );
 
 		if ( ! $state ) {
-			return array( 'step' => null, 'data' => array() );
+			return array(
+				'step' => null,
+				'data' => array(),
+			);
 		}
 
 		// Check timeout.
 		if ( $this->stateManager->hasTimedOut( $phone ) ) {
 			$this->cancelCheckout( $phone );
-			return array( 'step' => null, 'data' => array() );
+			return array(
+				'step' => null,
+				'data' => array(),
+			);
 		}
 
 		return array(
@@ -227,10 +233,13 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 		$this->addressHandler->saveAddress( $phone, $address );
 
 		// Update state.
-		$this->stateManager->updateState( $phone, array(
-			'address' => $address,
-			'step'    => CheckoutStateManagerInterface::STEP_SHIPPING_METHOD,
-		) );
+		$this->stateManager->updateState(
+			$phone,
+			array(
+				'address' => $address,
+				'step'    => CheckoutStateManagerInterface::STEP_SHIPPING_METHOD,
+			)
+		);
 
 		return array(
 			'success' => true,
@@ -256,7 +265,7 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 		}
 
 		// Validate method exists.
-		$methods = $this->getShippingMethods( $phone );
+		$methods  = $this->getShippingMethods( $phone );
 		$selected = null;
 
 		foreach ( $methods as $method ) {
@@ -271,10 +280,13 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 		}
 
 		// Update state.
-		$this->stateManager->updateState( $phone, array(
-			'shipping_method' => $selected,
-			'step'            => CheckoutStateManagerInterface::STEP_PAYMENT_METHOD,
-		) );
+		$this->stateManager->updateState(
+			$phone,
+			array(
+				'shipping_method' => $selected,
+				'step'            => CheckoutStateManagerInterface::STEP_PAYMENT_METHOD,
+			)
+		);
 
 		return array(
 			'success' => true,
@@ -307,10 +319,13 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 		$methodDetails = $this->paymentHandler->getMethodDetails( $methodId );
 
 		// Update state.
-		$this->stateManager->updateState( $phone, array(
-			'payment_method' => $methodDetails,
-			'step'           => CheckoutStateManagerInterface::STEP_REVIEW,
-		) );
+		$this->stateManager->updateState(
+			$phone,
+			array(
+				'payment_method' => $methodDetails,
+				'step'           => CheckoutStateManagerInterface::STEP_REVIEW,
+			)
+		);
 
 		return array(
 			'success' => true,
@@ -416,10 +431,14 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 			throw new \RuntimeException( __( 'No order service available', 'whatsapp-commerce-hub' ) );
 
 		} catch ( \Exception $e ) {
-			do_action( 'wch_log_error', 'CheckoutOrchestrator: Order confirmation failed', array(
-				'phone' => $phone,
-				'error' => $e->getMessage(),
-			) );
+			do_action(
+				'wch_log_error',
+				'CheckoutOrchestrator: Order confirmation failed',
+				array(
+					'phone' => $phone,
+					'error' => $e->getMessage(),
+				)
+			);
 
 			return array(
 				'success'      => false,
@@ -485,15 +504,27 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 
 		// Check cart service.
 		if ( ! $this->cartService ) {
-			$issues[] = array( 'type' => 'service', 'message' => __( 'Cart service unavailable', 'whatsapp-commerce-hub' ) );
-			return array( 'valid' => false, 'issues' => $issues );
+			$issues[] = array(
+				'type'    => 'service',
+				'message' => __( 'Cart service unavailable', 'whatsapp-commerce-hub' ),
+			);
+			return array(
+				'valid'  => false,
+				'issues' => $issues,
+			);
 		}
 
 		// Check cart exists and is valid.
 		$cart = $this->cartService->getCart( $phone );
 		if ( ! $cart || $cart->isEmpty() ) {
-			$issues[] = array( 'type' => 'cart', 'message' => __( 'Cart is empty', 'whatsapp-commerce-hub' ) );
-			return array( 'valid' => false, 'issues' => $issues );
+			$issues[] = array(
+				'type'    => 'cart',
+				'message' => __( 'Cart is empty', 'whatsapp-commerce-hub' ),
+			);
+			return array(
+				'valid'  => false,
+				'issues' => $issues,
+			);
 		}
 
 		// Check cart validity (stock, etc.).
@@ -525,7 +556,11 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 		$state = $this->stateManager->loadState( $phone );
 
 		if ( ! $state ) {
-			return array( 'success' => false, 'discount' => 0, 'error' => __( 'No active checkout', 'whatsapp-commerce-hub' ) );
+			return array(
+				'success'  => false,
+				'discount' => 0,
+				'error'    => __( 'No active checkout', 'whatsapp-commerce-hub' ),
+			);
 		}
 
 		// Get cart total.
@@ -538,9 +573,12 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 		$result = $this->couponHandler->applyCoupon( $couponCode, $cartTotal );
 
 		if ( $result['success'] ) {
-			$this->stateManager->updateState( $phone, array(
-				'coupon_code' => $this->couponHandler->sanitizeCouponCode( $couponCode ),
-			) );
+			$this->stateManager->updateState(
+				$phone,
+				array(
+					'coupon_code' => $this->couponHandler->sanitizeCouponCode( $couponCode ),
+				)
+			);
 		}
 
 		return $result;
@@ -617,13 +655,15 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 		$state = $this->stateManager->loadState( $phone );
 		$items = $this->getCartItems( $phone );
 
-		return $this->totalsCalculator->calculateTotals( array(
-			'items'         => $items,
-			'coupon_code'   => $state['coupon_code'] ?? '',
-			'shipping_cost' => $state['shipping_method']['cost'] ?? 0,
-			'payment_fee'   => $state['payment_method']['fee'] ?? 0,
-			'address'       => $state['address'] ?? array(),
-		) );
+		return $this->totalsCalculator->calculateTotals(
+			array(
+				'items'         => $items,
+				'coupon_code'   => $state['coupon_code'] ?? '',
+				'shipping_cost' => $state['shipping_method']['cost'] ?? 0,
+				'payment_fee'   => $state['payment_method']['fee'] ?? 0,
+				'address'       => $state['address'] ?? array(),
+			)
+		);
 	}
 
 	/**

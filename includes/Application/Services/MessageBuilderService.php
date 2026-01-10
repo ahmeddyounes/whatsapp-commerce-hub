@@ -168,7 +168,13 @@ class MessageBuilderService implements MessageBuilderInterface {
 	 * @return static
 	 */
 	public function replyButton( string $id, string $title ): static {
-		return $this->button( 'reply', array( 'id' => $id, 'title' => $title ) );
+		return $this->button(
+			'reply',
+			array(
+				'id'    => $id,
+				'title' => $title,
+			)
+		);
 	}
 
 	/**
@@ -179,7 +185,13 @@ class MessageBuilderService implements MessageBuilderInterface {
 	 * @return static
 	 */
 	public function urlButton( string $title, string $url ): static {
-		return $this->button( 'url', array( 'title' => $title, 'url' => $url ) );
+		return $this->button(
+			'url',
+			array(
+				'title' => $title,
+				'url'   => $url,
+			)
+		);
 	}
 
 	/**

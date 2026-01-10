@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+
 /**
  * Audience Calculator Service
  *
@@ -10,7 +11,6 @@ declare(strict_types=1);
  * @since 3.0.0
  */
 
-declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Application\Services\Broadcasts;
 
@@ -217,8 +217,8 @@ class AudienceCalculator implements AudienceCalculatorInterface {
 
 		// Recent orders filter.
 		if ( ! empty( $criteria['audience_recent_orders'] ) && ! empty( $criteria['recent_orders_days'] ) ) {
-			$days           = absint( $criteria['recent_orders_days'] );
-			$dateThreshold  = gmdate( 'Y-m-d H:i:s', strtotime( "-{$days} days" ) );
+			$days          = absint( $criteria['recent_orders_days'] );
+			$dateThreshold = gmdate( 'Y-m-d H:i:s', strtotime( "-{$days} days" ) );
 
 			$whereClauses[] = 'last_order_date >= %s';
 			$whereValues[]  = $dateThreshold;
@@ -249,10 +249,10 @@ class AudienceCalculator implements AudienceCalculatorInterface {
 			return $count;
 		}
 
-		$days             = absint( $criteria['exclude_broadcast_days'] );
-		$broadcastCutoff  = gmdate( 'Y-m-d H:i:s', strtotime( "-{$days} days" ) );
-		$broadcastsTable  = $wpdb->prefix . 'wch_broadcast_recipients';
-		$profilesTable    = $wpdb->prefix . 'wch_customer_profiles';
+		$days            = absint( $criteria['exclude_broadcast_days'] );
+		$broadcastCutoff = gmdate( 'Y-m-d H:i:s', strtotime( "-{$days} days" ) );
+		$broadcastsTable = $wpdb->prefix . 'wch_broadcast_recipients';
+		$profilesTable   = $wpdb->prefix . 'wch_customer_profiles';
 
 		// Check if tracking table exists.
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
@@ -292,9 +292,9 @@ class AudienceCalculator implements AudienceCalculatorInterface {
 			return $recipients;
 		}
 
-		$days             = absint( $criteria['exclude_broadcast_days'] );
-		$broadcastCutoff  = gmdate( 'Y-m-d H:i:s', strtotime( "-{$days} days" ) );
-		$broadcastsTable  = $wpdb->prefix . 'wch_broadcast_recipients';
+		$days            = absint( $criteria['exclude_broadcast_days'] );
+		$broadcastCutoff = gmdate( 'Y-m-d H:i:s', strtotime( "-{$days} days" ) );
+		$broadcastsTable = $wpdb->prefix . 'wch_broadcast_recipients';
 
 		// Check if tracking table exists.
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared

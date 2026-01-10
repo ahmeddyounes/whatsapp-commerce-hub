@@ -106,7 +106,7 @@ class AddressService implements AddressServiceInterface {
 			$city_line[] = $address['city'];
 		}
 		if ( ! empty( $address['state'] ) ) {
-			$state_name = $this->getStateName(
+			$state_name  = $this->getStateName(
 				$address['state'],
 				$address['country'] ?? ''
 			);
@@ -134,16 +134,16 @@ class AddressService implements AddressServiceInterface {
 	 * @return array WooCommerce address format.
 	 */
 	public function formatForWooCommerce( array $address, string $type = 'shipping' ): array {
-		$prefix = $type . '_';
+		$prefix     = $type . '_';
 		$normalized = $this->normalize( $address );
 
 		// Split name into first/last if present.
 		$first_name = '';
-		$last_name = '';
+		$last_name  = '';
 		if ( ! empty( $normalized['name'] ) ) {
 			$name_parts = explode( ' ', $normalized['name'], 2 );
 			$first_name = $name_parts[0];
-			$last_name = $name_parts[1] ?? '';
+			$last_name  = $name_parts[1] ?? '';
 		}
 
 		$wc_address = array(
@@ -298,13 +298,13 @@ class AddressService implements AddressServiceInterface {
 			// Look for postal code pattern.
 			if ( preg_match( '/\b(\d{5}(?:-\d{4})?|\d{6}|[A-Z]\d[A-Z]\s?\d[A-Z]\d)\b/i', $line, $matches ) ) {
 				$address['postal_code'] = $matches[1];
-				$line = str_replace( $matches[0], '', $line );
+				$line                   = str_replace( $matches[0], '', $line );
 			}
 
 			// Look for state abbreviation.
 			if ( preg_match( '/\b([A-Z]{2})\b/', $line, $matches ) ) {
 				$address['state'] = $matches[1];
-				$line = str_replace( $matches[0], '', $line );
+				$line             = str_replace( $matches[0], '', $line );
 			}
 
 			// Remaining text is likely city.
@@ -370,7 +370,7 @@ class AddressService implements AddressServiceInterface {
 	 * @return string State name.
 	 */
 	public function getStateName( string $state_code, string $country_code ): string {
-		$state_code = strtoupper( trim( $state_code ) );
+		$state_code   = strtoupper( trim( $state_code ) );
 		$country_code = strtoupper( trim( $country_code ) );
 
 		// Use WooCommerce states if available.
@@ -393,7 +393,7 @@ class AddressService implements AddressServiceInterface {
 	 */
 	private function validatePostalCode( string $postal_code, string $country_code ): bool {
 		$country_code = strtoupper( $country_code );
-		$postal_code = trim( $postal_code );
+		$postal_code  = trim( $postal_code );
 
 		// Country-specific patterns.
 		$patterns = array(

@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+
 /**
  * Catalog Transformer Service
  *
@@ -10,7 +11,6 @@ declare(strict_types=1);
  * @since 3.0.0
  */
 
-declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Application\Services\ProductSync;
 
@@ -146,8 +146,8 @@ class CatalogTransformerService implements CatalogTransformerInterface {
 			return array( $this->transform( $product ) );
 		}
 
-		$parentId   = $product->get_id();
-		$variations = $product->get_available_variations();
+		$parentId    = $product->get_id();
+		$variations  = $product->get_available_variations();
 		$transformed = array();
 
 		foreach ( $variations as $variationData ) {

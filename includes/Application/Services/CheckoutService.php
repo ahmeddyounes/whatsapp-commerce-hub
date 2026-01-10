@@ -16,6 +16,7 @@ use WhatsAppCommerceHub\Contracts\Services\CheckoutServiceInterface;
 use WhatsAppCommerceHub\Contracts\Services\CartServiceInterface;
 use WhatsAppCommerceHub\Contracts\Services\OrderSyncServiceInterface;
 use WhatsAppCommerceHub\Contracts\Repositories\CustomerRepositoryInterface;
+use WhatsAppCommerceHub\Core\Logger;
 use WhatsAppCommerceHub\Sagas\CheckoutSaga;
 
 // Exit if accessed directly.
@@ -84,10 +85,10 @@ class CheckoutService implements CheckoutServiceInterface {
 	/**
 	 * Constructor.
 	 *
-	 * @param CartServiceInterface|null       $cart_service        Cart service.
-	 * @param OrderSyncServiceInterface|null  $order_sync_service  Order sync service.
+	 * @param CartServiceInterface|null        $cart_service        Cart service.
+	 * @param OrderSyncServiceInterface|null   $order_sync_service  Order sync service.
 	 * @param CustomerRepositoryInterface|null $customer_repository Customer repository.
-	 * @param CheckoutSaga|null               $checkout_saga       Checkout saga.
+	 * @param CheckoutSaga|null                $checkout_saga       Checkout saga.
 	 */
 	public function __construct(
 		?CartServiceInterface $cart_service = null,
@@ -157,13 +158,19 @@ class CheckoutService implements CheckoutServiceInterface {
 		$state = $this->loadState( $phone );
 
 		if ( ! $state ) {
-			return array( 'step' => null, 'data' => array() );
+			return array(
+				'step' => null,
+				'data' => array(),
+			);
 		}
 
 		// Check timeout.
 		if ( $this->hasTimedOut( $phone ) ) {
 			$this->cancelCheckout( $phone );
-			return array( 'step' => null, 'data' => array() );
+			return array(
+				'step' => null,
+				'data' => array(),
+			);
 		}
 
 		return array(
@@ -292,7 +299,7 @@ class CheckoutService implements CheckoutServiceInterface {
 		}
 
 		// Validate method exists.
-		$methods = $this->getShippingMethods( $phone );
+		$methods  = $this->getShippingMethods( $phone );
 		$selected = null;
 
 		foreach ( $methods as $method ) {
@@ -600,10 +607,14 @@ class CheckoutService implements CheckoutServiceInterface {
 			throw new \RuntimeException( 'No order service available' );
 
 		} catch ( \Exception $e ) {
-			do_action( 'wch_log_error', 'CheckoutService: Order confirmation failed', array(
-				'phone' => $phone,
-				'error' => $e->getMessage(),
-			) );
+			do_action(
+				'wch_log_error',
+				'CheckoutService: Order confirmation failed',
+				array(
+					'phone' => $phone,
+					'error' => $e->getMessage(),
+				)
+			);
 
 			return array(
 				'success'      => false,
@@ -682,15 +693,27 @@ class CheckoutService implements CheckoutServiceInterface {
 
 		// Check cart service.
 		if ( ! $this->cart_service ) {
-			$issues[] = array( 'type' => 'service', 'message' => 'Cart service unavailable' );
-			return array( 'valid' => false, 'issues' => $issues );
+			$issues[] = array(
+				'type'    => 'service',
+				'message' => 'Cart service unavailable',
+			);
+			return array(
+				'valid'  => false,
+				'issues' => $issues,
+			);
 		}
 
 		// Check cart exists and is valid.
 		$cart = $this->cart_service->getCart( $phone );
 		if ( ! $cart || $cart->isEmpty() ) {
-			$issues[] = array( 'type' => 'cart', 'message' => 'Cart is empty' );
-			return array( 'valid' => false, 'issues' => $issues );
+			$issues[] = array(
+				'type'    => 'cart',
+				'message' => 'Cart is empty',
+			);
+			return array(
+				'valid'  => false,
+				'issues' => $issues,
+			);
 		}
 
 		// Check cart validity (stock, etc.).
@@ -723,13 +746,21 @@ class CheckoutService implements CheckoutServiceInterface {
 		$state       = $this->loadState( $phone );
 
 		if ( ! $state ) {
-			return array( 'success' => false, 'discount' => 0, 'error' => 'No active checkout' );
+			return array(
+				'success'  => false,
+				'discount' => 0,
+				'error'    => 'No active checkout',
+			);
 		}
 
 		$coupon = new \WC_Coupon( $coupon_code );
 
 		if ( ! $coupon->get_id() ) {
-			return array( 'success' => false, 'discount' => 0, 'error' => 'Invalid coupon code' );
+			return array(
+				'success'  => false,
+				'discount' => 0,
+				'error'    => 'Invalid coupon code',
+			);
 		}
 
 		// Check coupon validity.
@@ -737,7 +768,11 @@ class CheckoutService implements CheckoutServiceInterface {
 		$valid     = $discounts->is_coupon_valid( $coupon );
 
 		if ( is_wp_error( $valid ) ) {
-			return array( 'success' => false, 'discount' => 0, 'error' => $valid->get_error_message() );
+			return array(
+				'success'  => false,
+				'discount' => 0,
+				'error'    => $valid->get_error_message(),
+			);
 		}
 
 		// Calculate discount.
@@ -805,13 +840,14 @@ class CheckoutService implements CheckoutServiceInterface {
 		// This prevents percentage coupons from giving more discount than intended.
 		$maxAmount = $coupon->get_maximum_amount();
 		if ( $maxAmount > 0 && $discount > $maxAmount ) {
-			$this->log(
+			Logger::instance()->debug(
 				'Coupon discount capped by maximum_amount',
+				'checkout',
 				array(
-					'coupon_code'       => $coupon->get_code(),
-					'calculated'        => $discount,
-					'max_amount'        => $maxAmount,
-					'subtotal'          => $subtotal,
+					'coupon_code' => $coupon->get_code(),
+					'calculated'  => $discount,
+					'max_amount'  => $maxAmount,
+					'subtotal'    => $subtotal,
 				)
 			);
 			$discount = $maxAmount;
@@ -1023,10 +1059,16 @@ class CheckoutService implements CheckoutServiceInterface {
 		// Validate country code.
 		$countries = WC()->countries->get_countries();
 		if ( ! isset( $countries[ $address['country'] ] ) ) {
-			return array( 'valid' => false, 'error' => 'Invalid country' );
+			return array(
+				'valid' => false,
+				'error' => 'Invalid country',
+			);
 		}
 
-		return array( 'valid' => true, 'error' => null );
+		return array(
+			'valid' => true,
+			'error' => null,
+		);
 	}
 
 	/**
@@ -1052,7 +1094,7 @@ class CheckoutService implements CheckoutServiceInterface {
 							'data'       => $product,
 							'line_total' => $item['price'] * $item['quantity'],
 						);
-						$total += $item['price'] * $item['quantity'];
+						$total             += $item['price'] * $item['quantity'];
 					}
 				}
 			}

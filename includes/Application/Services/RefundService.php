@@ -230,10 +230,10 @@ class RefundService {
 
 		// SECURITY: Acquire exclusive lock to prevent TOCTOU race condition.
 		// This ensures only one refund can be processed at a time per order.
-		$lockKey = 'wch_refund_lock_' . $orderId;
+		$lockKey      = 'wch_refund_lock_' . $orderId;
 		$lockAcquired = $wpdb->query(
 			$wpdb->prepare(
-				"SELECT GET_LOCK(%s, 5)",
+				'SELECT GET_LOCK(%s, 5)',
 				$lockKey
 			)
 		);
@@ -288,7 +288,7 @@ class RefundService {
 			// SECURITY: Always release the lock.
 			$wpdb->query(
 				$wpdb->prepare(
-					"SELECT RELEASE_LOCK(%s)",
+					'SELECT RELEASE_LOCK(%s)',
 					$lockKey
 				)
 			);

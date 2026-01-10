@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+
 /**
  * Inactive Customer Identifier
  *
@@ -10,7 +11,6 @@ declare(strict_types=1);
  * @since 3.0.0
  */
 
-declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Application\Services\Reengagement;
 
@@ -79,8 +79,8 @@ class InactiveCustomerIdentifier implements InactiveCustomerIdentifierInterface 
 	 * @return array Array of customer data.
 	 */
 	public function identify(): array {
-		$threshold        = $this->getInactivityThreshold();
-		$thresholdDate    = gmdate( 'Y-m-d H:i:s', current_time( 'timestamp' ) - ( $threshold * DAY_IN_SECONDS ) );
+		$threshold         = $this->getInactivityThreshold();
+		$thresholdDate     = gmdate( 'Y-m-d H:i:s', current_time( 'timestamp' ) - ( $threshold * DAY_IN_SECONDS ) );
 		$recentMessageDate = gmdate( 'Y-m-d H:i:s', current_time( 'timestamp' ) - ( self::RECENT_MESSAGE_DAYS * DAY_IN_SECONDS ) );
 
 		$profilesTable     = $this->dbManager->get_table_name( 'customer_profiles' );

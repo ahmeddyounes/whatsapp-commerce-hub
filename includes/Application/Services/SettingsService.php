@@ -313,13 +313,13 @@ class SettingsService implements SettingsInterface {
 	 */
 	public function getRecoverySettings(): array {
 		return array(
-			'enabled'             => (bool) $this->get( 'recovery.enabled', false ),
-			'delay_sequence_1'    => (int) $this->get( 'recovery.delay_sequence_1', 4 ),
-			'delay_sequence_2'    => (int) $this->get( 'recovery.delay_sequence_2', 24 ),
-			'delay_sequence_3'    => (int) $this->get( 'recovery.delay_sequence_3', 48 ),
-			'discount_enabled'    => (bool) $this->get( 'recovery.discount_enabled', false ),
-			'discount_type'       => (string) $this->get( 'recovery.discount_type', 'percent' ),
-			'discount_amount'     => (float) $this->get( 'recovery.discount_amount', 10 ),
+			'enabled'          => (bool) $this->get( 'recovery.enabled', false ),
+			'delay_sequence_1' => (int) $this->get( 'recovery.delay_sequence_1', 4 ),
+			'delay_sequence_2' => (int) $this->get( 'recovery.delay_sequence_2', 24 ),
+			'delay_sequence_3' => (int) $this->get( 'recovery.delay_sequence_3', 48 ),
+			'discount_enabled' => (bool) $this->get( 'recovery.discount_enabled', false ),
+			'discount_type'    => (string) $this->get( 'recovery.discount_type', 'percent' ),
+			'discount_amount'  => (float) $this->get( 'recovery.discount_amount', 10 ),
 		);
 	}
 }

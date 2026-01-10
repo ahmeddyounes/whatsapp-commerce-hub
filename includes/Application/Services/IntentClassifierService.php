@@ -159,10 +159,14 @@ class IntentClassifierService implements IntentClassifierInterface {
 		$cachedResult = wp_cache_get( $cacheKey, $this->cacheGroup );
 
 		if ( false !== $cachedResult && is_array( $cachedResult ) ) {
-			$this->log( 'debug', 'Intent classification from cache', array(
-				'text'   => $text,
-				'intent' => $cachedResult['intent_name'] ?? 'unknown',
-			) );
+			$this->log(
+				'debug',
+				'Intent classification from cache',
+				array(
+					'text'   => $text,
+					'intent' => $cachedResult['intent_name'] ?? 'unknown',
+				)
+			);
 
 			return Intent::fromArray( $cachedResult );
 		}
@@ -220,28 +224,34 @@ class IntentClassifierService implements IntentClassifierInterface {
 					'Content-Type'  => 'application/json',
 					'Authorization' => 'Bearer ' . $this->openAiApiKey,
 				),
-				'body'    => wp_json_encode( array(
-					'model'       => 'gpt-3.5-turbo',
-					'messages'    => array(
-						array(
-							'role'    => 'system',
-							'content' => 'You are an intent classifier for a WhatsApp commerce chatbot. Respond only with valid JSON.',
+				'body'    => wp_json_encode(
+					array(
+						'model'       => 'gpt-3.5-turbo',
+						'messages'    => array(
+							array(
+								'role'    => 'system',
+								'content' => 'You are an intent classifier for a WhatsApp commerce chatbot. Respond only with valid JSON.',
+							),
+							array(
+								'role'    => 'user',
+								'content' => $prompt,
+							),
 						),
-						array(
-							'role'    => 'user',
-							'content' => $prompt,
-						),
-					),
-					'temperature' => 0.3,
-					'max_tokens'  => 100,
-				) ),
+						'temperature' => 0.3,
+						'max_tokens'  => 100,
+					)
+				),
 			)
 		);
 
 		if ( is_wp_error( $response ) ) {
-			$this->log( 'error', 'AI classification failed', array(
-				'error' => $response->get_error_message(),
-			) );
+			$this->log(
+				'error',
+				'AI classification failed',
+				array(
+					'error' => $response->get_error_message(),
+				)
+			);
 			return Intent::unknown();
 		}
 
@@ -366,10 +376,10 @@ class IntentClassifierService implements IntentClassifierInterface {
 	 * @return Intent
 	 */
 	protected function classifyWithRules( string $text, array $context ): Intent {
-		$text           = trim( $text );
-		$matchedIntent  = null;
-		$maxConfidence  = 0.0;
-		$entities       = array();
+		$text          = trim( $text );
+		$matchedIntent = null;
+		$maxConfidence = 0.0;
+		$entities      = array();
 
 		foreach ( $this->patterns as $intentName => $patternData ) {
 			if ( preg_match( $patternData['regex'], $text, $matches ) ) {
@@ -424,13 +434,17 @@ class IntentClassifierService implements IntentClassifierInterface {
 	 * @return void
 	 */
 	protected function logClassification( string $text, Intent $intent, array $context ): void {
-		$this->log( 'info', 'Intent classified', array(
-			'text'       => $text,
-			'intent'     => $intent->getName(),
-			'confidence' => $intent->getConfidence(),
-			'entities'   => $intent->getEntities(),
-			'context'    => $context['current_state'] ?? null,
-		) );
+		$this->log(
+			'info',
+			'Intent classified',
+			array(
+				'text'       => $text,
+				'intent'     => $intent->getName(),
+				'confidence' => $intent->getConfidence(),
+				'entities'   => $intent->getEntities(),
+				'context'    => $context['current_state'] ?? null,
+			)
+		);
 	}
 
 	/**

@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+
 /**
  * Payment Handler
  *
@@ -10,7 +11,6 @@ declare(strict_types=1);
  * @since 3.0.0
  */
 
-declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Application\Services\Checkout;
 
@@ -112,11 +112,11 @@ class PaymentHandler implements PaymentHandlerInterface {
 		$gateway = $gateways[ $methodId ];
 
 		return array(
-			'id'               => $gateway->id,
-			'label'            => $gateway->get_title(),
-			'description'      => $gateway->get_description(),
-			'icon'             => $gateway->get_icon(),
-			'fee'              => $this->getPaymentFee( $methodId ),
+			'id'                => $gateway->id,
+			'label'             => $gateway->get_title(),
+			'description'       => $gateway->get_description(),
+			'icon'              => $gateway->get_icon(),
+			'fee'               => $this->getPaymentFee( $methodId ),
 			'requires_redirect' => $this->requiresRedirect( $methodId ),
 		);
 	}

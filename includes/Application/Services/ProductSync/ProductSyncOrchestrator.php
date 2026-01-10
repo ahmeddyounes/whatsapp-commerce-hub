@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+
 /**
  * Product Sync Orchestrator Service
  *
@@ -10,7 +11,6 @@ declare(strict_types=1);
  * @since 3.0.0
  */
 
-declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Application\Services\ProductSync;
 
@@ -162,9 +162,13 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 				$result['catalog_item_id'] ?? ''
 			);
 
-			$this->log( 'info', 'Product synced to WhatsApp catalog', array(
-				'product_id' => $productId,
-			) );
+			$this->log(
+				'info',
+				'Product synced to WhatsApp catalog',
+				array(
+					'product_id' => $productId,
+				)
+			);
 		} else {
 			$this->catalogApi->updateSyncStatus(
 				$productId,
@@ -173,10 +177,14 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 				$result['error'] ?? 'Unknown error'
 			);
 
-			$this->log( 'error', 'Failed to sync product', array(
-				'product_id' => $productId,
-				'error'      => $result['error'] ?? 'Unknown error',
-			) );
+			$this->log(
+				'error',
+				'Failed to sync product',
+				array(
+					'product_id' => $productId,
+					'error'      => $result['error'] ?? 'Unknown error',
+				)
+			);
 		}
 
 		return $result;
@@ -250,9 +258,13 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 		// Check if a sync is already in progress.
 		$existingProgress = $this->progressTracker->getProgress();
 		if ( $existingProgress && 'in_progress' === $existingProgress['status'] ) {
-			$this->log( 'warning', 'Bulk sync already in progress', array(
-				'sync_id' => $existingProgress['sync_id'],
-			) );
+			$this->log(
+				'warning',
+				'Bulk sync already in progress',
+				array(
+					'sync_id' => $existingProgress['sync_id'],
+				)
+			);
 			return $existingProgress['sync_id'];
 		}
 
@@ -267,10 +279,14 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 		// Initialize progress tracking.
 		$syncId = $this->progressTracker->startSync( count( $productIds ) );
 
-		$this->log( 'info', 'Starting bulk product sync', array(
-			'sync_id'        => $syncId,
-			'total_products' => count( $productIds ),
-		) );
+		$this->log(
+			'info',
+			'Starting bulk product sync',
+			array(
+				'sync_id'        => $syncId,
+				'total_products' => count( $productIds ),
+			)
+		);
 
 		// Process in batches via queue.
 		$batches = array_chunk( $productIds, self::BATCH_SIZE );
@@ -279,10 +295,14 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 			$this->dispatchBatch( $batch, $batchIndex, count( $batches ), $syncId );
 		}
 
-		$this->log( 'info', 'Queued all product batches for sync', array(
-			'sync_id'       => $syncId,
-			'total_batches' => count( $batches ),
-		) );
+		$this->log(
+			'info',
+			'Queued all product batches for sync',
+			array(
+				'sync_id'       => $syncId,
+				'total_batches' => count( $batches ),
+			)
+		);
 
 		return $syncId;
 	}
@@ -305,9 +325,13 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 		if ( $result['success'] ) {
 			$this->catalogApi->clearSyncMetadata( $productId );
 
-			$this->log( 'info', 'Product removed from WhatsApp catalog', array(
-				'product_id' => $productId,
-			) );
+			$this->log(
+				'info',
+				'Product removed from WhatsApp catalog',
+				array(
+					'product_id' => $productId,
+				)
+			);
 		}
 
 		return $result;
@@ -354,9 +378,13 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 
 			// Safety limit (max 100,000 products).
 			if ( $page > 1000 ) {
-				$this->log( 'warning', 'Product sync hit safety limit', array(
-					'fetched' => count( $allProductIds ),
-				) );
+				$this->log(
+					'warning',
+					'Product sync hit safety limit',
+					array(
+						'fetched' => count( $allProductIds ),
+					)
+				);
 				break;
 			}
 		} while ( count( $productIds ) === $perPage );
@@ -385,10 +413,14 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 			$this->dispatchBatch( $batch, $batchIndex, count( $batches ), $syncId, true );
 		}
 
-		$this->log( 'info', 'Retrying failed sync items', array(
-			'sync_id'     => $syncId,
-			'retry_count' => count( $failedProductIds ),
-		) );
+		$this->log(
+			'info',
+			'Retrying failed sync items',
+			array(
+				'sync_id'     => $syncId,
+				'retry_count' => count( $failedProductIds ),
+			)
+		);
 
 		return $syncId;
 	}
@@ -415,9 +447,13 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 		// Queue sync.
 		$this->dispatchSingleSync( $productId );
 
-		$this->log( 'debug', 'Product update queued for sync', array(
-			'product_id' => $productId,
-		) );
+		$this->log(
+			'debug',
+			'Product update queued for sync',
+			array(
+				'product_id' => $productId,
+			)
+		);
 	}
 
 	/**
@@ -450,12 +486,16 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 		$totalBatches = $args['total_batches'] ?? 1;
 		$syncId       = $args['sync_id'] ?? null;
 
-		$this->log( 'info', 'Processing product batch', array(
-			'sync_id'       => $syncId,
-			'batch_index'   => $batchIndex,
-			'total_batches' => $totalBatches,
-			'product_count' => count( $productIds ),
-		) );
+		$this->log(
+			'info',
+			'Processing product batch',
+			array(
+				'sync_id'       => $syncId,
+				'batch_index'   => $batchIndex,
+				'total_batches' => $totalBatches,
+				'product_count' => count( $productIds ),
+			)
+		);
 
 		$processed  = 0;
 		$successful = 0;
@@ -482,13 +522,17 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 			$this->progressTracker->updateProgress( $syncId, $processed, $successful, $failed );
 		}
 
-		$this->log( 'info', 'Completed product batch', array(
-			'sync_id'    => $syncId,
-			'batch'      => $batchIndex,
-			'processed'  => $processed,
-			'successful' => $successful,
-			'failed'     => $failed,
-		) );
+		$this->log(
+			'info',
+			'Completed product batch',
+			array(
+				'sync_id'    => $syncId,
+				'batch'      => $batchIndex,
+				'processed'  => $processed,
+				'successful' => $successful,
+				'failed'     => $failed,
+			)
+		);
 	}
 
 	/**

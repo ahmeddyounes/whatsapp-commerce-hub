@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+
 /**
  * Coupon Handler
  *
@@ -10,7 +11,6 @@ declare(strict_types=1);
  * @since 3.0.0
  */
 
-declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Application\Services\Checkout;
 
@@ -101,7 +101,10 @@ class CouponHandler implements CouponHandlerInterface {
 			);
 		}
 
-		return array( 'valid' => true, 'error' => null );
+		return array(
+			'valid' => true,
+			'error' => null,
+		);
 	}
 
 	/**
@@ -152,17 +155,17 @@ class CouponHandler implements CouponHandlerInterface {
 		}
 
 		return array(
-			'id'              => $coupon->get_id(),
-			'code'            => $coupon->get_code(),
-			'discount_type'   => $coupon->get_discount_type(),
-			'amount'          => $coupon->get_amount(),
-			'description'     => $coupon->get_description(),
-			'expiry_date'     => $coupon->get_date_expires() ? $coupon->get_date_expires()->format( 'Y-m-d' ) : null,
-			'minimum_amount'  => $coupon->get_minimum_amount(),
-			'maximum_amount'  => $coupon->get_maximum_amount(),
-			'individual_use'  => $coupon->get_individual_use(),
-			'usage_limit'     => $coupon->get_usage_limit(),
-			'usage_count'     => $coupon->get_usage_count(),
+			'id'             => $coupon->get_id(),
+			'code'           => $coupon->get_code(),
+			'discount_type'  => $coupon->get_discount_type(),
+			'amount'         => $coupon->get_amount(),
+			'description'    => $coupon->get_description(),
+			'expiry_date'    => $coupon->get_date_expires() ? $coupon->get_date_expires()->format( 'Y-m-d' ) : null,
+			'minimum_amount' => $coupon->get_minimum_amount(),
+			'maximum_amount' => $coupon->get_maximum_amount(),
+			'individual_use' => $coupon->get_individual_use(),
+			'usage_limit'    => $coupon->get_usage_limit(),
+			'usage_count'    => $coupon->get_usage_count(),
 		);
 	}
 
@@ -181,9 +184,9 @@ class CouponHandler implements CouponHandlerInterface {
 			return false;
 		}
 
-		$productIds = $coupon->get_product_ids();
-		$excludeIds = $coupon->get_excluded_product_ids();
-		$categories = $coupon->get_product_categories();
+		$productIds  = $coupon->get_product_ids();
+		$excludeIds  = $coupon->get_excluded_product_ids();
+		$categories  = $coupon->get_product_categories();
 		$excludeCats = $coupon->get_excluded_product_categories();
 
 		// If no restrictions, coupon applies to all.

@@ -64,15 +64,17 @@ class CartService implements CartServiceInterface {
 		$now       = new \DateTimeImmutable();
 		$expiresAt = $now->modify( '+' . self::CART_EXPIRY_HOURS . ' hours' );
 
-		$cart_id = $this->repository->create( array(
-			'customer_phone' => $phone,
-			'items'          => array(),
-			'total'          => 0.00,
-			'status'         => Cart::STATUS_ACTIVE,
-			'expires_at'     => $expiresAt,
-			'created_at'     => $now,
-			'updated_at'     => $now,
-		) );
+		$cart_id = $this->repository->create(
+			array(
+				'customer_phone' => $phone,
+				'items'          => array(),
+				'total'          => 0.00,
+				'status'         => Cart::STATUS_ACTIVE,
+				'expires_at'     => $expiresAt,
+				'created_at'     => $now,
+				'updated_at'     => $now,
+			)
+		);
 
 		return $this->repository->find( $cart_id );
 	}
@@ -158,12 +160,15 @@ class CartService implements CartServiceInterface {
 			$total     = $this->calculateCartTotal( $items );
 			$expiresAt = ( new \DateTimeImmutable() )->modify( '+' . self::CART_EXPIRY_HOURS . ' hours' );
 
-			$this->repository->updateLocked( $cart->id, array(
-				'items'      => $items,
-				'total'      => $total,
-				'expires_at' => $expiresAt,
-				'updated_at' => new \DateTimeImmutable(),
-			) );
+			$this->repository->updateLocked(
+				$cart->id,
+				array(
+					'items'      => $items,
+					'total'      => $total,
+					'expires_at' => $expiresAt,
+					'updated_at' => new \DateTimeImmutable(),
+				)
+			);
 
 			$this->repository->commit();
 
@@ -232,11 +237,14 @@ class CartService implements CartServiceInterface {
 			$items[ $item_index ]['quantity'] = $new_quantity;
 			$total                            = $this->calculateCartTotal( $items );
 
-			$this->repository->updateLocked( $cart->id, array(
-				'items'      => $items,
-				'total'      => $total,
-				'updated_at' => new \DateTimeImmutable(),
-			) );
+			$this->repository->updateLocked(
+				$cart->id,
+				array(
+					'items'      => $items,
+					'total'      => $total,
+					'updated_at' => new \DateTimeImmutable(),
+				)
+			);
 
 			$this->repository->commit();
 
@@ -274,11 +282,14 @@ class CartService implements CartServiceInterface {
 			array_splice( $items, $item_index, 1 );
 			$total = $this->calculateCartTotal( $items );
 
-			$this->repository->updateLocked( $cart->id, array(
-				'items'      => $items,
-				'total'      => $total,
-				'updated_at' => new \DateTimeImmutable(),
-			) );
+			$this->repository->updateLocked(
+				$cart->id,
+				array(
+					'items'      => $items,
+					'total'      => $total,
+					'updated_at' => new \DateTimeImmutable(),
+				)
+			);
 
 			$this->repository->commit();
 
@@ -298,12 +309,15 @@ class CartService implements CartServiceInterface {
 	public function clearCart( string $phone ): Cart {
 		$cart = $this->getCart( $phone );
 
-		$this->repository->update( $cart->id, array(
-			'items'       => array(),
-			'total'       => 0.00,
-			'coupon_code' => null,
-			'updated_at'  => new \DateTimeImmutable(),
-		) );
+		$this->repository->update(
+			$cart->id,
+			array(
+				'items'       => array(),
+				'total'       => 0.00,
+				'coupon_code' => null,
+				'updated_at'  => new \DateTimeImmutable(),
+			)
+		);
 
 		$this->stopRecoverySequence( $phone );
 
@@ -403,10 +417,13 @@ class CartService implements CartServiceInterface {
 		$discount = $this->calculateCouponDiscount( $coupon, $subtotal );
 
 		// Update cart.
-		$this->repository->update( $cart->id, array(
-			'coupon_code' => $coupon_code,
-			'updated_at'  => new \DateTimeImmutable(),
-		) );
+		$this->repository->update(
+			$cart->id,
+			array(
+				'coupon_code' => $coupon_code,
+				'updated_at'  => new \DateTimeImmutable(),
+			)
+		);
 
 		return array(
 			'discount' => round( $discount, 2 ),
@@ -420,10 +437,13 @@ class CartService implements CartServiceInterface {
 	public function removeCoupon( string $phone ): Cart {
 		$cart = $this->getCart( $phone );
 
-		$this->repository->update( $cart->id, array(
-			'coupon_code' => null,
-			'updated_at'  => new \DateTimeImmutable(),
-		) );
+		$this->repository->update(
+			$cart->id,
+			array(
+				'coupon_code' => null,
+				'updated_at'  => new \DateTimeImmutable(),
+			)
+		);
 
 		return $this->repository->find( $cart->id );
 	}
@@ -520,7 +540,7 @@ class CartService implements CartServiceInterface {
 		}
 
 		$message .= "---\n";
-		$message .= sprintf( "Total: %s", wc_price( $totals['total'] ) );
+		$message .= sprintf( 'Total: %s', wc_price( $totals['total'] ) );
 
 		return $message;
 	}
@@ -623,9 +643,12 @@ class CartService implements CartServiceInterface {
 		$count         = 0;
 
 		foreach ( $expired_carts as $cart ) {
-			$this->repository->update( $cart->id, array(
-				'status' => Cart::STATUS_EXPIRED,
-			) );
+			$this->repository->update(
+				$cart->id,
+				array(
+					'status' => Cart::STATUS_EXPIRED,
+				)
+			);
 			++$count;
 		}
 
@@ -638,10 +661,13 @@ class CartService implements CartServiceInterface {
 	public function setShippingAddress( string $phone, array $address ): Cart {
 		$cart = $this->getCart( $phone );
 
-		$this->repository->update( $cart->id, array(
-			'shipping_address' => $address,
-			'updated_at'       => new \DateTimeImmutable(),
-		) );
+		$this->repository->update(
+			$cart->id,
+			array(
+				'shipping_address' => $address,
+				'updated_at'       => new \DateTimeImmutable(),
+			)
+		);
 
 		return $this->repository->find( $cart->id );
 	}
@@ -966,7 +992,7 @@ class CartService implements CartServiceInterface {
 	private function getCouponPhoneUsageCount( int $coupon_id, string $phone ): int {
 		global $wpdb;
 
-		$table = $wpdb->prefix . 'wch_coupon_phone_usage';
+		$table            = $wpdb->prefix . 'wch_coupon_phone_usage';
 		$normalized_phone = preg_replace( '/[^0-9+]/', '', $phone );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
@@ -995,7 +1021,7 @@ class CartService implements CartServiceInterface {
 	public function recordCouponPhoneUsage( int $coupon_id, string $phone, int $order_id ): bool {
 		global $wpdb;
 
-		$table = $wpdb->prefix . 'wch_coupon_phone_usage';
+		$table            = $wpdb->prefix . 'wch_coupon_phone_usage';
 		$normalized_phone = preg_replace( '/[^0-9+]/', '', $phone );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery

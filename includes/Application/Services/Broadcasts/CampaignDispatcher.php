@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+
 /**
  * Campaign Dispatcher Service
  *
@@ -10,7 +11,6 @@ declare(strict_types=1);
  * @since 3.0.0
  */
 
-declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Application\Services\Broadcasts;
 
@@ -103,12 +103,12 @@ class CampaignDispatcher implements CampaignDispatcherInterface {
 		// Dispatch batches.
 		foreach ( $batches as $batchNum => $batch ) {
 			$args = array(
-				'job_id'      => $jobId,
-				'batch'       => $batch,
-				'batch_num'   => $batchNum,
+				'job_id'        => $jobId,
+				'batch'         => $batch,
+				'batch_num'     => $batchNum,
 				'total_batches' => count( $batches ),
-				'campaign_id' => $campaign['id'] ?? 0,
-				'message'     => $message,
+				'campaign_id'   => $campaign['id'] ?? 0,
+				'message'       => $message,
 			);
 
 			// Delay each batch by 1 second to avoid rate limiting.
@@ -123,7 +123,7 @@ class CampaignDispatcher implements CampaignDispatcherInterface {
 		if ( $campaignId > 0 ) {
 			$status    = $delay > 0 ? 'scheduled' : 'sending';
 			$extraData = array(
-				'job_id'       => $jobId,
+				'job_id'        => $jobId,
 				'total_batches' => count( $batches ),
 			);
 
@@ -267,7 +267,7 @@ class CampaignDispatcher implements CampaignDispatcherInterface {
 	 * {@inheritdoc}
 	 */
 	public function buildMessage( array $campaign ): array {
-		$templateData   = $campaign['template_data'] ?? array();
+		$templateData    = $campaign['template_data'] ?? array();
 		$personalization = $campaign['personalization'] ?? array();
 
 		return array(

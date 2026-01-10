@@ -175,10 +175,14 @@ class ContextManagerService implements ContextManagerInterface {
 		);
 
 		if ( false === $result ) {
-			$this->log( 'error', 'Failed to save context', array(
-				'conversation_id' => $conversationId,
-				'error'           => $this->wpdb->last_error,
-			) );
+			$this->log(
+				'error',
+				'Failed to save context',
+				array(
+					'conversation_id' => $conversationId,
+					'error'           => $this->wpdb->last_error,
+				)
+			);
 			return false;
 		}
 
@@ -241,7 +245,7 @@ class ContextManagerService implements ContextManagerInterface {
 		}
 
 		// Merge new data.
-		$mergedData = array_merge( $mergedData, $newData );
+		$mergedData          = array_merge( $mergedData, $newData );
 		$mergedData['slots'] = $newSlots;
 
 		// Reset timestamps.
@@ -250,10 +254,14 @@ class ContextManagerService implements ContextManagerInterface {
 
 		$mergedContext = new ConversationContext( $mergedData );
 
-		$this->log( 'info', 'Contexts merged for returning customer', array(
-			'preserved_slots' => array_keys( $oldSlots ),
-			'new_slots'       => array_keys( $newSlots ),
-		) );
+		$this->log(
+			'info',
+			'Contexts merged for returning customer',
+			array(
+				'preserved_slots' => array_keys( $oldSlots ),
+				'new_slots'       => array_keys( $newSlots ),
+			)
+		);
 
 		return $mergedContext;
 	}
@@ -279,8 +287,8 @@ class ContextManagerService implements ContextManagerInterface {
 	 * {@inheritdoc}
 	 */
 	public function archiveExpiredConversations(): int {
-		$expiredIds     = $this->getExpiredConversations();
-		$archivedCount  = 0;
+		$expiredIds    = $this->getExpiredConversations();
+		$archivedCount = 0;
 
 		foreach ( $expiredIds as $conversationId ) {
 			$context = $this->getContext( $conversationId );
@@ -318,10 +326,14 @@ class ContextManagerService implements ContextManagerInterface {
 		// Clear the context.
 		$this->clearContext( $conversationId );
 
-		$this->log( 'info', 'Conversation archived due to inactivity', array(
-			'conversation_id'   => $conversationId,
-			'inactive_duration' => $inactiveDuration,
-		) );
+		$this->log(
+			'info',
+			'Conversation archived due to inactivity',
+			array(
+				'conversation_id'   => $conversationId,
+				'inactive_duration' => $inactiveDuration,
+			)
+		);
 	}
 
 	/**

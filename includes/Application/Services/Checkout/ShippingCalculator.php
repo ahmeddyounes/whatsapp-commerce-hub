@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+
 /**
  * Shipping Calculator
  *
@@ -10,7 +11,6 @@ declare(strict_types=1);
  * @since 3.0.0
  */
 
-declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Application\Services\Checkout;
 
@@ -81,7 +81,10 @@ class ShippingCalculator implements ShippingCalculatorInterface {
 	public function calculateRate( string $methodId, array $package ): array {
 		$parts = explode( ':', $methodId );
 		if ( count( $parts ) < 2 ) {
-			return array( 'cost' => 0.0, 'label' => '' );
+			return array(
+				'cost'  => 0.0,
+				'label' => '',
+			);
 		}
 
 		$methodType = $parts[0];
@@ -91,10 +94,13 @@ class ShippingCalculator implements ShippingCalculatorInterface {
 		$shippingMethods = WC()->shipping()->get_shipping_methods();
 
 		if ( ! isset( $shippingMethods[ $methodType ] ) ) {
-			return array( 'cost' => 0.0, 'label' => '' );
+			return array(
+				'cost'  => 0.0,
+				'label' => '',
+			);
 		}
 
-		$method = clone $shippingMethods[ $methodType ];
+		$method              = clone $shippingMethods[ $methodType ];
 		$method->instance_id = $instanceId;
 		$method->init_instance_settings();
 
@@ -110,7 +116,10 @@ class ShippingCalculator implements ShippingCalculatorInterface {
 			);
 		}
 
-		return array( 'cost' => 0.0, 'label' => $method->get_title() );
+		return array(
+			'cost'  => 0.0,
+			'label' => $method->get_title(),
+		);
 	}
 
 	/**
