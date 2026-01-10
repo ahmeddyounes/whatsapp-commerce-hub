@@ -71,14 +71,14 @@ class CartRepository extends AbstractRepository implements CartRepositoryInterfa
 		}
 
 		// Convert DateTimeImmutable objects.
-		$date_fields = array(
+		$date_fields = [
 			'expires_at',
 			'created_at',
 			'updated_at',
 			'reminder_1_sent_at',
 			'reminder_2_sent_at',
 			'reminder_3_sent_at',
-		);
+		];
 
 		foreach ( $date_fields as $field ) {
 			if ( isset( $data[ $field ] ) && $data[ $field ] instanceof \DateTimeInterface ) {
@@ -116,7 +116,7 @@ class CartRepository extends AbstractRepository implements CartRepositoryInterfa
 
 		$row = $this->queryRow(
 			$sql,
-			array( $phone, Cart::STATUS_ACTIVE, current_time( 'mysql' ) )
+			[ $phone, Cart::STATUS_ACTIVE, current_time( 'mysql' ) ]
 		);
 
 		return $row ? $this->mapToEntity( $row ) : null;
@@ -140,10 +140,10 @@ class CartRepository extends AbstractRepository implements CartRepositoryInterfa
 
 		$rows = $this->query(
 			$sql,
-			array( Cart::STATUS_ABANDONED, $threshold_time )
+			[ Cart::STATUS_ABANDONED, $threshold_time ]
 		);
 
-		return array_map( array( $this, 'mapToEntity' ), $rows );
+		return array_map( [ $this, 'mapToEntity' ], $rows );
 	}
 
 	/**
@@ -159,10 +159,10 @@ class CartRepository extends AbstractRepository implements CartRepositoryInterfa
 
 		$rows = $this->query(
 			$sql,
-			array( Cart::STATUS_ACTIVE, current_time( 'mysql' ) )
+			[ Cart::STATUS_ACTIVE, current_time( 'mysql' ) ]
 		);
 
-		return array_map( array( $this, 'mapToEntity' ), $rows );
+		return array_map( [ $this, 'mapToEntity' ], $rows );
 	}
 
 	/**
@@ -174,7 +174,7 @@ class CartRepository extends AbstractRepository implements CartRepositoryInterfa
 	public function markAsAbandoned( int $cart_id ): bool {
 		return $this->update(
 			$cart_id,
-			array( 'status' => Cart::STATUS_ABANDONED )
+			[ 'status' => Cart::STATUS_ABANDONED ]
 		);
 	}
 
@@ -183,11 +183,11 @@ class CartRepository extends AbstractRepository implements CartRepositoryInterfa
 	 *
 	 * @var array<int, string>
 	 */
-	private const REMINDER_COLUMNS = array(
+	private const REMINDER_COLUMNS = [
 		1 => 'reminder_1_sent_at',
 		2 => 'reminder_2_sent_at',
 		3 => 'reminder_3_sent_at',
-	);
+	];
 
 	/**
 	 * Mark a reminder as sent.
@@ -206,7 +206,7 @@ class CartRepository extends AbstractRepository implements CartRepositoryInterfa
 
 		return $this->update(
 			$cart_id,
-			array( $column => current_time( 'mysql' ) )
+			[ $column => current_time( 'mysql' ) ]
 		);
 	}
 
@@ -251,16 +251,16 @@ class CartRepository extends AbstractRepository implements CartRepositoryInterfa
 			// This also ensures we stay within the same transaction context.
 			$result = $this->wpdb->update(
 				$this->table,
-				array(
+				[
 					'status'             => Cart::STATUS_CONVERTED,
 					'recovered'          => 1,
 					'recovered_order_id' => $order_id,
 					'recovered_revenue'  => (float) $row['total'],
 					'updated_at'         => current_time( 'mysql' ),
-				),
-				array( 'id' => $cart_id ),
-				array( '%s', '%d', '%d', '%f', '%s' ),
-				array( '%d' )
+				],
+				[ 'id' => $cart_id ],
+				[ '%s', '%d', '%d', '%f', '%s' ],
+				[ '%d' ]
 			);
 
 			if ( false !== $result ) {
@@ -298,7 +298,7 @@ class CartRepository extends AbstractRepository implements CartRepositoryInterfa
 
 		$row = $this->queryRow(
 			$sql,
-			array( Cart::STATUS_ABANDONED, Cart::STATUS_CONVERTED, $start, $end )
+			[ Cart::STATUS_ABANDONED, Cart::STATUS_CONVERTED, $start, $end ]
 		);
 
 		$total_abandoned   = (int) ( $row['total_abandoned'] ?? 0 );
@@ -308,12 +308,12 @@ class CartRepository extends AbstractRepository implements CartRepositoryInterfa
 			? round( ( $recovered_count / $total_abandoned ) * 100, 2 )
 			: 0.0;
 
-		return array(
+		return [
 			'total_abandoned'   => $total_abandoned,
 			'recovered_count'   => $recovered_count,
 			'recovered_revenue' => $recovered_revenue,
 			'recovery_rate'     => $recovery_rate,
-		);
+		];
 	}
 
 	/**
@@ -346,7 +346,7 @@ class CartRepository extends AbstractRepository implements CartRepositoryInterfa
 	public function findDueForReminder( int $reminder_number, int $delay_hours, int $limit = 50 ): array {
 		// Use whitelist for SQL safety - prevents SQL injection via column name.
 		if ( ! isset( self::REMINDER_COLUMNS[ $reminder_number ] ) ) {
-			return array();
+			return [];
 		}
 
 		$reminder_column = self::REMINDER_COLUMNS[ $reminder_number ];
@@ -355,13 +355,13 @@ class CartRepository extends AbstractRepository implements CartRepositoryInterfa
 			->modify( "-{$delay_hours} hours" )
 			->format( 'Y-m-d H:i:s' );
 
-		$conditions = array(
+		$conditions = [
 			'status = %s',
 			"{$reminder_column} IS NULL",
 			'updated_at < %s',
-		);
+		];
 
-		$params = array( Cart::STATUS_ABANDONED, $threshold_time );
+		$params = [ Cart::STATUS_ABANDONED, $threshold_time ];
 
 		// For reminder 2 and 3, require the previous reminder to have been sent.
 		if ( $previous_column ) {
@@ -377,7 +377,7 @@ class CartRepository extends AbstractRepository implements CartRepositoryInterfa
 
 		$rows = $this->query( $sql, $params );
 
-		return array_map( array( $this, 'mapToEntity' ), $rows );
+		return array_map( [ $this, 'mapToEntity' ], $rows );
 	}
 
 	/**
@@ -447,9 +447,9 @@ class CartRepository extends AbstractRepository implements CartRepositoryInterfa
 		$result = $this->wpdb->update(
 			$this->table,
 			$data,
-			array( 'id' => $id ),
+			[ 'id' => $id ],
 			$this->getFormats( $data ),
-			array( '%d' )
+			[ '%d' ]
 		);
 
 		return false !== $result;
@@ -468,9 +468,9 @@ class CartRepository extends AbstractRepository implements CartRepositoryInterfa
 				ORDER BY created_at DESC
 				LIMIT %d";
 
-		$rows = $this->query( $sql, array( $phone, $limit ) );
+		$rows = $this->query( $sql, [ $phone, $limit ] );
 
-		return array_map( array( $this, 'mapToEntity' ), $rows );
+		return array_map( [ $this, 'mapToEntity' ], $rows );
 	}
 
 	/**
@@ -486,7 +486,7 @@ class CartRepository extends AbstractRepository implements CartRepositoryInterfa
 
 		$total = $this->queryVar(
 			$sql,
-			array( $phone, Cart::STATUS_CONVERTED )
+			[ $phone, Cart::STATUS_CONVERTED ]
 		);
 
 		return (float) ( $total ?? 0 );
@@ -536,15 +536,15 @@ class CartRepository extends AbstractRepository implements CartRepositoryInterfa
 			// No active cart exists - create one.
 			$now = new \DateTimeImmutable();
 			$id  = $this->create(
-				array(
+				[
 					'customer_phone' => $phone,
-					'items'          => array(),
+					'items'          => [],
 					'total'          => 0.00,
 					'status'         => Cart::STATUS_ACTIVE,
 					'expires_at'     => $expiresAt,
 					'created_at'     => $now,
 					'updated_at'     => $now,
-				)
+				]
 			);
 
 			// Lock the newly created cart.

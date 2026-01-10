@@ -149,11 +149,11 @@ class IdempotencyService {
 
 		$result = $this->wpdb->delete(
 			$table,
-			array(
+			[
 				'message_id' => $key,
 				'scope'      => $scope,
-			),
-			array( '%s', '%s' )
+			],
+			[ '%s', '%s' ]
 		);
 
 		return false !== $result && $result > 0;
@@ -170,8 +170,8 @@ class IdempotencyService {
 
 		$result = $this->wpdb->delete(
 			$table,
-			array( 'scope' => $scope ),
-			array( '%s' )
+			[ 'scope' => $scope ],
+			[ '%s' ]
 		);
 
 		return false === $result ? 0 : (int) $result;
@@ -237,19 +237,19 @@ class IdempotencyService {
 			GROUP BY scope"
 		);
 
-		$stats = array(
+		$stats = [
 			'total'    => 0,
 			'expired'  => 0,
-			'by_scope' => array(),
-		);
+			'by_scope' => [],
+		];
 
 		foreach ( $results as $row ) {
 			$stats['total']                  += (int) $row->total;
 			$stats['expired']                += (int) $row->expired;
-			$stats['by_scope'][ $row->scope ] = array(
+			$stats['by_scope'][ $row->scope ] = [
 				'total'   => (int) $row->total,
 				'expired' => (int) $row->expired,
-			);
+			];
 		}
 
 		return $stats;

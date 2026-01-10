@@ -41,7 +41,7 @@ class ActionServiceProvider extends AbstractServiceProvider {
 	 *
 	 * @var string[]
 	 */
-	private array $actionHandlers = array(
+	private array $actionHandlers = [
 		AddToCartAction::class,
 		ShowCartAction::class,
 		ShowCategoryAction::class,
@@ -50,7 +50,7 @@ class ActionServiceProvider extends AbstractServiceProvider {
 		RequestAddressAction::class,
 		ConfirmOrderAction::class,
 		ProcessPaymentAction::class,
-	);
+	];
 
 	/**
 	 * Register services with the container.
@@ -106,10 +106,10 @@ class ActionServiceProvider extends AbstractServiceProvider {
 
 		\WCH_Logger::log(
 			'Action handlers registered',
-			array(
+			[
 				'count'   => $registry->count(),
 				'actions' => $registry->getRegisteredActions(),
-			),
+			],
 			'debug'
 		);
 	}
@@ -121,7 +121,7 @@ class ActionServiceProvider extends AbstractServiceProvider {
 	 */
 	public function provides(): array {
 		return array_merge(
-			array( ActionRegistry::class ),
+			[ ActionRegistry::class ],
 			$this->actionHandlers
 		);
 	}

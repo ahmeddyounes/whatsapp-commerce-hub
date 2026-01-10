@@ -122,7 +122,7 @@ class InactiveCustomerIdentifier implements InactiveCustomerIdentifierInterface 
 			ARRAY_A
 		);
 
-		return $customers ?: array();
+		return $customers ?: [];
 	}
 
 	/**
@@ -199,9 +199,9 @@ class InactiveCustomerIdentifier implements InactiveCustomerIdentifierInterface 
 			ARRAY_A
 		);
 
-		return $result ?: array(
+		return $result ?: [
 			'last_order_date' => null,
 			'total_orders'    => 0,
-		);
+		];
 	}
 }

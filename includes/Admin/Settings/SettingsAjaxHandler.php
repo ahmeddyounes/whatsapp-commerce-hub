@@ -57,16 +57,16 @@ class SettingsAjaxHandler {
 	 * @return void
 	 */
 	public function register(): void {
-		add_action( 'wp_ajax_wch_save_settings_ajax', array( $this, 'handleSaveSettings' ) );
-		add_action( 'wp_ajax_wch_test_connection', array( $this, 'handleTestConnection' ) );
-		add_action( 'wp_ajax_wch_regenerate_verify_token', array( $this, 'handleRegenerateVerifyToken' ) );
-		add_action( 'wp_ajax_wch_sync_catalog', array( $this, 'handleSyncCatalog' ) );
-		add_action( 'wp_ajax_wch_search_products', array( $this, 'handleSearchProducts' ) );
-		add_action( 'wp_ajax_wch_test_notification', array( $this, 'handleTestNotification' ) );
-		add_action( 'wp_ajax_wch_clear_logs', array( $this, 'handleClearLogs' ) );
-		add_action( 'wp_ajax_wch_export_settings', array( $this, 'handleExportSettings' ) );
-		add_action( 'wp_ajax_wch_import_settings', array( $this, 'handleImportSettings' ) );
-		add_action( 'wp_ajax_wch_reset_settings', array( $this, 'handleResetSettings' ) );
+		add_action( 'wp_ajax_wch_save_settings_ajax', [ $this, 'handleSaveSettings' ] );
+		add_action( 'wp_ajax_wch_test_connection', [ $this, 'handleTestConnection' ] );
+		add_action( 'wp_ajax_wch_regenerate_verify_token', [ $this, 'handleRegenerateVerifyToken' ] );
+		add_action( 'wp_ajax_wch_sync_catalog', [ $this, 'handleSyncCatalog' ] );
+		add_action( 'wp_ajax_wch_search_products', [ $this, 'handleSearchProducts' ] );
+		add_action( 'wp_ajax_wch_test_notification', [ $this, 'handleTestNotification' ] );
+		add_action( 'wp_ajax_wch_clear_logs', [ $this, 'handleClearLogs' ] );
+		add_action( 'wp_ajax_wch_export_settings', [ $this, 'handleExportSettings' ] );
+		add_action( 'wp_ajax_wch_import_settings', [ $this, 'handleImportSettings' ] );
+		add_action( 'wp_ajax_wch_reset_settings', [ $this, 'handleResetSettings' ] );
 	}
 
 	/**
@@ -78,7 +78,7 @@ class SettingsAjaxHandler {
 		check_ajax_referer( self::NONCE_ACTION, 'nonce' );
 
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
-			wp_send_json_error( array( 'message' => __( 'Permission denied', 'whatsapp-commerce-hub' ) ) );
+			wp_send_json_error( [ 'message' => __( 'Permission denied', 'whatsapp-commerce-hub' ) ] );
 			return false;
 		}
 
@@ -93,7 +93,7 @@ class SettingsAjaxHandler {
 	public function handleSaveSettings(): void {
 		$this->verifyRequest(); // Calls check_ajax_referer()
 
-		$sections = array( 'api', 'catalog', 'checkout', 'notifications', 'ai', 'advanced' );
+		$sections = [ 'api', 'catalog', 'checkout', 'notifications', 'ai', 'advanced' ];
 
 		foreach ( $sections as $section ) {
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in verifyRequest() above.
@@ -107,9 +107,9 @@ class SettingsAjaxHandler {
 			}
 		}
 
-		$this->log( 'info', 'Settings saved via AJAX', array() );
+		$this->log( 'info', 'Settings saved via AJAX', [] );
 
-		wp_send_json_success( array( 'message' => __( 'Settings saved successfully.', 'whatsapp-commerce-hub' ) ) );
+		wp_send_json_success( [ 'message' => __( 'Settings saved successfully.', 'whatsapp-commerce-hub' ) ] );
 	}
 
 	/**
@@ -122,7 +122,7 @@ class SettingsAjaxHandler {
 
 		try {
 			if ( ! class_exists( 'WCH_WhatsApp_API_Client' ) ) {
-				wp_send_json_error( array( 'message' => __( 'API client not available', 'whatsapp-commerce-hub' ) ) );
+				wp_send_json_error( [ 'message' => __( 'API client not available', 'whatsapp-commerce-hub' ) ] );
 				return;
 			}
 
@@ -131,17 +131,17 @@ class SettingsAjaxHandler {
 
 			if ( $response && isset( $response['data'] ) ) {
 				wp_send_json_success(
-					array(
+					[
 						'message' => __( 'Connection successful!', 'whatsapp-commerce-hub' ),
 						'profile' => $response['data'],
-					)
+					]
 				);
 			} else {
-				wp_send_json_error( array( 'message' => __( 'Connection failed. Please check your credentials.', 'whatsapp-commerce-hub' ) ) );
+				wp_send_json_error( [ 'message' => __( 'Connection failed. Please check your credentials.', 'whatsapp-commerce-hub' ) ] );
 			}
 		} catch ( Exception $e ) {
-			$this->log( 'error', 'Connection test failed', array( 'error' => $e->getMessage() ) );
-			wp_send_json_error( array( 'message' => $e->getMessage() ) );
+			$this->log( 'error', 'Connection test failed', [ 'error' => $e->getMessage() ] );
+			wp_send_json_error( [ 'message' => $e->getMessage() ] );
 		}
 	}
 
@@ -156,9 +156,9 @@ class SettingsAjaxHandler {
 		$newToken = wp_generate_password( 32, false );
 		$this->settings->set( 'api.webhook_verify_token', $newToken );
 
-		$this->log( 'info', 'Webhook verify token regenerated', array() );
+		$this->log( 'info', 'Webhook verify token regenerated', [] );
 
-		wp_send_json_success( array( 'token' => $newToken ) );
+		wp_send_json_success( [ 'token' => $newToken ] );
 	}
 
 	/**
@@ -180,13 +180,13 @@ class SettingsAjaxHandler {
 					$this->settings->set( 'catalog.last_sync', current_time( 'mysql' ) );
 
 					wp_send_json_success(
-						array(
+						[
 							'message' => __( 'Product sync has been queued for processing', 'whatsapp-commerce-hub' ),
 							'sync_id' => $syncId,
-							'result'  => array(
+							'result'  => [
 								'timestamp' => current_time( 'mysql' ),
-							),
-						)
+							],
+						]
 					);
 					return;
 				}
@@ -200,19 +200,19 @@ class SettingsAjaxHandler {
 				$this->settings->set( 'catalog.last_sync', current_time( 'mysql' ) );
 
 				wp_send_json_success(
-					array(
+					[
 						'message' => __( 'Product sync has been queued for processing', 'whatsapp-commerce-hub' ),
-						'result'  => array(
+						'result'  => [
 							'timestamp' => current_time( 'mysql' ),
-						),
-					)
+						],
+					]
 				);
 			} else {
-				wp_send_json_error( array( 'message' => __( 'Product sync service not available', 'whatsapp-commerce-hub' ) ) );
+				wp_send_json_error( [ 'message' => __( 'Product sync service not available', 'whatsapp-commerce-hub' ) ] );
 			}
 		} catch ( Exception $e ) {
-			$this->log( 'error', 'Catalog sync failed', array( 'error' => $e->getMessage() ) );
-			wp_send_json_error( array( 'message' => $e->getMessage() ) );
+			$this->log( 'error', 'Catalog sync failed', [ 'error' => $e->getMessage() ] );
+			wp_send_json_error( [ 'message' => $e->getMessage() ] );
 		}
 	}
 
@@ -228,36 +228,36 @@ class SettingsAjaxHandler {
 		$query = isset( $_POST['query'] ) ? sanitize_text_field( wp_unslash( $_POST['query'] ) ) : '';
 
 		if ( empty( $query ) ) {
-			wp_send_json_error( array( 'message' => __( 'Search query is required', 'whatsapp-commerce-hub' ) ) );
+			wp_send_json_error( [ 'message' => __( 'Search query is required', 'whatsapp-commerce-hub' ) ] );
 		}
 
-		$args = array(
+		$args = [
 			'post_type'      => 'product',
 			'posts_per_page' => 20,
 			's'              => $query,
 			'post_status'    => 'publish',
-		);
+		];
 
 		$productsQuery = new \WP_Query( $args );
-		$products      = array();
+		$products      = [];
 
 		if ( $productsQuery->have_posts() ) {
 			while ( $productsQuery->have_posts() ) {
 				$productsQuery->the_post();
 				$product = wc_get_product( get_the_ID() );
 				if ( $product ) {
-					$products[] = array(
+					$products[] = [
 						'id'    => $product->get_id(),
 						'name'  => $product->get_name(),
 						'sku'   => $product->get_sku(),
 						'price' => $product->get_price(),
-					);
+					];
 				}
 			}
 			wp_reset_postdata();
 		}
 
-		wp_send_json_success( array( 'products' => $products ) );
+		wp_send_json_success( [ 'products' => $products ] );
 	}
 
 	/**
@@ -272,7 +272,7 @@ class SettingsAjaxHandler {
 		$type = isset( $_POST['type'] ) ? sanitize_key( wp_unslash( $_POST['type'] ) ) : '';
 
 		if ( empty( $type ) ) {
-			wp_send_json_error( array( 'message' => __( 'Invalid notification type', 'whatsapp-commerce-hub' ) ) );
+			wp_send_json_error( [ 'message' => __( 'Invalid notification type', 'whatsapp-commerce-hub' ) ] );
 		}
 
 		try {
@@ -280,11 +280,11 @@ class SettingsAjaxHandler {
 			$phone       = get_user_meta( $currentUser->ID, 'billing_phone', true );
 
 			if ( empty( $phone ) ) {
-				wp_send_json_error( array( 'message' => __( 'No phone number found for current user', 'whatsapp-commerce-hub' ) ) );
+				wp_send_json_error( [ 'message' => __( 'No phone number found for current user', 'whatsapp-commerce-hub' ) ] );
 			}
 
 			if ( ! class_exists( 'WCH_WhatsApp_API_Client' ) ) {
-				wp_send_json_error( array( 'message' => __( 'API client not available', 'whatsapp-commerce-hub' ) ) );
+				wp_send_json_error( [ 'message' => __( 'API client not available', 'whatsapp-commerce-hub' ) ] );
 			}
 
 			$api     = new \WCH_WhatsApp_API_Client();
@@ -296,19 +296,19 @@ class SettingsAjaxHandler {
 
 			$api->send_text_message( $phone, $message );
 
-			$this->log( 'info', 'Test notification sent', array( 'type' => $type ) );
+			$this->log( 'info', 'Test notification sent', [ 'type' => $type ] );
 
-			wp_send_json_success( array( 'message' => __( 'Test notification sent successfully', 'whatsapp-commerce-hub' ) ) );
+			wp_send_json_success( [ 'message' => __( 'Test notification sent successfully', 'whatsapp-commerce-hub' ) ] );
 		} catch ( Exception $e ) {
 			$this->log(
 				'error',
 				'Test notification failed',
-				array(
+				[
 					'type'  => $type,
 					'error' => $e->getMessage(),
-				)
+				]
 			);
-			wp_send_json_error( array( 'message' => $e->getMessage() ) );
+			wp_send_json_error( [ 'message' => $e->getMessage() ] );
 		}
 	}
 
@@ -325,11 +325,11 @@ class SettingsAjaxHandler {
 				\WCH_Logger::clear_all_logs();
 			}
 
-			$this->log( 'info', 'Logs cleared', array() );
+			$this->log( 'info', 'Logs cleared', [] );
 
-			wp_send_json_success( array( 'message' => __( 'All logs cleared successfully', 'whatsapp-commerce-hub' ) ) );
+			wp_send_json_success( [ 'message' => __( 'All logs cleared successfully', 'whatsapp-commerce-hub' ) ] );
 		} catch ( Exception $e ) {
-			wp_send_json_error( array( 'message' => $e->getMessage() ) );
+			wp_send_json_error( [ 'message' => $e->getMessage() ] );
 		}
 	}
 
@@ -343,7 +343,7 @@ class SettingsAjaxHandler {
 
 		$exportData = $this->importExporter->export();
 
-		$this->log( 'info', 'Settings exported', array() );
+		$this->log( 'info', 'Settings exported', [] );
 
 		wp_send_json_success( $exportData );
 	}
@@ -358,7 +358,7 @@ class SettingsAjaxHandler {
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in verifyRequest() above.
 		if ( ! isset( $_POST['settings'] ) ) {
-			wp_send_json_error( array( 'message' => __( 'No settings data provided', 'whatsapp-commerce-hub' ) ) );
+			wp_send_json_error( [ 'message' => __( 'No settings data provided', 'whatsapp-commerce-hub' ) ] );
 		}
 
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.NonceVerification.Missing -- Nonce verified, JSON sanitized in import method.
@@ -379,22 +379,22 @@ class SettingsAjaxHandler {
 		$this->log(
 			'info',
 			'Settings imported',
-			array(
+			[
 				'imported' => $result['imported'],
 				'skipped'  => $result['skipped'],
-			)
+			]
 		);
 
 		if ( ! empty( $result['errors'] ) ) {
 			wp_send_json_error(
-				array(
+				[
 					'message' => $message,
 					'errors'  => $result['errors'],
-				)
+				]
 			);
 		}
 
-		wp_send_json_success( array( 'message' => $message ) );
+		wp_send_json_success( [ 'message' => $message ] );
 	}
 
 	/**
@@ -411,11 +411,11 @@ class SettingsAjaxHandler {
 
 			$this->importExporter->resetToDefaults();
 
-			$this->log( 'info', 'Settings reset to defaults', array() );
+			$this->log( 'info', 'Settings reset to defaults', [] );
 
-			wp_send_json_success( array( 'message' => __( 'Settings reset to defaults successfully', 'whatsapp-commerce-hub' ) ) );
+			wp_send_json_success( [ 'message' => __( 'Settings reset to defaults successfully', 'whatsapp-commerce-hub' ) ] );
 		} catch ( Exception $e ) {
-			wp_send_json_error( array( 'message' => $e->getMessage() ) );
+			wp_send_json_error( [ 'message' => $e->getMessage() ] );
 		}
 	}
 
@@ -427,7 +427,7 @@ class SettingsAjaxHandler {
 	 * @param array  $context Context data.
 	 * @return void
 	 */
-	protected function log( string $level, string $message, array $context = array() ): void {
+	protected function log( string $level, string $message, array $context = [] ): void {
 		$context['category'] = 'admin-settings';
 
 		if ( null !== $this->logger ) {

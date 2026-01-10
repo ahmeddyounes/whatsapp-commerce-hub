@@ -31,7 +31,7 @@ interface OpenAIClientInterface {
 	 * @param array  $context      Conversation context including state, customer profile, cart, etc.
 	 * @return array{text: string, actions: array, error: string|null}
 	 */
-	public function generateResponse( string $user_message, array $context = array() ): array;
+	public function generateResponse( string $user_message, array $context = [] ): array;
 
 	/**
 	 * Process a function call triggered by AI.
@@ -41,7 +41,7 @@ interface OpenAIClientInterface {
 	 * @param array  $context       Conversation context.
 	 * @return array Function result.
 	 */
-	public function processFunctionCall( string $function_name, array $arguments, array $context = array() ): array;
+	public function processFunctionCall( string $function_name, array $arguments, array $context = [] ): array;
 
 	/**
 	 * Get available AI functions.

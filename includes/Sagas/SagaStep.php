@@ -29,7 +29,7 @@ class SagaStep {
 	 *
 	 * @var array
 	 */
-	private array $metadata = array();
+	private array $metadata = [];
 
 	/**
 	 * Constructor.

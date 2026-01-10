@@ -45,7 +45,7 @@ final class PaymentStatus {
 		private readonly string $transactionId,
 		private readonly float $amount = 0.0,
 		private readonly string $currency = '',
-		private readonly array $metadata = array()
+		private readonly array $metadata = []
 	) {
 	}
 
@@ -62,7 +62,7 @@ final class PaymentStatus {
 		string $transactionId,
 		float $amount = 0.0,
 		string $currency = '',
-		array $metadata = array()
+		array $metadata = []
 	): self {
 		return new self( self::COMPLETED, $transactionId, $amount, $currency, $metadata );
 	}
@@ -80,7 +80,7 @@ final class PaymentStatus {
 		string $transactionId,
 		float $amount = 0.0,
 		string $currency = '',
-		array $metadata = array()
+		array $metadata = []
 	): self {
 		return new self( self::PENDING, $transactionId, $amount, $currency, $metadata );
 	}
@@ -92,7 +92,7 @@ final class PaymentStatus {
 	 * @param array  $metadata      Additional metadata.
 	 * @return self
 	 */
-	public static function failed( string $transactionId, array $metadata = array() ): self {
+	public static function failed( string $transactionId, array $metadata = [] ): self {
 		return new self( self::FAILED, $transactionId, 0.0, '', $metadata );
 	}
 
@@ -184,12 +184,12 @@ final class PaymentStatus {
 	 * @return array
 	 */
 	public function toArray(): array {
-		return array(
+		return [
 			'status'         => $this->status,
 			'transaction_id' => $this->transactionId,
 			'amount'         => $this->amount,
 			'currency'       => $this->currency,
 			'metadata'       => $this->metadata,
-		);
+		];
 	}
 }

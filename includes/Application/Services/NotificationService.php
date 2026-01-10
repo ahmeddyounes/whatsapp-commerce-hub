@@ -62,62 +62,62 @@ class NotificationService {
 	 *
 	 * @var array<string, array<string, string>>
 	 */
-	private array $statusMap = array(
-		'pending'    => array(
+	private array $statusMap = [
+		'pending'    => [
 			'text'          => 'Payment Pending',
 			'emoji'         => '',
 			'action_needed' => 'Please complete payment to process your order.',
 			'template'      => 'order_status_update',
-		),
-		'processing' => array(
+		],
+		'processing' => [
 			'text'          => 'Processing',
 			'emoji'         => '',
 			'action_needed' => 'We are preparing your order.',
 			'template'      => 'order_processing',
-		),
-		'on-hold'    => array(
+		],
+		'on-hold'    => [
 			'text'          => 'On Hold',
 			'emoji'         => '',
 			'action_needed' => 'Your order is on hold. We will contact you shortly.',
 			'template'      => 'order_status_update',
-		),
-		'completed'  => array(
+		],
+		'completed'  => [
 			'text'          => 'Delivered',
 			'emoji'         => '',
 			'action_needed' => 'Thank you for your order!',
 			'template'      => 'order_completed',
-		),
-		'cancelled'  => array(
+		],
+		'cancelled'  => [
 			'text'          => 'Cancelled',
 			'emoji'         => '',
 			'action_needed' => 'Your order has been cancelled.',
 			'template'      => 'order_cancelled',
-		),
-		'refunded'   => array(
+		],
+		'refunded'   => [
 			'text'          => 'Refunded',
 			'emoji'         => '',
 			'action_needed' => 'Your refund has been processed.',
 			'template'      => 'order_refunded',
-		),
-		'failed'     => array(
+		],
+		'failed'     => [
 			'text'          => 'Failed',
 			'emoji'         => '',
 			'action_needed' => 'Payment failed. Please try again.',
 			'template'      => 'order_status_update',
-		),
-	);
+		],
+	];
 
 	/**
 	 * Carrier tracking URLs.
 	 *
 	 * @var array<string, string>
 	 */
-	private array $carrierUrls = array(
+	private array $carrierUrls = [
 		'ups'   => 'https://www.ups.com/track?tracknum=%s',
 		'usps'  => 'https://tools.usps.com/go/TrackConfirmAction?tLabels=%s',
 		'fedex' => 'https://www.fedex.com/fedextrack/?tracknumbers=%s',
 		'dhl'   => 'https://www.dhl.com/en/express/tracking.html?AWB=%s',
-	);
+	];
 
 	/**
 	 * Constructor.
@@ -139,11 +139,11 @@ class NotificationService {
 	 * @return void
 	 */
 	public function init(): void {
-		add_action( 'woocommerce_order_status_changed', array( $this, 'handleStatusChange' ), 10, 3 );
-		add_action( 'woocommerce_new_order', array( $this, 'handleNewOrder' ), 10, 1 );
-		add_action( 'woocommerce_shipment_tracking_info_added', array( $this, 'handleShippingUpdate' ), 10, 3 );
-		add_action( 'add_meta_boxes', array( $this, 'addNotificationMetabox' ) );
-		add_action( 'wp_ajax_wch_get_notification_history', array( $this, 'ajaxGetNotificationHistory' ) );
+		add_action( 'woocommerce_order_status_changed', [ $this, 'handleStatusChange' ], 10, 3 );
+		add_action( 'woocommerce_new_order', [ $this, 'handleNewOrder' ], 10, 1 );
+		add_action( 'woocommerce_shipment_tracking_info_added', [ $this, 'handleShippingUpdate' ], 10, 3 );
+		add_action( 'add_meta_boxes', [ $this, 'addNotificationMetabox' ] );
+		add_action( 'wp_ajax_wch_get_notification_history', [ $this, 'ajaxGetNotificationHistory' ] );
 	}
 
 	/**
@@ -164,10 +164,10 @@ class NotificationService {
 		}
 
 		$this->queueNotification(
-			array(
+			[
 				'order_id'          => $orderId,
 				'notification_type' => 'order_confirmation',
-			),
+			],
 			30
 		);
 	}
@@ -192,12 +192,12 @@ class NotificationService {
 		}
 
 		$this->queueNotification(
-			array(
+			[
 				'order_id'          => $orderId,
 				'notification_type' => 'status_update',
 				'old_status'        => $oldStatus,
 				'new_status'        => $newStatus,
-			),
+			],
 			30
 		);
 	}
@@ -222,12 +222,12 @@ class NotificationService {
 		}
 
 		$this->queueNotification(
-			array(
+			[
 				'order_id'          => $orderId,
 				'notification_type' => 'shipping_update',
 				'tracking_number'   => $trackingNumber,
 				'carrier'           => $carrier,
-			),
+			],
 			30
 		);
 	}
@@ -242,13 +242,13 @@ class NotificationService {
 		$order = wc_get_order( $orderId );
 
 		if ( ! $order ) {
-			$this->log( "Order confirmation failed: Order {$orderId} not found", array(), 'error' );
+			$this->log( "Order confirmation failed: Order {$orderId} not found", [], 'error' );
 			return false;
 		}
 
 		$customerPhone = $this->getCustomerPhone( $order );
 		if ( ! $customerPhone ) {
-			$this->log( "Order confirmation failed: No phone for order {$orderId}", array(), 'error' );
+			$this->log( "Order confirmation failed: No phone for order {$orderId}", [], 'error' );
 			return false;
 		}
 
@@ -257,13 +257,13 @@ class NotificationService {
 			return false;
 		}
 
-		$variables = array(
+		$variables = [
 			'customer_name'      => $order->get_billing_first_name(),
 			'order_number'       => $order->get_order_number(),
 			'order_total'        => $order->get_formatted_order_total(),
 			'item_count'         => (string) $order->get_item_count(),
 			'estimated_delivery' => $this->getEstimatedDelivery( $order ),
-		);
+		];
 
 		return $this->sendTemplateNotification(
 			$orderId,
@@ -285,13 +285,13 @@ class NotificationService {
 		$order = wc_get_order( $orderId );
 
 		if ( ! $order ) {
-			$this->log( "Status update failed: Order {$orderId} not found", array(), 'error' );
+			$this->log( "Status update failed: Order {$orderId} not found", [], 'error' );
 			return false;
 		}
 
 		$customerPhone = $this->getCustomerPhone( $order );
 		if ( ! $customerPhone ) {
-			$this->log( "Status update failed: No phone for order {$orderId}", array(), 'error' );
+			$this->log( "Status update failed: No phone for order {$orderId}", [], 'error' );
 			return false;
 		}
 
@@ -302,12 +302,12 @@ class NotificationService {
 
 		$statusInfo = $this->getStatusInfo( $newStatus );
 
-		$variables = array(
+		$variables = [
 			'order_number'  => $order->get_order_number(),
 			'status_text'   => $statusInfo['text'],
 			'status_emoji'  => $statusInfo['emoji'],
 			'action_needed' => $statusInfo['action_needed'],
-		);
+		];
 
 		return $this->sendTemplateNotification(
 			$orderId,
@@ -330,13 +330,13 @@ class NotificationService {
 		$order = wc_get_order( $orderId );
 
 		if ( ! $order ) {
-			$this->log( "Shipping update failed: Order {$orderId} not found", array(), 'error' );
+			$this->log( "Shipping update failed: Order {$orderId} not found", [], 'error' );
 			return false;
 		}
 
 		$customerPhone = $this->getCustomerPhone( $order );
 		if ( ! $customerPhone ) {
-			$this->log( "Shipping update failed: No phone for order {$orderId}", array(), 'error' );
+			$this->log( "Shipping update failed: No phone for order {$orderId}", [], 'error' );
 			return false;
 		}
 
@@ -345,12 +345,12 @@ class NotificationService {
 			return false;
 		}
 
-		$variables = array(
+		$variables = [
 			'order_number'    => $order->get_order_number(),
 			'carrier_name'    => $this->formatCarrierName( $carrier ),
 			'tracking_number' => $trackingNumber,
 			'tracking_url'    => $this->getTrackingUrl( $carrier, $trackingNumber ),
-		);
+		];
 
 		return $this->sendTemplateNotification(
 			$orderId,
@@ -371,13 +371,13 @@ class NotificationService {
 		$order = wc_get_order( $orderId );
 
 		if ( ! $order ) {
-			$this->log( "Delivery confirmation failed: Order {$orderId} not found", array(), 'error' );
+			$this->log( "Delivery confirmation failed: Order {$orderId} not found", [], 'error' );
 			return false;
 		}
 
 		$customerPhone = $this->getCustomerPhone( $order );
 		if ( ! $customerPhone ) {
-			$this->log( "Delivery confirmation failed: No phone for order {$orderId}", array(), 'error' );
+			$this->log( "Delivery confirmation failed: No phone for order {$orderId}", [], 'error' );
 			return false;
 		}
 
@@ -386,10 +386,10 @@ class NotificationService {
 			return false;
 		}
 
-		$variables = array(
+		$variables = [
 			'order_number'  => $order->get_order_number(),
 			'customer_name' => $order->get_billing_first_name(),
-		);
+		];
 
 		if ( post_type_supports( 'product', 'comments' ) ) {
 			$variables['review_url'] = get_permalink( $order->get_id() );
@@ -415,7 +415,7 @@ class NotificationService {
 		$notificationType = $args['notification_type'] ?? '';
 
 		if ( ! $orderId || ! $notificationType ) {
-			$this->log( 'Invalid notification job args: ' . wp_json_encode( $args ), array(), 'error' );
+			$this->log( 'Invalid notification job args: ' . wp_json_encode( $args ), [], 'error' );
 			return;
 		}
 
@@ -444,7 +444,7 @@ class NotificationService {
 				break;
 
 			default:
-				$this->log( "Unknown notification type: {$notificationType}", array(), 'error' );
+				$this->log( "Unknown notification type: {$notificationType}", [], 'error' );
 		}
 	}
 
@@ -489,11 +489,11 @@ class NotificationService {
 
 			$this->updateNotificationLog(
 				$logId,
-				array(
+				[
 					'status'        => 'sent',
 					'wa_message_id' => $result['messages'][0]['id'],
 					'sent_at'       => current_time( 'mysql' ),
-				)
+				]
 			);
 
 			$this->log( "Notification sent for order {$orderId}: {$notificationType}" );
@@ -502,13 +502,13 @@ class NotificationService {
 		} catch ( \Exception $e ) {
 			$this->updateNotificationLog(
 				$logId,
-				array(
+				[
 					'status'        => 'failed',
 					'error_message' => $e->getMessage(),
-				)
+				]
 			);
 
-			$this->log( "Notification failed for order {$orderId}: {$e->getMessage()}", array(), 'error' );
+			$this->log( "Notification failed for order {$orderId}: {$e->getMessage()}", [], 'error' );
 			$this->scheduleRetry( $logId, $orderId, $notificationType );
 
 			return false;
@@ -559,23 +559,23 @@ class NotificationService {
 		$retryCount = (int) $log->retry_count;
 
 		if ( $retryCount >= self::MAX_RETRIES ) {
-			$this->log( "Max retries reached for notification log {$logId}", array(), 'error' );
+			$this->log( "Max retries reached for notification log {$logId}", [], 'error' );
 			return;
 		}
 
 		$wpdb->update(
 			$tableName,
-			array( 'retry_count' => $retryCount + 1 ),
-			array( 'id' => $logId ),
-			array( '%d' ),
-			array( '%d' )
+			[ 'retry_count' => $retryCount + 1 ],
+			[ 'id' => $logId ],
+			[ '%d' ],
+			[ '%d' ]
 		);
 
 		$this->queueNotification(
-			array(
+			[
 				'order_id'          => $orderId,
 				'notification_type' => $notificationType,
-			),
+			],
 			self::RETRY_DELAY
 		);
 
@@ -603,7 +603,7 @@ class NotificationService {
 
 		$wpdb->insert(
 			$tableName,
-			array(
+			[
 				'order_id'          => $orderId,
 				'notification_type' => $notificationType,
 				'customer_phone'    => $customerPhone,
@@ -612,8 +612,8 @@ class NotificationService {
 				'retry_count'       => 0,
 				'created_at'        => current_time( 'mysql' ),
 				'updated_at'        => current_time( 'mysql' ),
-			),
-			array( '%d', '%s', '%s', '%s', '%s', '%d', '%s', '%s' )
+			],
+			[ '%d', '%s', '%s', '%s', '%s', '%d', '%s', '%s' ]
 		);
 
 		return $wpdb->insert_id;
@@ -636,9 +636,9 @@ class NotificationService {
 		$wpdb->update(
 			$tableName,
 			$data,
-			array( 'id' => $logId ),
+			[ 'id' => $logId ],
 			null,
-			array( '%d' )
+			[ '%d' ]
 		);
 	}
 
@@ -698,7 +698,7 @@ class NotificationService {
 			return $hour >= self::QUIET_HOURS_START || $hour < self::QUIET_HOURS_END;
 
 		} catch ( \Exception $e ) {
-			$this->log( "Timezone error: {$e->getMessage()}", array(), 'error' );
+			$this->log( "Timezone error: {$e->getMessage()}", [], 'error' );
 			return false;
 		}
 	}
@@ -755,12 +755,12 @@ class NotificationService {
 	 * @return array Status info.
 	 */
 	private function getStatusInfo( string $status ): array {
-		return $this->statusMap[ $status ] ?? array(
+		return $this->statusMap[ $status ] ?? [
 			'text'          => ucfirst( str_replace( '-', ' ', $status ) ),
 			'emoji'         => '',
 			'action_needed' => '',
 			'template'      => 'order_status_update',
-		);
+		];
 	}
 
 	/**
@@ -784,12 +784,12 @@ class NotificationService {
 	 * @return string
 	 */
 	private function formatCarrierName( string $carrier ): string {
-		$names = array(
+		$names = [
 			'ups'   => 'UPS',
 			'usps'  => 'USPS',
 			'fedex' => 'FedEx',
 			'dhl'   => 'DHL',
-		);
+		];
 
 		return $names[ strtolower( $carrier ) ] ?? ucfirst( $carrier );
 	}
@@ -822,7 +822,7 @@ class NotificationService {
 		add_meta_box(
 			'wch_order_notifications',
 			__( 'WhatsApp Notifications', 'whatsapp-commerce-hub' ),
-			array( $this, 'renderNotificationMetabox' ),
+			[ $this, 'renderNotificationMetabox' ],
 			'shop_order',
 			'side',
 			'default'
@@ -916,11 +916,11 @@ class NotificationService {
 		$orderId = isset( $_POST['order_id'] ) ? absint( $_POST['order_id'] ) : 0;
 
 		if ( ! $orderId ) {
-			wp_send_json_error( array( 'message' => 'Invalid order ID' ) );
+			wp_send_json_error( [ 'message' => 'Invalid order ID' ] );
 		}
 
 		$notifications = $this->getNotificationHistory( $orderId );
-		wp_send_json_success( array( 'notifications' => $notifications ) );
+		wp_send_json_success( [ 'notifications' => $notifications ] );
 	}
 
 	/**
@@ -942,7 +942,7 @@ class NotificationService {
 	 * @param string $level   Log level.
 	 * @return void
 	 */
-	private function log( string $message, array $context = array(), string $level = 'info' ): void {
+	private function log( string $message, array $context = [], string $level = 'info' ): void {
 		if ( class_exists( 'WCH_Logger' ) ) {
 			\WCH_Logger::{ $level }( $message, $context );
 		}

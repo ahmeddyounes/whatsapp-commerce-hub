@@ -94,12 +94,12 @@ class OrderCreatedEvent extends Event {
 	 * {@inheritdoc}
 	 */
 	public function getPayload(): array {
-		return array(
+		return [
 			'order_id'        => $this->order_id,
 			'customer_phone'  => $this->customer_phone,
 			'total'           => $this->total,
 			'conversation_id' => $this->conversation_id,
 			'from_recovery'   => $this->from_recovery,
-		);
+		];
 	}
 }

@@ -118,13 +118,13 @@ class CampaignTypeResolver implements CampaignTypeResolverInterface {
 	 * @return array Associative array of type => description.
 	 */
 	public function getAvailableTypes(): array {
-		return array(
+		return [
 			self::TYPE_WE_MISS_YOU    => __( 'Generic re-engagement', 'whatsapp-commerce-hub' ),
 			self::TYPE_NEW_ARRIVALS   => __( 'New products since last visit', 'whatsapp-commerce-hub' ),
 			self::TYPE_BACK_IN_STOCK  => __( 'Previously viewed items back in stock', 'whatsapp-commerce-hub' ),
 			self::TYPE_PRICE_DROP     => __( 'Price drops on viewed products', 'whatsapp-commerce-hub' ),
 			self::TYPE_LOYALTY_REWARD => __( 'Discount based on lifetime value', 'whatsapp-commerce-hub' ),
-		);
+		];
 	}
 
 	/**

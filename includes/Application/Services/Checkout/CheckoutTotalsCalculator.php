@@ -33,24 +33,24 @@ class CheckoutTotalsCalculator implements CheckoutTotalsCalculatorInterface {
 	 * @return array{subtotal: float, discount: float, shipping: float, tax: float, payment_fee: float, total: float}
 	 */
 	public function calculateTotals( array $params ): array {
-		$subtotal   = $this->calculateSubtotal( $params['items'] ?? array() );
+		$subtotal   = $this->calculateSubtotal( $params['items'] ?? [] );
 		$discount   = $this->calculateDiscount( $subtotal, $params['coupon_code'] ?? '' );
 		$shipping   = (float) ( $params['shipping_cost'] ?? 0 );
 		$paymentFee = (float) ( $params['payment_fee'] ?? 0 );
 
 		$taxable = $subtotal - $discount + $shipping;
-		$tax     = $this->calculateTax( $taxable, $params['address'] ?? array() );
+		$tax     = $this->calculateTax( $taxable, $params['address'] ?? [] );
 
 		$total = $subtotal - $discount + $shipping + $tax + $paymentFee;
 
-		return array(
+		return [
 			'subtotal'    => round( $subtotal, 2 ),
 			'discount'    => round( $discount, 2 ),
 			'shipping'    => round( $shipping, 2 ),
 			'tax'         => round( $tax, 2 ),
 			'payment_fee' => round( $paymentFee, 2 ),
 			'total'       => round( max( 0, $total ), 2 ),
-		);
+		];
 	}
 
 	/**
@@ -106,7 +106,7 @@ class CheckoutTotalsCalculator implements CheckoutTotalsCalculatorInterface {
 	 * @param array $address       Shipping address for tax location.
 	 * @return float Tax amount.
 	 */
-	public function calculateTax( float $taxableAmount, array $address = array() ): float {
+	public function calculateTax( float $taxableAmount, array $address = [] ): float {
 		if ( ! wc_tax_enabled() || $taxableAmount <= 0 ) {
 			return 0.0;
 		}
@@ -132,48 +132,48 @@ class CheckoutTotalsCalculator implements CheckoutTotalsCalculatorInterface {
 	 * @return array Order review data.
 	 */
 	public function getOrderReview( string $phone, array $state, array $items ): array {
-		$formattedItems = array();
+		$formattedItems = [];
 
 		foreach ( $items as $item ) {
 			$product = wc_get_product( $item['product_id'] );
 
-			$formattedItems[] = array(
+			$formattedItems[] = [
 				'name'       => $product ? $product->get_name() : __( 'Unknown Product', 'whatsapp-commerce-hub' ),
 				'quantity'   => $item['quantity'] ?? 1,
 				'price'      => $item['price'] ?? 0,
 				'total'      => ( $item['price'] ?? 0 ) * ( $item['quantity'] ?? 1 ),
 				'total_html' => $this->formatAmount( ( $item['price'] ?? 0 ) * ( $item['quantity'] ?? 1 ) ),
-			);
+			];
 		}
 
 		$totals = $this->calculateTotals(
-			array(
+			[
 				'items'         => $items,
 				'coupon_code'   => $state['coupon_code'] ?? '',
 				'shipping_cost' => $state['shipping_method']['cost'] ?? 0,
 				'payment_fee'   => $state['payment_method']['fee'] ?? 0,
-				'address'       => $state['address'] ?? array(),
-			)
+				'address'       => $state['address'] ?? [],
+			]
 		);
 
-		return array(
+		return [
 			'items'            => $formattedItems,
-			'address'          => $state['address'] ?? array(),
-			'shipping'         => array(
+			'address'          => $state['address'] ?? [],
+			'shipping'         => [
 				'method' => $state['shipping_method']['label'] ?? '',
 				'cost'   => $state['shipping_method']['cost'] ?? 0,
-			),
+			],
 			'payment'          => $state['payment_method']['label'] ?? '',
 			'totals'           => $totals,
-			'totals_formatted' => array(
+			'totals_formatted' => [
 				'subtotal'    => $this->formatAmount( $totals['subtotal'] ),
 				'discount'    => $this->formatAmount( $totals['discount'] ),
 				'shipping'    => $this->formatAmount( $totals['shipping'] ),
 				'tax'         => $this->formatAmount( $totals['tax'] ),
 				'payment_fee' => $this->formatAmount( $totals['payment_fee'] ),
 				'total'       => $this->formatAmount( $totals['total'] ),
-			),
-		);
+			],
+		];
 	}
 
 	/**

@@ -78,7 +78,7 @@ class NotificationServiceProvider implements ServiceProviderInterface {
 	 */
 	public function boot( ContainerInterface $container ): void {
 		// Register WooCommerce order status hooks.
-		$statusTransitions = array(
+		$statusTransitions = [
 			'pending',
 			'processing',
 			'on-hold',
@@ -87,7 +87,7 @@ class NotificationServiceProvider implements ServiceProviderInterface {
 			'refunded',
 			'failed',
 			'shipped',
-		);
+		];
 
 		foreach ( $statusTransitions as $status ) {
 			add_action(
@@ -156,11 +156,11 @@ class NotificationServiceProvider implements ServiceProviderInterface {
 	 * @return array<string>
 	 */
 	public function provides(): array {
-		return array(
+		return [
 			NotificationService::class,
 			'wch.notification',
 			\WCH_Order_Notifications::class,
 			'wch.order_notifications',
-		);
+		];
 	}
 }

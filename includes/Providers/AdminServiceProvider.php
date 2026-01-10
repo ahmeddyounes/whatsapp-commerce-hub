@@ -148,7 +148,7 @@ class AdminServiceProvider implements ServiceProviderInterface {
 	 * @return array<string>
 	 */
 	public function provides(): array {
-		return array(
+		return [
 			LogsPage::class,
 			JobsPage::class,
 			InboxPage::class,
@@ -163,6 +163,6 @@ class AdminServiceProvider implements ServiceProviderInterface {
 			'wch.admin.templates',
 			'wch.admin.catalog_sync',
 			'wch.admin.dashboard_widgets',
-		);
+		];
 	}
 }

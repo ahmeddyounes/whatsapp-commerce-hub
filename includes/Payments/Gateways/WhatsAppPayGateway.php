@@ -51,7 +51,7 @@ class WhatsAppPayGateway extends AbstractGateway {
 	 *
 	 * @var string[]
 	 */
-	protected array $supportedCountries = array( 'BR', 'IN', 'SG' );
+	protected array $supportedCountries = [ 'BR', 'IN', 'SG' ];
 
 	/**
 	 * WhatsApp API client.
@@ -102,11 +102,11 @@ class WhatsAppPayGateway extends AbstractGateway {
 			$this->storeTransactionMeta(
 				$order,
 				$transactionId,
-				array( '_whatsapp_pay_reference' => $paymentRequest['reference_id'] ?? $transactionId )
+				[ '_whatsapp_pay_reference' => $paymentRequest['reference_id'] ?? $transactionId ]
 			);
 			$order->save();
 
-			$this->log( 'WhatsApp Pay request created', array( 'order_id' => $orderId ) );
+			$this->log( 'WhatsApp Pay request created', [ 'order_id' => $orderId ] );
 
 			return PaymentResult::success(
 				$transactionId,
@@ -114,7 +114,7 @@ class WhatsAppPayGateway extends AbstractGateway {
 			);
 
 		} catch ( \Exception $e ) {
-			$this->log( 'WhatsApp Pay payment error', array( 'error' => $e->getMessage() ), 'error' );
+			$this->log( 'WhatsApp Pay payment error', [ 'error' => $e->getMessage() ], 'error' );
 
 			return PaymentResult::failure( 'whatsapppay_error', $e->getMessage() );
 		}
@@ -134,78 +134,78 @@ class WhatsAppPayGateway extends AbstractGateway {
 		}
 
 		// Prepare order items for payment request.
-		$items = array();
+		$items = [];
 		foreach ( $order->get_items() as $item ) {
-			$items[] = array(
+			$items[] = [
 				'name'     => $item->get_name(),
-				'amount'   => array(
+				'amount'   => [
 					'value'  => $item->get_total(),
 					'offset' => 100,
-				),
+				],
 				'quantity' => $item->get_quantity(),
-			);
+			];
 		}
 
 		// Build payment configuration.
-		$paymentConfig = array(
+		$paymentConfig = [
 			'type'             => 'payment',
-			'payment_settings' => array(
-				array(
+			'payment_settings' => [
+				[
 					'type'            => 'payment_gateway',
 					'payment_gateway' => array(
 						'type'               => 'razorpay', // WhatsApp Pay uses underlying payment processors.
 						'configuration_name' => get_option( 'wch_whatsapppay_config_name', 'default' ),
 					),
-				),
-			),
-		);
+				],
+			],
+		];
 
 		$referenceId = 'wp_' . $order->get_id() . '_' . time();
 
 		// Create order object for WhatsApp.
-		$orderData = array(
+		$orderData = [
 			'reference_id' => $referenceId,
 			'type'         => 'digital-goods',
 			'payment'      => $paymentConfig,
-			'total_amount' => array(
+			'total_amount' => [
 				'value'  => intval( $order->get_total() * 100 ),
 				'offset' => 100,
-			),
-			'order'        => array(
+			],
+			'order'        => [
 				'items' => $items,
-			),
-		);
+			],
+		];
 
 		// Send interactive payment message.
-		$message = array(
+		$message = [
 			'messaging_product' => 'whatsapp',
 			'recipient_type'    => 'individual',
 			'to'                => $customerPhone,
 			'type'              => 'interactive',
-			'interactive'       => array(
+			'interactive'       => [
 				'type'   => 'order_details',
-				'body'   => array(
+				'body'   => [
 					'text' => sprintf(
 						/* translators: %s: Order number */
 						__( 'Please review and confirm your payment for order #%s', 'whatsapp-commerce-hub' ),
 						$order->get_order_number()
 					),
-				),
-				'action' => array(
+				],
+				'action' => [
 					'name'       => 'review_and_pay',
 					'parameters' => $orderData,
-				),
-			),
-		);
+				],
+			],
+		];
 
 		$response = $this->apiClient->send_message( $message );
 
 		if ( $response && isset( $response['messages'][0]['id'] ) ) {
-			return array(
+			return [
 				'success'      => true,
 				'reference_id' => $referenceId,
 				'message_id'   => $response['messages'][0]['id'],
-			);
+			];
 		}
 
 		return null;
@@ -219,14 +219,14 @@ class WhatsAppPayGateway extends AbstractGateway {
 	 * @return WebhookResult
 	 */
 	public function handleWebhook( array $data, string $signature = '' ): WebhookResult {
-		$entry    = $data['entry'][0] ?? array();
-		$changes  = $entry['changes'][0] ?? array();
-		$value    = $changes['value'] ?? array();
-		$messages = $value['messages'] ?? array();
+		$entry    = $data['entry'][0] ?? [];
+		$changes  = $entry['changes'][0] ?? [];
+		$value    = $changes['value'] ?? [];
+		$messages = $value['messages'] ?? [];
 
 		foreach ( $messages as $message ) {
 			if ( isset( $message['type'] ) && $message['type'] === 'order' ) {
-				$orderInfo   = $message['order'] ?? array();
+				$orderInfo   = $message['order'] ?? [];
 				$referenceId = $orderInfo['reference_id'] ?? '';
 
 				// Extract order ID from reference.
@@ -240,15 +240,15 @@ class WhatsAppPayGateway extends AbstractGateway {
 
 					$paymentStatus = $orderInfo['payment_status'] ?? '';
 
-					if ( in_array( $paymentStatus, array( 'captured', 'completed' ), true ) ) {
+					if ( in_array( $paymentStatus, [ 'captured', 'completed' ], true ) ) {
 						// Security check: prevent double-spend.
 						if ( ! $this->orderNeedsPayment( $order ) ) {
 							$this->log(
 								'WhatsApp Pay webhook skipped - order already paid',
-								array(
+								[
 									'order_id'  => $orderId,
 									'reference' => $referenceId,
-								)
+								]
 							);
 							return WebhookResult::alreadyCompleted( $orderId, $referenceId );
 						}
@@ -262,7 +262,7 @@ class WhatsAppPayGateway extends AbstractGateway {
 							)
 						);
 
-						$this->log( 'WhatsApp Pay payment completed', array( 'order_id' => $orderId ) );
+						$this->log( 'WhatsApp Pay payment completed', [ 'order_id' => $orderId ] );
 
 						return WebhookResult::success(
 							$orderId,
@@ -306,17 +306,17 @@ class WhatsAppPayGateway extends AbstractGateway {
 
 			if ( $order ) {
 				$status      = $order->get_status();
-				$isCompleted = in_array( $status, array( 'completed', 'processing' ), true );
+				$isCompleted = in_array( $status, [ 'completed', 'processing' ], true );
 
 				return new PaymentStatus(
 					$isCompleted ? PaymentStatus::COMPLETED : PaymentStatus::PENDING,
 					$transactionId,
 					(float) $order->get_total(),
 					$order->get_currency(),
-					array(
+					[
 						'order_id' => $orderId,
 						'method'   => 'whatsapppay',
-					)
+					]
 				);
 			}
 		}

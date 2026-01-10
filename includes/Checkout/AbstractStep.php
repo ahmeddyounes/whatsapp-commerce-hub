@@ -61,10 +61,10 @@ abstract class AbstractStep implements StepInterface {
 	 * @return CheckoutResponse
 	 */
 	protected function success(
-		array $messages = array(),
-		array $data = array(),
+		array $messages = [],
+		array $data = [],
 		?string $next_step = null,
-		array $step_data = array()
+		array $step_data = []
 	): CheckoutResponse {
 		return CheckoutResponse::success(
 			$this->getStepId(),
@@ -87,8 +87,8 @@ abstract class AbstractStep implements StepInterface {
 	protected function failure(
 		string $error,
 		?string $error_code = null,
-		array $messages = array(),
-		array $data = array()
+		array $messages = [],
+		array $data = []
 	): CheckoutResponse {
 		return CheckoutResponse::failure(
 			$this->getStepId(),
@@ -136,7 +136,7 @@ abstract class AbstractStep implements StepInterface {
 	 * @return array
 	 */
 	protected function getCheckoutData( array $context ): array {
-		return $context['checkout_data'] ?? array();
+		return $context['checkout_data'] ?? [];
 	}
 
 	/**
@@ -156,7 +156,7 @@ abstract class AbstractStep implements StepInterface {
 	 * @param array  $data    Additional log data.
 	 * @return void
 	 */
-	protected function log( string $message, array $data = array() ): void {
+	protected function log( string $message, array $data = [] ): void {
 		$data['step'] = $this->getStepId();
 
 		if ( class_exists( '\WCH_Logger' ) ) {
@@ -171,7 +171,7 @@ abstract class AbstractStep implements StepInterface {
 	 * @param array  $data    Additional log data.
 	 * @return void
 	 */
-	protected function logError( string $message, array $data = array() ): void {
+	protected function logError( string $message, array $data = [] ): void {
 		$data['step'] = $this->getStepId();
 
 		if ( class_exists( '\WCH_Logger' ) ) {

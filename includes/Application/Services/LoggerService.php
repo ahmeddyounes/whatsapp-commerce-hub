@@ -54,25 +54,25 @@ class LoggerService implements LoggerInterface {
 	 *
 	 * @var array<string, string>
 	 */
-	protected array $piiPatterns = array(
+	protected array $piiPatterns = [
 		'phone'       => '/\b(\+?[1-9]\d{6,14})\b/',
 		'email'       => '/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/',
 		'credit_card' => '/\b(?:\d[ -]*?){13,16}\b/',
 		'ip_address'  => '/\b(?:\d{1,3}\.){3}\d{1,3}\b/',
-	);
+	];
 
 	/**
 	 * Level priority map.
 	 *
 	 * @var array<string, int>
 	 */
-	protected static array $levelPriority = array(
+	protected static array $levelPriority = [
 		self::LEVEL_DEBUG    => 100,
 		self::LEVEL_INFO     => 200,
 		self::LEVEL_WARNING  => 300,
 		self::LEVEL_ERROR    => 400,
 		self::LEVEL_CRITICAL => 500,
-	);
+	];
 
 	/**
 	 * Maximum log file size in bytes (5MB).
@@ -98,42 +98,42 @@ class LoggerService implements LoggerInterface {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function debug( string $message, string $context = 'general', array $data = array() ): void {
+	public function debug( string $message, string $context = 'general', array $data = [] ): void {
 		$this->log( self::LEVEL_DEBUG, $message, $context, $data );
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
-	public function info( string $message, string $context = 'general', array $data = array() ): void {
+	public function info( string $message, string $context = 'general', array $data = [] ): void {
 		$this->log( self::LEVEL_INFO, $message, $context, $data );
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
-	public function warning( string $message, string $context = 'general', array $data = array() ): void {
+	public function warning( string $message, string $context = 'general', array $data = [] ): void {
 		$this->log( self::LEVEL_WARNING, $message, $context, $data );
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
-	public function error( string $message, string $context = 'general', array $data = array() ): void {
+	public function error( string $message, string $context = 'general', array $data = [] ): void {
 		$this->log( self::LEVEL_ERROR, $message, $context, $data );
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
-	public function critical( string $message, string $context = 'general', array $data = array() ): void {
+	public function critical( string $message, string $context = 'general', array $data = [] ): void {
 		$this->log( self::LEVEL_CRITICAL, $message, $context, $data );
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
-	public function log( string $level, string $message, string $context = 'general', array $data = array() ): void {
+	public function log( string $level, string $message, string $context = 'general', array $data = [] ): void {
 		// Check if level meets minimum threshold.
 		if ( ! $this->shouldLog( $level ) ) {
 			return;
@@ -151,7 +151,7 @@ class LoggerService implements LoggerInterface {
 
 		// Fire WordPress action for external integrations.
 		do_action( 'wch_log', $level, $sanitizedMessage, $context, $sanitizedData, $this->requestId );
-		do_action( "wch_log_{$level}", $sanitizedMessage, array_merge( $sanitizedData, array( 'context' => $context ) ) );
+		do_action( "wch_log_{$level}", $sanitizedMessage, array_merge( $sanitizedData, [ 'context' => $context ] ) );
 
 		// Also log to WooCommerce if available and level is warning or higher.
 		if ( $this->shouldLogToWooCommerce( $level ) ) {
@@ -173,7 +173,7 @@ class LoggerService implements LoggerInterface {
 	 */
 	public function getLogFiles(): array {
 		$logDir = $this->getLogDirectory();
-		$files  = array();
+		$files  = [];
 
 		if ( ! is_dir( $logDir ) ) {
 			return $files;
@@ -186,16 +186,16 @@ class LoggerService implements LoggerInterface {
 
 			foreach ( $iterator as $file ) {
 				if ( $file->isFile() && 'log' === $file->getExtension() ) {
-					$files[] = array(
+					$files[] = [
 						'filename' => $file->getFilename(),
 						'size'     => $file->getSize(),
 						'modified' => $file->getMTime(),
-					);
+					];
 				}
 			}
 		} catch ( \UnexpectedValueException $e ) {
 			// Directory became inaccessible - return empty array.
-			return array();
+			return [];
 		}
 
 		// Sort by modified time descending.
@@ -395,7 +395,7 @@ class LoggerService implements LoggerInterface {
 	 * @return array Sanitized data.
 	 */
 	protected function sanitizeDataPii( array $data ): array {
-		$sensitiveKeys = array( 'phone', 'email', 'password', 'token', 'secret', 'api_key', 'access_token', 'credit_card', 'cvv' );
+		$sensitiveKeys = [ 'phone', 'email', 'password', 'token', 'secret', 'api_key', 'access_token', 'credit_card', 'cvv' ];
 
 		foreach ( $data as $key => $value ) {
 			// Check for sensitive keys.
@@ -644,7 +644,7 @@ class LoggerService implements LoggerInterface {
 			return '';
 		}
 
-		$buffer     = array();
+		$buffer     = [];
 		$lineCount  = 0;
 		$skipCount  = 0;
 		$chunkSize  = 4096;
@@ -717,7 +717,7 @@ class LoggerService implements LoggerInterface {
 			return false;
 		}
 
-		$wcLevels = array( self::LEVEL_WARNING, self::LEVEL_ERROR, self::LEVEL_CRITICAL );
+		$wcLevels = [ self::LEVEL_WARNING, self::LEVEL_ERROR, self::LEVEL_CRITICAL ];
 
 		return in_array( $level, $wcLevels, true );
 	}
@@ -746,15 +746,15 @@ class LoggerService implements LoggerInterface {
 
 		switch ( $level ) {
 			case self::LEVEL_WARNING:
-				$logger->warning( $fullMsg, array( 'source' => $source ) );
+				$logger->warning( $fullMsg, [ 'source' => $source ] );
 				break;
 
 			case self::LEVEL_ERROR:
-				$logger->error( $fullMsg, array( 'source' => $source ) );
+				$logger->error( $fullMsg, [ 'source' => $source ] );
 				break;
 
 			case self::LEVEL_CRITICAL:
-				$logger->critical( $fullMsg, array( 'source' => $source ) );
+				$logger->critical( $fullMsg, [ 'source' => $source ] );
 				break;
 		}
 	}

@@ -39,7 +39,7 @@ class CartException extends WchException {
 		string $message = '',
 		string $error_code = 'cart_error',
 		int $http_status = 400,
-		array $context = array(),
+		array $context = [],
 		int $code = 0,
 		?\Throwable $previous = null
 	) {

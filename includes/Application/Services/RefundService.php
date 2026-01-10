@@ -47,8 +47,8 @@ class RefundService {
 	 * @return void
 	 */
 	public function init(): void {
-		add_action( 'woocommerce_order_refunded', array( $this, 'handleOrderRefund' ), 10, 2 );
-		add_action( 'woocommerce_order_status_refunded', array( $this, 'notifyCustomerRefund' ), 10, 2 );
+		add_action( 'woocommerce_order_refunded', [ $this, 'handleOrderRefund' ], 10, 2 );
+		add_action( 'woocommerce_order_status_refunded', [ $this, 'notifyCustomerRefund' ], 10, 2 );
 	}
 
 	/**
@@ -81,11 +81,11 @@ class RefundService {
 
 		$this->log(
 			'Processing refund for WhatsApp order',
-			array(
+			[
 				'order_id' => $orderId,
 				'amount'   => $refundAmount,
 				'reason'   => $refundReason,
-			)
+			]
 		);
 
 		// Process refund through payment gateway.
@@ -94,10 +94,10 @@ class RefundService {
 		if ( ! $result->isSuccess() && ! $result->isManual() ) {
 			$this->log(
 				'Refund processing failed',
-				array(
+				[
 					'order_id' => $orderId,
 					'error'    => $result->getErrorMessage(),
-				),
+				],
 				'error'
 			);
 
@@ -111,10 +111,10 @@ class RefundService {
 		} else {
 			$this->log(
 				'Refund processed successfully',
-				array(
+				[
 					'order_id'       => $orderId,
 					'transaction_id' => $result->getTransactionId(),
-				)
+				]
 			);
 		}
 	}
@@ -200,22 +200,22 @@ class RefundService {
 
 		// Send message to customer.
 		$this->apiClient->send_message(
-			array(
+			[
 				'messaging_product' => 'whatsapp',
 				'to'                => $customerPhone,
 				'type'              => 'text',
-				'text'              => array(
+				'text'              => [
 					'body' => $message,
-				),
-			)
+				],
+			]
 		);
 
 		$this->log(
 			'Refund notification sent',
-			array(
+			[
 				'order_id' => $orderId,
 				'phone'    => $this->maskPhone( $customerPhone ),
-			)
+			]
 		);
 	}
 
@@ -246,7 +246,7 @@ class RefundService {
 		if ( ! $lockAcquired ) {
 			$this->log(
 				'Failed to acquire refund lock',
-				array( 'order_id' => $orderId ),
+				[ 'order_id' => $orderId ],
 				'warning'
 			);
 			return RefundResult::failure(
@@ -369,7 +369,7 @@ class RefundService {
 	 * @param string $level   Log level.
 	 * @return void
 	 */
-	private function log( string $message, array $context = array(), string $level = 'info' ): void {
+	private function log( string $message, array $context = [], string $level = 'info' ): void {
 		if ( class_exists( 'WCH_Logger' ) ) {
 			\WCH_Logger::log( $message, $context, $level );
 		}

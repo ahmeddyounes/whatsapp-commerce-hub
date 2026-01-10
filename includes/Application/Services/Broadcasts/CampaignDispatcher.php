@@ -57,11 +57,11 @@ class CampaignDispatcher implements CampaignDispatcherInterface {
 	 * {@inheritdoc}
 	 */
 	public function schedule( array $campaign, int $delay = 0 ): ?string {
-		$audience   = $campaign['audience'] ?? array();
+		$audience   = $campaign['audience'] ?? [];
 		$recipients = $this->audienceCalculator->getRecipients( $audience );
 
 		if ( empty( $recipients ) ) {
-			$this->log( 'warning', 'No recipients found for campaign', array( 'campaign_id' => $campaign['id'] ?? 'unknown' ) );
+			$this->log( 'warning', 'No recipients found for campaign', [ 'campaign_id' => $campaign['id'] ?? 'unknown' ] );
 			return null;
 		}
 
@@ -76,14 +76,14 @@ class CampaignDispatcher implements CampaignDispatcherInterface {
 
 		// Dispatch batches.
 		foreach ( $batches as $batchNum => $batch ) {
-			$args = array(
+			$args = [
 				'job_id'        => $jobId,
 				'batch'         => $batch,
 				'batch_num'     => $batchNum,
 				'total_batches' => count( $batches ),
 				'campaign_id'   => $campaign['id'] ?? 0,
 				'message'       => $message,
-			);
+			];
 
 			// Delay each batch by 1 second to avoid rate limiting.
 			$batchDelay = $delay + $batchNum;
@@ -96,10 +96,10 @@ class CampaignDispatcher implements CampaignDispatcherInterface {
 
 		if ( $campaignId > 0 ) {
 			$status    = $delay > 0 ? 'scheduled' : 'sending';
-			$extraData = array(
+			$extraData = [
 				'job_id'        => $jobId,
 				'total_batches' => count( $batches ),
-			);
+			];
 
 			if ( $delay > 0 ) {
 				$extraData['scheduled_at'] = gmdate( 'Y-m-d H:i:s', time() + $delay );
@@ -112,27 +112,27 @@ class CampaignDispatcher implements CampaignDispatcherInterface {
 			// Initialize stats.
 			$this->repository->updateStats(
 				$campaignId,
-				array(
+				[
 					'sent'      => 0,
 					'delivered' => 0,
 					'read'      => 0,
 					'failed'    => 0,
-					'errors'    => array(),
+					'errors'    => [],
 					'total'     => count( $recipients ),
-				)
+				]
 			);
 		}
 
 		$this->log(
 			'info',
 			'Campaign scheduled for sending',
-			array(
+			[
 				'campaign_id' => $campaignId,
 				'job_id'      => $jobId,
 				'recipients'  => count( $recipients ),
 				'batches'     => count( $batches ),
 				'delay'       => $delay,
-			)
+			]
 		);
 
 		return $jobId;
@@ -148,10 +148,10 @@ class CampaignDispatcher implements CampaignDispatcherInterface {
 		}
 
 		if ( empty( $testPhone ) ) {
-			return array(
+			return [
 				'success' => false,
 				'message' => __( 'No test phone number configured', 'whatsapp-commerce-hub' ),
-			);
+			];
 		}
 
 		// Build message.
@@ -160,10 +160,10 @@ class CampaignDispatcher implements CampaignDispatcherInterface {
 		// Send via API.
 		try {
 			if ( ! class_exists( 'WCH_WhatsApp_API_Client' ) ) {
-				return array(
+				return [
 					'success' => false,
 					'message' => __( 'API client not available', 'whatsapp-commerce-hub' ),
-				);
+				];
 			}
 
 			$api = new \WCH_WhatsApp_API_Client();
@@ -172,35 +172,35 @@ class CampaignDispatcher implements CampaignDispatcherInterface {
 				$api->send_template_message(
 					$testPhone,
 					$message['template_name'],
-					$message['template_data'] ?? array(),
-					$message['variables'] ?? array()
+					$message['template_data'] ?? [],
+					$message['variables'] ?? []
 				);
 			}
 
 			$this->log(
 				'info',
 				'Test broadcast sent',
-				array(
+				[
 					'phone'    => substr( $testPhone, 0, 5 ) . '***',
 					'template' => $message['template_name'] ?? 'unknown',
-				)
+				]
 			);
 
-			return array(
+			return [
 				'success' => true,
 				'message' => __( 'Test message sent successfully', 'whatsapp-commerce-hub' ),
-			);
+			];
 		} catch ( \Exception $e ) {
 			$this->log(
 				'error',
 				'Test broadcast failed',
-				array( 'error' => $e->getMessage() )
+				[ 'error' => $e->getMessage() ]
 			);
 
-			return array(
+			return [
 				'success' => false,
 				'message' => $e->getMessage(),
-			);
+			];
 		}
 	}
 
@@ -231,7 +231,7 @@ class CampaignDispatcher implements CampaignDispatcherInterface {
 		$this->log(
 			'info',
 			'Campaign cancelled',
-			array( 'campaign_id' => $campaignId )
+			[ 'campaign_id' => $campaignId ]
 		);
 
 		return true;
@@ -241,14 +241,14 @@ class CampaignDispatcher implements CampaignDispatcherInterface {
 	 * {@inheritdoc}
 	 */
 	public function buildMessage( array $campaign ): array {
-		$templateData    = $campaign['template_data'] ?? array();
-		$personalization = $campaign['personalization'] ?? array();
+		$templateData    = $campaign['template_data'] ?? [];
+		$personalization = $campaign['personalization'] ?? [];
 
-		return array(
+		return [
 			'template_name' => $campaign['template_name'] ?? '',
 			'template_data' => $templateData,
 			'variables'     => $personalization,
-		);
+		];
 	}
 
 	/**
@@ -279,7 +279,7 @@ class CampaignDispatcher implements CampaignDispatcherInterface {
 	 * @param array  $context Context data.
 	 * @return void
 	 */
-	protected function log( string $level, string $message, array $context = array() ): void {
+	protected function log( string $level, string $message, array $context = [] ): void {
 		$context['category'] = 'broadcasts';
 
 		if ( class_exists( 'WCH_Logger' ) ) {

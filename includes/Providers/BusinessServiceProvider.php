@@ -249,7 +249,7 @@ class BusinessServiceProvider implements ServiceProviderInterface {
 	 * @return array<string>
 	 */
 	public function provides(): array {
-		return array(
+		return [
 			CartServiceInterface::class,
 			CartService::class,
 			'wch.cart',
@@ -273,6 +273,6 @@ class BusinessServiceProvider implements ServiceProviderInterface {
 			PaymentGatewayRegistryInterface::class,
 			PaymentGatewayRegistry::class,
 			'wch.payment_gateways',
-		);
+		];
 	}
 }

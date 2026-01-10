@@ -55,11 +55,11 @@ class AddToCartAction extends AbstractAction {
 
 			$this->log(
 				'Adding to cart',
-				array(
+				[
 					'product_id' => $productId,
 					'variant_id' => $variantId,
 					'quantity'   => $quantity,
-				)
+				]
 			);
 
 			// Validate product.
@@ -93,15 +93,15 @@ class AddToCartAction extends AbstractAction {
 			return ActionResult::success(
 				$messages,
 				null,
-				array(
+				[
 					'cart_id'         => $result['cart']['id'] ?? null,
-					'cart_item_count' => count( $result['cart']['items'] ?? array() ),
+					'cart_item_count' => count( $result['cart']['items'] ?? [] ),
 					'cart_total'      => $result['cart']['total'] ?? 0,
-				)
+				]
 			);
 
 		} catch ( \Exception $e ) {
-			$this->log( 'Error adding to cart', array( 'error' => $e->getMessage() ), 'error' );
+			$this->log( 'Error adding to cart', [ 'error' => $e->getMessage() ], 'error' );
 			return $this->error(
 				__( 'Sorry, we could not add the item to your cart. Please try again.', 'whatsapp-commerce-hub' )
 			);
@@ -123,22 +123,22 @@ class AddToCartAction extends AbstractAction {
 
 			if ( $result ) {
 				$cart = $this->cartService->getCart( $phone );
-				return array(
+				return [
 					'success' => true,
-					'cart'    => array(
+					'cart'    => [
 						'id'    => $cart->id ?? null,
-						'items' => $cart->items ?? array(),
+						'items' => $cart->items ?? [],
 						'total' => $cart->total ?? 0,
-					),
+					],
 					'error'   => null,
-				);
+				];
 			}
 
-			return array(
+			return [
 				'success' => false,
 				'cart'    => null,
 				'error'   => __( 'Failed to add item to cart.', 'whatsapp-commerce-hub' ),
-			);
+			];
 		}
 
 		// Fallback to legacy cart manager.
@@ -146,33 +146,33 @@ class AddToCartAction extends AbstractAction {
 		$cart        = $cartManager->get_or_create_cart( $phone );
 
 		if ( ! $cart ) {
-			return array(
+			return [
 				'success' => false,
 				'cart'    => null,
 				'error'   => __( 'Failed to access cart.', 'whatsapp-commerce-hub' ),
-			);
+			];
 		}
 
 		$result = $cartManager->add_item( $phone, $productId, $quantity, $variantId );
 
 		if ( $result ) {
 			$updatedCart = $cartManager->get_cart( $phone );
-			return array(
+			return [
 				'success' => true,
-				'cart'    => array(
+				'cart'    => [
 					'id'    => $updatedCart->id ?? $cart['id'] ?? null,
-					'items' => $updatedCart->items ?? $cart['items'] ?? array(),
-					'total' => $updatedCart->total ?? $this->calculateCartTotal( $cart['items'] ?? array() ),
-				),
+					'items' => $updatedCart->items ?? $cart['items'] ?? [],
+					'total' => $updatedCart->total ?? $this->calculateCartTotal( $cart['items'] ?? [] ),
+				],
 				'error'   => null,
-			);
+			];
 		}
 
-		return array(
+		return [
 			'success' => false,
 			'cart'    => null,
 			'error'   => __( 'Failed to add item.', 'whatsapp-commerce-hub' ),
-		);
+		];
 	}
 
 	/**
@@ -185,7 +185,7 @@ class AddToCartAction extends AbstractAction {
 	 * @return array Array of message builders.
 	 */
 	private function buildConfirmationMessages( \WC_Product $product, ?int $variantId, int $quantity, array $cart ): array {
-		$messages = array();
+		$messages = [];
 
 		$confirmation = $this->createMessageBuilder();
 
@@ -209,26 +209,26 @@ class AddToCartAction extends AbstractAction {
 
 		$confirmation->button(
 			'reply',
-			array(
+			[
 				'id'    => 'continue_shopping',
 				'title' => __( 'Continue Shopping', 'whatsapp-commerce-hub' ),
-			)
+			]
 		);
 
 		$confirmation->button(
 			'reply',
-			array(
+			[
 				'id'    => 'view_cart',
 				'title' => __( 'View Cart', 'whatsapp-commerce-hub' ),
-			)
+			]
 		);
 
 		$confirmation->button(
 			'reply',
-			array(
+			[
 				'id'    => 'checkout',
 				'title' => __( 'Checkout', 'whatsapp-commerce-hub' ),
-			)
+			]
 		);
 
 		$messages[] = $confirmation;
@@ -243,7 +243,7 @@ class AddToCartAction extends AbstractAction {
 	 * @return string Formatted summary.
 	 */
 	private function formatCartSummary( array $cart ): string {
-		$itemCount = count( $cart['items'] ?? array() );
+		$itemCount = count( $cart['items'] ?? [] );
 		$total     = $this->formatPrice( (float) ( $cart['total'] ?? 0 ) );
 
 		return sprintf(

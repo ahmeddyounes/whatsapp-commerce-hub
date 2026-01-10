@@ -69,7 +69,7 @@ class BroadcastService implements BroadcastServiceInterface {
 	 * @return array List of campaigns.
 	 */
 	public function getCampaigns(): array {
-		$campaigns = get_option( self::CAMPAIGNS_OPTION, array() );
+		$campaigns = get_option( self::CAMPAIGNS_OPTION, [] );
 
 		// Sort by created_at descending.
 		usort(
@@ -121,31 +121,31 @@ class BroadcastService implements BroadcastServiceInterface {
 		}
 
 		// Prepare campaign data with sanitization.
-		$campaign = array(
+		$campaign = [
 			'id'              => $campaign_id,
 			'name'            => sanitize_text_field( $campaign_data['name'] ?? '' ),
 			'template_name'   => sanitize_text_field( $campaign_data['template_name'] ?? '' ),
-			'template_data'   => $this->sanitizeNestedArray( $campaign_data['template_data'] ?? array() ),
-			'audience'        => $this->sanitizeNestedArray( $campaign_data['audience'] ?? array() ),
+			'template_data'   => $this->sanitizeNestedArray( $campaign_data['template_data'] ?? [] ),
+			'audience'        => $this->sanitizeNestedArray( $campaign_data['audience'] ?? [] ),
 			'audience_size'   => absint( $campaign_data['audience_size'] ?? 0 ),
-			'personalization' => $this->sanitizeNestedArray( $campaign_data['personalization'] ?? array() ),
-			'schedule'        => $this->sanitizeNestedArray( $campaign_data['schedule'] ?? array() ),
+			'personalization' => $this->sanitizeNestedArray( $campaign_data['personalization'] ?? [] ),
+			'schedule'        => $this->sanitizeNestedArray( $campaign_data['schedule'] ?? [] ),
 			'status'          => sanitize_key( $campaign_data['status'] ?? 'draft' ),
 			'created_at'      => $campaign_data['created_at'] ?? gmdate( 'Y-m-d H:i:s' ),
 			'updated_at'      => gmdate( 'Y-m-d H:i:s' ),
-		);
+		];
 
 		// Preserve stats if they exist (sanitize to ensure valid structure).
 		if ( isset( $campaign_data['stats'] ) && is_array( $campaign_data['stats'] ) ) {
-			$campaign['stats'] = array(
+			$campaign['stats'] = [
 				'sent'      => absint( $campaign_data['stats']['sent'] ?? 0 ),
 				'delivered' => absint( $campaign_data['stats']['delivered'] ?? 0 ),
 				'read'      => absint( $campaign_data['stats']['read'] ?? 0 ),
 				'failed'    => absint( $campaign_data['stats']['failed'] ?? 0 ),
 				'errors'    => is_array( $campaign_data['stats']['errors'] ?? null )
 					? array_slice( $campaign_data['stats']['errors'], 0, 100 ) // Cap at 100 errors
-					: array(),
-			);
+					: [],
+			];
 		}
 
 		// Update existing or add new.
@@ -230,14 +230,14 @@ class BroadcastService implements BroadcastServiceInterface {
 		$campaign = $this->getCampaign( $campaign_id );
 
 		if ( ! $campaign ) {
-			return array(
+			return [
 				'success' => false,
 				'message' => __( 'Campaign not found', 'whatsapp-commerce-hub' ),
-			);
+			];
 		}
 
 		// Update campaign status based on schedule.
-		$schedule = $campaign['schedule'] ?? array();
+		$schedule = $campaign['schedule'] ?? [];
 
 		if ( isset( $schedule['timing'] ) && 'scheduled' === $schedule['timing'] ) {
 			$campaign['status']       = 'scheduled';
@@ -253,13 +253,13 @@ class BroadcastService implements BroadcastServiceInterface {
 		}
 
 		// Initialize stats.
-		$campaign['stats'] = array(
+		$campaign['stats'] = [
 			'sent'      => 0,
 			'delivered' => 0,
 			'read'      => 0,
 			'failed'    => 0,
-			'errors'    => array(),
-		);
+			'errors'    => [],
+		];
 
 		// Save updated campaign.
 		$this->saveCampaign( $campaign );
@@ -270,24 +270,24 @@ class BroadcastService implements BroadcastServiceInterface {
 		if ( ! $schedule_result['success'] ) {
 			// Update campaign status to failed if scheduling failed.
 			$campaign['status']            = 'failed';
-			$campaign['stats']['errors'][] = array(
+			$campaign['stats']['errors'][] = [
 				'error' => $schedule_result['message'],
 				'time'  => gmdate( 'Y-m-d H:i:s' ),
-			);
+			];
 			$this->saveCampaign( $campaign );
 
-			return array(
+			return [
 				'success'  => false,
 				'message'  => $schedule_result['message'],
 				'campaign' => $campaign,
-			);
+			];
 		}
 
-		return array(
+		return [
 			'success'  => true,
 			'message'  => __( 'Campaign scheduled successfully', 'whatsapp-commerce-hub' ),
 			'campaign' => $campaign,
-		);
+		];
 	}
 
 	/**
@@ -321,11 +321,11 @@ class BroadcastService implements BroadcastServiceInterface {
 		} catch ( \Throwable $e ) {
 			\WCH_Logger::error(
 				'Failed to send test broadcast',
-				array(
+				[
 					'category' => 'broadcasts',
 					'phone'    => $phone_number,
 					'error'    => $e->getMessage(),
-				)
+				]
 			);
 			return false;
 		}
@@ -341,8 +341,8 @@ class BroadcastService implements BroadcastServiceInterface {
 		$table_name = $this->wpdb->prefix . 'wch_customer_profiles';
 
 		// Build parameterized query parts.
-		$where_clauses = array( 'opt_in_marketing = %d' );
-		$where_values  = array( 1 );
+		$where_clauses = [ 'opt_in_marketing = %d' ];
+		$where_values  = [ 1 ];
 
 		// Recent orders filter.
 		if ( ! empty( $criteria['audience_recent_orders'] ) && ! empty( $criteria['recent_orders_days'] ) ) {
@@ -413,11 +413,11 @@ class BroadcastService implements BroadcastServiceInterface {
 	 */
 	public function getCampaignRecipients( array $campaign ): array {
 		$table_name = $this->wpdb->prefix . 'wch_customer_profiles';
-		$audience   = $campaign['audience'] ?? array();
+		$audience   = $campaign['audience'] ?? [];
 
 		// Build parameterized query parts.
-		$where_clauses = array( 'opt_in_marketing = %d' );
-		$where_values  = array( 1 );
+		$where_clauses = [ 'opt_in_marketing = %d' ];
+		$where_values  = [ 1 ];
 
 		// Recent orders filter.
 		if ( ! empty( $audience['audience_recent_orders'] ) && ! empty( $audience['recent_orders_days'] ) ) {
@@ -438,14 +438,14 @@ class BroadcastService implements BroadcastServiceInterface {
 		$where_sql = implode( ' AND ', $where_clauses );
 
 		// Use pagination to fetch recipients.
-		$all_recipients = array();
+		$all_recipients = [];
 		$offset         = 0;
 		$per_page       = 1000;
 		$max_recipients = 100000;
 
 		$batch_size = $per_page; // Track expected batch size for loop condition.
 		do {
-			$batch_values = array_merge( $where_values, array( $per_page, $offset ) );
+			$batch_values = array_merge( $where_values, [ $per_page, $offset ] );
 
 			// Table name from wpdb prefix is safe. Dynamic WHERE uses placeholders.
 			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders, WordPress.DB.PreparedSQL.NotPrepared
@@ -469,11 +469,11 @@ class BroadcastService implements BroadcastServiceInterface {
 			if ( $recipient_count >= $max_recipients ) {
 				\WCH_Logger::warning(
 					'Broadcast recipients hit safety limit',
-					array(
+					[
 						'category'    => 'broadcasts',
 						'fetched'     => $recipient_count,
 						'campaign_id' => $campaign['id'] ?? 'unknown',
-					)
+					]
 				);
 				break;
 			}
@@ -492,16 +492,16 @@ class BroadcastService implements BroadcastServiceInterface {
 		$campaign = $this->getCampaign( $campaign_id );
 
 		if ( ! $campaign ) {
-			return array();
+			return [];
 		}
 
-		return $campaign['stats'] ?? array(
+		return $campaign['stats'] ?? [
 			'sent'      => 0,
 			'delivered' => 0,
 			'read'      => 0,
 			'failed'    => 0,
-			'errors'    => array(),
-		);
+			'errors'    => [],
+		];
 	}
 
 	/**
@@ -513,11 +513,11 @@ class BroadcastService implements BroadcastServiceInterface {
 		$template_manager = $this->getTemplateManager();
 
 		if ( ! $template_manager ) {
-			return array();
+			return [];
 		}
 
 		$all_templates      = $template_manager->get_templates();
-		$approved_templates = array();
+		$approved_templates = [];
 
 		if ( is_array( $all_templates ) ) {
 			foreach ( $all_templates as $template ) {
@@ -541,7 +541,7 @@ class BroadcastService implements BroadcastServiceInterface {
 	public function processBroadcastBatch( array $batch, int $campaign_id, array $message ): array {
 		$sent   = 0;
 		$failed = 0;
-		$errors = array();
+		$errors = [];
 
 		try {
 			$api_client = null;
@@ -564,38 +564,38 @@ class BroadcastService implements BroadcastServiceInterface {
 						++$sent;
 					} else {
 						++$failed;
-						$errors[] = array(
+						$errors[] = [
 							'recipient' => $phone,
 							'error'     => 'Send failed',
-						);
+						];
 					}
 				} catch ( \Throwable $e ) {
 					++$failed;
-					$errors[] = array(
+					$errors[] = [
 						'recipient' => $phone,
 						'error'     => $e->getMessage(),
-					);
+					];
 				}
 			}
 		} catch ( \Throwable $e ) {
 			\WCH_Logger::error(
 				'Broadcast batch processing failed',
-				array(
+				[
 					'category'    => 'broadcasts',
 					'campaign_id' => $campaign_id,
 					'error'       => $e->getMessage(),
-				)
+				]
 			);
 		}
 
 		// Update campaign stats.
 		$this->updateCampaignStats( $campaign_id, $sent, $failed, $errors );
 
-		return array(
+		return [
 			'sent'   => $sent,
 			'failed' => $failed,
 			'errors' => $errors,
-		);
+		];
 	}
 
 	/**
@@ -611,29 +611,29 @@ class BroadcastService implements BroadcastServiceInterface {
 		if ( empty( $recipients ) ) {
 			\WCH_Logger::warning(
 				'Broadcast has no recipients',
-				array(
+				[
 					'category'    => 'broadcasts',
 					'campaign_id' => $campaign['id'] ?? 'unknown',
-				)
+				]
 			);
-			return array(
+			return [
 				'success' => false,
 				'message' => __( 'No recipients found matching the audience criteria', 'whatsapp-commerce-hub' ),
-			);
+			];
 		}
 
 		if ( ! class_exists( 'WCH_Job_Dispatcher' ) ) {
 			\WCH_Logger::error(
 				'WCH_Job_Dispatcher class not found - cannot schedule broadcast',
-				array(
+				[
 					'category'    => 'broadcasts',
 					'campaign_id' => $campaign['id'] ?? 'unknown',
-				)
+				]
 			);
-			return array(
+			return [
 				'success' => false,
 				'message' => __( 'Job dispatcher not available - cannot schedule broadcast', 'whatsapp-commerce-hub' ),
-			);
+			];
 		}
 
 		$message    = $this->buildCampaignMessage( $campaign );
@@ -641,24 +641,24 @@ class BroadcastService implements BroadcastServiceInterface {
 		$batches    = array_chunk( $recipients, $batch_size );
 
 		foreach ( $batches as $batch_num => $batch ) {
-			$args = array(
+			$args = [
 				'batch'       => $batch,
 				'batch_num'   => $batch_num,
 				'campaign_id' => $campaign['id'],
 				'message'     => $message,
-			);
+			];
 
 			$batch_delay = $delay + ( $batch_num * 1 );
 
 			\WCH_Job_Dispatcher::dispatch( 'wch_send_broadcast_batch', $args, $batch_delay );
 		}
 
-		return array(
+		return [
 			'success'         => true,
 			'message'         => __( 'Broadcast scheduled', 'whatsapp-commerce-hub' ),
 			'recipient_count' => count( $recipients ),
 			'batch_count'     => count( $batches ),
-		);
+		];
 	}
 
 	/**
@@ -669,13 +669,13 @@ class BroadcastService implements BroadcastServiceInterface {
 	 */
 	private function buildCampaignMessage( array $campaign ): array {
 		$template_name = $campaign['template_name'] ?? '';
-		$template_data = $campaign['template_data'] ?? array();
+		$template_data = $campaign['template_data'] ?? [];
 
-		return array(
+		return [
 			'template_name' => $template_name,
 			'language'      => $template_data['language'] ?? 'en',
-			'components'    => $template_data['components'] ?? array(),
-		);
+			'components'    => $template_data['components'] ?? [],
+		];
 	}
 
 	/**
@@ -693,16 +693,16 @@ class BroadcastService implements BroadcastServiceInterface {
 			return;
 		}
 
-		$stats            = $campaign['stats'] ?? array(
+		$stats            = $campaign['stats'] ?? [
 			'sent'   => 0,
 			'failed' => 0,
-			'errors' => array(),
-		);
+			'errors' => [],
+		];
 		$stats['sent']   += $sent;
 		$stats['failed'] += $failed;
 
 		// Merge errors but cap at 100 to prevent unbounded growth.
-		$merged_errors   = array_merge( $stats['errors'] ?? array(), $errors );
+		$merged_errors   = array_merge( $stats['errors'] ?? [], $errors );
 		$stats['errors'] = array_slice( $merged_errors, -100 ); // Keep last 100 errors.
 
 		$campaign['stats'] = $stats;
@@ -716,7 +716,7 @@ class BroadcastService implements BroadcastServiceInterface {
 	 * @return array Sanitized data.
 	 */
 	private function sanitizeNestedArray( array $data ): array {
-		$sanitized = array();
+		$sanitized = [];
 
 		foreach ( $data as $key => $value ) {
 			$sanitized_key = is_string( $key ) ? sanitize_key( $key ) : $key;

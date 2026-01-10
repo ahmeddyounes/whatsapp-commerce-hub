@@ -47,47 +47,47 @@ class ProductValidatorService implements ProductValidatorInterface {
 	public function validate( WC_Product $product ): array {
 		// Must be published.
 		if ( 'publish' !== $product->get_status() ) {
-			return array(
+			return [
 				'valid'  => false,
 				'reason' => 'Product is not published',
-			);
+			];
 		}
 
 		// Check stock if setting enabled.
 		$includeOutOfStock = $this->getSetting( 'catalog.include_out_of_stock', false );
 		if ( ! $includeOutOfStock && ! $product->is_in_stock() ) {
-			return array(
+			return [
 				'valid'  => false,
 				'reason' => 'Product is out of stock',
-			);
+			];
 		}
 
 		// Check if product is in allowed list.
 		$syncProducts = $this->getSetting( 'catalog.sync_products', 'all' );
 		if ( 'all' !== $syncProducts && is_array( $syncProducts ) ) {
 			if ( ! in_array( $product->get_id(), $syncProducts, true ) ) {
-				return array(
+				return [
 					'valid'  => false,
 					'reason' => 'Product is not in the sync list',
-				);
+				];
 			}
 		}
 
 		// Must have a price.
 		$price = $product->get_price();
 		if ( '' === $price || null === $price ) {
-			return array(
+			return [
 				'valid'  => false,
 				'reason' => 'Product has no price',
-			);
+			];
 		}
 
 		// Must have a name.
 		if ( '' === trim( $product->get_name() ) ) {
-			return array(
+			return [
 				'valid'  => false,
 				'reason' => 'Product has no name',
-			);
+			];
 		}
 
 		/**
@@ -96,7 +96,7 @@ class ProductValidatorService implements ProductValidatorInterface {
 		 * @param array      $result  Validation result.
 		 * @param WC_Product $product Product being validated.
 		 */
-		return apply_filters( 'wch_product_validation', array( 'valid' => true ), $product );
+		return apply_filters( 'wch_product_validation', [ 'valid' => true ], $product );
 	}
 
 	/**
@@ -122,14 +122,14 @@ class ProductValidatorService implements ProductValidatorInterface {
 	 * {@inheritdoc}
 	 */
 	public function generateProductHash( WC_Product $product ): string {
-		$dataToHash = array(
+		$dataToHash = [
 			'name'        => $product->get_name(),
 			'price'       => $product->get_price(),
 			'stock'       => $product->get_stock_status(),
 			'image'       => $product->get_image_id(),
 			'description' => $product->get_description(),
 			'categories'  => $product->get_category_ids(),
-		);
+		];
 
 		return md5( wp_json_encode( $dataToHash ) );
 	}

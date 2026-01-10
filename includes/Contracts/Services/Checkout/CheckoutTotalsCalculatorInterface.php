@@ -56,7 +56,7 @@ interface CheckoutTotalsCalculatorInterface {
 	 * @param array $address       Shipping address for tax location.
 	 * @return float Tax amount.
 	 */
-	public function calculateTax( float $taxableAmount, array $address = array() ): float;
+	public function calculateTax( float $taxableAmount, array $address = [] ): float;
 
 	/**
 	 * Get order review data with formatted totals.

@@ -96,7 +96,7 @@ class LoyaltyCouponGenerator implements LoyaltyCouponGeneratorInterface {
 				$wcCustomer = new \WC_Customer( $customer->wc_customer_id );
 				$email      = $wcCustomer->get_email();
 				if ( $email ) {
-					$coupon->set_email_restrictions( array( $email ) );
+					$coupon->set_email_restrictions( [ $email ] );
 				}
 			}
 
@@ -106,10 +106,10 @@ class LoyaltyCouponGenerator implements LoyaltyCouponGeneratorInterface {
 		} catch ( \Exception $e ) {
 			\WCH_Logger::error(
 				'Failed to create loyalty discount coupon',
-				array(
+				[
 					'phone' => $customer->phone,
 					'error' => $e->getMessage(),
-				)
+				]
 			);
 			return null;
 		}

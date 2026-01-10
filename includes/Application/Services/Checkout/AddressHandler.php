@@ -32,7 +32,7 @@ class AddressHandler implements AddressHandlerInterface {
 	 *
 	 * @var array
 	 */
-	private const REQUIRED_FIELDS = array( 'address_1', 'city', 'country' );
+	private const REQUIRED_FIELDS = [ 'address_1', 'city', 'country' ];
 
 	/**
 	 * Constructor.
@@ -52,49 +52,49 @@ class AddressHandler implements AddressHandlerInterface {
 		// Check required fields.
 		foreach ( self::REQUIRED_FIELDS as $field ) {
 			if ( empty( $address[ $field ] ) ) {
-				return array(
+				return [
 					'valid' => false,
 					'error' => sprintf(
 						/* translators: %s: field name */
 						__( 'Missing required field: %s', 'whatsapp-commerce-hub' ),
 						$field
 					),
-				);
+				];
 			}
 		}
 
 		// Validate country code.
 		if ( ! $this->isValidCountry( $address['country'] ) ) {
-			return array(
+			return [
 				'valid' => false,
 				'error' => __( 'Invalid country', 'whatsapp-commerce-hub' ),
-			);
+			];
 		}
 
 		// Validate state if country requires it.
 		$states = WC()->countries->get_states( $address['country'] );
 		if ( ! empty( $states ) && empty( $address['state'] ) ) {
-			return array(
+			return [
 				'valid' => false,
 				'error' => __( 'State/Province is required for this country', 'whatsapp-commerce-hub' ),
-			);
+			];
 		}
 
 		// Validate postcode format if provided.
 		if ( ! empty( $address['postcode'] ) ) {
 			$postcodeValidation = \WC_Validation::is_postcode( $address['postcode'], $address['country'] );
 			if ( ! $postcodeValidation ) {
-				return array(
+				return [
 					'valid' => false,
 					'error' => __( 'Invalid postcode format', 'whatsapp-commerce-hub' ),
-				);
+				];
 			}
 		}
 
-		return array(
+		return [
 			'valid' => true,
 			'error' => null,
-		);
+		];
 	}
 
 	/**
@@ -105,26 +105,26 @@ class AddressHandler implements AddressHandlerInterface {
 	 */
 	public function getSavedAddresses( string $phone ): array {
 		if ( ! $this->customerRepository ) {
-			return array();
+			return [];
 		}
 
 		try {
 			$customer = $this->customerRepository->findByPhone( $phone );
 
 			if ( $customer && ! empty( $customer->last_known_address ) ) {
-				return array(
-					array(
+				return [
+					[
 						'id'      => 'last',
 						'label'   => __( 'Last used address', 'whatsapp-commerce-hub' ),
 						'address' => $customer->last_known_address,
-					),
-				);
+					],
+				];
 			}
 		} catch ( \Exception $e ) {
 			// Silent failure - return empty array.
 		}
 
-		return array();
+		return [];
 	}
 
 	/**
@@ -164,7 +164,7 @@ class AddressHandler implements AddressHandlerInterface {
 			if ( $customer ) {
 				return $this->customerRepository->update(
 					$customer->id,
-					array( 'last_known_address' => $address )
+					[ 'last_known_address' => $address ]
 				);
 			}
 		} catch ( \Exception $e ) {
@@ -181,7 +181,7 @@ class AddressHandler implements AddressHandlerInterface {
 	 * @return array Formatted address.
 	 */
 	public function formatAddress( array $address ): array {
-		return array(
+		return [
 			'first_name' => $address['first_name'] ?? '',
 			'last_name'  => $address['last_name'] ?? '',
 			'company'    => $address['company'] ?? '',
@@ -193,7 +193,7 @@ class AddressHandler implements AddressHandlerInterface {
 			'country'    => $address['country'] ?? '',
 			'phone'      => $address['phone'] ?? '',
 			'email'      => $address['email'] ?? '',
-		);
+		];
 	}
 
 	/**

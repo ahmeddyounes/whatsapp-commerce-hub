@@ -118,10 +118,10 @@ final class RefundResult {
 			self::STATUS_FAILED,
 			0.0,
 			'',
-			array(
+			[
 				'code'    => $errorCode,
 				'message' => $errorMessage,
-			)
+			]
 		);
 	}
 
@@ -194,13 +194,13 @@ final class RefundResult {
 	 * @return array
 	 */
 	public function toArray(): array {
-		$result = array(
+		$result = [
 			'success'   => $this->success,
 			'refund_id' => $this->refundId,
 			'status'    => $this->status,
 			'amount'    => $this->amount,
 			'message'   => $this->message,
-		);
+		];
 
 		if ( $this->error ) {
 			$result['error'] = $this->error;

@@ -86,10 +86,10 @@ class SagaServiceProvider implements ServiceProviderInterface {
 		add_filter(
 			'cron_schedules',
 			function ( array $schedules ) {
-				$schedules['every_five_minutes'] = array(
+				$schedules['every_five_minutes'] = [
 					'interval' => 300,
 					'display'  => __( 'Every 5 Minutes', 'whatsapp-commerce-hub' ),
-				);
+				];
 				return $schedules;
 			}
 		);
@@ -128,11 +128,11 @@ class SagaServiceProvider implements ServiceProviderInterface {
 	 * @return array<string>
 	 */
 	public function provides(): array {
-		return array(
+		return [
 			SagaOrchestrator::class,
 			'wch.saga',
 			CheckoutSaga::class,
 			'wch.checkout',
-		);
+		];
 	}
 }

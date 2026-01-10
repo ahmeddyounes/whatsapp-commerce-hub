@@ -41,7 +41,7 @@ class ConversationsController extends AbstractController {
 	 *
 	 * @var array
 	 */
-	private const VALID_STATUSES = array( 'pending', 'active', 'closed' );
+	private const VALID_STATUSES = [ 'pending', 'active', 'closed' ];
 
 	/**
 	 * SECURITY: Check if current user can access a specific conversation.
@@ -104,18 +104,18 @@ class ConversationsController extends AbstractController {
 
 		$this->log(
 			'Conversation access denied (IDOR protection)',
-			array(
+			[
 				'conversation_id'   => $conversationId,
 				'user_id'           => $currentUserId,
 				'assigned_agent_id' => $assignedAgentId,
-			),
+			],
 			'warning'
 		);
 
 		return new WP_Error(
 			'wch_rest_forbidden',
 			__( 'You do not have permission to access this conversation.', 'whatsapp-commerce-hub' ),
-			array( 'status' => 403 )
+			[ 'status' => 403 ]
 		);
 	}
 
@@ -124,7 +124,7 @@ class ConversationsController extends AbstractController {
 	 *
 	 * @var array
 	 */
-	private const VALID_BULK_ACTIONS = array( 'assign', 'close', 'export' );
+	private const VALID_BULK_ACTIONS = [ 'assign', 'close', 'export' ];
 
 	/**
 	 * Maximum items per page.
@@ -150,94 +150,94 @@ class ConversationsController extends AbstractController {
 		register_rest_route(
 			$this->apiNamespace,
 			'/' . $this->rest_base,
-			array(
-				array(
+			[
+				[
 					'methods'             => WP_REST_Server::READABLE,
-					'callback'            => array( $this, 'getConversations' ),
-					'permission_callback' => array( $this, 'checkAdminPermission' ),
+					'callback'            => [ $this, 'getConversations' ],
+					'permission_callback' => [ $this, 'checkAdminPermission' ],
 					'args'                => $this->getCollectionParams(),
-				),
-			)
+				],
+			]
 		);
 
 		// Single conversation.
 		register_rest_route(
 			$this->apiNamespace,
 			'/' . $this->rest_base . '/(?P<id>[\d]+)',
-			array(
-				array(
+			[
+				[
 					'methods'             => WP_REST_Server::READABLE,
-					'callback'            => array( $this, 'getConversation' ),
-					'permission_callback' => array( $this, 'checkAdminPermission' ),
-					'args'                => array(
+					'callback'            => [ $this, 'getConversation' ],
+					'permission_callback' => [ $this, 'checkAdminPermission' ],
+					'args'                => [
 						'id' => array(
 							'required'          => true,
 							'type'              => 'integer',
 							'sanitize_callback' => 'absint',
 						),
-					),
-				),
-				array(
+					],
+				],
+				[
 					'methods'             => WP_REST_Server::EDITABLE,
-					'callback'            => array( $this, 'updateConversation' ),
-					'permission_callback' => array( $this, 'checkAdminPermission' ),
+					'callback'            => [ $this, 'updateConversation' ],
+					'permission_callback' => [ $this, 'checkAdminPermission' ],
 					'args'                => $this->getUpdateArgs(),
-				),
-			)
+				],
+			]
 		);
 
 		// Conversation messages.
 		register_rest_route(
 			$this->apiNamespace,
 			'/' . $this->rest_base . '/(?P<id>[\d]+)/messages',
-			array(
-				array(
+			[
+				[
 					'methods'             => WP_REST_Server::READABLE,
-					'callback'            => array( $this, 'getMessages' ),
-					'permission_callback' => array( $this, 'checkAdminPermission' ),
+					'callback'            => [ $this, 'getMessages' ],
+					'permission_callback' => [ $this, 'checkAdminPermission' ],
 					'args'                => $this->getMessagesArgs(),
-				),
-				array(
+				],
+				[
 					'methods'             => WP_REST_Server::CREATABLE,
-					'callback'            => array( $this, 'sendMessage' ),
-					'permission_callback' => array( $this, 'checkAdminPermission' ),
+					'callback'            => [ $this, 'sendMessage' ],
+					'permission_callback' => [ $this, 'checkAdminPermission' ],
 					'args'                => $this->getSendMessageArgs(),
-				),
-			)
+				],
+			]
 		);
 
 		// Bulk operations.
 		register_rest_route(
 			$this->apiNamespace,
 			'/' . $this->rest_base . '/bulk',
-			array(
-				array(
+			[
+				[
 					'methods'             => WP_REST_Server::EDITABLE,
-					'callback'            => array( $this, 'bulkUpdate' ),
-					'permission_callback' => array( $this, 'checkAdminPermission' ),
+					'callback'            => [ $this, 'bulkUpdate' ],
+					'permission_callback' => [ $this, 'checkAdminPermission' ],
 					'args'                => $this->getBulkArgs(),
-				),
-			)
+				],
+			]
 		);
 
 		// Suggest reply.
 		register_rest_route(
 			$this->apiNamespace,
 			'/' . $this->rest_base . '/suggest-reply',
-			array(
-				array(
+			[
+				[
 					'methods'             => WP_REST_Server::CREATABLE,
-					'callback'            => array( $this, 'suggestReply' ),
-					'permission_callback' => array( $this, 'checkAdminPermission' ),
-					'args'                => array(
+					'callback'            => [ $this, 'suggestReply' ],
+					'permission_callback' => [ $this, 'checkAdminPermission' ],
+					'args'                => [
 						'conversation_id' => array(
 							'required'          => true,
 							'type'              => 'integer',
 							'sanitize_callback' => 'absint',
 						),
-					),
-				),
-			)
+					],
+				],
+			]
 		);
 	}
 
@@ -265,8 +265,8 @@ class ConversationsController extends AbstractController {
 		$perPage = min( self::MAX_PER_PAGE, max( 1, (int) $request->get_param( 'per_page' ) ) );
 		$offset  = ( $page - 1 ) * $perPage;
 
-		$where       = array( '1=1' );
-		$whereValues = array();
+		$where       = [ '1=1' ];
+		$whereValues = [];
 
 		if ( ! empty( $search ) ) {
 			$where[]       = '(c.customer_phone LIKE %s OR p.name LIKE %s)';
@@ -394,7 +394,7 @@ class ConversationsController extends AbstractController {
 			return $this->prepareError(
 				'conversation_not_found',
 				__( 'Conversation not found', 'whatsapp-commerce-hub' ),
-				array(),
+				[],
 				404
 			);
 		}
@@ -494,7 +494,7 @@ class ConversationsController extends AbstractController {
 			return $this->prepareError(
 				'conversation_not_found',
 				__( 'Conversation not found', 'whatsapp-commerce-hub' ),
-				array(),
+				[],
 				404
 			);
 		}
@@ -506,15 +506,15 @@ class ConversationsController extends AbstractController {
 			return $result;
 		}
 
-		$messageData = array(
+		$messageData = [
 			'conversation_id' => $conversationId,
 			'direction'       => 'outbound',
 			'message_type'    => 'text',
 			'wa_message_id'   => $result['message_id'],
-			'content'         => wp_json_encode( array( 'text' => $messageText ) ),
+			'content'         => wp_json_encode( [ 'text' => $messageText ] ),
 			'status'          => 'sent',
 			'created_at'      => current_time( 'mysql' ),
-		);
+		];
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 		$wpdb->insert( $tableMessages, $messageData );
@@ -524,8 +524,8 @@ class ConversationsController extends AbstractController {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 		$wpdb->update(
 			$tableConversations,
-			array( 'last_message_at' => current_time( 'mysql' ) ),
-			array( 'id' => $conversationId )
+			[ 'last_message_at' => current_time( 'mysql' ) ],
+			[ 'id' => $conversationId ]
 		);
 
 		return $this->prepareResponse( $messageData, $request );
@@ -554,7 +554,7 @@ class ConversationsController extends AbstractController {
 		global $wpdb;
 		$tableConversations = $wpdb->prefix . 'wch_conversations';
 
-		$updateData = array();
+		$updateData = [];
 
 		if ( $request->has_param( 'status' ) ) {
 			$updateData['status'] = sanitize_text_field( $request->get_param( 'status' ) );
@@ -568,7 +568,7 @@ class ConversationsController extends AbstractController {
 					return $this->prepareError(
 						'invalid_agent',
 						__( 'Invalid agent ID', 'whatsapp-commerce-hub' ),
-						array(),
+						[],
 						400
 					);
 				}
@@ -580,7 +580,7 @@ class ConversationsController extends AbstractController {
 			return $this->prepareError(
 				'no_updates',
 				__( 'No valid update fields provided', 'whatsapp-commerce-hub' ),
-				array(),
+				[],
 				400
 			);
 		}
@@ -591,14 +591,14 @@ class ConversationsController extends AbstractController {
 		$result = $wpdb->update(
 			$tableConversations,
 			$updateData,
-			array( 'id' => $id )
+			[ 'id' => $id ]
 		);
 
 		if ( false === $result ) {
 			return $this->prepareError(
 				'update_failed',
 				__( 'Failed to update conversation', 'whatsapp-commerce-hub' ),
-				array(),
+				[],
 				500
 			);
 		}
@@ -628,7 +628,7 @@ class ConversationsController extends AbstractController {
 			return $this->prepareError(
 				'no_ids',
 				__( 'No conversation IDs provided', 'whatsapp-commerce-hub' ),
-				array(),
+				[],
 				400
 			);
 		}
@@ -636,7 +636,7 @@ class ConversationsController extends AbstractController {
 		// SECURITY: Check access to ALL conversations (IDOR protection for bulk operations).
 		// Non-admins can only update conversations they have access to.
 		if ( ! current_user_can( 'manage_options' ) ) {
-			$unauthorizedIds = array();
+			$unauthorizedIds = [];
 			foreach ( $ids as $id ) {
 				$accessResult = $this->checkConversationAccess( $id );
 				if ( is_wp_error( $accessResult ) ) {
@@ -647,11 +647,11 @@ class ConversationsController extends AbstractController {
 			if ( ! empty( $unauthorizedIds ) ) {
 				$this->log(
 					'Bulk operation denied - unauthorized conversation IDs',
-					array(
+					[
 						'user_id'         => get_current_user_id(),
 						'unauthorized'    => $unauthorizedIds,
 						'total_requested' => count( $ids ),
-					),
+					],
 					'warning'
 				);
 
@@ -662,7 +662,7 @@ class ConversationsController extends AbstractController {
 						__( 'You do not have permission to modify %d of the selected conversations.', 'whatsapp-commerce-hub' ),
 						count( $unauthorizedIds )
 					),
-					array( 'status' => 403 )
+					[ 'status' => 403 ]
 				);
 			}
 		}
@@ -679,7 +679,7 @@ class ConversationsController extends AbstractController {
 						return $this->prepareError(
 							'invalid_agent',
 							__( 'Invalid agent ID', 'whatsapp-commerce-hub' ),
-							array(),
+							[],
 							400
 						);
 					}
@@ -690,7 +690,7 @@ class ConversationsController extends AbstractController {
 				$updated = $wpdb->query(
 					$wpdb->prepare(
 						"UPDATE {$tableConversations} SET assigned_agent_id = %d, updated_at = %s WHERE id IN ({$placeholders})",
-						array_merge( array( $agentId, current_time( 'mysql' ) ), $ids )
+						array_merge( [ $agentId, current_time( 'mysql' ) ], $ids )
 					)
 				);
 				// phpcs:enable
@@ -702,7 +702,7 @@ class ConversationsController extends AbstractController {
 				$updated = $wpdb->query(
 					$wpdb->prepare(
 						"UPDATE {$tableConversations} SET status = 'closed', updated_at = %s WHERE id IN ({$placeholders})",
-						array_merge( array( current_time( 'mysql' ) ), $ids )
+						array_merge( [ current_time( 'mysql' ) ], $ids )
 					)
 				);
 				break;
@@ -714,16 +714,16 @@ class ConversationsController extends AbstractController {
 				return $this->prepareError(
 					'invalid_action',
 					__( 'Invalid bulk action', 'whatsapp-commerce-hub' ),
-					array(),
+					[],
 					400
 				);
 		}
 
 		return $this->prepareResponse(
-			array(
+			[
 				'success' => true,
 				'updated' => $updated,
-			),
+			],
 			$request
 		);
 	}
@@ -762,7 +762,7 @@ class ConversationsController extends AbstractController {
 			return $this->prepareError(
 				'conversation_not_found',
 				__( 'Conversation not found', 'whatsapp-commerce-hub' ),
-				array(),
+				[],
 				404
 			);
 		}
@@ -777,15 +777,15 @@ class ConversationsController extends AbstractController {
 		);
 
 		$context             = json_decode( $conversation['context'] ?? '{}', true );
-		$conversationHistory = array();
+		$conversationHistory = [];
 
 		foreach ( array_reverse( $messages ) as $msg ) {
 			$content               = json_decode( $msg['content'] ?? '{}', true );
-			$conversationHistory[] = array(
+			$conversationHistory[] = [
 				'role'      => 'inbound' === $msg['direction'] ? 'customer' : 'agent',
 				'message'   => $this->getMessageText( $content, $msg['message_type'] ),
 				'timestamp' => $msg['created_at'],
-			);
+			];
 		}
 
 		$aiService      = \WCH_AI_Service::getInstance();
@@ -796,7 +796,7 @@ class ConversationsController extends AbstractController {
 		}
 
 		return $this->prepareResponse(
-			array( 'suggestion' => $suggestedReply ),
+			[ 'suggestion' => $suggestedReply ],
 			$request
 		);
 	}
@@ -828,11 +828,11 @@ class ConversationsController extends AbstractController {
 		);
 		// phpcs:enable
 
-		$csvData   = array();
-		$csvData[] = array( 'ID', 'Customer Phone', 'Customer Name', 'Status', 'Assigned Agent ID', 'Last Message At', 'Created At' );
+		$csvData   = [];
+		$csvData[] = [ 'ID', 'Customer Phone', 'Customer Name', 'Status', 'Assigned Agent ID', 'Last Message At', 'Created At' ];
 
 		foreach ( $conversations as $conv ) {
-			$csvData[] = array(
+			$csvData[] = [
 				$conv['id'],
 				$conv['customer_phone'],
 				$conv['customer_name'] ?? '',
@@ -840,7 +840,7 @@ class ConversationsController extends AbstractController {
 				$conv['assigned_agent_id'] ?? '',
 				$conv['last_message_at'],
 				$conv['created_at'],
-			);
+			];
 		}
 
 		$csvContent = '';
@@ -855,10 +855,10 @@ class ConversationsController extends AbstractController {
 		}
 
 		return new WP_REST_Response(
-			array(
+			[
 				'csv'      => $csvContent,
 				'filename' => 'conversations-' . gmdate( 'Y-m-d-His' ) . '.csv',
-			),
+			],
 			200
 		);
 	}
@@ -913,36 +913,36 @@ class ConversationsController extends AbstractController {
 	 * @return array
 	 */
 	private function getCollectionParams(): array {
-		return array(
-			'search'   => array(
+		return [
+			'search'   => [
 				'description'       => __( 'Search by phone number or customer name', 'whatsapp-commerce-hub' ),
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_text_field',
-			),
-			'status'   => array(
+			],
+			'status'   => [
 				'description'       => __( 'Filter by status', 'whatsapp-commerce-hub' ),
 				'type'              => 'string',
 				'enum'              => self::VALID_STATUSES,
 				'sanitize_callback' => 'sanitize_text_field',
-			),
-			'agent_id' => array(
+			],
+			'agent_id' => [
 				'description'       => __( 'Filter by assigned agent', 'whatsapp-commerce-hub' ),
 				'type'              => 'integer',
 				'sanitize_callback' => 'absint',
-			),
-			'page'     => array(
+			],
+			'page'     => [
 				'description'       => __( 'Current page', 'whatsapp-commerce-hub' ),
 				'type'              => 'integer',
 				'default'           => 1,
 				'sanitize_callback' => 'absint',
-			),
-			'per_page' => array(
+			],
+			'per_page' => [
 				'description'       => __( 'Results per page', 'whatsapp-commerce-hub' ),
 				'type'              => 'integer',
 				'default'           => 20,
 				'sanitize_callback' => 'absint',
-			),
-		);
+			],
+		];
 	}
 
 	/**
@@ -951,22 +951,22 @@ class ConversationsController extends AbstractController {
 	 * @return array
 	 */
 	private function getUpdateArgs(): array {
-		return array(
-			'id'                => array(
+		return [
+			'id'                => [
 				'required'          => true,
 				'type'              => 'integer',
 				'sanitize_callback' => 'absint',
-			),
-			'status'            => array(
+			],
+			'status'            => [
 				'type'              => 'string',
 				'enum'              => self::VALID_STATUSES,
 				'sanitize_callback' => 'sanitize_text_field',
-			),
-			'assigned_agent_id' => array(
+			],
+			'assigned_agent_id' => [
 				'type'              => 'integer',
 				'sanitize_callback' => 'absint',
-			),
-		);
+			],
+		];
 	}
 
 	/**
@@ -975,23 +975,23 @@ class ConversationsController extends AbstractController {
 	 * @return array
 	 */
 	private function getMessagesArgs(): array {
-		return array(
-			'id'       => array(
+		return [
+			'id'       => [
 				'required'          => true,
 				'type'              => 'integer',
 				'sanitize_callback' => 'absint',
-			),
-			'per_page' => array(
+			],
+			'per_page' => [
 				'default'           => 50,
 				'type'              => 'integer',
 				'sanitize_callback' => 'absint',
-			),
-			'page'     => array(
+			],
+			'page'     => [
 				'default'           => 1,
 				'type'              => 'integer',
 				'sanitize_callback' => 'absint',
-			),
-		);
+			],
+		];
 	}
 
 	/**
@@ -1000,18 +1000,18 @@ class ConversationsController extends AbstractController {
 	 * @return array
 	 */
 	private function getSendMessageArgs(): array {
-		return array(
-			'id'      => array(
+		return [
+			'id'      => [
 				'required'          => true,
 				'type'              => 'integer',
 				'sanitize_callback' => 'absint',
-			),
-			'message' => array(
+			],
+			'message' => [
 				'required'          => true,
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_textarea_field',
-			),
-		);
+			],
+		];
 	}
 
 	/**
@@ -1020,26 +1020,26 @@ class ConversationsController extends AbstractController {
 	 * @return array
 	 */
 	private function getBulkArgs(): array {
-		return array(
-			'ids'      => array(
+		return [
+			'ids'      => [
 				'required'          => true,
 				'type'              => 'array',
-				'items'             => array( 'type' => 'integer' ),
+				'items'             => [ 'type' => 'integer' ],
 				'minItems'          => 1,
 				'maxItems'          => self::MAX_BULK_ITEMS,
-				'sanitize_callback' => array( $this, 'sanitizeIdsArray' ),
-				'validate_callback' => array( $this, 'validateIdsArray' ),
-			),
-			'action'   => array(
+				'sanitize_callback' => [ $this, 'sanitizeIdsArray' ],
+				'validate_callback' => [ $this, 'validateIdsArray' ],
+			],
+			'action'   => [
 				'required' => true,
 				'type'     => 'string',
 				'enum'     => self::VALID_BULK_ACTIONS,
-			),
-			'agent_id' => array(
+			],
+			'agent_id' => [
 				'type'              => 'integer',
 				'sanitize_callback' => 'absint',
-			),
-		);
+			],
+		];
 	}
 
 	/**
@@ -1050,10 +1050,10 @@ class ConversationsController extends AbstractController {
 	 */
 	public function sanitizeIdsArray( $value ): array {
 		if ( ! is_array( $value ) ) {
-			return array();
+			return [];
 		}
 
-		$sanitized = array();
+		$sanitized = [];
 		foreach ( $value as $id ) {
 			$intId = absint( $id );
 			if ( $intId > 0 ) {
@@ -1081,7 +1081,7 @@ class ConversationsController extends AbstractController {
 					__( '%s must be an array.', 'whatsapp-commerce-hub' ),
 					$param
 				),
-				array( 'status' => 400 )
+				[ 'status' => 400 ]
 			);
 		}
 
@@ -1093,7 +1093,7 @@ class ConversationsController extends AbstractController {
 					__( '%s must contain at least one ID.', 'whatsapp-commerce-hub' ),
 					$param
 				),
-				array( 'status' => 400 )
+				[ 'status' => 400 ]
 			);
 		}
 
@@ -1105,7 +1105,7 @@ class ConversationsController extends AbstractController {
 					__( '%s cannot contain more than 100 IDs.', 'whatsapp-commerce-hub' ),
 					$param
 				),
-				array( 'status' => 400 )
+				[ 'status' => 400 ]
 			);
 		}
 
@@ -1119,7 +1119,7 @@ class ConversationsController extends AbstractController {
 						$param,
 						$index
 					),
-					array( 'status' => 400 )
+					[ 'status' => 400 ]
 				);
 			}
 		}
@@ -1133,40 +1133,40 @@ class ConversationsController extends AbstractController {
 	 * @return array
 	 */
 	public function getItemSchema(): array {
-		return array(
+		return [
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
 			'title'      => 'conversation',
 			'type'       => 'object',
-			'properties' => array(
-				'id'              => array(
+			'properties' => [
+				'id'              => [
 					'description' => __( 'Conversation ID', 'whatsapp-commerce-hub' ),
 					'type'        => 'integer',
 					'context'     => array( 'view' ),
 					'readonly'    => true,
-				),
-				'customer_phone'  => array(
+				],
+				'customer_phone'  => [
 					'description' => __( 'Customer phone number', 'whatsapp-commerce-hub' ),
 					'type'        => 'string',
 					'context'     => array( 'view' ),
-				),
-				'last_message'    => array(
+				],
+				'last_message'    => [
 					'description' => __( 'Last message content', 'whatsapp-commerce-hub' ),
 					'type'        => 'string',
 					'context'     => array( 'view' ),
-				),
-				'last_message_at' => array(
+				],
+				'last_message_at' => [
 					'description' => __( 'Last message timestamp', 'whatsapp-commerce-hub' ),
 					'type'        => 'string',
 					'format'      => 'date-time',
 					'context'     => array( 'view' ),
-				),
-				'status'          => array(
+				],
+				'status'          => [
 					'description' => __( 'Conversation status', 'whatsapp-commerce-hub' ),
 					'type'        => 'string',
 					'enum'        => self::VALID_STATUSES,
 					'context'     => array( 'view', 'edit' ),
-				),
-			),
-		);
+				],
+			],
+		];
 	}
 }

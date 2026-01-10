@@ -51,7 +51,7 @@ class ResponseParserService implements ResponseParserInterface {
 	 *
 	 * @var array<string, string[]>
 	 */
-	protected array $intentKeywords = array();
+	protected array $intentKeywords = [];
 
 	/**
 	 * Constructor.
@@ -66,8 +66,8 @@ class ResponseParserService implements ResponseParserInterface {
 	 * @return void
 	 */
 	protected function initIntentKeywords(): void {
-		$this->intentKeywords = array(
-			self::INTENT_TRACK_SHIPPING => array(
+		$this->intentKeywords = [
+			self::INTENT_TRACK_SHIPPING => [
 				'track my shipment',
 				'track my order',
 				'where is my shipment',
@@ -76,15 +76,15 @@ class ResponseParserService implements ResponseParserInterface {
 				'shipment',
 				'delivery status',
 				'shipping status',
-			),
-			self::INTENT_ORDER_STATUS   => array(
+			],
+			self::INTENT_ORDER_STATUS   => [
 				'order status',
 				'my order',
 				'where is my order',
 				'check order',
 				'order',
-			),
-			self::INTENT_CHECKOUT       => array(
+			],
+			self::INTENT_CHECKOUT       => [
 				'checkout',
 				'complete order',
 				'place order',
@@ -92,8 +92,8 @@ class ResponseParserService implements ResponseParserInterface {
 				'pay now',
 				'payment',
 				'pay',
-			),
-			self::INTENT_VIEW_CART      => array(
+			],
+			self::INTENT_VIEW_CART      => [
 				'view cart',
 				'show cart',
 				'my cart',
@@ -101,30 +101,30 @@ class ResponseParserService implements ResponseParserInterface {
 				'cart',
 				'basket',
 				'bag',
-			),
-			self::INTENT_MODIFY_CART    => array(
+			],
+			self::INTENT_MODIFY_CART    => [
 				'remove from cart',
 				'delete from cart',
 				'update cart',
 				'change quantity',
 				'modify cart',
-			),
-			self::INTENT_ADD_TO_CART    => array(
+			],
+			self::INTENT_ADD_TO_CART    => [
 				'add to cart',
 				'add this',
 				'buy this',
 				'purchase this',
 				'want this',
-			),
-			self::INTENT_APPLY_COUPON   => array(
+			],
+			self::INTENT_APPLY_COUPON   => [
 				'apply coupon',
 				'use coupon',
 				'promo code',
 				'discount code',
 				'coupon',
 				'voucher',
-			),
-			self::INTENT_BROWSE_CATALOG => array(
+			],
+			self::INTENT_BROWSE_CATALOG => [
 				'browse catalog',
 				'show products',
 				'view products',
@@ -132,40 +132,40 @@ class ResponseParserService implements ResponseParserInterface {
 				'what do you sell',
 				'catalog',
 				'catalogue',
-			),
-			self::INTENT_VIEW_CATEGORY  => array(
+			],
+			self::INTENT_VIEW_CATEGORY  => [
 				'show category',
 				'view category',
 				'categories',
-			),
-			self::INTENT_SEARCH_PRODUCT => array(
+			],
+			self::INTENT_SEARCH_PRODUCT => [
 				'search for',
 				'find product',
 				'looking for',
 				'search',
-			),
-			self::INTENT_VIEW_PRODUCT   => array(
+			],
+			self::INTENT_VIEW_PRODUCT   => [
 				'view product',
 				'product details',
 				'more info',
 				'tell me more',
-			),
-			self::INTENT_HELP           => array(
+			],
+			self::INTENT_HELP           => [
 				'need help',
 				'help me',
 				'i need assistance',
 				'help',
 				'support',
 				'assistance',
-			),
-			self::INTENT_TALK_TO_HUMAN  => array(
+			],
+			self::INTENT_TALK_TO_HUMAN  => [
 				'talk to human',
 				'speak to agent',
 				'talk to someone',
 				'human agent',
 				'representative',
-			),
-			self::INTENT_GREETING       => array(
+			],
+			self::INTENT_GREETING       => [
 				'good morning',
 				'good afternoon',
 				'good evening',
@@ -176,8 +176,8 @@ class ResponseParserService implements ResponseParserInterface {
 				'howdy',
 				'hi',
 				'hey',
-			),
-		);
+			],
+		];
 
 		/**
 		 * Filter intent keywords.
@@ -192,7 +192,7 @@ class ResponseParserService implements ResponseParserInterface {
 	 */
 	public function parse( array $webhookMessageData ): ParsedResponse {
 		$type    = $webhookMessageData['type'] ?? 'unknown';
-		$content = $webhookMessageData['content'] ?? array();
+		$content = $webhookMessageData['content'] ?? [];
 
 		$parsedResponse = match ( $type ) {
 			'text'        => $this->parseTextMessage( $content ),
@@ -224,15 +224,15 @@ class ResponseParserService implements ResponseParserInterface {
 		$textLower = strtolower( trim( $text ) );
 
 		// Find all keyword matches.
-		$matches = array();
+		$matches = [];
 		foreach ( $this->intentKeywords as $intent => $keywords ) {
 			foreach ( $keywords as $keyword ) {
 				if ( str_contains( $textLower, strtolower( $keyword ) ) ) {
-					$matches[] = array(
+					$matches[] = [
 						'intent'  => $intent,
 						'keyword' => $keyword,
 						'length'  => strlen( $keyword ),
-					);
+					];
 				}
 			}
 		}
@@ -259,7 +259,7 @@ class ResponseParserService implements ResponseParserInterface {
 	 * {@inheritdoc}
 	 */
 	public function getAvailableIntents(): array {
-		return array(
+		return [
 			self::INTENT_GREETING,
 			self::INTENT_BROWSE_CATALOG,
 			self::INTENT_VIEW_CATEGORY,
@@ -275,7 +275,7 @@ class ResponseParserService implements ResponseParserInterface {
 			self::INTENT_HELP,
 			self::INTENT_TALK_TO_HUMAN,
 			self::INTENT_UNKNOWN,
-		);
+		];
 	}
 
 	/**
@@ -348,10 +348,10 @@ class ResponseParserService implements ResponseParserInterface {
 		return new ParsedResponse(
 			ParsedResponse::TYPE_PRODUCT_INQUIRY,
 			$content,
-			array(
+			[
 				'product_retailer_id' => $content['product_retailer_id'] ?? '',
 				'catalog_id'          => $content['catalog_id'] ?? '',
-			),
+			],
 			self::INTENT_VIEW_PRODUCT
 		);
 	}
@@ -384,12 +384,12 @@ class ResponseParserService implements ResponseParserInterface {
 		return new ParsedResponse(
 			ParsedResponse::TYPE_IMAGE,
 			$content,
-			array(
+			[
 				'media_id'  => $content['id'] ?? '',
 				'mime_type' => $content['mime_type'] ?? '',
 				'sha256'    => $content['sha256'] ?? '',
 				'caption'   => $caption,
-			),
+			],
 			$intent
 		);
 	}
@@ -407,13 +407,13 @@ class ResponseParserService implements ResponseParserInterface {
 		return new ParsedResponse(
 			ParsedResponse::TYPE_DOCUMENT,
 			$content,
-			array(
+			[
 				'media_id'  => $content['id'] ?? '',
 				'mime_type' => $content['mime_type'] ?? '',
 				'sha256'    => $content['sha256'] ?? '',
 				'caption'   => $caption,
 				'filename'  => $content['filename'] ?? '',
-			),
+			],
 			$intent
 		);
 	}
@@ -427,7 +427,7 @@ class ResponseParserService implements ResponseParserInterface {
 	 */
 	public function addIntentKeywords( string $intent, array $keywords ): void {
 		if ( ! isset( $this->intentKeywords[ $intent ] ) ) {
-			$this->intentKeywords[ $intent ] = array();
+			$this->intentKeywords[ $intent ] = [];
 		}
 
 		$this->intentKeywords[ $intent ] = array_merge(

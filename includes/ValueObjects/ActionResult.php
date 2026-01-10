@@ -37,9 +37,9 @@ class ActionResult {
 	 */
 	public function __construct(
 		protected bool $success = true,
-		protected array $messages = array(),
+		protected array $messages = [],
 		protected ?string $nextState = null,
-		protected array $contextUpdates = array(),
+		protected array $contextUpdates = [],
 		protected ?string $errorMessage = null,
 		protected ?string $errorCode = null
 	) {
@@ -54,9 +54,9 @@ class ActionResult {
 	 * @return static
 	 */
 	public static function success(
-		array $messages = array(),
+		array $messages = [],
 		?string $nextState = null,
-		array $contextUpdates = array()
+		array $contextUpdates = []
 	): static {
 		return new static( true, $messages, $nextState, $contextUpdates );
 	}
@@ -73,10 +73,10 @@ class ActionResult {
 	 */
 	public static function failure(
 		string $errorMessage,
-		array $messages = array(),
+		array $messages = [],
 		?string $errorCode = null,
 		?string $nextState = null,
-		array $contextUpdates = array()
+		array $contextUpdates = []
 	): static {
 		return new static( false, $messages, $nextState, $contextUpdates, $errorMessage, $errorCode );
 	}
@@ -89,7 +89,7 @@ class ActionResult {
 	 * @param array  $context   Context updates.
 	 * @return static
 	 */
-	public static function transitionTo( string $nextState, array $messages = array(), array $context = array() ): static {
+	public static function transitionTo( string $nextState, array $messages = [], array $context = [] ): static {
 		return new static( true, $messages, $nextState, $context );
 	}
 
@@ -126,7 +126,7 @@ class ActionResult {
 	 * @return array Array of built message arrays.
 	 */
 	public function getBuiltMessages(): array {
-		$built = array();
+		$built = [];
 
 		foreach ( $this->messages as $message ) {
 			if ( is_object( $message ) && method_exists( $message, 'build' ) ) {
@@ -235,13 +235,13 @@ class ActionResult {
 	 * @return array
 	 */
 	public function toArray(): array {
-		return array(
+		return [
 			'success'         => $this->success,
 			'messages'        => $this->getBuiltMessages(),
 			'next_state'      => $this->nextState,
 			'context_updates' => $this->contextUpdates,
 			'error_message'   => $this->errorMessage,
 			'error_code'      => $this->errorCode,
-		);
+		];
 	}
 }

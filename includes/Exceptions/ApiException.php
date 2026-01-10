@@ -62,7 +62,7 @@ class ApiException extends WchException {
 		?string $apiErrorType = null,
 		?int $apiErrorSubcode = null,
 		int $httpStatus = 500,
-		array $context = array(),
+		array $context = [],
 		?\Throwable $previous = null
 	) {
 		$errorCode = 'api_error';
@@ -110,7 +110,7 @@ class ApiException extends WchException {
 	 * @return bool
 	 */
 	public function isRateLimitError(): bool {
-		$rateLimitCodes = array( 4, 17, 32, 613, 130429, 131048, 131056 );
+		$rateLimitCodes = [ 4, 17, 32, 613, 130429, 131048, 131056 ];
 		return in_array( $this->apiErrorCode, $rateLimitCodes, true );
 	}
 
@@ -120,7 +120,7 @@ class ApiException extends WchException {
 	 * @return bool
 	 */
 	public function isAuthError(): bool {
-		$authCodes = array( 190, 200, 10, 100 );
+		$authCodes = [ 190, 200, 10, 100 ];
 		return in_array( $this->apiErrorCode, $authCodes, true );
 	}
 
@@ -164,7 +164,7 @@ class ApiException extends WchException {
 	 * @param array $context Additional context.
 	 * @return static
 	 */
-	public static function fromApiResponse( array $error, int $status = 500, array $context = array() ): static {
+	public static function fromApiResponse( array $error, int $status = 500, array $context = [] ): static {
 		return new static(
 			$error['message'] ?? 'Unknown API error',
 			isset( $error['code'] ) ? (int) $error['code'] : null,

@@ -45,8 +45,8 @@ class AudienceCalculator implements AudienceCalculatorInterface {
 		$tableName = $wpdb->prefix . 'wch_customer_profiles';
 
 		// Build parameterized query parts.
-		$whereClauses = array( 'opt_in_marketing = %d' );
-		$whereValues  = array( 1 );
+		$whereClauses = [ 'opt_in_marketing = %d' ];
+		$whereValues  = [ 1 ];
 
 		// Apply audience filters.
 		$this->applyFilters( $criteria, $whereClauses, $whereValues );
@@ -79,8 +79,8 @@ class AudienceCalculator implements AudienceCalculatorInterface {
 		$tableName = $wpdb->prefix . 'wch_customer_profiles';
 
 		// Build parameterized query parts.
-		$whereClauses = array( 'opt_in_marketing = %d' );
-		$whereValues  = array( 1 );
+		$whereClauses = [ 'opt_in_marketing = %d' ];
+		$whereValues  = [ 1 ];
 
 		// Apply audience filters.
 		$this->applyFilters( $criteria, $whereClauses, $whereValues );
@@ -88,13 +88,13 @@ class AudienceCalculator implements AudienceCalculatorInterface {
 		$whereSql = implode( ' AND ', $whereClauses );
 
 		// Use pagination to fetch recipients in batches.
-		$allRecipients = array();
+		$allRecipients = [];
 		$offset        = 0;
 		$perPage       = self::BATCH_SIZE;
 		$maxRecipients = $limit > 0 ? min( $limit, self::MAX_RECIPIENTS ) : self::MAX_RECIPIENTS;
 
 		do {
-			$batchValues = array_merge( $whereValues, array( $perPage, $offset ) );
+			$batchValues = array_merge( $whereValues, [ $perPage, $offset ] );
 
 			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
 			// Table names from wpdb->prefix. Placeholder count varies based on WHERE conditions.
@@ -117,10 +117,10 @@ class AudienceCalculator implements AudienceCalculatorInterface {
 			if ( count( $allRecipients ) >= $maxRecipients ) {
 				$this->logWarning(
 					'Broadcast recipients hit safety limit',
-					array(
+					[
 						'fetched' => count( $allRecipients ),
 						'limit'   => $maxRecipients,
-					)
+					]
 				);
 				break;
 			}
@@ -136,7 +136,7 @@ class AudienceCalculator implements AudienceCalculatorInterface {
 	 * {@inheritdoc}
 	 */
 	public function validateCriteria( array $criteria ): array {
-		$errors = array();
+		$errors = [];
 
 		// Check if at least one audience selection is made.
 		$hasSelection = ! empty( $criteria['audience_all'] )
@@ -168,40 +168,40 @@ class AudienceCalculator implements AudienceCalculatorInterface {
 			$errors[] = __( 'Please select a category', 'whatsapp-commerce-hub' );
 		}
 
-		return array(
+		return [
 			'valid'  => empty( $errors ),
 			'errors' => $errors,
-		);
+		];
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
 	public function getAvailableSegments(): array {
-		$segments = array(
-			array(
+		$segments = [
+			[
 				'id'          => 'all_opted_in',
 				'name'        => __( 'All opted-in customers', 'whatsapp-commerce-hub' ),
 				'description' => __( 'All customers who have opted in to marketing messages', 'whatsapp-commerce-hub' ),
-			),
-			array(
+			],
+			[
 				'id'          => 'recent_orders',
 				'name'        => __( 'Recent customers', 'whatsapp-commerce-hub' ),
 				'description' => __( 'Customers who placed orders within a specified time period', 'whatsapp-commerce-hub' ),
 				'has_params'  => true,
-			),
-			array(
+			],
+			[
 				'id'          => 'category_buyers',
 				'name'        => __( 'Category buyers', 'whatsapp-commerce-hub' ),
 				'description' => __( 'Customers who purchased from a specific category', 'whatsapp-commerce-hub' ),
 				'has_params'  => true,
-			),
-			array(
+			],
+			[
 				'id'          => 'cart_abandoners',
 				'name'        => __( 'Cart abandoners', 'whatsapp-commerce-hub' ),
 				'description' => __( 'Customers who abandoned their cart in the last 7 days', 'whatsapp-commerce-hub' ),
-			),
-		);
+			],
+		];
 
 		return $segments;
 	}
@@ -332,7 +332,7 @@ class AudienceCalculator implements AudienceCalculatorInterface {
 	 * @param array  $context Context data.
 	 * @return void
 	 */
-	protected function logWarning( string $message, array $context = array() ): void {
+	protected function logWarning( string $message, array $context = [] ): void {
 		$context['category'] = 'broadcasts';
 
 		if ( class_exists( 'WCH_Logger' ) ) {

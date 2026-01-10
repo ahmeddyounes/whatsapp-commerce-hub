@@ -37,11 +37,11 @@ class MessageBuilderFactory {
 	 *
 	 * @param array $defaults Default configuration to apply to new builders.
 	 */
-	public function __construct( array $defaults = array() ) {
+	public function __construct( array $defaults = [] ) {
 		$this->defaults = array_merge(
-			array(
+			[
 				'footer' => '',
-			),
+			],
 			$defaults
 		);
 	}
@@ -106,7 +106,7 @@ class MessageBuilderFactory {
 	public function list( string $body, string $button_text ): \WCH_Message_Builder {
 		return $this->create()
 			->body( $body )
-			->button( 'list', array( 'text' => $button_text ) );
+			->button( 'list', [ 'text' => $button_text ] );
 	}
 
 	/**

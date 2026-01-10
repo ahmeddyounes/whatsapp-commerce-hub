@@ -51,8 +51,8 @@ final class Customer {
 		public readonly ?string $name = null,
 		public readonly ?string $email = null,
 		public readonly ?int $wc_customer_id = null,
-		public readonly array $preferences = array(),
-		public readonly array $tags = array(),
+		public readonly array $preferences = [],
+		public readonly array $tags = [],
 		public readonly bool $opt_in_marketing = false,
 		public readonly ?string $language = null,
 		public readonly ?string $timezone = null,
@@ -95,8 +95,8 @@ final class Customer {
 			wc_customer_id: isset( $row['wc_customer_id'] )
 				? (int) $row['wc_customer_id']
 				: null,
-			preferences: self::parseJson( $row['preferences'] ?? null, array(), 'preferences' ),
-			tags: self::parseJson( $row['tags'] ?? null, array(), 'tags' ),
+			preferences: self::parseJson( $row['preferences'] ?? null, [], 'preferences' ),
+			tags: self::parseJson( $row['tags'] ?? null, [], 'tags' ),
 			opt_in_marketing: (bool) ( $row['opt_in_marketing'] ?? false ),
 			language: $row['language'] ?? null,
 			timezone: $row['timezone'] ?? null,
@@ -195,11 +195,11 @@ final class Customer {
 			do_action(
 				'wch_log_warning',
 				'Customer: JSON decode failed',
-				array(
+				[
 					'field'     => $field,
 					'error'     => json_last_error_msg(),
 					'json_head' => mb_substr( $json, 0, 100 ), // First 100 chars for debugging.
-				)
+				]
 			);
 			return $default;
 		}
@@ -213,7 +213,7 @@ final class Customer {
 	 * @return array
 	 */
 	public function toArray(): array {
-		return array(
+		return [
 			'id'                  => $this->id,
 			'phone'               => $this->phone,
 			'name'                => $this->name,
@@ -233,7 +233,7 @@ final class Customer {
 			'updated_at'          => $this->updated_at->format( 'Y-m-d H:i:s' ),
 			'last_interaction_at' => $this->last_interaction_at?->format( 'Y-m-d H:i:s' ),
 			'marketing_opted_at'  => $this->marketing_opted_at?->format( 'Y-m-d H:i:s' ),
-		);
+		];
 	}
 
 	/**
@@ -434,31 +434,31 @@ final class Customer {
 	 * @return array
 	 */
 	public function exportData(): array {
-		return array(
-			'personal_information' => array(
+		return [
+			'personal_information' => [
 				'phone'    => $this->phone,
 				'name'     => $this->name,
 				'email'    => $this->email,
 				'language' => $this->language,
 				'timezone' => $this->timezone,
-			),
+			],
 			'preferences'          => $this->preferences,
-			'marketing'            => array(
+			'marketing'            => [
 				'opted_in' => $this->opt_in_marketing,
 				'opted_at' => $this->marketing_opted_at?->format( 'c' ),
-			),
-			'order_history'        => array(
+			],
+			'order_history'        => [
 				'total_orders' => $this->total_orders,
 				'total_spent'  => $this->total_spent,
-			),
+			],
 			'tags'                 => $this->tags,
-			'addresses'            => array(
+			'addresses'            => [
 				'last_known' => $this->last_known_address,
-			),
-			'account'              => array(
+			],
+			'account'              => [
 				'created_at'          => $this->created_at->format( 'c' ),
 				'last_interaction_at' => $this->last_interaction_at?->format( 'c' ),
-			),
-		);
+			],
+		];
 	}
 }

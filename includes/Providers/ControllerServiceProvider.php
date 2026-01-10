@@ -95,11 +95,11 @@ class ControllerServiceProvider implements ServiceProviderInterface {
 	 * @return array<string>
 	 */
 	public function provides(): array {
-		return array(
+		return [
 			AnalyticsController::class,
 			ConversationsController::class,
 			'wch.controller.analytics',
 			'wch.controller.conversations',
-		);
+		];
 	}
 }

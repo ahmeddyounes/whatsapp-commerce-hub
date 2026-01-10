@@ -115,7 +115,7 @@ abstract class AbstractAction implements ActionHandlerInterface {
 	protected function error( string $errorMessage, ?string $nextState = null ): ActionResult {
 		$message = $this->createMessageBuilder()->text( $errorMessage );
 
-		return ActionResult::failure( array( $message ), $nextState );
+		return ActionResult::failure( [ $message ], $nextState );
 	}
 
 	/**
@@ -126,7 +126,7 @@ abstract class AbstractAction implements ActionHandlerInterface {
 	 * @param string $level   Log level (info, warning, error).
 	 * @return void
 	 */
-	protected function log( string $message, array $data = array(), string $level = 'info' ): void {
+	protected function log( string $message, array $data = [], string $level = 'info' ): void {
 		\WCH_Logger::log(
 			static::class . ': ' . $message,
 			$data,

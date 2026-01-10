@@ -79,21 +79,21 @@ class MessageBuilderService implements MessageBuilderInterface {
 	 *
 	 * @var array
 	 */
-	protected array $buttons = array();
+	protected array $buttons = [];
 
 	/**
 	 * Sections for list messages.
 	 *
 	 * @var array
 	 */
-	protected array $sections = array();
+	protected array $sections = [];
 
 	/**
 	 * Product IDs for product messages.
 	 *
 	 * @var array
 	 */
-	protected array $products = array();
+	protected array $products = [];
 
 	/**
 	 * Settings service.
@@ -124,10 +124,10 @@ class MessageBuilderService implements MessageBuilderInterface {
 	 * {@inheritdoc}
 	 */
 	public function header( string $type, string $content ): static {
-		$this->headerConfig = array(
+		$this->headerConfig = [
 			'type'    => $type,
 			'content' => $content,
-		);
+		];
 		return $this;
 	}
 
@@ -152,10 +152,10 @@ class MessageBuilderService implements MessageBuilderInterface {
 	 * {@inheritdoc}
 	 */
 	public function button( string $type, array $data ): static {
-		$this->buttons[] = array(
+		$this->buttons[] = [
 			'type' => $type,
 			'data' => $data,
-		);
+		];
 		$this->type      = 'interactive';
 		return $this;
 	}
@@ -170,10 +170,10 @@ class MessageBuilderService implements MessageBuilderInterface {
 	public function replyButton( string $id, string $title ): static {
 		return $this->button(
 			'reply',
-			array(
+			[
 				'id'    => $id,
 				'title' => $title,
-			)
+			]
 		);
 	}
 
@@ -187,10 +187,10 @@ class MessageBuilderService implements MessageBuilderInterface {
 	public function urlButton( string $title, string $url ): static {
 		return $this->button(
 			'url',
-			array(
+			[
 				'title' => $title,
 				'url'   => $url,
-			)
+			]
 		);
 	}
 
@@ -198,10 +198,10 @@ class MessageBuilderService implements MessageBuilderInterface {
 	 * {@inheritdoc}
 	 */
 	public function section( string $title, array $rows ): static {
-		$this->sections[] = array(
+		$this->sections[] = [
 			'title' => $title,
 			'rows'  => $rows,
-		);
+		];
 		$this->type       = 'interactive';
 		return $this;
 	}
@@ -210,7 +210,7 @@ class MessageBuilderService implements MessageBuilderInterface {
 	 * {@inheritdoc}
 	 */
 	public function product( string $productId ): static {
-		$this->products = array( $productId );
+		$this->products = [ $productId ];
 		$this->type     = 'interactive';
 		return $this;
 	}
@@ -250,9 +250,9 @@ class MessageBuilderService implements MessageBuilderInterface {
 		$this->headerConfig = null;
 		$this->bodyText     = '';
 		$this->footerText   = '';
-		$this->buttons      = array();
-		$this->sections     = array();
-		$this->products     = array();
+		$this->buttons      = [];
+		$this->sections     = [];
+		$this->products     = [];
 		return $this;
 	}
 
@@ -265,12 +265,12 @@ class MessageBuilderService implements MessageBuilderInterface {
 	protected function buildTextMessage(): array {
 		$this->validateTextLength( $this->textContent, self::MAX_TEXT_LENGTH, 'text' );
 
-		return array(
+		return [
 			'type' => 'text',
-			'text' => array(
+			'text' => [
 				'body' => $this->textContent,
-			),
-		);
+			],
+		];
 	}
 
 	/**
@@ -284,12 +284,12 @@ class MessageBuilderService implements MessageBuilderInterface {
 
 		$this->validateInteractiveMessage( $interactiveType );
 
-		$message = array(
+		$message = [
 			'type'        => 'interactive',
-			'interactive' => array(
+			'interactive' => [
 				'type' => $interactiveType,
-			),
-		);
+			],
+		];
 
 		// Add header if present.
 		if ( null !== $this->headerConfig ) {
@@ -298,16 +298,16 @@ class MessageBuilderService implements MessageBuilderInterface {
 
 		// Add body.
 		if ( '' !== $this->bodyText ) {
-			$message['interactive']['body'] = array(
+			$message['interactive']['body'] = [
 				'text' => $this->bodyText,
-			);
+			];
 		}
 
 		// Add footer if present.
 		if ( '' !== $this->footerText ) {
-			$message['interactive']['footer'] = array(
+			$message['interactive']['footer'] = [
 				'text' => $this->footerText,
-			);
+			];
 		}
 
 		// Add action based on type.
@@ -349,20 +349,20 @@ class MessageBuilderService implements MessageBuilderInterface {
 	 */
 	protected function buildAction( string $interactiveType ): array {
 		return match ( $interactiveType ) {
-			'button'       => array( 'buttons' => $this->buildButtons() ),
-			'list'         => array(
+			'button'       => [ 'buttons' => $this->buildButtons() ],
+			'list'         => [
 				'button'   => $this->headerConfig['content'] ?? 'Select',
 				'sections' => $this->buildSections(),
-			),
-			'product'      => array(
+			],
+			'product'      => [
 				'catalog_id'          => $this->getCatalogId(),
 				'product_retailer_id' => $this->products[0],
-			),
-			'product_list' => array(
+			],
+			'product_list' => [
 				'catalog_id' => $this->getCatalogId(),
 				'sections'   => $this->buildProductSections(),
-			),
-			default        => array(),
+			],
+			default        => [],
 		};
 	}
 
@@ -477,18 +477,18 @@ class MessageBuilderService implements MessageBuilderInterface {
 		$content = $this->headerConfig['content'];
 
 		if ( 'text' === $type ) {
-			return array(
+			return [
 				'type' => 'text',
 				'text' => $content,
-			);
+			];
 		}
 
-		return array(
+		return [
 			'type' => $type,
-			$type  => array(
+			$type  => [
 				'link' => $content,
-			),
-		);
+			],
+		];
 	}
 
 	/**
@@ -497,44 +497,44 @@ class MessageBuilderService implements MessageBuilderInterface {
 	 * @return array
 	 */
 	protected function buildButtons(): array {
-		$formatted = array();
+		$formatted = [];
 
 		foreach ( $this->buttons as $button ) {
 			$type = $button['type'];
 			$data = $button['data'];
 
 			$formatted[] = match ( $type ) {
-				'reply' => array(
+				'reply' => [
 					'type'  => 'reply',
-					'reply' => array(
+					'reply' => [
 						'id'    => $data['id'] ?? uniqid( 'btn_' ),
 						'title' => $data['title'],
-					),
-				),
-				'url'   => array(
+					],
+				],
+				'url'   => [
 					'type' => 'url',
-					'url'  => array(
+					'url'  => [
 						'display_text' => $data['title'],
 						'url'          => $data['url'],
-					),
-				),
-				'phone' => array(
+					],
+				],
+				'phone' => [
 					'type'         => 'phone_number',
-					'phone_number' => array(
+					'phone_number' => [
 						'display_text' => $data['title'],
 						'phone_number' => $data['phone'],
-					),
-				),
-				'flow'  => array(
+					],
+				],
+				'flow'  => [
 					'type' => 'flow',
-					'flow' => array(
+					'flow' => [
 						'id'                  => $data['flow_id'],
 						'cta'                 => $data['title'],
 						'flow_action'         => $data['action'] ?? 'navigate',
-						'flow_action_payload' => $data['payload'] ?? array(),
-					),
-				),
-				default => array(),
+						'flow_action_payload' => $data['payload'] ?? [],
+					],
+				],
+				default => [],
 			};
 		}
 
@@ -547,23 +547,23 @@ class MessageBuilderService implements MessageBuilderInterface {
 	 * @return array
 	 */
 	protected function buildSections(): array {
-		$formatted = array();
+		$formatted = [];
 
 		foreach ( $this->sections as $section ) {
-			$rows = array();
+			$rows = [];
 
 			foreach ( $section['rows'] as $row ) {
-				$rows[] = array(
+				$rows[] = [
 					'id'          => $row['id'] ?? uniqid( 'row_' ),
 					'title'       => $row['title'],
 					'description' => $row['description'] ?? '',
-				);
+				];
 			}
 
-			$formatted[] = array(
+			$formatted[] = [
 				'title' => $section['title'],
 				'rows'  => $rows,
-			);
+			];
 		}
 
 		return $formatted;
@@ -575,15 +575,15 @@ class MessageBuilderService implements MessageBuilderInterface {
 	 * @return array
 	 */
 	protected function buildProductSections(): array {
-		return array(
-			array(
+		return [
+			[
 				'title'         => 'Products',
 				'product_items' => array_map(
-					fn( string $productId ): array => array( 'product_retailer_id' => $productId ),
+					fn( string $productId ): array => [ 'product_retailer_id' => $productId ],
 					$this->products
 				),
-			),
-		);
+			],
+		];
 	}
 
 	/**

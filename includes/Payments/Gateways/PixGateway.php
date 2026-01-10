@@ -51,7 +51,7 @@ class PixGateway extends AbstractGateway {
 	 *
 	 * @var string[]
 	 */
-	protected array $supportedCountries = array( 'BR' );
+	protected array $supportedCountries = [ 'BR' ];
 
 	/**
 	 * Payment processor (mercadopago or pagseguro).
@@ -128,10 +128,10 @@ class PixGateway extends AbstractGateway {
 			$this->storeTransactionMeta(
 				$order,
 				$pixData['transaction_id'],
-				array(
+				[
 					'_pix_qr_code'      => $pixData['qr_code'],
 					'_pix_qr_code_text' => $pixData['qr_code_text'] ?? '',
-				)
+				]
 			);
 			$order->save();
 
@@ -141,10 +141,10 @@ class PixGateway extends AbstractGateway {
 
 			$this->log(
 				'PIX payment created',
-				array(
+				[
 					'order_id'       => $orderId,
 					'transaction_id' => $pixData['transaction_id'],
-				)
+				]
 			);
 
 			return PaymentResult::success(
@@ -157,7 +157,7 @@ class PixGateway extends AbstractGateway {
 			);
 
 		} catch ( \Exception $e ) {
-			$this->log( 'PIX payment error', array( 'error' => $e->getMessage() ), 'error' );
+			$this->log( 'PIX payment error', [ 'error' => $e->getMessage() ], 'error' );
 
 			return PaymentResult::failure( 'pix_error', $e->getMessage() );
 		}
@@ -191,7 +191,7 @@ class PixGateway extends AbstractGateway {
 	 */
 	private function generateMercadoPagoPix( \WC_Order $order, array $conversation ): ?array {
 		$url  = 'https://api.mercadopago.com/v1/payments';
-		$data = array(
+		$data = [
 			'transaction_amount' => floatval( $order->get_total() ),
 			'description'        => sprintf(
 				/* translators: %s: Order number */
@@ -199,33 +199,33 @@ class PixGateway extends AbstractGateway {
 				$order->get_order_number()
 			),
 			'payment_method_id'  => 'pix',
-			'payer'              => array(
+			'payer'              => [
 				'email'      => $order->get_billing_email() ?: 'noreply@example.com',
 				'first_name' => $order->get_billing_first_name(),
 				'last_name'  => $order->get_billing_last_name(),
-			),
+			],
 			'notification_url'   => add_query_arg( 'gateway', 'pix', rest_url( 'wch/v1/payment-webhook' ) ),
-			'metadata'           => array(
+			'metadata'           => [
 				'order_id'        => $order->get_id(),
 				'customer_phone'  => $this->getCustomerPhone( $conversation ),
 				'conversation_id' => $conversation['id'] ?? '',
-			),
-		);
+			],
+		];
 
 		$response = wp_remote_post(
 			$url,
-			array(
-				'headers' => array(
+			[
+				'headers' => [
 					'Authorization' => 'Bearer ' . $this->apiToken,
 					'Content-Type'  => 'application/json',
-				),
+				],
 				'body'    => wp_json_encode( $data ),
 				'timeout' => 30,
-			)
+			]
 		);
 
 		if ( is_wp_error( $response ) ) {
-			$this->log( 'Mercado Pago PIX error', array( 'error' => $response->get_error_message() ), 'error' );
+			$this->log( 'Mercado Pago PIX error', [ 'error' => $response->get_error_message() ], 'error' );
 			return null;
 		}
 
@@ -234,11 +234,11 @@ class PixGateway extends AbstractGateway {
 
 		if ( isset( $result['point_of_interaction']['transaction_data'] ) ) {
 			$transactionData = $result['point_of_interaction']['transaction_data'];
-			return array(
+			return [
 				'transaction_id' => (string) $result['id'],
 				'qr_code'        => $transactionData['qr_code_base64'] ?? '',
 				'qr_code_text'   => $transactionData['qr_code'] ?? '',
-			);
+			];
 		}
 
 		return null;
@@ -254,49 +254,49 @@ class PixGateway extends AbstractGateway {
 	private function generatePagSeguroPix( \WC_Order $order, array $conversation ): ?array {
 		$url = 'https://api.pagseguro.com/orders';
 
-		$items = array();
+		$items = [];
 		foreach ( $order->get_items() as $item ) {
-			$items[] = array(
+			$items[] = [
 				'reference_id' => (string) $item->get_product_id(),
 				'name'         => $item->get_name(),
 				'quantity'     => $item->get_quantity(),
 				'unit_amount'  => intval( $item->get_total() * 100 / $item->get_quantity() ),
-			);
+			];
 		}
 
-		$data = array(
+		$data = [
 			'reference_id'      => $order->get_order_number(),
-			'customer'          => array(
+			'customer'          => [
 				'name'  => trim( $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() ),
 				'email' => $order->get_billing_email() ?: 'noreply@example.com',
-			),
+			],
 			'items'             => $items,
-			'qr_codes'          => array(
-				array(
+			'qr_codes'          => [
+				[
 					'amount' => array(
 						'value' => intval( $order->get_total() * 100 ),
 					),
-				),
-			),
-			'notification_urls' => array(
+				],
+			],
+			'notification_urls' => [
 				add_query_arg( 'gateway', 'pix', rest_url( 'wch/v1/payment-webhook' ) ),
-			),
-		);
+			],
+		];
 
 		$response = wp_remote_post(
 			$url,
-			array(
-				'headers' => array(
+			[
+				'headers' => [
 					'Authorization' => 'Bearer ' . $this->apiToken,
 					'Content-Type'  => 'application/json',
-				),
+				],
 				'body'    => wp_json_encode( $data ),
 				'timeout' => 30,
-			)
+			]
 		);
 
 		if ( is_wp_error( $response ) ) {
-			$this->log( 'PagSeguro PIX error', array( 'error' => $response->get_error_message() ), 'error' );
+			$this->log( 'PagSeguro PIX error', [ 'error' => $response->get_error_message() ], 'error' );
 			return null;
 		}
 
@@ -305,11 +305,11 @@ class PixGateway extends AbstractGateway {
 
 		if ( isset( $result['qr_codes'][0] ) ) {
 			$qrCode = $result['qr_codes'][0];
-			return array(
+			return [
 				'transaction_id' => $result['id'],
 				'qr_code'        => $qrCode['links'][0]['href'] ?? '',
 				'qr_code_text'   => $qrCode['text'] ?? '',
-			);
+			];
 		}
 
 		return null;
@@ -342,15 +342,15 @@ class PixGateway extends AbstractGateway {
 
 			if ( $media && isset( $media['id'] ) ) {
 				$this->whatsappClient->send_message(
-					array(
+					[
 						'messaging_product' => 'whatsapp',
 						'to'                => $phone,
 						'type'              => 'image',
-						'image'             => array(
+						'image'             => [
 							'id'      => $media['id'],
 							'caption' => __( 'Scan this PIX QR code with your banking app to complete the payment.', 'whatsapp-commerce-hub' ),
-						),
-					)
+						],
+					]
 				);
 			}
 
@@ -361,18 +361,18 @@ class PixGateway extends AbstractGateway {
 		// Also send the PIX code as text for copy-paste.
 		if ( ! empty( $pixData['qr_code_text'] ) ) {
 			$this->whatsappClient->send_message(
-				array(
+				[
 					'messaging_product' => 'whatsapp',
 					'to'                => $phone,
 					'type'              => 'text',
-					'text'              => array(
+					'text'              => [
 						'body' => sprintf(
 							/* translators: %s: PIX code */
 							__( "Or copy this PIX code to pay:\n\n```%s```", 'whatsapp-commerce-hub' ),
 							$pixData['qr_code_text']
 						),
-					),
-				)
+					],
+				]
 			);
 		}
 	}
@@ -416,7 +416,7 @@ class PixGateway extends AbstractGateway {
 			return WebhookResult::failure( __( 'Failed to retrieve payment details.', 'whatsapp-commerce-hub' ) );
 		}
 
-		$metadata = $payment['metadata'] ?? array();
+		$metadata = $payment['metadata'] ?? [];
 		$orderId  = intval( $metadata['order_id'] ?? 0 );
 
 		if ( ! $orderId ) {
@@ -445,7 +445,7 @@ class PixGateway extends AbstractGateway {
 				)
 			);
 
-			$this->log( 'PIX payment completed', array( 'order_id' => $orderId ) );
+			$this->log( 'PIX payment completed', [ 'order_id' => $orderId ] );
 
 			return WebhookResult::success(
 				$orderId,
@@ -469,12 +469,12 @@ class PixGateway extends AbstractGateway {
 
 		$response = wp_remote_get(
 			$url,
-			array(
-				'headers' => array(
+			[
+				'headers' => [
 					'Authorization' => 'Bearer ' . $this->apiToken,
-				),
+				],
 				'timeout' => 30,
-			)
+			]
 		);
 
 		if ( is_wp_error( $response ) ) {
@@ -538,19 +538,19 @@ class PixGateway extends AbstractGateway {
 			$payment = $this->getMercadoPagoPayment( $transactionId );
 
 			if ( $payment ) {
-				$statusMap = array(
+				$statusMap = [
 					'approved'  => PaymentStatus::COMPLETED,
 					'pending'   => PaymentStatus::PENDING,
 					'rejected'  => PaymentStatus::FAILED,
 					'cancelled' => PaymentStatus::FAILED,
-				);
+				];
 
 				return new PaymentStatus(
 					$statusMap[ $payment['status'] ?? 'pending' ] ?? PaymentStatus::PENDING,
 					$transactionId,
 					$payment['transaction_amount'] ?? 0,
 					$payment['currency_id'] ?? 'BRL',
-					$payment['metadata'] ?? array()
+					$payment['metadata'] ?? []
 				);
 			}
 		}

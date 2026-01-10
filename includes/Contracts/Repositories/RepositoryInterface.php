@@ -50,8 +50,8 @@ interface RepositoryInterface {
 	 * @return array<object> Array of entities.
 	 */
 	public function findAll(
-		array $criteria = array(),
-		array $orderBy = array(),
+		array $criteria = [],
+		array $orderBy = [],
 		?int $limit = null,
 		int $offset = 0
 	): array;
@@ -87,7 +87,7 @@ interface RepositoryInterface {
 	 * @param array<string, mixed> $criteria The search criteria.
 	 * @return int The count.
 	 */
-	public function count( array $criteria = array() ): int;
+	public function count( array $criteria = [] ): int;
 
 	/**
 	 * Check if an entity exists.

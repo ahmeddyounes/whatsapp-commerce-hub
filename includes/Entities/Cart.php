@@ -35,12 +35,12 @@ final class Cart {
 	/**
 	 * Allowed cart statuses (whitelist for validation).
 	 */
-	private const ALLOWED_STATUSES = array(
+	private const ALLOWED_STATUSES = [
 		self::STATUS_ACTIVE,
 		self::STATUS_ABANDONED,
 		self::STATUS_CONVERTED,
 		self::STATUS_EXPIRED,
-	);
+	];
 
 	/**
 	 * Constructor.
@@ -140,10 +140,10 @@ final class Cart {
 			do_action(
 				'wch_log_warning',
 				'Invalid cart status attempted',
-				array(
+				[
 					'status'  => $status,
 					'allowed' => self::ALLOWED_STATUSES,
-				)
+				]
 			);
 		}
 
@@ -185,7 +185,7 @@ final class Cart {
 	 */
 	private static function decodeJsonArray( string $json, string $field, int $cart_id ): array {
 		if ( '' === $json ) {
-			return array();
+			return [];
 		}
 
 		$decoded = json_decode( $json, true );
@@ -195,17 +195,17 @@ final class Cart {
 				do_action(
 					'wch_log_warning',
 					'JSON decode failed in Cart entity',
-					array(
+					[
 						'field'   => $field,
 						'cart_id' => $cart_id,
 						'error'   => json_last_error_msg(),
-					)
+					]
 				);
 			}
-			return array();
+			return [];
 		}
 
-		return is_array( $decoded ) ? $decoded : array();
+		return is_array( $decoded ) ? $decoded : [];
 	}
 
 	/**
@@ -239,10 +239,10 @@ final class Cart {
 				do_action(
 					'wch_log_warning',
 					'Invalid date encountered in Cart entity',
-					array(
+					[
 						'date'  => $date,
 						'error' => $e->getMessage(),
-					)
+					]
 				);
 			}
 
@@ -256,7 +256,7 @@ final class Cart {
 	 * @return array
 	 */
 	public function toArray(): array {
-		return array(
+		return [
 			'id'                 => $this->id,
 			'customer_phone'     => $this->customer_phone,
 			'items'              => wp_json_encode( $this->items ),
@@ -275,7 +275,7 @@ final class Cart {
 			'recovered'          => $this->recovered ? 1 : 0,
 			'recovered_order_id' => $this->recovered_order_id,
 			'recovered_revenue'  => $this->recovered_revenue,
-		);
+		];
 	}
 
 	/**

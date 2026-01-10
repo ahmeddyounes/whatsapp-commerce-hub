@@ -44,12 +44,12 @@ class SettingsManager {
 	/**
 	 * Fields that should be encrypted.
 	 */
-	private array $encryptedFields = array(
+	private array $encryptedFields = [
 		'api.access_token',
 		'api.webhook_secret',
 		'api.webhook_verify_token',
 		'ai.openai_api_key',
-	);
+	];
 
 	/**
 	 * Constructor.
@@ -60,7 +60,7 @@ class SettingsManager {
 		$this->encryption = $encryption;
 
 		// Clear cache when settings are updated externally.
-		add_action( 'update_option_' . self::OPTION_NAME, array( $this, 'clearCache' ), 10, 0 );
+		add_action( 'update_option_' . self::OPTION_NAME, [ $this, 'clearCache' ], 10, 0 );
 	}
 
 	/**
@@ -138,7 +138,7 @@ class SettingsManager {
 
 		// Ensure section exists.
 		if ( ! isset( $settings[ $section ] ) ) {
-			$settings[ $section ] = array();
+			$settings[ $section ] = [];
 		}
 
 		// Encrypt if this is an encrypted field.
@@ -190,11 +190,11 @@ class SettingsManager {
 		}
 
 		// Get settings from database.
-		$settings = get_option( self::OPTION_NAME, array() );
+		$settings = get_option( self::OPTION_NAME, [] );
 
 		// Ensure it's an array.
 		if ( ! is_array( $settings ) ) {
-			$settings = array();
+			$settings = [];
 		}
 
 		// Cache the settings.
@@ -253,11 +253,11 @@ class SettingsManager {
 		if ( ! isset( $settings[ $section ] ) ) {
 			// Return defaults for this section.
 			$defaults = $this->getDefaults();
-			return $defaults[ $section ] ?? array();
+			return $defaults[ $section ] ?? [];
 		}
 
 		// Decrypt encrypted fields in this section using get() for consistency.
-		$sectionSettings = array();
+		$sectionSettings = [];
 		foreach ( $settings[ $section ] as $key => $value ) {
 			$fullKey                 = $section . '.' . $key;
 			$sectionSettings[ $key ] = $this->get( $fullKey, $value );
@@ -298,11 +298,11 @@ class SettingsManager {
 	 * @return array{access_token: string, phone_number_id: string, business_account_id: string}
 	 */
 	public function getApiCredentials(): array {
-		return array(
+		return [
 			'access_token'        => $this->get( 'api.access_token', '' ),
 			'phone_number_id'     => $this->get( 'api.whatsapp_phone_number_id', '' ),
 			'business_account_id' => $this->get( 'api.whatsapp_business_account_id', '' ),
-		);
+		];
 	}
 
 	/**
@@ -366,8 +366,8 @@ class SettingsManager {
 	 * @return array
 	 */
 	private function getSchema(): array {
-		return array(
-			'api'           => array(
+		return [
+			'api'           => [
 				'whatsapp_phone_number_id'     => 'string',
 				'whatsapp_business_account_id' => 'string',
 				'access_token'                 => 'string',
@@ -375,45 +375,45 @@ class SettingsManager {
 				'webhook_secret'               => 'string',
 				'api_key_hash'                 => 'string',
 				'api_version'                  => 'string',
-			),
-			'general'       => array(
+			],
+			'general'       => [
 				'enable_bot'       => 'bool',
 				'business_name'    => 'string',
 				'welcome_message'  => 'string',
 				'fallback_message' => 'string',
 				'operating_hours'  => 'json',
 				'timezone'         => 'string',
-			),
-			'catalog'       => array(
+			],
+			'catalog'       => [
 				'catalog_id'           => 'string',
 				'sync_enabled'         => 'bool',
 				'sync_products'        => 'array',
 				'include_out_of_stock' => 'bool',
 				'price_format'         => 'string',
 				'currency_symbol'      => 'string',
-			),
-			'checkout'      => array(
+			],
+			'checkout'      => [
 				'enabled_payment_methods'    => 'array',
 				'cod_enabled'                => 'bool',
 				'cod_extra_charge'           => 'float',
 				'min_order_amount'           => 'float',
 				'max_order_amount'           => 'float',
 				'require_phone_verification' => 'bool',
-			),
-			'notifications' => array(
+			],
+			'notifications' => [
 				'order_confirmation'         => 'bool',
 				'order_status_updates'       => 'bool',
 				'shipping_updates'           => 'bool',
 				'abandoned_cart_reminder'    => 'bool',
 				'abandoned_cart_delay_hours' => 'int',
-			),
-			'inventory'     => array(
+			],
+			'inventory'     => [
 				'enable_realtime_sync'   => 'bool',
 				'low_stock_threshold'    => 'int',
 				'notify_low_stock'       => 'bool',
 				'auto_fix_discrepancies' => 'bool',
-			),
-			'ai'            => array(
+			],
+			'ai'            => [
 				'enable_ai'          => 'bool',
 				'openai_api_key'     => 'string',
 				'ai_model'           => 'string',
@@ -421,8 +421,8 @@ class SettingsManager {
 				'ai_max_tokens'      => 'int',
 				'ai_system_prompt'   => 'string',
 				'monthly_budget_cap' => 'float',
-			),
-		);
+			],
+		];
 	}
 
 	/**
@@ -437,11 +437,11 @@ class SettingsManager {
 		$priceFormat    = function_exists( 'get_woocommerce_price_format' ) ? get_woocommerce_price_format() : '%1$s%2$s';
 		$currencySymbol = function_exists( 'get_woocommerce_currency_symbol' ) ? get_woocommerce_currency_symbol() : '$';
 
-		$defaults = array(
-			'api'           => array(
+		$defaults = [
+			'api'           => [
 				'api_version' => 'v18.0',
-			),
-			'general'       => array(
+			],
+			'general'       => [
 				'enable_bot'       => false,
 				'business_name'    => $businessName,
 				'welcome_message'  => __( 'Welcome! How can we help you today?', 'whatsapp-commerce-hub' ),
@@ -449,46 +449,46 @@ class SettingsManager {
 					'Sorry, I didn\'t understand that. Please try again or type "help" for assistance.',
 					'whatsapp-commerce-hub'
 				),
-				'operating_hours'  => array(),
+				'operating_hours'  => [],
 				'timezone'         => $timezone,
-			),
-			'catalog'       => array(
+			],
+			'catalog'       => [
 				'sync_enabled'         => false,
 				'sync_products'        => 'all',
 				'include_out_of_stock' => false,
 				'price_format'         => $priceFormat,
 				'currency_symbol'      => $currencySymbol,
-			),
-			'checkout'      => array(
-				'enabled_payment_methods'    => array(),
+			],
+			'checkout'      => [
+				'enabled_payment_methods'    => [],
 				'cod_enabled'                => false,
 				'cod_extra_charge'           => 0.0,
 				'min_order_amount'           => 0.0,
 				'max_order_amount'           => 0.0,
 				'require_phone_verification' => false,
-			),
-			'notifications' => array(
+			],
+			'notifications' => [
 				'order_confirmation'         => true,
 				'order_status_updates'       => true,
 				'shipping_updates'           => false,
 				'abandoned_cart_reminder'    => false,
 				'abandoned_cart_delay_hours' => 24,
-			),
-			'inventory'     => array(
+			],
+			'inventory'     => [
 				'enable_realtime_sync'   => false,
 				'low_stock_threshold'    => 5,
 				'notify_low_stock'       => false,
 				'auto_fix_discrepancies' => false,
-			),
-			'ai'            => array(
+			],
+			'ai'            => [
 				'enable_ai'          => false,
 				'ai_model'           => 'gpt-4',
 				'ai_temperature'     => 0.7,
 				'ai_max_tokens'      => 500,
 				'ai_system_prompt'   => __( 'You are a helpful customer service assistant for an e-commerce store.', 'whatsapp-commerce-hub' ),
 				'monthly_budget_cap' => 0.0,
-			),
-			'recovery'      => array(
+			],
+			'recovery'      => [
 				'enabled'             => false,
 				'delay_sequence_1'    => 4,
 				'delay_sequence_2'    => 24,
@@ -499,8 +499,8 @@ class SettingsManager {
 				'discount_enabled'    => false,
 				'discount_type'       => 'percent',
 				'discount_amount'     => 10,
-			),
-		);
+			],
+		];
 
 		/**
 		 * Filter default settings.

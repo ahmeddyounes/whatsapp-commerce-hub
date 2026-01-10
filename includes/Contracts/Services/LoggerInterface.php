@@ -33,7 +33,7 @@ interface LoggerInterface {
 	 * @param array<string, mixed> $data    Additional data to log.
 	 * @return void
 	 */
-	public function debug( string $message, string $context = 'general', array $data = array() ): void;
+	public function debug( string $message, string $context = 'general', array $data = [] ): void;
 
 	/**
 	 * Log an info message.
@@ -43,7 +43,7 @@ interface LoggerInterface {
 	 * @param array<string, mixed> $data    Additional data to log.
 	 * @return void
 	 */
-	public function info( string $message, string $context = 'general', array $data = array() ): void;
+	public function info( string $message, string $context = 'general', array $data = [] ): void;
 
 	/**
 	 * Log a warning message.
@@ -53,7 +53,7 @@ interface LoggerInterface {
 	 * @param array<string, mixed> $data    Additional data to log.
 	 * @return void
 	 */
-	public function warning( string $message, string $context = 'general', array $data = array() ): void;
+	public function warning( string $message, string $context = 'general', array $data = [] ): void;
 
 	/**
 	 * Log an error message.
@@ -63,7 +63,7 @@ interface LoggerInterface {
 	 * @param array<string, mixed> $data    Additional data to log.
 	 * @return void
 	 */
-	public function error( string $message, string $context = 'general', array $data = array() ): void;
+	public function error( string $message, string $context = 'general', array $data = [] ): void;
 
 	/**
 	 * Log a critical message.
@@ -73,7 +73,7 @@ interface LoggerInterface {
 	 * @param array<string, mixed> $data    Additional data to log.
 	 * @return void
 	 */
-	public function critical( string $message, string $context = 'general', array $data = array() ): void;
+	public function critical( string $message, string $context = 'general', array $data = [] ): void;
 
 	/**
 	 * Log with a specific level.
@@ -84,7 +84,7 @@ interface LoggerInterface {
 	 * @param array<string, mixed> $data    Additional data to log.
 	 * @return void
 	 */
-	public function log( string $level, string $message, string $context = 'general', array $data = array() ): void;
+	public function log( string $level, string $message, string $context = 'general', array $data = [] ): void;
 
 	/**
 	 * Get the current request ID.

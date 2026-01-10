@@ -86,14 +86,14 @@ class FrequencyCapManager implements FrequencyCapManagerInterface {
 
 		$result = $this->wpdb->insert(
 			$tableName,
-			array(
+			[
 				'customer_phone' => $customerPhone,
 				'campaign_type'  => $campaignType,
 				'message_id'     => $messageId,
 				'status'         => 'sent',
 				'sent_at'        => current_time( 'mysql' ),
-			),
-			array( '%s', '%s', '%s', '%s', '%s' )
+			],
+			[ '%s', '%s', '%s', '%s', '%s' ]
 		);
 
 		return false !== $result;

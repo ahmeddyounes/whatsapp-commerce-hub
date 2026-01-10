@@ -39,20 +39,20 @@ class CouponHandler implements CouponHandlerInterface {
 		$validation = $this->validateCoupon( $couponCode );
 
 		if ( ! $validation['valid'] ) {
-			return array(
+			return [
 				'success'  => false,
 				'discount' => 0.0,
 				'error'    => $validation['error'],
-			);
+			];
 		}
 
 		$discount = $this->calculateDiscount( $couponCode, $cartTotal );
 
-		return array(
+		return [
 			'success'  => true,
 			'discount' => $discount,
 			'error'    => null,
-		);
+		];
 	}
 
 	/**
@@ -66,10 +66,10 @@ class CouponHandler implements CouponHandlerInterface {
 		$coupon     = new \WC_Coupon( $couponCode );
 
 		if ( ! $coupon->get_id() ) {
-			return array(
+			return [
 				'valid' => false,
 				'error' => __( 'Invalid coupon code', 'whatsapp-commerce-hub' ),
-			);
+			];
 		}
 
 		// Check coupon validity using WooCommerce discounts class.
@@ -77,32 +77,32 @@ class CouponHandler implements CouponHandlerInterface {
 		$valid     = $discounts->is_coupon_valid( $coupon );
 
 		if ( is_wp_error( $valid ) ) {
-			return array(
+			return [
 				'valid' => false,
 				'error' => $valid->get_error_message(),
-			);
+			];
 		}
 
 		// Check if coupon is expired.
 		if ( $coupon->get_date_expires() && $coupon->get_date_expires()->getTimestamp() < time() ) {
-			return array(
+			return [
 				'valid' => false,
 				'error' => __( 'This coupon has expired', 'whatsapp-commerce-hub' ),
-			);
+			];
 		}
 
 		// Check usage limits.
 		if ( $coupon->get_usage_limit() > 0 && $coupon->get_usage_count() >= $coupon->get_usage_limit() ) {
-			return array(
+			return [
 				'valid' => false,
 				'error' => __( 'This coupon has reached its usage limit', 'whatsapp-commerce-hub' ),
-			);
+			];
 		}
 
-		return array(
+		return [
 			'valid' => true,
 			'error' => null,
-		);
+		];
 	}
 
 	/**
@@ -152,7 +152,7 @@ class CouponHandler implements CouponHandlerInterface {
 			return null;
 		}
 
-		return array(
+		return [
 			'id'             => $coupon->get_id(),
 			'code'           => $coupon->get_code(),
 			'discount_type'  => $coupon->get_discount_type(),
@@ -164,7 +164,7 @@ class CouponHandler implements CouponHandlerInterface {
 			'individual_use' => $coupon->get_individual_use(),
 			'usage_limit'    => $coupon->get_usage_limit(),
 			'usage_count'    => $coupon->get_usage_count(),
-		);
+		];
 	}
 
 	/**

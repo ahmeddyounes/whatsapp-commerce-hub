@@ -89,7 +89,7 @@ class ResilienceServiceProvider implements ServiceProviderInterface {
 				register_rest_route(
 					'wch/v1',
 					'/health/circuits',
-					array(
+					[
 						'methods'             => 'GET',
 						'callback'            => function () use ( $container ) {
 							$registry = $container->get( CircuitBreakerRegistry::class );
@@ -98,7 +98,7 @@ class ResilienceServiceProvider implements ServiceProviderInterface {
 						'permission_callback' => function () {
 							return current_user_can( 'manage_woocommerce' );
 						},
-					)
+					]
 				);
 			}
 		);
@@ -119,7 +119,7 @@ class ResilienceServiceProvider implements ServiceProviderInterface {
 
 				// Trigger alert for critical services opening.
 				if ( CircuitBreaker::STATE_OPEN === $new_state ) {
-					$critical_services = array( 'whatsapp', 'payment' );
+					$critical_services = [ 'whatsapp', 'payment' ];
 
 					if ( in_array( $service, $critical_services, true ) ) {
 						do_action( 'wch_critical_service_unavailable', $service );
@@ -150,7 +150,7 @@ class ResilienceServiceProvider implements ServiceProviderInterface {
 	 * @return array<string>
 	 */
 	public function provides(): array {
-		return array(
+		return [
 			CircuitBreakerRegistry::class,
 			FallbackStrategy::class,
 			'wch.retry.whatsapp',
@@ -158,6 +158,6 @@ class ResilienceServiceProvider implements ServiceProviderInterface {
 			'wch.retry.payment',
 			'wch.circuits',
 			'wch.fallback',
-		);
+		];
 	}
 }

@@ -118,14 +118,14 @@ class ProductTrackingService implements ProductTrackingServiceInterface {
 
 		$result = $this->wpdb->insert(
 			$tableName,
-			array(
+			[
 				'customer_phone' => $customerPhone,
 				'product_id'     => $productId,
 				'price_at_view'  => $product->get_price(),
 				'in_stock'       => $product->is_in_stock() ? 1 : 0,
 				'viewed_at'      => current_time( 'mysql' ),
-			),
-			array( '%s', '%d', '%f', '%d', '%s' )
+			],
+			[ '%s', '%d', '%f', '%d', '%s' ]
 		);
 
 		return false !== $result;
@@ -154,17 +154,17 @@ class ProductTrackingService implements ProductTrackingServiceInterface {
 			ARRAY_A
 		);
 
-		$products = array();
+		$products = [];
 
 		foreach ( $results as $row ) {
 			$product = wc_get_product( $row['product_id'] );
 			if ( $product && $product->is_in_stock() ) {
-				$products[] = array(
+				$products[] = [
 					'id'    => $product->get_id(),
 					'name'  => $product->get_name(),
 					'price' => $product->get_price(),
 					'url'   => $product->get_permalink(),
-				);
+				];
 			}
 		}
 
@@ -194,7 +194,7 @@ class ProductTrackingService implements ProductTrackingServiceInterface {
 			ARRAY_A
 		);
 
-		$products = array();
+		$products = [];
 
 		foreach ( $results as $row ) {
 			$product = wc_get_product( $row['product_id'] );
@@ -209,14 +209,14 @@ class ProductTrackingService implements ProductTrackingServiceInterface {
 				$dropPercent = ( ( $oldPrice - $currentPrice ) / $oldPrice ) * 100;
 
 				if ( $dropPercent >= $minDropPercent ) {
-					$products[] = array(
+					$products[] = [
 						'id'        => $product->get_id(),
 						'name'      => $product->get_name(),
 						'old_price' => $oldPrice,
 						'price'     => $currentPrice,
 						'drop'      => round( $dropPercent, 0 ),
 						'url'       => $product->get_permalink(),
-					);
+					];
 				}
 			}
 		}
@@ -303,10 +303,10 @@ class ProductTrackingService implements ProductTrackingServiceInterface {
 			// Queue back-in-stock notification.
 			\WCH_Job_Dispatcher::dispatch(
 				'wch_send_reengagement_message',
-				array(
+				[
 					'customer_phone' => $row['customer_phone'],
 					'campaign_type'  => 'back_in_stock',
-				),
+				],
 				0
 			);
 
@@ -331,10 +331,10 @@ class ProductTrackingService implements ProductTrackingServiceInterface {
 
 		$result = $this->wpdb->update(
 			$tableName,
-			array( 'in_stock' => $inStock ? 1 : 0 ),
-			array( 'product_id' => $productId ),
-			array( '%d' ),
-			array( '%d' )
+			[ 'in_stock' => $inStock ? 1 : 0 ],
+			[ 'product_id' => $productId ],
+			[ '%d' ],
+			[ '%d' ]
 		);
 
 		return false !== $result;

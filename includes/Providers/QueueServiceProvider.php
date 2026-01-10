@@ -216,7 +216,7 @@ class QueueServiceProvider implements ServiceProviderInterface {
 					time(),
 					DAY_IN_SECONDS,
 					'wch_cleanup_dead_letter_queue',
-					array(),
+					[],
 					'wch-maintenance'
 				);
 			}
@@ -241,7 +241,7 @@ class QueueServiceProvider implements ServiceProviderInterface {
 					time() + HOUR_IN_SECONDS,
 					HOUR_IN_SECONDS,
 					'wch_cleanup_idempotency_keys',
-					array(),
+					[],
 					'wch-maintenance'
 				);
 			}
@@ -358,7 +358,7 @@ class QueueServiceProvider implements ServiceProviderInterface {
 	 * @return array<string>
 	 */
 	public function provides(): array {
-		return array(
+		return [
 			DeadLetterQueue::class,
 			PriorityQueue::class,
 			JobMonitor::class,
@@ -376,6 +376,6 @@ class QueueServiceProvider implements ServiceProviderInterface {
 			'wch.processor.webhook_status',
 			'wch.processor.webhook_error',
 			'wch.processor.order_notification',
-		);
+		];
 	}
 }

@@ -44,7 +44,7 @@ class ShowMainMenuAction extends AbstractAction {
 	 */
 	public function handle( string $phone, array $params, ConversationContext $context ): ActionResult {
 		try {
-			$this->log( 'Showing main menu', array( 'phone' => $phone ) );
+			$this->log( 'Showing main menu', [ 'phone' => $phone ] );
 
 			// Get customer profile for personalization.
 			$customer = $this->getCustomerProfile( $phone );
@@ -56,13 +56,13 @@ class ShowMainMenuAction extends AbstractAction {
 			$menuMessage = $this->buildMenu();
 
 			return ActionResult::success(
-				array( $greeting, $menuMessage ),
+				[ $greeting, $menuMessage ],
 				null,
-				array( 'last_menu' => 'main' )
+				[ 'last_menu' => 'main' ]
 			);
 
 		} catch ( \Exception $e ) {
-			$this->log( 'Error showing main menu', array( 'error' => $e->getMessage() ), 'error' );
+			$this->log( 'Error showing main menu', [ 'error' => $e->getMessage() ], 'error' );
 			return $this->error( __( 'Sorry, something went wrong. Please try again.', 'whatsapp-commerce-hub' ) );
 		}
 	}
@@ -108,48 +108,48 @@ class ShowMainMenuAction extends AbstractAction {
 		// Shopping section.
 		$message->section(
 			__( 'Shopping', 'whatsapp-commerce-hub' ),
-			array(
-				array(
+			[
+				[
 					'id'          => 'menu_shop_category',
 					'title'       => __( 'Shop by Category', 'whatsapp-commerce-hub' ),
 					'description' => __( 'Browse products by category', 'whatsapp-commerce-hub' ),
-				),
-				array(
+				],
+				[
 					'id'          => 'menu_search',
 					'title'       => __( 'Search Products', 'whatsapp-commerce-hub' ),
 					'description' => __( 'Find what you are looking for', 'whatsapp-commerce-hub' ),
-				),
-			)
+				],
+			]
 		);
 
 		// Orders & Support section.
 		$message->section(
 			__( 'Orders & Support', 'whatsapp-commerce-hub' ),
-			array(
-				array(
+			[
+				[
 					'id'          => 'menu_view_cart',
 					'title'       => __( 'View Cart', 'whatsapp-commerce-hub' ),
 					'description' => __( 'See items in your cart', 'whatsapp-commerce-hub' ),
-				),
-				array(
+				],
+				[
 					'id'          => 'menu_track_order',
 					'title'       => __( 'Track Order', 'whatsapp-commerce-hub' ),
 					'description' => __( 'Check your order status', 'whatsapp-commerce-hub' ),
-				),
-				array(
+				],
+				[
 					'id'          => 'menu_support',
 					'title'       => __( 'Talk to Support', 'whatsapp-commerce-hub' ),
 					'description' => __( 'Chat with our team', 'whatsapp-commerce-hub' ),
-				),
-			)
+				],
+			]
 		);
 
 		$message->button(
 			'reply',
-			array(
+			[
 				'id'    => 'menu',
 				'title' => __( 'Main Menu', 'whatsapp-commerce-hub' ),
-			)
+			]
 		);
 
 		return $message;

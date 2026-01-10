@@ -104,29 +104,29 @@ class ProductSyncService implements ProductSyncServiceInterface {
 		// Validate product.
 		$validation = $this->validateProduct( $product_id );
 		if ( ! $validation['valid'] ) {
-			return array(
+			return [
 				'success'         => false,
 				'catalog_item_id' => null,
 				'error'           => $validation['reason'],
-			);
+			];
 		}
 
 		// Check if sync is enabled.
 		if ( ! $this->isSyncEnabled() ) {
-			return array(
+			return [
 				'success'         => false,
 				'catalog_item_id' => null,
 				'error'           => 'Product sync is disabled',
-			);
+			];
 		}
 
 		// Check if client is available.
 		if ( ! $this->whatsapp_client ) {
-			return array(
+			return [
 				'success'         => false,
 				'catalog_item_id' => null,
 				'error'           => 'WhatsApp client not available',
-			);
+			];
 		}
 
 		try {
@@ -172,11 +172,11 @@ class ProductSyncService implements ProductSyncServiceInterface {
 
 			do_action( 'wch_product_synced', $product_id, $catalog_item_id );
 
-			return array(
+			return [
 				'success'         => true,
 				'catalog_item_id' => $catalog_item_id,
 				'error'           => null,
-			);
+			];
 
 		} catch ( \Exception $e ) {
 			// Record error.
@@ -186,17 +186,17 @@ class ProductSyncService implements ProductSyncServiceInterface {
 			do_action(
 				'wch_log_error',
 				'ProductSyncService: Sync failed',
-				array(
+				[
 					'product_id' => $product_id,
 					'error'      => $e->getMessage(),
-				)
+				]
 			);
 
-			return array(
+			return [
 				'success'         => false,
 				'catalog_item_id' => null,
 				'error'           => $e->getMessage(),
-			);
+			];
 		}
 	}
 
@@ -207,10 +207,10 @@ class ProductSyncService implements ProductSyncServiceInterface {
 	 */
 	public function syncAllProducts(): array {
 		if ( ! $this->isSyncEnabled() ) {
-			return array(
+			return [
 				'queued'  => 0,
 				'batches' => 0,
-			);
+			];
 		}
 
 		// Get all eligible product IDs.
@@ -218,10 +218,10 @@ class ProductSyncService implements ProductSyncServiceInterface {
 		$total       = count( $product_ids );
 
 		if ( 0 === $total ) {
-			return array(
+			return [
 				'queued'  => 0,
 				'batches' => 0,
-			);
+			];
 		}
 
 		// Split into batches.
@@ -238,10 +238,10 @@ class ProductSyncService implements ProductSyncServiceInterface {
 
 		do_action( 'wch_product_sync_started', $queued, $batch_count );
 
-		return array(
+		return [
 			'queued'  => $queued,
 			'batches' => $batch_count,
-		);
+		];
 	}
 
 	/**
@@ -255,17 +255,17 @@ class ProductSyncService implements ProductSyncServiceInterface {
 
 		if ( empty( $catalog_item_id ) ) {
 			// Not in catalog, nothing to delete.
-			return array(
+			return [
 				'success' => true,
 				'error'   => null,
-			);
+			];
 		}
 
 		if ( ! $this->whatsapp_client ) {
-			return array(
+			return [
 				'success' => false,
 				'error'   => 'WhatsApp client not available',
-			);
+			];
 		}
 
 		try {
@@ -287,26 +287,26 @@ class ProductSyncService implements ProductSyncServiceInterface {
 
 			do_action( 'wch_product_deleted_from_catalog', $product_id, $catalog_item_id );
 
-			return array(
+			return [
 				'success' => true,
 				'error'   => null,
-			);
+			];
 
 		} catch ( \Exception $e ) {
 			do_action(
 				'wch_log_error',
 				'ProductSyncService: Delete failed',
-				array(
+				[
 					'product_id'      => $product_id,
 					'catalog_item_id' => $catalog_item_id,
 					'error'           => $e->getMessage(),
-				)
+				]
 			);
 
-			return array(
+			return [
 				'success' => false,
 				'error'   => $e->getMessage(),
-			);
+			];
 		}
 	}
 
@@ -320,75 +320,75 @@ class ProductSyncService implements ProductSyncServiceInterface {
 		$product = wc_get_product( $product_id );
 
 		if ( ! $product ) {
-			return array(
+			return [
 				'valid'  => false,
 				'reason' => 'Product not found',
-			);
+			];
 		}
 
 		// Check publication status.
 		if ( 'publish' !== $product->get_status() ) {
-			return array(
+			return [
 				'valid'  => false,
 				'reason' => 'Product is not published',
-			);
+			];
 		}
 
 		// Check visibility.
 		$visibility = $product->get_catalog_visibility();
 		if ( 'hidden' === $visibility ) {
-			return array(
+			return [
 				'valid'  => false,
 				'reason' => 'Product is hidden from catalog',
-			);
+			];
 		}
 
 		// Check if excluded from sync.
 		$excluded = get_post_meta( $product_id, '_wch_exclude_from_sync', true );
 		if ( '1' === $excluded ) {
-			return array(
+			return [
 				'valid'  => false,
 				'reason' => 'Product excluded from sync',
-			);
+			];
 		}
 
 		// Check stock status (optional based on settings).
 		$sync_out_of_stock = get_option( 'wch_sync_out_of_stock', '0' ) === '1';
 		if ( ! $sync_out_of_stock && ! $product->is_in_stock() ) {
-			return array(
+			return [
 				'valid'  => false,
 				'reason' => 'Product is out of stock',
-			);
+			];
 		}
 
 		// Check for required fields.
 		if ( empty( $product->get_name() ) ) {
-			return array(
+			return [
 				'valid'  => false,
 				'reason' => 'Product name is required',
-			);
+			];
 		}
 
 		if ( empty( $product->get_price() ) ) {
-			return array(
+			return [
 				'valid'  => false,
 				'reason' => 'Product price is required',
-			);
+			];
 		}
 
 		// Check for valid image.
 		$image_id = $product->get_image_id();
 		if ( empty( $image_id ) ) {
-			return array(
+			return [
 				'valid'  => false,
 				'reason' => 'Product image is required',
-			);
+			];
 		}
 
-		return array(
+		return [
 			'valid'  => true,
 			'reason' => null,
-		);
+		];
 	}
 
 	/**
@@ -398,12 +398,12 @@ class ProductSyncService implements ProductSyncServiceInterface {
 	 * @return array{status: string, last_synced: string|null, catalog_id: string|null, error: string|null}
 	 */
 	public function getSyncStatus( int $product_id ): array {
-		return array(
+		return [
 			'status'      => get_post_meta( $product_id, self::META_SYNC_STATUS, true ) ?: self::STATUS_PENDING,
 			'last_synced' => get_post_meta( $product_id, self::META_LAST_SYNCED, true ) ?: null,
 			'catalog_id'  => get_post_meta( $product_id, self::META_CATALOG_ID, true ) ?: null,
 			'error'       => get_post_meta( $product_id, self::META_SYNC_ERROR, true ) ?: null,
-		);
+		];
 	}
 
 	/**
@@ -434,7 +434,7 @@ class ProductSyncService implements ProductSyncServiceInterface {
 	public function mapToCatalogFormat( int $product_id, ?int $parent_id = null ): array {
 		$product = wc_get_product( $product_id );
 		if ( ! $product ) {
-			return array();
+			return [];
 		}
 
 		// Get product image URL.
@@ -443,7 +443,7 @@ class ProductSyncService implements ProductSyncServiceInterface {
 
 		// Get additional images.
 		$gallery_ids = $product->get_gallery_image_ids();
-		$images      = array( $image_url );
+		$images      = [ $image_url ];
 		foreach ( array_slice( $gallery_ids, 0, 9 ) as $gallery_id ) { // WhatsApp allows up to 10 images.
 			$gallery_url = wp_get_attachment_image_url( $gallery_id, 'large' );
 			if ( $gallery_url ) {
@@ -452,7 +452,7 @@ class ProductSyncService implements ProductSyncServiceInterface {
 		}
 
 		// Build catalog data.
-		$catalog_data = array(
+		$catalog_data = [
 			'retailer_id'           => (string) $product_id,
 			'name'                  => $this->sanitizeProductName( $product->get_name() ),
 			'description'           => $this->sanitizeDescription( $product->get_description() ?: $product->get_short_description() ),
@@ -462,7 +462,7 @@ class ProductSyncService implements ProductSyncServiceInterface {
 			'price'                 => $this->formatPrice( $product->get_price() ),
 			'currency'              => get_woocommerce_currency(),
 			'availability'          => $product->is_in_stock() ? 'in stock' : 'out of stock',
-		);
+		];
 
 		// Add sale price if applicable.
 		if ( $product->is_on_sale() ) {
@@ -492,7 +492,7 @@ class ProductSyncService implements ProductSyncServiceInterface {
 			$catalog_data['parent_retailer_id'] = (string) $parent_id;
 
 			$attributes   = $product->get_variation_attributes();
-			$variant_data = array();
+			$variant_data = [];
 			foreach ( $attributes as $name => $value ) {
 				$clean_name                             = str_replace( 'attribute_', '', $name );
 				$clean_name                             = str_replace( 'pa_', '', $clean_name );
@@ -516,23 +516,23 @@ class ProductSyncService implements ProductSyncServiceInterface {
 	public function getProductsPendingSync( int $limit = 100 ): array {
 		$limit = max( 1, min( 500, $limit ) );
 
-		$args = array(
+		$args = [
 			'post_type'      => 'product',
 			'post_status'    => 'publish',
 			'posts_per_page' => $limit,
 			'fields'         => 'ids',
-			'meta_query'     => array(
+			'meta_query'     => [
 				'relation' => 'OR',
-				array(
+				[
 					'key'     => self::META_SYNC_STATUS,
 					'compare' => 'NOT EXISTS',
-				),
-				array(
+				],
+				[
 					'key'   => self::META_SYNC_STATUS,
 					'value' => self::STATUS_PENDING,
-				),
-			),
-		);
+				],
+			],
+		];
 
 		$query = new \WP_Query( $args );
 		return $query->posts;
@@ -547,21 +547,21 @@ class ProductSyncService implements ProductSyncServiceInterface {
 	public function getProductsWithErrors( int $limit = 100 ): array {
 		$limit = max( 1, min( 500, $limit ) );
 
-		$args = array(
+		$args = [
 			'post_type'      => 'product',
 			'post_status'    => 'any',
 			'posts_per_page' => $limit,
 			'fields'         => 'ids',
-			'meta_query'     => array(
-				array(
+			'meta_query'     => [
+				[
 					'key'   => self::META_SYNC_STATUS,
 					'value' => self::STATUS_ERROR,
-				),
-			),
-		);
+				],
+			],
+		];
 
 		$query   = new \WP_Query( $args );
-		$results = array();
+		$results = [];
 
 		foreach ( $query->posts as $product_id ) {
 			$product = wc_get_product( $product_id );
@@ -569,12 +569,12 @@ class ProductSyncService implements ProductSyncServiceInterface {
 				continue;
 			}
 
-			$results[] = array(
+			$results[] = [
 				'id'          => $product_id,
 				'name'        => $product->get_name(),
 				'error'       => get_post_meta( $product_id, self::META_SYNC_ERROR, true ),
 				'last_synced' => get_post_meta( $product_id, self::META_LAST_SYNCED, true ),
-			);
+			];
 		}
 
 		return $results;
@@ -607,11 +607,11 @@ class ProductSyncService implements ProductSyncServiceInterface {
 			}
 		}
 
-		return array(
+		return [
 			'retried' => $retried,
 			'success' => $success,
 			'failed'  => $failed,
-		);
+		];
 	}
 
 	/**
@@ -688,13 +688,13 @@ class ProductSyncService implements ProductSyncServiceInterface {
 
 		$pending = max( 0, $total - $synced - $errors );
 
-		return array(
+		return [
 			'total'     => $total,
 			'synced'    => $synced,
 			'pending'   => $pending,
 			'errors'    => $errors,
 			'last_sync' => $last_sync ?: null,
-		);
+		];
 	}
 
 	/**
@@ -706,7 +706,7 @@ class ProductSyncService implements ProductSyncServiceInterface {
 	public function processBatch( array $product_ids ): array {
 		$success = 0;
 		$failed  = 0;
-		$errors  = array();
+		$errors  = [];
 
 		foreach ( $product_ids as $product_id ) {
 			$result = $this->syncProduct( (int) $product_id );
@@ -715,20 +715,20 @@ class ProductSyncService implements ProductSyncServiceInterface {
 				++$success;
 			} else {
 				++$failed;
-				$errors[] = array(
+				$errors[] = [
 					'product_id' => $product_id,
 					'error'      => $result['error'],
-				);
+				];
 			}
 		}
 
 		do_action( 'wch_product_batch_completed', $success, $failed, $errors );
 
-		return array(
+		return [
 			'success' => $success,
 			'failed'  => $failed,
 			'errors'  => $errors,
-		);
+		];
 	}
 
 	/**
@@ -762,7 +762,7 @@ class ProductSyncService implements ProductSyncServiceInterface {
 		if ( $this->queue_service ) {
 			$this->queue_service->dispatch(
 				'wch_sync_product',
-				array( 'product_id' => $product_id ),
+				[ 'product_id' => $product_id ],
 				'wch-normal'
 			);
 		} else {
@@ -787,13 +787,13 @@ class ProductSyncService implements ProductSyncServiceInterface {
 	 * @return array Product IDs.
 	 */
 	private function getEligibleProductIds(): array {
-		$args = array(
+		$args = [
 			'post_type'      => 'product',
 			'post_status'    => 'publish',
 			'posts_per_page' => -1,
 			'fields'         => 'ids',
-			'meta_query'     => array(
-				array(
+			'meta_query'     => [
+				[
 					'relation' => 'OR',
 					array(
 						'key'     => '_wch_exclude_from_sync',
@@ -804,16 +804,16 @@ class ProductSyncService implements ProductSyncServiceInterface {
 						'value'   => '1',
 						'compare' => '!=',
 					),
-				),
-			),
-		);
+				],
+			],
+		];
 
 		// Optionally exclude out of stock.
 		if ( get_option( 'wch_sync_out_of_stock', '0' ) !== '1' ) {
-			$args['meta_query'][] = array(
+			$args['meta_query'][] = [
 				'key'   => '_stock_status',
 				'value' => 'instock',
-			);
+			];
 		}
 
 		$query = new \WP_Query( $args );
@@ -828,10 +828,10 @@ class ProductSyncService implements ProductSyncServiceInterface {
 	 * @return bool Success status.
 	 */
 	private function queueBatch( array $product_ids, int $batch_index ): bool {
-		$data = array(
+		$data = [
 			'product_ids' => $product_ids,
 			'batch_index' => $batch_index,
-		);
+		];
 
 		if ( $this->queue_service ) {
 			return $this->queue_service->schedule(
@@ -847,7 +847,7 @@ class ProductSyncService implements ProductSyncServiceInterface {
 			$action_id = as_schedule_single_action(
 				time() + ( $batch_index * 10 ),
 				'wch_process_product_batch',
-				array( $data ),
+				[ $data ],
 				'wch-catalog'
 			);
 			return $action_id > 0;
@@ -863,7 +863,7 @@ class ProductSyncService implements ProductSyncServiceInterface {
 	 * @return string Hash.
 	 */
 	private function calculateDataHash( \WC_Product $product ): string {
-		$data = array(
+		$data = [
 			'name'        => $product->get_name(),
 			'description' => $product->get_description(),
 			'price'       => $product->get_price(),
@@ -873,7 +873,7 @@ class ProductSyncService implements ProductSyncServiceInterface {
 			'image'       => $product->get_image_id(),
 			'gallery'     => $product->get_gallery_image_ids(),
 			'modified'    => $product->get_date_modified() ? $product->get_date_modified()->getTimestamp() : 0,
-		);
+		];
 
 		return md5( wp_json_encode( $data ) );
 	}
@@ -921,7 +921,7 @@ class ProductSyncService implements ProductSyncServiceInterface {
 	 */
 	private function getProductBrand( \WC_Product $product ): ?string {
 		// Check for brand taxonomy.
-		$brand_taxonomies = array( 'product_brand', 'pa_brand', 'pwb-brand' );
+		$brand_taxonomies = [ 'product_brand', 'pa_brand', 'pwb-brand' ];
 
 		foreach ( $brand_taxonomies as $taxonomy ) {
 			if ( taxonomy_exists( $taxonomy ) ) {

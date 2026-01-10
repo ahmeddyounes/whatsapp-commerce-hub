@@ -31,7 +31,7 @@ class PaymentGatewayRegistry implements PaymentGatewayRegistryInterface {
 	 *
 	 * @var array<string, \WCH_Payment_Gateway>
 	 */
-	private array $gateways = array();
+	private array $gateways = [];
 
 	/**
 	 * Whether default gateways have been loaded.
@@ -52,7 +52,7 @@ class PaymentGatewayRegistry implements PaymentGatewayRegistryInterface {
 	 *
 	 * @var array
 	 */
-	private const DEFAULT_ENABLED = array( 'cod', 'stripe' );
+	private const DEFAULT_ENABLED = [ 'cod', 'stripe' ];
 
 	/**
 	 * Constructor.
@@ -120,7 +120,7 @@ class PaymentGatewayRegistry implements PaymentGatewayRegistryInterface {
 	 */
 	public function getEnabled(): array {
 		$enabled_ids = $this->getEnabledIds();
-		$enabled     = array();
+		$enabled     = [];
 
 		foreach ( $enabled_ids as $id ) {
 			if ( isset( $this->gateways[ $id ] ) ) {
@@ -160,7 +160,7 @@ class PaymentGatewayRegistry implements PaymentGatewayRegistryInterface {
 			}
 		}
 
-		$available = array();
+		$available = [];
 		$enabled   = $this->getEnabled();
 
 		foreach ( $enabled as $id => $gateway ) {
@@ -269,13 +269,13 @@ class PaymentGatewayRegistry implements PaymentGatewayRegistryInterface {
 	 * @return void
 	 */
 	private function registerBuiltinGateways(): void {
-		$builtin_gateways = array(
+		$builtin_gateways = [
 			'cod'         => 'WCH_Payment_COD',
 			'stripe'      => 'WCH_Payment_Stripe',
 			'razorpay'    => 'WCH_Payment_Razorpay',
 			'whatsapppay' => 'WCH_Payment_WhatsAppPay',
 			'pix'         => 'WCH_Payment_PIX',
-		);
+		];
 
 		/**
 		 * Filter the list of built-in gateways to register.
@@ -296,11 +296,11 @@ class PaymentGatewayRegistry implements PaymentGatewayRegistryInterface {
 					if ( class_exists( 'WCH_Logger' ) ) {
 						\WCH_Logger::error(
 							"Failed to instantiate payment gateway: {$id}",
-							array(
+							[
 								'category' => 'payments',
 								'class'    => $class_name,
 								'error'    => $e->getMessage(),
-							)
+							]
 						);
 					}
 				}
@@ -365,14 +365,14 @@ class PaymentGatewayRegistry implements PaymentGatewayRegistryInterface {
 	 * @return array Gateway metadata.
 	 */
 	public function getMetadata(): array {
-		$metadata = array();
+		$metadata = [];
 
 		foreach ( $this->gateways as $id => $gateway ) {
-			$metadata[ $id ] = array(
+			$metadata[ $id ] = [
 				'id'      => $id,
 				'title'   => $gateway->get_title(),
 				'enabled' => $this->isEnabled( $id ),
-			);
+			];
 		}
 
 		return $metadata;

@@ -29,12 +29,12 @@ class AddressService implements AddressServiceInterface {
 	/**
 	 * Required address fields for validation.
 	 */
-	private const REQUIRED_FIELDS = array( 'street', 'city', 'country' );
+	private const REQUIRED_FIELDS = [ 'street', 'city', 'country' ];
 
 	/**
 	 * All possible address fields.
 	 */
-	private const ALL_FIELDS = array(
+	private const ALL_FIELDS = [
 		'name',
 		'street',
 		'street_2',
@@ -44,7 +44,7 @@ class AddressService implements AddressServiceInterface {
 		'country',
 		'phone',
 		'email',
-	);
+	];
 
 	/**
 	 * Format address as a single-line summary.
@@ -53,7 +53,7 @@ class AddressService implements AddressServiceInterface {
 	 * @return string Formatted address summary.
 	 */
 	public function formatSummary( array $address ): string {
-		$parts = array();
+		$parts = [];
 
 		if ( ! empty( $address['street'] ) ) {
 			$parts[] = $address['street'];
@@ -86,7 +86,7 @@ class AddressService implements AddressServiceInterface {
 	 * @return string Formatted address with newlines.
 	 */
 	public function formatDisplay( array $address ): string {
-		$parts = array();
+		$parts = [];
 
 		if ( ! empty( $address['name'] ) ) {
 			$parts[] = $address['name'];
@@ -101,7 +101,7 @@ class AddressService implements AddressServiceInterface {
 		}
 
 		// Build city line.
-		$city_line = array();
+		$city_line = [];
 		if ( ! empty( $address['city'] ) ) {
 			$city_line[] = $address['city'];
 		}
@@ -146,7 +146,7 @@ class AddressService implements AddressServiceInterface {
 			$last_name  = $name_parts[1] ?? '';
 		}
 
-		$wc_address = array(
+		$wc_address = [
 			$prefix . 'first_name' => $first_name,
 			$prefix . 'last_name'  => $last_name,
 			$prefix . 'address_1'  => $normalized['street'] ?? '',
@@ -155,7 +155,7 @@ class AddressService implements AddressServiceInterface {
 			$prefix . 'state'      => $normalized['state'] ?? '',
 			$prefix . 'postcode'   => $normalized['postal_code'] ?? '',
 			$prefix . 'country'    => $normalized['country'] ?? '',
-		);
+		];
 
 		// Add phone and email for billing address.
 		if ( 'billing' === $type ) {
@@ -173,7 +173,7 @@ class AddressService implements AddressServiceInterface {
 	 * @return array{is_valid: bool, errors: array<string, string>}
 	 */
 	public function validate( array $address ): array {
-		$errors = array();
+		$errors = [];
 
 		// Check required fields.
 		foreach ( self::REQUIRED_FIELDS as $field ) {
@@ -203,10 +203,10 @@ class AddressService implements AddressServiceInterface {
 			$errors['email'] = __( 'Invalid email address', 'whatsapp-commerce-hub' );
 		}
 
-		return array(
+		return [
 			'is_valid' => empty( $errors ),
 			'errors'   => $errors,
-		);
+		];
 	}
 
 	/**
@@ -216,7 +216,7 @@ class AddressService implements AddressServiceInterface {
 	 * @return array Normalized address data.
 	 */
 	public function normalize( array $address ): array {
-		$normalized = array();
+		$normalized = [];
 
 		foreach ( self::ALL_FIELDS as $field ) {
 			$value = $address[ $field ] ?? '';
@@ -248,7 +248,7 @@ class AddressService implements AddressServiceInterface {
 	 * @return array Complete address array.
 	 */
 	public function toArray( array $address ): array {
-		$result = array();
+		$result = [];
 
 		foreach ( self::ALL_FIELDS as $field ) {
 			$result[ $field ] = $address[ $field ] ?? '';
@@ -264,7 +264,7 @@ class AddressService implements AddressServiceInterface {
 	 * @return array Parsed address data.
 	 */
 	public function fromText( string $text ): array {
-		$address = $this->toArray( array() );
+		$address = $this->toArray( [] );
 
 		// Clean up the text.
 		$text = trim( $text );
@@ -335,7 +335,7 @@ class AddressService implements AddressServiceInterface {
 		}
 
 		// Fallback to common countries.
-		$common_countries = array(
+		$common_countries = [
 			'US' => 'United States',
 			'CA' => 'Canada',
 			'GB' => 'United Kingdom',
@@ -357,7 +357,7 @@ class AddressService implements AddressServiceInterface {
 			'MY' => 'Malaysia',
 			'PH' => 'Philippines',
 			'ID' => 'Indonesia',
-		);
+		];
 
 		return $common_countries[ $country_code ] ?? $country_code;
 	}
@@ -396,7 +396,7 @@ class AddressService implements AddressServiceInterface {
 		$postal_code  = trim( $postal_code );
 
 		// Country-specific patterns.
-		$patterns = array(
+		$patterns = [
 			'US' => '/^\d{5}(-\d{4})?$/',
 			'CA' => '/^[A-Z]\d[A-Z]\s?\d[A-Z]\d$/i',
 			'GB' => '/^[A-Z]{1,2}\d[A-Z\d]?\s?\d[A-Z]{2}$/i',
@@ -406,7 +406,7 @@ class AddressService implements AddressServiceInterface {
 			'BR' => '/^\d{5}-?\d{3}$/',
 			'AU' => '/^\d{4}$/',
 			'JP' => '/^\d{3}-?\d{4}$/',
-		);
+		];
 
 		// If no specific pattern, allow any alphanumeric.
 		if ( ! isset( $patterns[ $country_code ] ) ) {

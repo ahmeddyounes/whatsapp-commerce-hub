@@ -57,7 +57,7 @@ class IntentClassifierService implements IntentClassifierInterface {
 	 *
 	 * @var array<string, array{regex: string, confidence: float}>
 	 */
-	protected array $patterns = array();
+	protected array $patterns = [];
 
 	/**
 	 * Logger service.
@@ -92,59 +92,59 @@ class IntentClassifierService implements IntentClassifierInterface {
 	 * @return void
 	 */
 	protected function initPatterns(): void {
-		$this->patterns = array(
-			Intent::GREETING     => array(
+		$this->patterns = [
+			Intent::GREETING     => [
 				'regex'      => '/^(hi|hello|hey|good\s*(morning|afternoon|evening))/i',
 				'confidence' => 0.95,
-			),
-			Intent::BROWSE       => array(
+			],
+			Intent::BROWSE       => [
 				'regex'      => '/(show|browse|see|view).*(products?|catalog|items?|collection)/i',
 				'confidence' => 0.9,
-			),
-			Intent::SEARCH       => array(
+			],
+			Intent::SEARCH       => [
 				'regex'      => '/(search|find|looking for|want|need)\s+(.+)/i',
 				'confidence' => 0.85,
-			),
-			Intent::VIEW_CART    => array(
+			],
+			Intent::VIEW_CART    => [
 				'regex'      => '/(my )?(cart|basket|bag)/i',
 				'confidence' => 0.9,
-			),
-			Intent::CHECKOUT     => array(
+			],
+			Intent::CHECKOUT     => [
 				'regex'      => '/(checkout|buy|purchase|pay|order)/i',
 				'confidence' => 0.9,
-			),
-			Intent::ORDER_STATUS => array(
+			],
+			Intent::ORDER_STATUS => [
 				'regex'      => '/(order|track|where).*(status|order|package|delivery)/i',
 				'confidence' => 0.85,
-			),
-			Intent::CANCEL       => array(
+			],
+			Intent::CANCEL       => [
 				'regex'      => '/(cancel|remove|delete)/i',
 				'confidence' => 0.8,
-			),
-			Intent::HELP         => array(
+			],
+			Intent::HELP         => [
 				'regex'      => '/(help|support|assist|human|agent|person)/i',
 				'confidence' => 0.9,
-			),
-			Intent::ADD_TO_CART  => array(
+			],
+			Intent::ADD_TO_CART  => [
 				'regex'      => '/(add|put).*(cart|basket|bag)/i',
 				'confidence' => 0.9,
-			),
-			Intent::TRACK_ORDER  => array(
+			],
+			Intent::TRACK_ORDER  => [
 				'regex'      => '/(track|tracking|where.*(is|my).*order)/i',
 				'confidence' => 0.85,
-			),
-			Intent::HUMAN_AGENT  => array(
+			],
+			Intent::HUMAN_AGENT  => [
 				'regex'      => '/(human|agent|person|representative|speak.*to)/i',
 				'confidence' => 0.9,
-			),
-		);
+			],
+		];
 
 		/**
 		 * Filter to register custom intents.
 		 *
 		 * @param array $patterns Pattern configuration.
 		 */
-		$customPatterns = apply_filters( 'wch_custom_intents', array() );
+		$customPatterns = apply_filters( 'wch_custom_intents', [] );
 		if ( is_array( $customPatterns ) ) {
 			$this->patterns = array_merge( $this->patterns, $customPatterns );
 		}
@@ -153,7 +153,7 @@ class IntentClassifierService implements IntentClassifierInterface {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function classify( string $text, array $context = array() ): Intent {
+	public function classify( string $text, array $context = [] ): Intent {
 		// Check cache first.
 		$cacheKey     = $this->getCacheKey( $text, $context );
 		$cachedResult = wp_cache_get( $cacheKey, $this->cacheGroup );
@@ -162,10 +162,10 @@ class IntentClassifierService implements IntentClassifierInterface {
 			$this->log(
 				'debug',
 				'Intent classification from cache',
-				array(
+				[
 					'text'   => $text,
 					'intent' => $cachedResult['intent_name'] ?? 'unknown',
-				)
+				]
 			);
 
 			return Intent::fromArray( $cachedResult );
@@ -194,7 +194,7 @@ class IntentClassifierService implements IntentClassifierInterface {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function classifyWithAi( string $text, array $context = array() ): Intent {
+	public function classifyWithAi( string $text, array $context = [] ): Intent {
 		if ( '' === $this->openAiApiKey ) {
 			return Intent::unknown();
 		}
@@ -220,16 +220,16 @@ class IntentClassifierService implements IntentClassifierInterface {
 		// Make API request.
 		$response = wp_remote_post(
 			'https://api.openai.com/v1/chat/completions',
-			array(
+			[
 				'timeout' => 10,
-				'headers' => array(
+				'headers' => [
 					'Content-Type'  => 'application/json',
 					'Authorization' => 'Bearer ' . $this->openAiApiKey,
-				),
+				],
 				'body'    => wp_json_encode(
-					array(
+					[
 						'model'       => 'gpt-3.5-turbo',
-						'messages'    => array(
+						'messages'    => [
 							array(
 								'role'    => 'system',
 								'content' => 'You are an intent classifier for a WhatsApp commerce chatbot. Respond only with valid JSON.',
@@ -238,21 +238,21 @@ class IntentClassifierService implements IntentClassifierInterface {
 								'role'    => 'user',
 								'content' => $prompt,
 							),
-						),
+						],
 						'temperature' => 0.3,
 						'max_tokens'  => 100,
-					)
+					]
 				),
-			)
+			]
 		);
 
 		if ( is_wp_error( $response ) ) {
 			$this->log(
 				'error',
 				'AI classification failed',
-				array(
+				[
 					'error' => $response->get_error_message(),
-				)
+				]
 			);
 			return Intent::unknown();
 		}
@@ -287,7 +287,7 @@ class IntentClassifierService implements IntentClassifierInterface {
 	 * {@inheritdoc}
 	 */
 	public function extractEntities( string $text ): array {
-		$entities = array();
+		$entities = [];
 
 		// Extract quantity.
 		$quantityPattern = '/(\d+)\s*(pieces?|items?|units?|pcs?|x)?/i';
@@ -295,11 +295,11 @@ class IntentClassifierService implements IntentClassifierInterface {
 			foreach ( $matches[1] as $match ) {
 				$quantity = (int) $match[0];
 				if ( $quantity > 0 && $quantity < 1000 ) {
-					$entities[] = array(
+					$entities[] = [
 						'type'     => 'QUANTITY',
 						'value'    => $quantity,
 						'position' => $match[1],
-					);
+					];
 				}
 			}
 		}
@@ -309,41 +309,41 @@ class IntentClassifierService implements IntentClassifierInterface {
 		if ( preg_match( $phonePattern, $text, $matches, PREG_OFFSET_CAPTURE ) ) {
 			$phone = preg_replace( '/[^\d+]/', '', $matches[1][0] );
 			if ( strlen( $phone ) >= 10 ) {
-				$entities[] = array(
+				$entities[] = [
 					'type'     => 'PHONE',
 					'value'    => $phone,
 					'position' => $matches[1][1],
-				);
+				];
 			}
 		}
 
 		// Extract email.
 		$emailPattern = '/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/';
 		if ( preg_match( $emailPattern, $text, $matches, PREG_OFFSET_CAPTURE ) ) {
-			$entities[] = array(
+			$entities[] = [
 				'type'     => 'EMAIL',
 				'value'    => $matches[1][0],
 				'position' => $matches[1][1],
-			);
+			];
 		}
 
 		// Extract order number.
 		if ( preg_match( '/#(\d{4,})/', $text, $matches, PREG_OFFSET_CAPTURE ) ) {
-			$entities[] = array(
+			$entities[] = [
 				'type'     => 'ORDER_NUMBER',
 				'value'    => $matches[1][0],
 				'position' => $matches[0][1],
-			);
+			];
 		}
 
 		// Extract address.
 		$addressPattern = '/(street|st|avenue|ave|road|rd|boulevard|blvd|lane|ln|drive|dr|court|ct|way|place|pl)[\s,]+[a-zA-Z0-9\s,.-]+/i';
 		if ( preg_match( $addressPattern, $text, $matches, PREG_OFFSET_CAPTURE ) ) {
-			$entities[] = array(
+			$entities[] = [
 				'type'     => 'ADDRESS',
 				'value'    => trim( $matches[0][0] ),
 				'position' => $matches[0][1],
-			);
+			];
 		}
 
 		return $entities;
@@ -381,7 +381,7 @@ class IntentClassifierService implements IntentClassifierInterface {
 		$text          = trim( $text );
 		$matchedIntent = null;
 		$maxConfidence = 0.0;
-		$entities      = array();
+		$entities      = [];
 
 		foreach ( $this->patterns as $intentName => $patternData ) {
 			if ( preg_match( $patternData['regex'], $text, $matches ) ) {
@@ -391,11 +391,11 @@ class IntentClassifierService implements IntentClassifierInterface {
 
 					// Extract entities for specific intents.
 					if ( Intent::SEARCH === $intentName && isset( $matches[2] ) ) {
-						$entities[] = array(
+						$entities[] = [
 							'type'     => 'PRODUCT_NAME',
 							'value'    => trim( $matches[2] ),
 							'position' => strpos( $text, $matches[2] ),
-						);
+						];
 					}
 				}
 			}
@@ -420,10 +420,10 @@ class IntentClassifierService implements IntentClassifierInterface {
 	 * @return string
 	 */
 	protected function getCacheKey( string $text, array $context ): string {
-		$hashData = array(
+		$hashData = [
 			'text'    => strtolower( trim( $text ) ),
 			'context' => $context['current_state'] ?? '',
-		);
+		];
 		return 'intent_' . md5( wp_json_encode( $hashData ) );
 	}
 
@@ -439,13 +439,13 @@ class IntentClassifierService implements IntentClassifierInterface {
 		$this->log(
 			'info',
 			'Intent classified',
-			array(
+			[
 				'text'       => $text,
 				'intent'     => $intent->getName(),
 				'confidence' => $intent->getConfidence(),
 				'entities'   => $intent->getEntities(),
 				'context'    => $context['current_state'] ?? null,
-			)
+			]
 		);
 	}
 
@@ -457,7 +457,7 @@ class IntentClassifierService implements IntentClassifierInterface {
 	 * @param array  $data    Context data.
 	 * @return void
 	 */
-	protected function log( string $level, string $message, array $data = array() ): void {
+	protected function log( string $level, string $message, array $data = [] ): void {
 		if ( null !== $this->logger ) {
 			$this->logger->log( $level, $message, 'intent_classifier', $data );
 			return;
@@ -478,10 +478,10 @@ class IntentClassifierService implements IntentClassifierInterface {
 	 * @return void
 	 */
 	public function addPattern( string $intent, string $regex, float $confidence = 0.9 ): void {
-		$this->patterns[ $intent ] = array(
+		$this->patterns[ $intent ] = [
 			'regex'      => $regex,
 			'confidence' => $confidence,
-		);
+		];
 	}
 
 	/**
@@ -509,11 +509,11 @@ class IntentClassifierService implements IntentClassifierInterface {
 	 * @return array
 	 */
 	public function getStatistics(): array {
-		return array(
+		return [
 			'patterns_count'   => count( $this->patterns ),
 			'ai_enabled'       => $this->isAiAvailable(),
 			'cache_expiration' => self::CACHE_EXPIRATION,
 			'threshold'        => $this->confidenceThreshold,
-		);
+		];
 	}
 }

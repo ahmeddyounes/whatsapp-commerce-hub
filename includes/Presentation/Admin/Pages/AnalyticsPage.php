@@ -40,9 +40,9 @@ class AnalyticsPage {
 	 * @return void
 	 */
 	public function init(): void {
-		add_action( 'admin_menu', array( $this, 'addMenuItem' ), 51 );
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueueScripts' ) );
-		add_action( 'wp_ajax_wch_refresh_analytics', array( $this, 'ajaxRefreshAnalytics' ) );
+		add_action( 'admin_menu', [ $this, 'addMenuItem' ], 51 );
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueueScripts' ] );
+		add_action( 'wp_ajax_wch_refresh_analytics', [ $this, 'ajaxRefreshAnalytics' ] );
 	}
 
 	/**
@@ -57,10 +57,10 @@ class AnalyticsPage {
 			__( 'WhatsApp Analytics', 'whatsapp-commerce-hub' ),
 			'manage_woocommerce',
 			'wch-analytics',
-			array( $this, 'renderPage' )
+			[ $this, 'renderPage' ]
 		);
 
-		add_action( 'load-' . $this->pageHook, array( $this, 'addHelpTab' ) );
+		add_action( 'load-' . $this->pageHook, [ $this, 'addHelpTab' ] );
 	}
 
 	/**
@@ -72,7 +72,7 @@ class AnalyticsPage {
 		$screen = get_current_screen();
 
 		$screen->add_help_tab(
-			array(
+			[
 				'id'      => 'wch_analytics_help',
 				'title'   => __( 'Analytics Help', 'whatsapp-commerce-hub' ),
 				'content' => '<p>' . __( 'View WhatsApp Commerce performance analytics. Metrics include orders, revenue, conversations, and customer insights.', 'whatsapp-commerce-hub' ) . '</p>' .
@@ -81,7 +81,7 @@ class AnalyticsPage {
 							'<li>' . __( 'Use filters to change date ranges and compare periods', 'whatsapp-commerce-hub' ) . '</li>' .
 							'<li>' . __( 'Export data to CSV for detailed analysis', 'whatsapp-commerce-hub' ) . '</li>' .
 							'</ul>',
-			)
+			]
 		);
 	}
 
@@ -99,14 +99,14 @@ class AnalyticsPage {
 		wp_enqueue_style(
 			'wch-admin-analytics',
 			WCH_PLUGIN_URL . 'assets/css/admin-analytics.css',
-			array(),
+			[],
 			WCH_VERSION
 		);
 
 		wp_enqueue_script(
 			'chart-js',
 			'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
-			array(),
+			[],
 			'4.4.0',
 			true
 		);
@@ -114,7 +114,7 @@ class AnalyticsPage {
 		wp_enqueue_script(
 			'wch-admin-analytics',
 			WCH_PLUGIN_URL . 'assets/js/admin-analytics.js',
-			array( 'jquery', 'chart-js' ),
+			[ 'jquery', 'chart-js' ],
 			WCH_VERSION,
 			true
 		);
@@ -122,20 +122,20 @@ class AnalyticsPage {
 		wp_localize_script(
 			'wch-admin-analytics',
 			'wchAnalytics',
-			array(
+			[
 				'ajax_url'   => admin_url( 'admin-ajax.php' ),
 				'rest_url'   => rest_url( 'wch/v1/analytics/' ),
 				'nonce'      => wp_create_nonce( 'wch_analytics_nonce' ),
 				'currency'   => get_woocommerce_currency_symbol(),
 				'dateFormat' => get_option( 'date_format' ),
-				'strings'    => array(
+				'strings'    => [
 					'loading'        => __( 'Loading...', 'whatsapp-commerce-hub' ),
 					'error'          => __( 'Error loading data', 'whatsapp-commerce-hub' ),
 					'no_data'        => __( 'No data available', 'whatsapp-commerce-hub' ),
 					'export_success' => __( 'Export successful', 'whatsapp-commerce-hub' ),
 					'export_error'   => __( 'Export failed', 'whatsapp-commerce-hub' ),
-				),
-			)
+				],
+			]
 		);
 	}
 
@@ -183,13 +183,13 @@ class AnalyticsPage {
 	 * @return void
 	 */
 	private function renderNavTabs( string $activeTab ): void {
-		$tabs = array(
+		$tabs = [
 			'overview'      => __( 'Overview', 'whatsapp-commerce-hub' ),
 			'orders'        => __( 'Orders & Revenue', 'whatsapp-commerce-hub' ),
 			'conversations' => __( 'Conversations', 'whatsapp-commerce-hub' ),
 			'customers'     => __( 'Customers', 'whatsapp-commerce-hub' ),
 			'products'      => __( 'Products', 'whatsapp-commerce-hub' ),
-		);
+		];
 		?>
 		<nav class="nav-tab-wrapper wch-nav-tab-wrapper">
 			<?php foreach ( $tabs as $tab => $label ) : ?>
@@ -304,12 +304,12 @@ class AnalyticsPage {
 	 * @return void
 	 */
 	private function renderMetricCard( string $id, string $metric, string $title, string $label ): void {
-		$icons = array(
+		$icons = [
 			'total-orders'  => '📦',
 			'revenue'       => '💰',
 			'conversations' => '💬',
 			'conversion'    => '📈',
-		);
+		];
 		?>
 		<div class="wch-metric-card" id="metric-<?php echo esc_attr( $id ); ?>">
 			<div class="wch-metric-icon"><?php echo esc_html( $icons[ $id ] ?? '📊' ); ?></div>
@@ -479,13 +479,13 @@ class AnalyticsPage {
 		check_ajax_referer( 'wch_analytics_nonce', 'nonce' );
 
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
-			wp_send_json_error( array( 'message' => __( 'Permission denied', 'whatsapp-commerce-hub' ) ) );
+			wp_send_json_error( [ 'message' => __( 'Permission denied', 'whatsapp-commerce-hub' ) ] );
 		}
 
 		if ( class_exists( 'WCH_Analytics_Data' ) ) {
 			\WCH_Analytics_Data::clear_caches();
 		}
 
-		wp_send_json_success( array( 'message' => __( 'Analytics cache cleared', 'whatsapp-commerce-hub' ) ) );
+		wp_send_json_success( [ 'message' => __( 'Analytics cache cleared', 'whatsapp-commerce-hub' ) ] );
 	}
 }

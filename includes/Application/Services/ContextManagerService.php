@@ -64,7 +64,7 @@ class ContextManagerService implements ContextManagerInterface {
 	 *
 	 * @var string[]
 	 */
-	protected array $preservedSlots = array( 'address', 'payment_method', 'preferred_category' );
+	protected array $preservedSlots = [ 'address', 'payment_method', 'preferred_category' ];
 
 	/**
 	 * Constructor.
@@ -104,7 +104,7 @@ class ContextManagerService implements ContextManagerInterface {
 		}
 
 		// Parse context JSON.
-		$contextData = array();
+		$contextData = [];
 		if ( ! empty( $row->context ) ) {
 			$decoded = json_decode( $row->context, true );
 			if ( is_array( $decoded ) ) {
@@ -142,7 +142,7 @@ class ContextManagerService implements ContextManagerInterface {
 			return ConversationContext::forPhone( $phone );
 		}
 
-		$contextData = array();
+		$contextData = [];
 		if ( ! empty( $row->context ) ) {
 			$decoded = json_decode( $row->context, true );
 			if ( is_array( $decoded ) ) {
@@ -164,24 +164,24 @@ class ContextManagerService implements ContextManagerInterface {
 
 		$result = $this->wpdb->update(
 			$tableName,
-			array(
+			[
 				'context'         => $contextJson,
 				'last_message_at' => $context->getLastActivityAt(),
 				'updated_at'      => gmdate( 'Y-m-d H:i:s' ),
-			),
-			array( 'id' => $conversationId ),
-			array( '%s', '%s', '%s' ),
-			array( '%d' )
+			],
+			[ 'id' => $conversationId ],
+			[ '%s', '%s', '%s' ],
+			[ '%d' ]
 		);
 
 		if ( false === $result ) {
 			$this->log(
 				'error',
 				'Failed to save context',
-				array(
+				[
 					'conversation_id' => $conversationId,
 					'error'           => $this->wpdb->last_error,
-				)
+				]
 			);
 			return false;
 		}
@@ -235,7 +235,7 @@ class ContextManagerService implements ContextManagerInterface {
 
 		// Get old and new slots.
 		$oldSlots = $oldContext->getAllSlots();
-		$newSlots = $newData['slots'] ?? array();
+		$newSlots = $newData['slots'] ?? [];
 
 		// Keep preserved slot values that aren't overridden.
 		foreach ( $this->preservedSlots as $slotName ) {
@@ -257,10 +257,10 @@ class ContextManagerService implements ContextManagerInterface {
 		$this->log(
 			'info',
 			'Contexts merged for returning customer',
-			array(
+			[
 				'preserved_slots' => array_keys( $oldSlots ),
 				'new_slots'       => array_keys( $newSlots ),
-			)
+			]
 		);
 
 		return $mergedContext;
@@ -280,7 +280,7 @@ class ContextManagerService implements ContextManagerInterface {
 			)
 		);
 
-		return $results ? array_map( 'intval', $results ) : array();
+		return $results ? array_map( 'intval', $results ) : [];
 	}
 
 	/**
@@ -317,10 +317,10 @@ class ContextManagerService implements ContextManagerInterface {
 		$tableName = $this->wpdb->prefix . 'wch_conversations';
 		$this->wpdb->update(
 			$tableName,
-			array( 'status' => 'closed' ),
-			array( 'id' => $conversationId ),
-			array( '%s' ),
-			array( '%d' )
+			[ 'status' => 'closed' ],
+			[ 'id' => $conversationId ],
+			[ '%s' ],
+			[ '%d' ]
 		);
 
 		// Clear the context.
@@ -329,10 +329,10 @@ class ContextManagerService implements ContextManagerInterface {
 		$this->log(
 			'info',
 			'Conversation archived due to inactivity',
-			array(
+			[
 				'conversation_id'   => $conversationId,
 				'inactive_duration' => $inactiveDuration,
-			)
+			]
 		);
 	}
 
@@ -354,7 +354,7 @@ class ContextManagerService implements ContextManagerInterface {
 	 * @param array  $context Context data.
 	 * @return void
 	 */
-	protected function log( string $level, string $message, array $context = array() ): void {
+	protected function log( string $level, string $message, array $context = [] ): void {
 		if ( null !== $this->logger ) {
 			$this->logger->log( $level, $message, 'context_manager', $context );
 			return;

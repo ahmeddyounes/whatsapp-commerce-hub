@@ -71,7 +71,7 @@ class AddressStep extends AbstractStep {
 	 */
 	public function execute( array $context ): CheckoutResponse {
 		try {
-			$this->log( 'Requesting address', array( 'phone' => $this->getCustomerPhone( $context ) ) );
+			$this->log( 'Requesting address', [ 'phone' => $this->getCustomerPhone( $context ) ] );
 
 			$customer        = $this->getCustomer( $context );
 			$saved_addresses = $this->getSavedAddresses( $customer );
@@ -82,15 +82,15 @@ class AddressStep extends AbstractStep {
 				$message = $this->buildNewAddressPrompt();
 			}
 
-			return $this->success( array( $message ) );
+			return $this->success( [ $message ] );
 
 		} catch ( \Throwable $e ) {
-			$this->logError( 'Error requesting address', array( 'error' => $e->getMessage() ) );
+			$this->logError( 'Error requesting address', [ 'error' => $e->getMessage() ] );
 
 			return $this->failure(
 				$e->getMessage(),
 				'address_request_failed',
-				array( $this->errorMessage( __( 'Sorry, we could not process your address request. Please try again.', 'whatsapp-commerce-hub' ) ) )
+				[ $this->errorMessage( __( 'Sorry, we could not process your address request. Please try again.', 'whatsapp-commerce-hub' ) ) ]
 			);
 		}
 	}
@@ -106,10 +106,10 @@ class AddressStep extends AbstractStep {
 		try {
 			$this->log(
 				'Processing address input',
-				array(
+				[
 					'phone'        => $this->getCustomerPhone( $context ),
 					'input_length' => strlen( $input ),
-				)
+				]
 			);
 
 			$address = null;
@@ -122,16 +122,16 @@ class AddressStep extends AbstractStep {
 					return $this->failure(
 						__( 'Saved address not found', 'whatsapp-commerce-hub' ),
 						'saved_address_not_found',
-						array(
+						[
 							$this->errorMessage(
 								__( 'Sorry, we could not load that saved address. Please try again.', 'whatsapp-commerce-hub' )
 							),
-						)
+						]
 					);
 				}
 			} elseif ( 'new_address' === $input ) {
 				// Prompt for new address entry.
-				return $this->success( array( $this->buildNewAddressPrompt() ), array(), $this->getStepId() );
+				return $this->success( [ $this->buildNewAddressPrompt() ], [], $this->getStepId() );
 			} else {
 				// Parse address from text input.
 				$address = $this->address_service->fromText( $input );
@@ -146,25 +146,25 @@ class AddressStep extends AbstractStep {
 				return $this->failure(
 					__( 'Address validation failed', 'whatsapp-commerce-hub' ),
 					'address_validation_failed',
-					array( $this->errorMessage( $error_message ) )
+					[ $this->errorMessage( $error_message ) ]
 				);
 			}
 
 			// Return success with address data for storage.
 			return $this->success(
-				array(),
-				array(),
+				[],
+				[],
 				$this->getNextStep(),
-				array( 'shipping_address' => $address )
+				[ 'shipping_address' => $address ]
 			);
 
 		} catch ( \Throwable $e ) {
-			$this->logError( 'Error processing address input', array( 'error' => $e->getMessage() ) );
+			$this->logError( 'Error processing address input', [ 'error' => $e->getMessage() ] );
 
 			return $this->failure(
 				$e->getMessage(),
 				'address_processing_failed',
-				array( $this->errorMessage( __( 'Sorry, we could not process your address. Please try again.', 'whatsapp-commerce-hub' ) ) )
+				[ $this->errorMessage( __( 'Sorry, we could not process your address. Please try again.', 'whatsapp-commerce-hub' ) ) ]
 			);
 		}
 	}
@@ -188,14 +188,14 @@ class AddressStep extends AbstractStep {
 	 */
 	private function getSavedAddresses( $customer ): array {
 		if ( ! $customer || empty( $customer->saved_addresses ) ) {
-			return array();
+			return [];
 		}
 
 		if ( is_array( $customer->saved_addresses ) ) {
 			return $customer->saved_addresses;
 		}
 
-		return array();
+		return [];
 	}
 
 	/**
@@ -222,23 +222,23 @@ class AddressStep extends AbstractStep {
 		$message = $this->message_builder->create();
 		$message->body( __( '📍 Select a shipping address or add a new one:', 'whatsapp-commerce-hub' ) );
 
-		$rows = array();
+		$rows = [];
 
 		foreach ( $addresses as $index => $address ) {
 			$summary = $this->address_service->formatSummary( $address );
-			$rows[]  = array(
+			$rows[]  = [
 				'id'          => 'saved_address_' . $index,
 				'title'       => $address['name'] ?? __( 'Address', 'whatsapp-commerce-hub' ) . ' ' . ( $index + 1 ),
 				'description' => mb_substr( $summary, 0, 72 ),
-			);
+			];
 		}
 
 		// Add option for new address.
-		$rows[] = array(
+		$rows[] = [
 			'id'          => 'new_address',
 			'title'       => __( '+ Add New Address', 'whatsapp-commerce-hub' ),
 			'description' => __( 'Enter a new shipping address', 'whatsapp-commerce-hub' ),
-		);
+		];
 
 		$message->section( __( 'Addresses', 'whatsapp-commerce-hub' ), $rows );
 

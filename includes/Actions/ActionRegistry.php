@@ -33,14 +33,14 @@ class ActionRegistry {
 	 *
 	 * @var array<string, ActionHandlerInterface[]>
 	 */
-	private array $handlers = array();
+	private array $handlers = [];
 
 	/**
 	 * Sorted handlers cache.
 	 *
 	 * @var array<string, ActionHandlerInterface[]>
 	 */
-	private array $sortedHandlers = array();
+	private array $sortedHandlers = [];
 
 	/**
 	 * Register an action handler.
@@ -52,7 +52,7 @@ class ActionRegistry {
 		$actionName = $handler->getName();
 
 		if ( ! isset( $this->handlers[ $actionName ] ) ) {
-			$this->handlers[ $actionName ] = array();
+			$this->handlers[ $actionName ] = [];
 		}
 
 		$this->handlers[ $actionName ][] = $handler;
@@ -109,7 +109,7 @@ class ActionRegistry {
 	 */
 	public function getHandlers( string $actionName ): array {
 		if ( ! $this->has( $actionName ) ) {
-			return array();
+			return [];
 		}
 
 		// Return cached sorted handlers.
@@ -151,7 +151,7 @@ class ActionRegistry {
 		if ( ! $handler ) {
 			\WCH_Logger::log(
 				'No handler found for action',
-				array( 'action' => $actionName ),
+				[ 'action' => $actionName ],
 				'warning'
 			);
 			return null;
@@ -201,8 +201,8 @@ class ActionRegistry {
 	 * @return self
 	 */
 	public function clear(): self {
-		$this->handlers       = array();
-		$this->sortedHandlers = array();
+		$this->handlers       = [];
+		$this->sortedHandlers = [];
 
 		return $this;
 	}

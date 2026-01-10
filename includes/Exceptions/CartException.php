@@ -60,7 +60,7 @@ class CartException extends WchException {
 		string $errorCode = 'cart_error',
 		?int $productId = null,
 		int $httpStatus = 400,
-		array $context = array(),
+		array $context = [],
 		?\Throwable $previous = null
 	) {
 		parent::__construct( $message, $errorCode, $httpStatus, $context, 0, $previous );
@@ -94,7 +94,7 @@ class CartException extends WchException {
 			self::ERROR_OUT_OF_STOCK,
 			$productId,
 			400,
-			array( 'product_name' => $productName )
+			[ 'product_name' => $productName ]
 		);
 	}
 
@@ -112,10 +112,10 @@ class CartException extends WchException {
 			self::ERROR_INSUFFICIENT_STOCK,
 			$productId,
 			400,
-			array(
+			[
 				'requested' => $requested,
 				'available' => $available,
-			)
+			]
 		);
 	}
 
@@ -131,7 +131,7 @@ class CartException extends WchException {
 			self::ERROR_CART_NOT_FOUND,
 			null,
 			404,
-			array( 'identifier' => $identifier )
+			[ 'identifier' => $identifier ]
 		);
 	}
 
@@ -147,7 +147,7 @@ class CartException extends WchException {
 			self::ERROR_CART_EXPIRED,
 			null,
 			410,
-			array( 'identifier' => $identifier )
+			[ 'identifier' => $identifier ]
 		);
 	}
 

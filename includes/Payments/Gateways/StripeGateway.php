@@ -121,16 +121,16 @@ class StripeGateway extends AbstractGateway {
 			$this->storeTransactionMeta(
 				$order,
 				$session['id'],
-				array( '_stripe_session_id' => $session['id'] )
+				[ '_stripe_session_id' => $session['id'] ]
 			);
 			$order->save();
 
 			$this->log(
 				'Stripe session created',
-				array(
+				[
 					'order_id'   => $orderId,
 					'session_id' => $session['id'],
-				)
+				]
 			);
 
 			return PaymentResult::success(
@@ -144,7 +144,7 @@ class StripeGateway extends AbstractGateway {
 			);
 
 		} catch ( \Exception $e ) {
-			$this->log( 'Stripe payment error', array( 'error' => $e->getMessage() ), 'error' );
+			$this->log( 'Stripe payment error', [ 'error' => $e->getMessage() ], 'error' );
 
 			return PaymentResult::failure( 'stripe_error', $e->getMessage() );
 		}
@@ -158,49 +158,49 @@ class StripeGateway extends AbstractGateway {
 	 * @return array|null
 	 */
 	private function createCheckoutSession( \WC_Order $order, array $conversation ): ?array {
-		$lineItems = array();
+		$lineItems = [];
 
 		foreach ( $order->get_items() as $item ) {
-			$lineItems[] = array(
-				'price_data' => array(
+			$lineItems[] = [
+				'price_data' => [
 					'currency'     => strtolower( $order->get_currency() ),
-					'product_data' => array(
+					'product_data' => [
 						'name' => $item->get_name(),
-					),
+					],
 					'unit_amount'  => intval( ( $item->get_total() / $item->get_quantity() ) * 100 ),
-				),
+				],
 				'quantity'   => $item->get_quantity(),
-			);
+			];
 		}
 
 		// Add shipping if applicable.
 		$shippingTotal = (float) $order->get_shipping_total();
 		if ( $shippingTotal > 0 ) {
-			$lineItems[] = array(
-				'price_data' => array(
+			$lineItems[] = [
+				'price_data' => [
 					'currency'     => strtolower( $order->get_currency() ),
-					'product_data' => array(
+					'product_data' => [
 						'name' => __( 'Shipping', 'whatsapp-commerce-hub' ),
-					),
+					],
 					'unit_amount'  => intval( $shippingTotal * 100 ),
-				),
+				],
 				'quantity'   => 1,
-			);
+			];
 		}
 
-		$data = array(
-			'payment_method_types' => array( 'card' ),
+		$data = [
+			'payment_method_types' => [ 'card' ],
 			'line_items'           => $lineItems,
 			'mode'                 => 'payment',
 			'success_url'          => add_query_arg( 'wch_payment', 'success', home_url() ),
 			'cancel_url'           => add_query_arg( 'wch_payment', 'cancelled', home_url() ),
 			'customer_email'       => $order->get_billing_email(),
-			'metadata'             => array(
+			'metadata'             => [
 				'order_id'        => $order->get_id(),
 				'customer_phone'  => $this->getCustomerPhone( $conversation ),
 				'conversation_id' => $conversation['id'] ?? '',
-			),
-		);
+			],
+		];
 
 		return $this->stripeRequest( 'checkout/sessions', $data );
 	}
@@ -237,8 +237,8 @@ class StripeGateway extends AbstractGateway {
 	 * @return WebhookResult
 	 */
 	private function handleSessionCompleted( array $data ): WebhookResult {
-		$session  = $data['data']['object'] ?? array();
-		$metadata = $session['metadata'] ?? array();
+		$session  = $data['data']['object'] ?? [];
+		$metadata = $session['metadata'] ?? [];
 		$orderId  = intval( $metadata['order_id'] ?? 0 );
 
 		if ( ! $orderId ) {
@@ -254,10 +254,10 @@ class StripeGateway extends AbstractGateway {
 		if ( ! $this->orderNeedsPayment( $order ) ) {
 			$this->log(
 				'Stripe webhook skipped - order already paid',
-				array(
+				[
 					'order_id'   => $orderId,
 					'session_id' => $session['id'] ?? '',
-				)
+				]
 			);
 			return WebhookResult::alreadyCompleted( $orderId, $session['id'] ?? '' );
 		}
@@ -272,7 +272,7 @@ class StripeGateway extends AbstractGateway {
 			)
 		);
 
-		$this->log( 'Stripe payment completed', array( 'order_id' => $orderId ) );
+		$this->log( 'Stripe payment completed', [ 'order_id' => $orderId ] );
 
 		return WebhookResult::success(
 			$orderId,
@@ -289,8 +289,8 @@ class StripeGateway extends AbstractGateway {
 	 * @return WebhookResult
 	 */
 	private function handlePaymentIntentSucceeded( array $data ): WebhookResult {
-		$paymentIntent = $data['data']['object'] ?? array();
-		$metadata      = $paymentIntent['metadata'] ?? array();
+		$paymentIntent = $data['data']['object'] ?? [];
+		$metadata      = $paymentIntent['metadata'] ?? [];
 		$orderId       = intval( $metadata['order_id'] ?? 0 );
 
 		if ( ! $orderId ) {
@@ -331,8 +331,8 @@ class StripeGateway extends AbstractGateway {
 	 * @return WebhookResult
 	 */
 	private function handlePaymentIntentFailed( array $data ): WebhookResult {
-		$paymentIntent = $data['data']['object'] ?? array();
-		$metadata      = $paymentIntent['metadata'] ?? array();
+		$paymentIntent = $data['data']['object'] ?? [];
+		$metadata      = $paymentIntent['metadata'] ?? [];
 		$orderId       = intval( $metadata['order_id'] ?? 0 );
 
 		if ( ! $orderId ) {
@@ -378,7 +378,7 @@ class StripeGateway extends AbstractGateway {
 		if ( empty( $this->webhookSecret ) ) {
 			$this->log(
 				'Stripe webhook rejected - webhook secret not configured',
-				array( 'payload_length' => strlen( $payload ) ),
+				[ 'payload_length' => strlen( $payload ) ],
 				'error'
 			);
 			return false;
@@ -386,7 +386,7 @@ class StripeGateway extends AbstractGateway {
 
 		// Parse signature header.
 		$elements      = explode( ',', $signature );
-		$signatureData = array();
+		$signatureData = [];
 
 		foreach ( $elements as $element ) {
 			$parts = explode( '=', $element, 2 );
@@ -404,7 +404,7 @@ class StripeGateway extends AbstractGateway {
 
 		// Check timestamp tolerance (5 minutes).
 		if ( abs( time() - intval( $timestamp ) ) > 300 ) {
-			$this->log( 'Stripe webhook timestamp expired', array(), 'warning' );
+			$this->log( 'Stripe webhook timestamp expired', [], 'warning' );
 			return false;
 		}
 
@@ -424,45 +424,45 @@ class StripeGateway extends AbstractGateway {
 	public function getPaymentStatus( string $transactionId ): PaymentStatus {
 		// Try to get session first.
 		if ( str_starts_with( $transactionId, 'cs_' ) ) {
-			$session = $this->stripeRequest( "checkout/sessions/{$transactionId}", array(), 'GET' );
+			$session = $this->stripeRequest( "checkout/sessions/{$transactionId}", [], 'GET' );
 
 			if ( $session ) {
-				$statusMap = array(
+				$statusMap = [
 					'complete' => PaymentStatus::COMPLETED,
 					'expired'  => PaymentStatus::FAILED,
 					'open'     => PaymentStatus::PENDING,
-				);
+				];
 
 				return new PaymentStatus(
 					$statusMap[ $session['status'] ?? 'open' ] ?? PaymentStatus::PENDING,
 					$transactionId,
 					( $session['amount_total'] ?? 0 ) / 100,
 					$session['currency'] ?? '',
-					$session['metadata'] ?? array()
+					$session['metadata'] ?? []
 				);
 			}
 		}
 
 		// Try payment intent.
 		if ( str_starts_with( $transactionId, 'pi_' ) ) {
-			$paymentIntent = $this->stripeRequest( "payment_intents/{$transactionId}", array(), 'GET' );
+			$paymentIntent = $this->stripeRequest( "payment_intents/{$transactionId}", [], 'GET' );
 
 			if ( $paymentIntent ) {
-				$statusMap = array(
+				$statusMap = [
 					'succeeded'               => PaymentStatus::COMPLETED,
 					'canceled'                => PaymentStatus::FAILED,
 					'requires_payment_method' => PaymentStatus::PENDING,
 					'requires_confirmation'   => PaymentStatus::PENDING,
 					'requires_action'         => PaymentStatus::PENDING,
 					'processing'              => PaymentStatus::PENDING,
-				);
+				];
 
 				return new PaymentStatus(
 					$statusMap[ $paymentIntent['status'] ?? 'processing' ] ?? PaymentStatus::PENDING,
 					$transactionId,
 					( $paymentIntent['amount'] ?? 0 ) / 100,
 					$paymentIntent['currency'] ?? '',
-					$paymentIntent['metadata'] ?? array()
+					$paymentIntent['metadata'] ?? []
 				);
 			}
 		}
@@ -487,7 +487,7 @@ class StripeGateway extends AbstractGateway {
 		// Get payment intent from transaction ID.
 		$paymentIntentId = $transactionId;
 		if ( str_starts_with( $transactionId, 'cs_' ) ) {
-			$session         = $this->stripeRequest( "checkout/sessions/{$transactionId}", array(), 'GET' );
+			$session         = $this->stripeRequest( "checkout/sessions/{$transactionId}", [], 'GET' );
 			$paymentIntentId = $session['payment_intent'] ?? '';
 		}
 
@@ -495,14 +495,14 @@ class StripeGateway extends AbstractGateway {
 			return RefundResult::failure( 'no_payment_intent', __( 'Payment intent not found.', 'whatsapp-commerce-hub' ) );
 		}
 
-		$data = array(
+		$data = [
 			'payment_intent' => $paymentIntentId,
 			'amount'         => intval( $amount * 100 ),
-		);
+		];
 
 		if ( $reason ) {
 			$data['reason']   = 'requested_by_customer';
-			$data['metadata'] = array( 'reason' => $reason );
+			$data['metadata'] = [ 'reason' => $reason ];
 		}
 
 		$refund = $this->stripeRequest( 'refunds', $data );
@@ -516,10 +516,10 @@ class StripeGateway extends AbstractGateway {
 
 		$this->log(
 			'Stripe refund processed',
-			array(
+			[
 				'order_id'  => $orderId,
 				'refund_id' => $refund['id'],
-			)
+			]
 		);
 
 		return RefundResult::success(
@@ -537,17 +537,17 @@ class StripeGateway extends AbstractGateway {
 	 * @param string $method   HTTP method.
 	 * @return array|null
 	 */
-	private function stripeRequest( string $endpoint, array $data = array(), string $method = 'POST' ): ?array {
+	private function stripeRequest( string $endpoint, array $data = [], string $method = 'POST' ): ?array {
 		$url = self::API_BASE . '/' . $endpoint;
 
-		$args = array(
+		$args = [
 			'method'  => $method,
-			'headers' => array(
+			'headers' => [
 				'Authorization' => 'Bearer ' . $this->apiKey,
 				'Content-Type'  => 'application/x-www-form-urlencoded',
-			),
+			],
 			'timeout' => 30,
-		);
+		];
 
 		if ( $method === 'POST' && ! empty( $data ) ) {
 			$args['body'] = http_build_query( $data );
@@ -556,7 +556,7 @@ class StripeGateway extends AbstractGateway {
 		$response = wp_remote_request( $url, $args );
 
 		if ( is_wp_error( $response ) ) {
-			$this->log( 'Stripe API error', array( 'error' => $response->get_error_message() ), 'error' );
+			$this->log( 'Stripe API error', [ 'error' => $response->get_error_message() ], 'error' );
 			return null;
 		}
 

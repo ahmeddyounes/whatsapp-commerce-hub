@@ -33,7 +33,7 @@ interface IntentClassifierInterface {
 	 * @param array  $context Optional conversation context.
 	 * @return Intent Classified intent.
 	 */
-	public function classify( string $text, array $context = array() ): Intent;
+	public function classify( string $text, array $context = [] ): Intent;
 
 	/**
 	 * Classify with AI enhancement.
@@ -42,7 +42,7 @@ interface IntentClassifierInterface {
 	 * @param array  $context Conversation context.
 	 * @return Intent Classified intent.
 	 */
-	public function classifyWithAi( string $text, array $context = array() ): Intent;
+	public function classifyWithAi( string $text, array $context = [] ): Intent;
 
 	/**
 	 * Extract entities from text.

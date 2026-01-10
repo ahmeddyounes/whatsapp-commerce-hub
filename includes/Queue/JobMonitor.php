@@ -32,13 +32,13 @@ class JobMonitor {
 	 *
 	 * @var array<string, int>
 	 */
-	private array $thresholds = array(
+	private array $thresholds = [
 		'pending_critical' => 10,     // Alert if > 10 critical jobs pending.
 		'pending_total'    => 1000,   // Alert if > 1000 total jobs pending.
 		'dlq_pending'      => 50,     // Alert if > 50 items in DLQ.
 		'failed_per_hour'  => 100,    // Alert if > 100 failures per hour.
 		'avg_wait_seconds' => 300,    // Alert if avg wait > 5 minutes.
-	);
+	];
 
 	/**
 	 * Constructor.
@@ -64,17 +64,17 @@ class JobMonitor {
 		$totals = $this->calculateTotals( $queue_stats );
 		$alerts = $this->checkAlerts( $totals, $dlq_stats );
 
-		return array(
+		return [
 			'status'      => empty( $alerts ) ? 'healthy' : 'warning',
 			'timestamp'   => current_time( 'mysql', true ),
-			'queue'       => array(
+			'queue'       => [
 				'by_priority' => $queue_stats,
 				'totals'      => $totals,
-			),
+			],
 			'dead_letter' => $dlq_stats,
 			'alerts'      => $alerts,
 			'throughput'  => $this->getThroughputMetrics(),
-		);
+		];
 	}
 
 	/**
@@ -130,7 +130,7 @@ class JobMonitor {
 			)
 		);
 
-		return array(
+		return [
 			'completed_last_hour' => $completed_hour,
 			'completed_last_day'  => $completed_day,
 			'failed_last_hour'    => $failed_hour,
@@ -139,7 +139,7 @@ class JobMonitor {
 			'success_rate'        => $completed_hour + $failed_hour > 0
 				? round( ( $completed_hour / ( $completed_hour + $failed_hour ) ) * 100, 2 )
 				: 100,
-		);
+		];
 	}
 
 	/**
@@ -226,12 +226,12 @@ class JobMonitor {
 	 * @return array<string, int> Totals.
 	 */
 	private function calculateTotals( array $queue_stats ): array {
-		$totals = array(
+		$totals = [
 			'pending'   => 0,
 			'running'   => 0,
 			'completed' => 0,
 			'failed'    => 0,
-		);
+		];
 
 		foreach ( $queue_stats as $stats ) {
 			$totals['pending']   += $stats['pending'];
@@ -252,7 +252,7 @@ class JobMonitor {
 	 * @return array<string> Active alerts.
 	 */
 	private function checkAlerts( array $totals, array $dlq_stats ): array {
-		$alerts     = array();
+		$alerts     = [];
 		$throughput = $this->getThroughputMetrics();
 
 		// Check pending total.
@@ -315,7 +315,7 @@ class JobMonitor {
 	 */
 	public function exportPrometheusMetrics(): string {
 		$health = $this->getHealthStatus();
-		$lines  = array();
+		$lines  = [];
 
 		// Queue metrics.
 		$lines[] = '# HELP wch_queue_pending Number of pending jobs by priority';

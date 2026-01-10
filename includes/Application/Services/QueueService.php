@@ -47,20 +47,20 @@ class QueueService implements QueueServiceInterface {
 	 *
 	 * @var array<string, callable>
 	 */
-	private array $handlers = array();
+	private array $handlers = [];
 
 	/**
 	 * Priority string to PriorityQueue constant mapping.
 	 *
 	 * @var array<string, int>
 	 */
-	private const PRIORITY_MAP = array(
+	private const PRIORITY_MAP = [
 		self::PRIORITY_CRITICAL    => PriorityQueue::PRIORITY_CRITICAL,
 		self::PRIORITY_URGENT      => PriorityQueue::PRIORITY_URGENT,
 		self::PRIORITY_NORMAL      => PriorityQueue::PRIORITY_NORMAL,
 		self::PRIORITY_BULK        => PriorityQueue::PRIORITY_BULK,
 		self::PRIORITY_MAINTENANCE => PriorityQueue::PRIORITY_MAINTENANCE,
-	);
+	];
 
 	/**
 	 * Constructor.
@@ -108,17 +108,17 @@ class QueueService implements QueueServiceInterface {
 	 * @param array  $context   Additional context.
 	 * @return void
 	 */
-	private function logUnauthorizedAttempt( string $operation, array $context = array() ): void {
+	private function logUnauthorizedAttempt( string $operation, array $context = [] ): void {
 		do_action(
 			'wch_log_warning',
 			sprintf( 'Unauthorized QueueService %s attempt blocked', $operation ),
 			array_merge(
-				array(
+				[
 					'user_id' => get_current_user_id(),
 					'ip'      => isset( $_SERVER['REMOTE_ADDR'] )
 						? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) )
 						: 'unknown',
-				),
+				],
 				$context
 			)
 		);
@@ -132,7 +132,7 @@ class QueueService implements QueueServiceInterface {
 	 * @param string $priority Priority group.
 	 * @return int|false Action ID or false on failure.
 	 */
-	public function dispatch( string $hook, array $args = array(), string $priority = self::PRIORITY_NORMAL ): int|false {
+	public function dispatch( string $hook, array $args = [], string $priority = self::PRIORITY_NORMAL ): int|false {
 		$priority_int = $this->mapPriority( $priority );
 		return $this->priority_queue->schedule( $hook, $args, $priority_int, 0 );
 	}
@@ -173,7 +173,7 @@ class QueueService implements QueueServiceInterface {
 	 * @param array  $args Job arguments.
 	 * @return bool Success status.
 	 */
-	public function cancel( string $hook, array $args = array() ): bool {
+	public function cancel( string $hook, array $args = [] ): bool {
 		$cancelled = $this->priority_queue->cancel( $hook, $args );
 		return $cancelled > 0;
 	}
@@ -195,7 +195,7 @@ class QueueService implements QueueServiceInterface {
 	 * @param array  $args Job arguments.
 	 * @return bool True if scheduled.
 	 */
-	public function isScheduled( string $hook, array $args = array() ): bool {
+	public function isScheduled( string $hook, array $args = [] ): bool {
 		return $this->priority_queue->isPending( $hook, $args );
 	}
 
@@ -206,19 +206,19 @@ class QueueService implements QueueServiceInterface {
 	 * @param array  $args Job arguments.
 	 * @return int|null Unix timestamp or null if not scheduled.
 	 */
-	public function getNextScheduled( string $hook, array $args = array() ): ?int {
+	public function getNextScheduled( string $hook, array $args = [] ): ?int {
 		if ( ! function_exists( 'as_next_scheduled_action' ) ) {
 			return null;
 		}
 
 		// Check all priority groups.
-		$groups = array(
+		$groups = [
 			'wch-critical',
 			'wch-urgent',
 			'wch-normal',
 			'wch-bulk',
 			'wch-maintenance',
-		);
+		];
 
 		$earliest = null;
 
@@ -262,12 +262,12 @@ class QueueService implements QueueServiceInterface {
 			ARRAY_A
 		);
 
-		$jobs = array();
+		$jobs = [];
 		foreach ( $rows as $row ) {
 			$payload   = json_decode( $row['args'], true );
 			$unwrapped = PriorityQueue::unwrapPayload( $payload[0] ?? $payload );
 
-			$jobs[] = array(
+			$jobs[] = [
 				'id'           => (int) $row['action_id'],
 				'hook'         => $row['hook'],
 				'args'         => $unwrapped['args'],
@@ -275,7 +275,7 @@ class QueueService implements QueueServiceInterface {
 				'status'       => $row['status'],
 				'group'        => $row['group_name'],
 				'meta'         => $unwrapped['meta'],
-			);
+			];
 		}
 
 		return $jobs;
@@ -290,7 +290,7 @@ class QueueService implements QueueServiceInterface {
 	 */
 	public function getFailedJobs( ?string $hook = null, int $limit = 100 ): array {
 		// First check dead letter queue.
-		$dlq_jobs = array();
+		$dlq_jobs = [];
 		if ( $this->dead_letter_queue ) {
 			$dlq_jobs = $this->dead_letter_queue->getPending( $limit );
 			if ( $hook ) {
@@ -308,7 +308,7 @@ class QueueService implements QueueServiceInterface {
 		$limit = max( 1, min( 1000, $limit ) );
 
 		$where  = "a.status = 'failed' AND g.slug LIKE 'wch-%'";
-		$params = array();
+		$params = [];
 
 		if ( $hook ) {
 			$where   .= ' AND a.hook = %s';
@@ -330,12 +330,12 @@ class QueueService implements QueueServiceInterface {
 			ARRAY_A
 		);
 
-		$as_jobs = array();
+		$as_jobs = [];
 		foreach ( $rows as $row ) {
 			$payload   = json_decode( $row['args'], true );
 			$unwrapped = PriorityQueue::unwrapPayload( $payload[0] ?? $payload );
 
-			$as_jobs[] = array(
+			$as_jobs[] = [
 				'id'            => (int) $row['action_id'],
 				'hook'          => $row['hook'],
 				'args'          => $unwrapped['args'],
@@ -344,7 +344,7 @@ class QueueService implements QueueServiceInterface {
 				'group'         => $row['group_name'],
 				'source'        => 'action_scheduler',
 				'failure_count' => $unwrapped['meta']['attempt'] ?? 1,
-			);
+			];
 		}
 
 		// Merge and return.
@@ -360,7 +360,7 @@ class QueueService implements QueueServiceInterface {
 	public function retryJob( int $job_id ): bool {
 		// SECURITY: Verify authorization before retrying jobs.
 		if ( ! $this->isAuthorizedForJobManagement() ) {
-			$this->logUnauthorizedAttempt( 'retryJob', array( 'job_id' => $job_id ) );
+			$this->logUnauthorizedAttempt( 'retryJob', [ 'job_id' => $job_id ] );
 			return false;
 		}
 
@@ -402,7 +402,7 @@ class QueueService implements QueueServiceInterface {
 
 		if ( $result ) {
 			// Delete the failed entry.
-			$wpdb->delete( $table, array( 'action_id' => $job_id ), array( '%d' ) );
+			$wpdb->delete( $table, [ 'action_id' => $job_id ], [ '%d' ] );
 		}
 
 		return (bool) $result;
@@ -417,7 +417,7 @@ class QueueService implements QueueServiceInterface {
 	public function dismissJob( int $job_id ): bool {
 		// SECURITY: Verify authorization before dismissing jobs.
 		if ( ! $this->isAuthorizedForJobManagement() ) {
-			$this->logUnauthorizedAttempt( 'dismissJob', array( 'job_id' => $job_id ) );
+			$this->logUnauthorizedAttempt( 'dismissJob', [ 'job_id' => $job_id ] );
 			return false;
 		}
 
@@ -435,11 +435,11 @@ class QueueService implements QueueServiceInterface {
 		$table   = $wpdb->prefix . 'actionscheduler_actions';
 		$deleted = $wpdb->delete(
 			$table,
-			array(
+			[
 				'action_id' => $job_id,
 				'status'    => 'failed',
-			),
-			array( '%d', '%s' )
+			],
+			[ '%d', '%s' ]
 		);
 
 		return $deleted > 0;
@@ -453,12 +453,12 @@ class QueueService implements QueueServiceInterface {
 	public function getStats(): array {
 		$priority_stats = $this->priority_queue->getStats();
 
-		$totals = array(
+		$totals = [
 			'pending'   => 0,
 			'running'   => 0,
 			'completed' => 0,
 			'failed'    => 0,
-		);
+		];
 
 		foreach ( $priority_stats as $group_stats ) {
 			$totals['pending']   += $group_stats['pending'] ?? 0;
@@ -484,21 +484,21 @@ class QueueService implements QueueServiceInterface {
 	public function getStatsByPriority(): array {
 		$priority_stats = $this->priority_queue->getStats();
 
-		$result            = array();
-		$priority_to_group = array(
+		$result            = [];
+		$priority_to_group = [
 			'critical'    => self::PRIORITY_CRITICAL,
 			'urgent'      => self::PRIORITY_URGENT,
 			'normal'      => self::PRIORITY_NORMAL,
 			'bulk'        => self::PRIORITY_BULK,
 			'maintenance' => self::PRIORITY_MAINTENANCE,
-		);
+		];
 
 		foreach ( $priority_stats as $name => $stats ) {
 			$group_name            = $priority_to_group[ $name ] ?? $name;
-			$result[ $group_name ] = array(
+			$result[ $group_name ] = [
 				'pending' => $stats['pending'] ?? 0,
 				'running' => $stats['running'] ?? 0,
-			);
+			];
 		}
 
 		return $result;
@@ -538,7 +538,7 @@ class QueueService implements QueueServiceInterface {
 	public function clearFailed( int $age_seconds = 604800 ): int {
 		// SECURITY: Verify authorization before clearing failed jobs.
 		if ( ! $this->isAuthorizedForJobManagement() ) {
-			$this->logUnauthorizedAttempt( 'clearFailed', array( 'age_seconds' => $age_seconds ) );
+			$this->logUnauthorizedAttempt( 'clearFailed', [ 'age_seconds' => $age_seconds ] );
 			return 0;
 		}
 
@@ -593,10 +593,10 @@ class QueueService implements QueueServiceInterface {
 					do_action(
 						'wch_log_error',
 						"Job handler failed for {$hook}",
-						array(
+						[
 							'error' => $e->getMessage(),
 							'args'  => $args,
-						)
+						]
 					);
 
 					// Re-throw to let Action Scheduler handle retry.
@@ -612,7 +612,7 @@ class QueueService implements QueueServiceInterface {
 	 * @return array{healthy: bool, issues: array}
 	 */
 	public function healthCheck(): array {
-		$issues = array();
+		$issues = [];
 
 		// Check Action Scheduler is available.
 		if ( ! function_exists( 'as_schedule_single_action' ) ) {
@@ -658,10 +658,10 @@ class QueueService implements QueueServiceInterface {
 			}
 		}
 
-		return array(
+		return [
 			'healthy' => empty( $issues ),
 			'issues'  => $issues,
-		);
+		];
 	}
 
 	/**

@@ -147,7 +147,7 @@ class BroadcastsServiceProvider extends AbstractServiceProvider {
 	 * @return array
 	 */
 	public function provides(): array {
-		return array(
+		return [
 			CampaignRepositoryInterface::class,
 			AudienceCalculatorInterface::class,
 			CampaignDispatcherInterface::class,
@@ -155,7 +155,7 @@ class BroadcastsServiceProvider extends AbstractServiceProvider {
 			CampaignReportGenerator::class,
 			BroadcastsAjaxHandler::class,
 			AdminBroadcastsController::class,
-		);
+		];
 	}
 
 	/**
@@ -187,12 +187,12 @@ class BroadcastsServiceProvider extends AbstractServiceProvider {
 			}
 
 			public function all(): array {
-				return get_option( 'wch_settings', array() );
+				return get_option( 'wch_settings', [] );
 			}
 
 			public function getGroup( string $group ): array {
 				$all = $this->all();
-				return $all[ $group ] ?? array();
+				return $all[ $group ] ?? [];
 			}
 
 			public function isConfigured(): bool {
@@ -201,11 +201,11 @@ class BroadcastsServiceProvider extends AbstractServiceProvider {
 			}
 
 			public function getApiCredentials(): array {
-				return array(
+				return [
 					'access_token'        => $this->get( 'api.access_token', '' ),
 					'phone_number_id'     => $this->get( 'api.phone_number_id', '' ),
 					'business_account_id' => $this->get( 'api.business_account_id', '' ),
-				);
+				];
 			}
 
 			public function refresh(): void {

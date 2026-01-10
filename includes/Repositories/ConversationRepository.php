@@ -51,11 +51,11 @@ class ConversationRepository extends AbstractRepository implements ConversationR
 		}
 
 		// Convert DateTimeImmutable objects.
-		$date_fields = array(
+		$date_fields = [
 			'created_at',
 			'updated_at',
 			'last_message_at',
-		);
+		];
 
 		foreach ( $date_fields as $field ) {
 			if ( isset( $data[ $field ] ) && $data[ $field ] instanceof \DateTimeInterface ) {
@@ -83,7 +83,7 @@ class ConversationRepository extends AbstractRepository implements ConversationR
 				ORDER BY created_at DESC
 				LIMIT 1";
 
-		$row = $this->queryRow( $sql, array( $phone ) );
+		$row = $this->queryRow( $sql, [ $phone ] );
 
 		return $row ? $this->mapToEntity( $row ) : null;
 	}
@@ -94,7 +94,7 @@ class ConversationRepository extends AbstractRepository implements ConversationR
 	public function findByWhatsAppId( string $wa_conversation_id ): ?Conversation {
 		$row = $this->queryRow(
 			"SELECT * FROM {$this->table} WHERE wa_conversation_id = %s LIMIT 1",
-			array( $wa_conversation_id )
+			[ $wa_conversation_id ]
 		);
 
 		return $row ? $this->mapToEntity( $row ) : null;
@@ -111,10 +111,10 @@ class ConversationRepository extends AbstractRepository implements ConversationR
 
 		$rows = $this->query(
 			$sql,
-			array( Conversation::STATUS_ACTIVE, $limit )
+			[ Conversation::STATUS_ACTIVE, $limit ]
 		);
 
-		return array_map( array( $this, 'mapToEntity' ), $rows );
+		return array_map( [ $this, 'mapToEntity' ], $rows );
 	}
 
 	/**
@@ -128,10 +128,10 @@ class ConversationRepository extends AbstractRepository implements ConversationR
 
 		$rows = $this->query(
 			$sql,
-			array( Conversation::STATUS_ESCALATED, Conversation::STATE_AWAITING_HUMAN )
+			[ Conversation::STATUS_ESCALATED, Conversation::STATE_AWAITING_HUMAN ]
 		);
 
-		return array_map( array( $this, 'mapToEntity' ), $rows );
+		return array_map( [ $this, 'mapToEntity' ], $rows );
 	}
 
 	/**
@@ -139,19 +139,19 @@ class ConversationRepository extends AbstractRepository implements ConversationR
 	 *
 	 * @var array
 	 */
-	private const VALID_STATUSES = array(
+	private const VALID_STATUSES = [
 		Conversation::STATUS_ACTIVE,
 		Conversation::STATUS_IDLE,
 		Conversation::STATUS_ESCALATED,
 		Conversation::STATUS_CLOSED,
-	);
+	];
 
 	/**
 	 * Valid conversation states.
 	 *
 	 * @var array
 	 */
-	private const VALID_STATES = array(
+	private const VALID_STATES = [
 		Conversation::STATE_IDLE,
 		Conversation::STATE_BROWSING,
 		Conversation::STATE_VIEWING_PRODUCT,
@@ -160,7 +160,7 @@ class ConversationRepository extends AbstractRepository implements ConversationR
 		Conversation::STATE_CHECKOUT_PAYMENT,
 		Conversation::STATE_CHECKOUT_CONFIRM,
 		Conversation::STATE_AWAITING_HUMAN,
-	);
+	];
 
 	/**
 	 * {@inheritdoc}
@@ -172,7 +172,7 @@ class ConversationRepository extends AbstractRepository implements ConversationR
 			);
 		}
 
-		return $this->update( $id, array( 'status' => $status ) );
+		return $this->update( $id, [ 'status' => $status ] );
 	}
 
 	/**
@@ -185,7 +185,7 @@ class ConversationRepository extends AbstractRepository implements ConversationR
 			);
 		}
 
-		return $this->update( $id, array( 'state' => $state ) );
+		return $this->update( $id, [ 'state' => $state ] );
 	}
 
 	/**
@@ -194,10 +194,10 @@ class ConversationRepository extends AbstractRepository implements ConversationR
 	public function assignAgent( int $conversation_id, int $agent_id ): bool {
 		return $this->update(
 			$conversation_id,
-			array(
+			[
 				'assigned_agent_id' => $agent_id,
 				'status'            => Conversation::STATUS_ESCALATED,
-			)
+			]
 		);
 	}
 
@@ -225,10 +225,10 @@ class ConversationRepository extends AbstractRepository implements ConversationR
 				return false;
 			}
 
-			$existing = json_decode( $row['context'] ?? '{}', true ) ?: array();
+			$existing = json_decode( $row['context'] ?? '{}', true ) ?: [];
 			$merged   = array_merge( $existing, $context );
 
-			$result = $this->update( $id, array( 'context' => $merged ) );
+			$result = $this->update( $id, [ 'context' => $merged ] );
 
 			if ( $result ) {
 				$this->commit();
@@ -259,10 +259,10 @@ class ConversationRepository extends AbstractRepository implements ConversationR
 
 		$rows = $this->query(
 			$sql,
-			array( Conversation::STATUS_ACTIVE, $threshold_time )
+			[ Conversation::STATUS_ACTIVE, $threshold_time ]
 		);
 
-		return array_map( array( $this, 'mapToEntity' ), $rows );
+		return array_map( [ $this, 'mapToEntity' ], $rows );
 	}
 
 	/**
@@ -282,22 +282,22 @@ class ConversationRepository extends AbstractRepository implements ConversationR
 
 		$row = $this->queryRow(
 			$sql,
-			array(
+			[
 				Conversation::STATUS_CLOSED,
 				Conversation::STATUS_IDLE,
 				Conversation::STATUS_ESCALATED,
 				Conversation::STATE_AWAITING_HUMAN,
 				$start,
 				$end,
-			)
+			]
 		);
 
-		return array(
+		return [
 			'total'     => (int) ( $row['total'] ?? 0 ),
 			'completed' => (int) ( $row['completed'] ?? 0 ),
 			'abandoned' => (int) ( $row['abandoned'] ?? 0 ),
 			'escalated' => (int) ( $row['escalated'] ?? 0 ),
-		);
+		];
 	}
 
 	/**
@@ -338,12 +338,12 @@ class ConversationRepository extends AbstractRepository implements ConversationR
 
 			// Create a new conversation within the transaction.
 			$id = $this->create(
-				array(
+				[
 					'customer_phone' => $phone,
 					'status'         => Conversation::STATUS_ACTIVE,
 					'state'          => Conversation::STATE_IDLE,
-					'context'        => array(),
-				)
+					'context'        => [],
+				]
 			);
 
 			$conversation = $this->find( $id );
@@ -422,7 +422,7 @@ class ConversationRepository extends AbstractRepository implements ConversationR
 	 * @return bool True on success.
 	 */
 	public function resetUnread( int $id ): bool {
-		return $this->update( $id, array( 'unread_count' => 0 ) );
+		return $this->update( $id, [ 'unread_count' => 0 ] );
 	}
 
 	/**
@@ -441,10 +441,10 @@ class ConversationRepository extends AbstractRepository implements ConversationR
 
 		$rows = $this->query(
 			$sql,
-			array( $agent_id, Conversation::STATUS_CLOSED, $limit )
+			[ $agent_id, Conversation::STATUS_CLOSED, $limit ]
 		);
 
-		return array_map( array( $this, 'mapToEntity' ), $rows );
+		return array_map( [ $this, 'mapToEntity' ], $rows );
 	}
 
 	/**
@@ -461,14 +461,14 @@ class ConversationRepository extends AbstractRepository implements ConversationR
 
 		$rows = $this->query(
 			$sql,
-			array(
+			[
 				Conversation::STATE_CHECKOUT_ADDRESS,
 				Conversation::STATE_CHECKOUT_PAYMENT,
 				Conversation::STATE_CHECKOUT_CONFIRM,
 				$limit,
-			)
+			]
 		);
 
-		return array_map( array( $this, 'mapToEntity' ), $rows );
+		return array_map( [ $this, 'mapToEntity' ], $rows );
 	}
 }

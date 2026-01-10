@@ -55,16 +55,16 @@ class BroadcastsAjaxHandler {
 	 * @return void
 	 */
 	public function register(): void {
-		add_action( 'wp_ajax_wch_get_campaigns', array( $this, 'handleGetCampaigns' ) );
-		add_action( 'wp_ajax_wch_save_campaign', array( $this, 'handleSaveCampaign' ) );
-		add_action( 'wp_ajax_wch_delete_campaign', array( $this, 'handleDeleteCampaign' ) );
-		add_action( 'wp_ajax_wch_get_campaign', array( $this, 'handleGetCampaign' ) );
-		add_action( 'wp_ajax_wch_get_audience_count', array( $this, 'handleGetAudienceCount' ) );
-		add_action( 'wp_ajax_wch_send_campaign', array( $this, 'handleSendCampaign' ) );
-		add_action( 'wp_ajax_wch_send_test_broadcast', array( $this, 'handleSendTestBroadcast' ) );
-		add_action( 'wp_ajax_wch_get_campaign_report', array( $this, 'handleGetCampaignReport' ) );
-		add_action( 'wp_ajax_wch_duplicate_campaign', array( $this, 'handleDuplicateCampaign' ) );
-		add_action( 'wp_ajax_wch_get_approved_templates', array( $this, 'handleGetApprovedTemplates' ) );
+		add_action( 'wp_ajax_wch_get_campaigns', [ $this, 'handleGetCampaigns' ] );
+		add_action( 'wp_ajax_wch_save_campaign', [ $this, 'handleSaveCampaign' ] );
+		add_action( 'wp_ajax_wch_delete_campaign', [ $this, 'handleDeleteCampaign' ] );
+		add_action( 'wp_ajax_wch_get_campaign', [ $this, 'handleGetCampaign' ] );
+		add_action( 'wp_ajax_wch_get_audience_count', [ $this, 'handleGetAudienceCount' ] );
+		add_action( 'wp_ajax_wch_send_campaign', [ $this, 'handleSendCampaign' ] );
+		add_action( 'wp_ajax_wch_send_test_broadcast', [ $this, 'handleSendTestBroadcast' ] );
+		add_action( 'wp_ajax_wch_get_campaign_report', [ $this, 'handleGetCampaignReport' ] );
+		add_action( 'wp_ajax_wch_duplicate_campaign', [ $this, 'handleDuplicateCampaign' ] );
+		add_action( 'wp_ajax_wch_get_approved_templates', [ $this, 'handleGetApprovedTemplates' ] );
 	}
 
 	/**
@@ -76,7 +76,7 @@ class BroadcastsAjaxHandler {
 		check_ajax_referer( self::NONCE_ACTION, 'nonce' );
 
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
-			wp_send_json_error( array( 'message' => __( 'Permission denied', 'whatsapp-commerce-hub' ) ) );
+			wp_send_json_error( [ 'message' => __( 'Permission denied', 'whatsapp-commerce-hub' ) ] );
 			return false;
 		}
 
@@ -92,7 +92,7 @@ class BroadcastsAjaxHandler {
 		$this->verifyRequest();
 
 		$campaigns = $this->repository->getAll();
-		wp_send_json_success( array( 'campaigns' => $campaigns ) );
+		wp_send_json_success( [ 'campaigns' => $campaigns ] );
 	}
 
 	/**
@@ -107,16 +107,16 @@ class BroadcastsAjaxHandler {
 		$campaignId = isset( $_POST['campaign_id'] ) ? absint( $_POST['campaign_id'] ) : 0;
 
 		if ( ! $campaignId ) {
-			wp_send_json_error( array( 'message' => __( 'Invalid campaign ID', 'whatsapp-commerce-hub' ) ) );
+			wp_send_json_error( [ 'message' => __( 'Invalid campaign ID', 'whatsapp-commerce-hub' ) ] );
 		}
 
 		$campaign = $this->repository->getById( $campaignId );
 
 		if ( null === $campaign ) {
-			wp_send_json_error( array( 'message' => __( 'Campaign not found', 'whatsapp-commerce-hub' ) ) );
+			wp_send_json_error( [ 'message' => __( 'Campaign not found', 'whatsapp-commerce-hub' ) ] );
 		}
 
-		wp_send_json_success( array( 'campaign' => $campaign ) );
+		wp_send_json_success( [ 'campaign' => $campaign ] );
 	}
 
 	/**
@@ -130,20 +130,20 @@ class BroadcastsAjaxHandler {
 		// phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.NonceVerification.Missing -- Nonce verified, JSON decoded and sanitized.
 		$campaignData = isset( $_POST['campaign'] )
 			? json_decode( stripslashes( $_POST['campaign'] ), true )
-			: array();
+			: [];
 		// phpcs:enable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.NonceVerification.Missing
 
 		if ( empty( $campaignData ) ) {
-			wp_send_json_error( array( 'message' => __( 'Invalid campaign data', 'whatsapp-commerce-hub' ) ) );
+			wp_send_json_error( [ 'message' => __( 'Invalid campaign data', 'whatsapp-commerce-hub' ) ] );
 		}
 
 		$campaign = $this->repository->save( $campaignData );
 
 		wp_send_json_success(
-			array(
+			[
 				'message'  => __( 'Campaign saved successfully', 'whatsapp-commerce-hub' ),
 				'campaign' => $campaign,
-			)
+			]
 		);
 	}
 
@@ -159,16 +159,16 @@ class BroadcastsAjaxHandler {
 		$campaignId = isset( $_POST['campaign_id'] ) ? absint( $_POST['campaign_id'] ) : 0;
 
 		if ( ! $campaignId ) {
-			wp_send_json_error( array( 'message' => __( 'Invalid campaign ID', 'whatsapp-commerce-hub' ) ) );
+			wp_send_json_error( [ 'message' => __( 'Invalid campaign ID', 'whatsapp-commerce-hub' ) ] );
 		}
 
 		$deleted = $this->repository->delete( $campaignId );
 
 		if ( ! $deleted ) {
-			wp_send_json_error( array( 'message' => __( 'Campaign not found', 'whatsapp-commerce-hub' ) ) );
+			wp_send_json_error( [ 'message' => __( 'Campaign not found', 'whatsapp-commerce-hub' ) ] );
 		}
 
-		wp_send_json_success( array( 'message' => __( 'Campaign deleted', 'whatsapp-commerce-hub' ) ) );
+		wp_send_json_success( [ 'message' => __( 'Campaign deleted', 'whatsapp-commerce-hub' ) ] );
 	}
 
 	/**
@@ -183,20 +183,20 @@ class BroadcastsAjaxHandler {
 		$campaignId = isset( $_POST['campaign_id'] ) ? absint( $_POST['campaign_id'] ) : 0;
 
 		if ( ! $campaignId ) {
-			wp_send_json_error( array( 'message' => __( 'Invalid campaign ID', 'whatsapp-commerce-hub' ) ) );
+			wp_send_json_error( [ 'message' => __( 'Invalid campaign ID', 'whatsapp-commerce-hub' ) ] );
 		}
 
 		$duplicate = $this->repository->duplicate( $campaignId );
 
 		if ( null === $duplicate ) {
-			wp_send_json_error( array( 'message' => __( 'Campaign not found', 'whatsapp-commerce-hub' ) ) );
+			wp_send_json_error( [ 'message' => __( 'Campaign not found', 'whatsapp-commerce-hub' ) ] );
 		}
 
 		wp_send_json_success(
-			array(
+			[
 				'message'  => __( 'Campaign duplicated', 'whatsapp-commerce-hub' ),
 				'campaign' => $duplicate,
-			)
+			]
 		);
 	}
 
@@ -211,12 +211,12 @@ class BroadcastsAjaxHandler {
 		// phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.NonceVerification.Missing -- Nonce verified, JSON decoded.
 		$criteria = isset( $_POST['criteria'] )
 			? json_decode( stripslashes( $_POST['criteria'] ), true )
-			: array();
+			: [];
 		// phpcs:enable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.NonceVerification.Missing
 
 		$count = $this->audienceCalculator->calculateCount( $criteria );
 
-		wp_send_json_success( array( 'count' => $count ) );
+		wp_send_json_success( [ 'count' => $count ] );
 	}
 
 	/**
@@ -230,18 +230,18 @@ class BroadcastsAjaxHandler {
 		// phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.NonceVerification.Missing -- Nonce verified, JSON decoded.
 		$campaignData = isset( $_POST['campaign'] )
 			? json_decode( stripslashes( $_POST['campaign'] ), true )
-			: array();
+			: [];
 		// phpcs:enable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.NonceVerification.Missing
 
 		if ( empty( $campaignData ) ) {
-			wp_send_json_error( array( 'message' => __( 'Invalid campaign data', 'whatsapp-commerce-hub' ) ) );
+			wp_send_json_error( [ 'message' => __( 'Invalid campaign data', 'whatsapp-commerce-hub' ) ] );
 		}
 
 		// Save campaign first.
 		$campaign = $this->repository->save( $campaignData );
 
 		// Determine delay based on schedule.
-		$schedule = $campaign['schedule'] ?? array();
+		$schedule = $campaign['schedule'] ?? [];
 		$delay    = 0;
 
 		if ( isset( $schedule['timing'] ) && 'scheduled' === $schedule['timing'] ) {
@@ -255,18 +255,18 @@ class BroadcastsAjaxHandler {
 		$jobId = $this->dispatcher->schedule( $campaign, $delay );
 
 		if ( null === $jobId ) {
-			wp_send_json_error( array( 'message' => __( 'No recipients found for this campaign', 'whatsapp-commerce-hub' ) ) );
+			wp_send_json_error( [ 'message' => __( 'No recipients found for this campaign', 'whatsapp-commerce-hub' ) ] );
 		}
 
 		// Get updated campaign.
 		$updatedCampaign = $this->repository->getById( (int) $campaign['id'] );
 
 		wp_send_json_success(
-			array(
+			[
 				'message'  => __( 'Campaign scheduled successfully', 'whatsapp-commerce-hub' ),
 				'campaign' => $updatedCampaign,
 				'job_id'   => $jobId,
-			)
+			]
 		);
 	}
 
@@ -281,7 +281,7 @@ class BroadcastsAjaxHandler {
 		// phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.NonceVerification.Missing -- Nonce verified, JSON decoded.
 		$campaignData = isset( $_POST['campaign'] )
 			? json_decode( stripslashes( $_POST['campaign'] ), true )
-			: array();
+			: [];
 
 		$testPhone = isset( $_POST['test_phone'] )
 			? sanitize_text_field( wp_unslash( $_POST['test_phone'] ) )
@@ -291,9 +291,9 @@ class BroadcastsAjaxHandler {
 		$result = $this->dispatcher->sendTest( $campaignData, $testPhone );
 
 		if ( $result['success'] ) {
-			wp_send_json_success( array( 'message' => $result['message'] ) );
+			wp_send_json_success( [ 'message' => $result['message'] ] );
 		} else {
-			wp_send_json_error( array( 'message' => $result['message'] ) );
+			wp_send_json_error( [ 'message' => $result['message'] ] );
 		}
 	}
 
@@ -309,13 +309,13 @@ class BroadcastsAjaxHandler {
 		$campaignId = isset( $_POST['campaign_id'] ) ? absint( $_POST['campaign_id'] ) : 0;
 
 		if ( ! $campaignId ) {
-			wp_send_json_error( array( 'message' => __( 'Invalid campaign ID', 'whatsapp-commerce-hub' ) ) );
+			wp_send_json_error( [ 'message' => __( 'Invalid campaign ID', 'whatsapp-commerce-hub' ) ] );
 		}
 
 		$reportData = $this->reportGenerator->getReportData( $campaignId );
 
 		if ( null === $reportData ) {
-			wp_send_json_error( array( 'message' => __( 'Campaign not found', 'whatsapp-commerce-hub' ) ) );
+			wp_send_json_error( [ 'message' => __( 'Campaign not found', 'whatsapp-commerce-hub' ) ] );
 		}
 
 		wp_send_json_success( $reportData );
@@ -329,7 +329,7 @@ class BroadcastsAjaxHandler {
 	public function handleGetApprovedTemplates(): void {
 		$this->verifyRequest();
 
-		$approvedTemplates = array();
+		$approvedTemplates = [];
 
 		if ( class_exists( 'WCH_Template_Manager' ) ) {
 			$templateManager = \WCH_Template_Manager::getInstance();
@@ -344,6 +344,6 @@ class BroadcastsAjaxHandler {
 			}
 		}
 
-		wp_send_json_success( array( 'templates' => $approvedTemplates ) );
+		wp_send_json_success( [ 'templates' => $approvedTemplates ] );
 	}
 }

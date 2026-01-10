@@ -24,7 +24,7 @@ class CompatibilityLayer {
 	 *
 	 * @var array
 	 */
-	private static array $wrappers = array();
+	private static array $wrappers = [];
 
 	/**
 	 * Create a legacy class wrapper

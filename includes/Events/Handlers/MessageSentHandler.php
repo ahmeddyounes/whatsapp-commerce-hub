@@ -50,14 +50,14 @@ class MessageSentHandler implements EventHandlerInterface {
 		// Log for analytics.
 		\WCH_Logger::debug(
 			'Message sent event handled',
-			array(
+			[
 				'category'        => 'events',
 				'message_id'      => $payload['message_id'] ?? 0,
 				'conversation_id' => $payload['conversation_id'] ?? 0,
 				'to'              => $payload['to'] ?? '',
 				'type'            => $payload['type'] ?? '',
 				'event_id'        => $event->id,
-			)
+			]
 		);
 
 		// Track outgoing message metrics.

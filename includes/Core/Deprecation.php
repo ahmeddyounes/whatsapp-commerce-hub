@@ -24,7 +24,7 @@ class Deprecation {
 	 *
 	 * @var array
 	 */
-	private static array $deprecations = array();
+	private static array $deprecations = [];
 
 	/**
 	 * Trigger a deprecation warning
@@ -69,13 +69,13 @@ class Deprecation {
 		$key = md5( $old );
 
 		if ( ! isset( self::$deprecations[ $key ] ) ) {
-			self::$deprecations[ $key ] = array(
+			self::$deprecations[ $key ] = [
 				'old'     => $old,
 				'new'     => $new,
 				'version' => $version,
 				'count'   => 0,
 				'first'   => time(),
-			);
+			];
 		}
 
 		++self::$deprecations[ $key ]['count'];
@@ -92,7 +92,7 @@ class Deprecation {
 	 */
 	public static function getDeprecations(): array {
 		if ( empty( self::$deprecations ) ) {
-			self::$deprecations = get_option( 'wch_deprecations', array() );
+			self::$deprecations = get_option( 'wch_deprecations', [] );
 		}
 
 		return self::$deprecations;
@@ -104,7 +104,7 @@ class Deprecation {
 	 * @return void
 	 */
 	public static function clearDeprecations(): void {
-		self::$deprecations = array();
+		self::$deprecations = [];
 		delete_option( 'wch_deprecations' );
 	}
 

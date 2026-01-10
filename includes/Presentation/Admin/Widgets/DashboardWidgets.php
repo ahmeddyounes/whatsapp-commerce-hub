@@ -30,8 +30,8 @@ class DashboardWidgets {
 	 * @return void
 	 */
 	public function init(): void {
-		add_action( 'wp_dashboard_setup', array( $this, 'registerWidgets' ) );
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueueScripts' ) );
+		add_action( 'wp_dashboard_setup', [ $this, 'registerWidgets' ] );
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueueScripts' ] );
 	}
 
 	/**
@@ -43,19 +43,19 @@ class DashboardWidgets {
 		wp_add_dashboard_widget(
 			'wch_inventory_sync_widget',
 			__( 'WhatsApp Inventory Sync Status', 'whatsapp-commerce-hub' ),
-			array( $this, 'renderInventorySyncWidget' )
+			[ $this, 'renderInventorySyncWidget' ]
 		);
 
 		wp_add_dashboard_widget(
 			'wch_analytics_widget',
 			__( 'WhatsApp Commerce Analytics', 'whatsapp-commerce-hub' ),
-			array( $this, 'renderAnalyticsWidget' )
+			[ $this, 'renderAnalyticsWidget' ]
 		);
 
 		wp_add_dashboard_widget(
 			'wch_abandoned_cart_recovery_widget',
 			__( 'Abandoned Cart Recovery', 'whatsapp-commerce-hub' ),
-			array( $this, 'renderAbandonedCartRecoveryWidget' )
+			[ $this, 'renderAbandonedCartRecoveryWidget' ]
 		);
 	}
 
@@ -153,7 +153,7 @@ class DashboardWidgets {
 		$outOfSyncCount = $stats['out_of_sync_count'] ?? 0;
 		$lastSyncTime   = $stats['last_sync_time'] ?? 0;
 		$syncErrors     = $stats['sync_errors'] ?? 0;
-		$discrepancies  = $stats['discrepancies'] ?? array();
+		$discrepancies  = $stats['discrepancies'] ?? [];
 
 		// Calculate sync percentage.
 		$totalProducts  = $productsInSync + $outOfSyncCount;

@@ -64,13 +64,13 @@ class CheckoutSaga {
 	public function execute( string $phone, array $checkout_data ): SagaResult {
 		$saga_id = $this->generateSagaId( $phone );
 
-		$context = array(
+		$context = [
 			'phone'          => $phone,
 			'checkout_data'  => $checkout_data,
 			'order_id'       => null,
 			'payment_id'     => null,
-			'inventory_held' => array(),
-		);
+			'inventory_held' => [],
+		];
 
 		$steps = $this->buildSteps();
 
@@ -83,13 +83,13 @@ class CheckoutSaga {
 	 * @return SagaStep[]
 	 */
 	private function buildSteps(): array {
-		return array(
+		return [
 			$this->createValidateCartStep(),
 			$this->createReserveInventoryStep(),
 			$this->createOrderStep(),
 			$this->createPaymentStep(),
 			$this->createConfirmationStep(),
-		);
+		];
 	}
 
 	/**
@@ -124,10 +124,10 @@ class CheckoutSaga {
 					);
 				}
 
-				return array(
+				return [
 					'cart'   => $cart,
 					'totals' => $this->cart_service->calculateTotals( $cart ),
-				);
+				];
 			},
 			null, // No compensation needed - validation only reads data.
 			30,   // 30 second timeout.
@@ -146,7 +146,7 @@ class CheckoutSaga {
 			'reserve_inventory',
 			function ( array $context ): array {
 				$cart = $context['step_results']['validate_cart']['cart'];
-				$held = array();
+				$held = [];
 
 				foreach ( $cart->items as $item ) {
 					$product_id = $item['product_id'];
@@ -159,18 +159,18 @@ class CheckoutSaga {
 						);
 					}
 
-					$held[] = array(
+					$held[] = [
 						'product_id' => $product_id,
 						'quantity'   => $quantity,
-					);
+					];
 				}
 
-				return array( 'inventory_held' => $held );
+				return [ 'inventory_held' => $held ];
 			},
 			function ( array $context ): void {
 				// Compensation: release held inventory.
-				$result = $context['step_result'] ?? array();
-				$held   = $result['inventory_held'] ?? array();
+				$result = $context['step_result'] ?? [];
+				$held   = $result['inventory_held'] ?? [];
 
 				foreach ( $held as $item ) {
 					$this->releaseStock( $item['product_id'], $item['quantity'] );
@@ -294,15 +294,15 @@ class CheckoutSaga {
 					}
 				}
 
-				return array(
+				return [
 					'order_id'     => $order->get_id(),
 					'order_number' => $order->get_order_number(),
 					'total'        => $order->get_total(),
-				);
+				];
 			},
 			function ( array $context ): void {
 				// Compensation: cancel and delete order.
-				$result   = $context['step_result'] ?? array();
+				$result   = $context['step_result'] ?? [];
 				$order_id = $result['order_id'] ?? null;
 
 				if ( $order_id ) {
@@ -356,19 +356,19 @@ class CheckoutSaga {
 					$order->set_status( 'processing', 'COD order - awaiting delivery' );
 					$order->save();
 
-					return array(
+					return [
 						'payment_status' => 'pending_cod',
 						'payment_id'     => null,
-					);
+					];
 				}
 
 				// For other payment methods, create payment intent.
 				$payment_result = apply_filters(
 					'wch_process_payment',
-					array(
+					[
 						'success' => false,
 						'error'   => 'Payment method not supported',
-					),
+					],
 					$order,
 					$checkout_data
 				);
@@ -379,15 +379,15 @@ class CheckoutSaga {
 					);
 				}
 
-				return array(
+				return [
 					'payment_status' => 'completed',
 					'payment_id'     => $payment_result['payment_id'] ?? null,
 					'transaction_id' => $payment_result['transaction_id'] ?? null,
-				);
+				];
 			},
 			function ( array $context ): void {
 				// Compensation: refund payment if processed.
-				$result     = $context['step_result'] ?? array();
+				$result     = $context['step_result'] ?? [];
 				$payment_id = $result['payment_id'] ?? null;
 				$order_id   = $context['step_results']['create_order']['order_id'] ?? null;
 
@@ -395,10 +395,10 @@ class CheckoutSaga {
 					// Attempt refund and verify it was processed.
 					$refund_result = apply_filters(
 						'wch_refund_payment',
-						array(
+						[
 							'success' => false,
 							'error'   => 'No refund handler configured',
-						),
+						],
 						$payment_id,
 						$order_id
 					);
@@ -421,24 +421,24 @@ class CheckoutSaga {
 								$payment_id,
 								$refund_result['error'] ?? 'Unknown error'
 							),
-							array(
+							[
 								'payment_id' => $payment_id,
 								'order_id'   => $order_id,
 								'saga_id'    => $context['saga_id'] ?? null,
-							)
+							]
 						);
 
 						// Store failed refund for later processing.
 						update_option(
 							'wch_failed_refund_' . $payment_id,
-							array(
+							[
 								'payment_id'  => $payment_id,
 								'order_id'    => $order_id,
 								'saga_id'     => $context['saga_id'] ?? null,
 								'error'       => $refund_result['error'] ?? 'Unknown error',
 								'failed_at'   => current_time( 'mysql' ),
 								'retry_count' => 0,
-							)
+							]
 						);
 					}
 				}
@@ -498,17 +498,17 @@ class CheckoutSaga {
 				// Fire order completed event.
 				do_action( 'wch_checkout_completed', $order_id, $phone );
 
-				return array(
+				return [
 					'confirmed'    => true,
 					'message_id'   => $send_result['message_id'] ?? null,
 					'cart_cleared' => $cart_cleared,
-				);
+				];
 			},
 			function ( array $context ): void {
 				// Compensation: notify customer of partial success.
 				// At this point, order is created and paid - just confirmation failed.
 				$phone        = $context['phone'];
-				$order_result = $context['step_results']['create_order'] ?? array();
+				$order_result = $context['step_results']['create_order'] ?? [];
 				$order_number = $order_result['order_number'] ?? 'N/A';
 
 				try {
@@ -630,14 +630,14 @@ class CheckoutSaga {
 			return null;
 		}
 
-		$context  = $state['context'] ?? array();
+		$context  = $state['context'] ?? [];
 		$order_id = $context['step_results']['create_order']['order_id'] ?? null;
 
-		$result = array(
+		$result = [
 			'saga_id'    => $saga_id,
 			'saga_state' => $state['state'],
 			'order_id'   => $order_id,
-		);
+		];
 
 		if ( $order_id ) {
 			$order = wc_get_order( $order_id );

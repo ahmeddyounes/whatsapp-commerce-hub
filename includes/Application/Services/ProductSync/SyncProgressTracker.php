@@ -79,28 +79,28 @@ class SyncProgressTracker implements SyncProgressTrackerInterface {
 	public function startSync( int $totalItems ): string {
 		$syncId = wp_generate_uuid4();
 
-		$progress = array(
+		$progress = [
 			'sync_id'         => $syncId,
 			'status'          => 'in_progress',
 			'total_items'     => $totalItems,
 			'processed_count' => 0,
 			'success_count'   => 0,
 			'failed_count'    => 0,
-			'failed_items'    => array(),
+			'failed_items'    => [],
 			'started_at'      => current_time( 'mysql', true ),
 			'updated_at'      => current_time( 'mysql', true ),
 			'completed_at'    => null,
-		);
+		];
 
 		update_option( self::OPTION_SYNC_PROGRESS, $progress, false );
 
 		$this->log(
 			'info',
 			'Initialized bulk sync progress tracking',
-			array(
+			[
 				'sync_id'     => $syncId,
 				'total_items' => $totalItems,
-			)
+			]
 		);
 
 		return $syncId;
@@ -116,9 +116,9 @@ class SyncProgressTracker implements SyncProgressTrackerInterface {
 			$this->log(
 				'warning',
 				'Failed to acquire sync progress lock',
-				array(
+				[
 					'sync_id' => $syncId,
-				)
+				]
 			);
 			return false;
 		}
@@ -130,10 +130,10 @@ class SyncProgressTracker implements SyncProgressTrackerInterface {
 				$this->log(
 					'warning',
 					'Sync progress not found or ID mismatch',
-					array(
+					[
 						'expected_sync_id' => $syncId,
 						'actual_sync_id'   => $progress['sync_id'] ?? 'none',
-					)
+					]
 				);
 				return false;
 			}
@@ -152,13 +152,13 @@ class SyncProgressTracker implements SyncProgressTrackerInterface {
 				$this->log(
 					'info',
 					'Bulk sync completed',
-					array(
+					[
 						'sync_id'       => $syncId,
 						'total'         => $progress['total_items'],
 						'successful'    => $progress['success_count'],
 						'failed'        => $progress['failed_count'],
 						'duration_secs' => strtotime( $progress['completed_at'] ) - strtotime( $progress['started_at'] ),
-					)
+					]
 				);
 			}
 
@@ -192,11 +192,11 @@ class SyncProgressTracker implements SyncProgressTrackerInterface {
 				array_shift( $progress['failed_items'] );
 			}
 
-			$progress['failed_items'][] = array(
+			$progress['failed_items'][] = [
 				'product_id' => $productId,
 				'error'      => mb_substr( $errorMessage, 0, 255 ),
 				'failed_at'  => current_time( 'mysql', true ),
-			);
+			];
 
 			update_option( self::OPTION_SYNC_PROGRESS, $progress, false );
 
@@ -244,7 +244,7 @@ class SyncProgressTracker implements SyncProgressTrackerInterface {
 		$lockAcquired = $this->acquireLock();
 
 		if ( ! $lockAcquired ) {
-			$this->log( 'warning', 'Failed to acquire lock for fail_bulk_sync', array() );
+			$this->log( 'warning', 'Failed to acquire lock for fail_bulk_sync', [] );
 			return false;
 		}
 
@@ -262,10 +262,10 @@ class SyncProgressTracker implements SyncProgressTrackerInterface {
 			$this->log(
 				'error',
 				'Bulk sync failed',
-				array(
+				[
 					'sync_id' => $syncId,
 					'reason'  => $reason,
-				)
+				]
 			);
 
 			return update_option( self::OPTION_SYNC_PROGRESS, $progress, false );
@@ -281,7 +281,7 @@ class SyncProgressTracker implements SyncProgressTrackerInterface {
 		$lockAcquired = $this->acquireLock();
 
 		if ( ! $lockAcquired ) {
-			$this->log( 'warning', 'Failed to acquire lock for clear_sync_progress', array() );
+			$this->log( 'warning', 'Failed to acquire lock for clear_sync_progress', [] );
 			return false;
 		}
 
@@ -289,7 +289,7 @@ class SyncProgressTracker implements SyncProgressTrackerInterface {
 			if ( ! $force ) {
 				$progress = get_option( self::OPTION_SYNC_PROGRESS );
 				if ( $progress && 'in_progress' === ( $progress['status'] ?? '' ) ) {
-					$this->log( 'warning', 'Cannot clear sync progress while sync is in progress', array() );
+					$this->log( 'warning', 'Cannot clear sync progress while sync is in progress', [] );
 					return false;
 				}
 			}
@@ -307,7 +307,7 @@ class SyncProgressTracker implements SyncProgressTrackerInterface {
 		$progress = get_option( self::OPTION_SYNC_PROGRESS );
 
 		if ( ! $progress || empty( $progress['failed_items'] ) ) {
-			return array();
+			return [];
 		}
 
 		return array_column( $progress['failed_items'], 'product_id' );
@@ -377,7 +377,7 @@ class SyncProgressTracker implements SyncProgressTrackerInterface {
 	 * @param array  $context Context data.
 	 * @return void
 	 */
-	protected function log( string $level, string $message, array $context = array() ): void {
+	protected function log( string $level, string $message, array $context = [] ): void {
 		$context['category'] = 'product-sync';
 
 		if ( null !== $this->logger ) {

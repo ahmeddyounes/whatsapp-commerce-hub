@@ -33,10 +33,10 @@ class TemplatesPage {
 	 * @return void
 	 */
 	public function init(): void {
-		add_action( 'admin_menu', array( $this, 'addMenuItem' ), 55 );
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueueScripts' ) );
-		add_action( 'admin_post_wch_sync_templates', array( $this, 'handleSyncTemplates' ) );
-		add_action( 'wp_ajax_wch_preview_template', array( $this, 'ajaxPreviewTemplate' ) );
+		add_action( 'admin_menu', [ $this, 'addMenuItem' ], 55 );
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueueScripts' ] );
+		add_action( 'admin_post_wch_sync_templates', [ $this, 'handleSyncTemplates' ] );
+		add_action( 'wp_ajax_wch_preview_template', [ $this, 'ajaxPreviewTemplate' ] );
 	}
 
 	/**
@@ -51,7 +51,7 @@ class TemplatesPage {
 			__( 'WCH Templates', 'whatsapp-commerce-hub' ),
 			'manage_woocommerce',
 			'wch-templates',
-			array( $this, 'renderPage' )
+			[ $this, 'renderPage' ]
 		);
 	}
 
@@ -69,14 +69,14 @@ class TemplatesPage {
 		wp_enqueue_style(
 			'wch-admin-templates',
 			WCH_PLUGIN_URL . 'assets/css/admin-templates.css',
-			array(),
+			[],
 			WCH_VERSION
 		);
 
 		wp_enqueue_script(
 			'wch-admin-templates',
 			WCH_PLUGIN_URL . 'assets/js/admin-templates.js',
-			array( 'jquery' ),
+			[ 'jquery' ],
 			WCH_VERSION,
 			true
 		);
@@ -84,10 +84,10 @@ class TemplatesPage {
 		wp_localize_script(
 			'wch-admin-templates',
 			'wchTemplates',
-			array(
+			[
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 				'nonce'   => wp_create_nonce( 'wch_templates_nonce' ),
-			)
+			]
 		);
 	}
 
@@ -111,10 +111,10 @@ class TemplatesPage {
 
 			wp_safe_redirect(
 				add_query_arg(
-					array(
+					[
 						'page'   => 'wch-templates',
 						'synced' => count( $templates ),
-					),
+					],
 					admin_url( 'admin.php' )
 				)
 			);
@@ -122,10 +122,10 @@ class TemplatesPage {
 		} catch ( \Exception $e ) {
 			wp_safe_redirect(
 				add_query_arg(
-					array(
+					[
 						'page'  => 'wch-templates',
 						'error' => rawurlencode( $e->getMessage() ),
-					),
+					],
 					admin_url( 'admin.php' )
 				)
 			);
@@ -142,23 +142,23 @@ class TemplatesPage {
 		check_ajax_referer( 'wch_templates_nonce', 'nonce' );
 
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
-			wp_send_json_error( array( 'message' => 'Permission denied' ) );
+			wp_send_json_error( [ 'message' => 'Permission denied' ] );
 		}
 
 		$templateName = isset( $_POST['template_name'] ) ? sanitize_text_field( wp_unslash( $_POST['template_name'] ) ) : '';
-		$variables    = isset( $_POST['variables'] ) ? array_map( 'sanitize_text_field', wp_unslash( $_POST['variables'] ) ) : array();
+		$variables    = isset( $_POST['variables'] ) ? array_map( 'sanitize_text_field', wp_unslash( $_POST['variables'] ) ) : [];
 
 		if ( empty( $templateName ) ) {
-			wp_send_json_error( array( 'message' => 'Template name required' ) );
+			wp_send_json_error( [ 'message' => 'Template name required' ] );
 		}
 
 		try {
 			$templateManager = \WCH_Template_Manager::getInstance();
 			$rendered        = $templateManager->render_template( $templateName, $variables );
 
-			wp_send_json_success( array( 'template' => $rendered ) );
+			wp_send_json_success( [ 'template' => $rendered ] );
 		} catch ( \Exception $e ) {
-			wp_send_json_error( array( 'message' => $e->getMessage() ) );
+			wp_send_json_error( [ 'message' => $e->getMessage() ] );
 		}
 	}
 
@@ -190,7 +190,7 @@ class TemplatesPage {
 	 * @return array
 	 */
 	private function buildStatsIndex( array $usageStats ): array {
-		$statsByName = array();
+		$statsByName = [];
 		foreach ( $usageStats as $stat ) {
 			$statsByName[ $stat['template_name'] ] = $stat;
 		}
@@ -204,11 +204,11 @@ class TemplatesPage {
 	 * @return array
 	 */
 	private function groupTemplatesByCategory( array $templates ): array {
-		$templatesByCategory = array();
+		$templatesByCategory = [];
 		foreach ( $templates as $template ) {
 			$category = $template['mapped_category'] ?? $template['category'] ?? 'other';
 			if ( ! isset( $templatesByCategory[ $category ] ) ) {
-				$templatesByCategory[ $category ] = array();
+				$templatesByCategory[ $category ] = [];
 			}
 			$templatesByCategory[ $category ][] = $template;
 		}
@@ -458,7 +458,7 @@ class TemplatesPage {
 	 * @return array List of variables found.
 	 */
 	private function extractVariablesFromTemplate( array $template ): array {
-		$variables = array();
+		$variables = [];
 
 		if ( empty( $template['components'] ) ) {
 			return $variables;

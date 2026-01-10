@@ -50,13 +50,13 @@ class CartRecoveredHandler implements EventHandlerInterface {
 		// Log the recovery event.
 		\WCH_Logger::info(
 			'Cart recovered event received',
-			array(
+			[
 				'category'       => 'events',
 				'cart_id'        => $payload['cart_id'] ?? 0,
 				'order_id'       => $payload['order_id'] ?? 0,
 				'customer_phone' => $payload['customer_phone'] ?? '',
 				'event_id'       => $event->id,
-			)
+			]
 		);
 
 		// Track the conversion for analytics.
@@ -81,10 +81,10 @@ class CartRecoveredHandler implements EventHandlerInterface {
 			if ( $profile ) {
 				$customer_service->update_customer_profile(
 					$payload['customer_phone'],
-					array(
+					[
 						'cart_recovery_count'    => ( $profile['cart_recovery_count'] ?? 0 ) + 1,
 						'last_cart_recovered_at' => current_time( 'mysql' ),
-					)
+					]
 				);
 			}
 
@@ -101,11 +101,11 @@ class CartRecoveredHandler implements EventHandlerInterface {
 		} catch ( \Exception $e ) {
 			\WCH_Logger::warning(
 				'Failed to track cart recovery',
-				array(
+				[
 					'category' => 'events',
 					'error'    => $e->getMessage(),
 					'cart_id'  => $payload['cart_id'] ?? 0,
-				)
+				]
 			);
 		}
 	}

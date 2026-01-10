@@ -81,17 +81,17 @@ class ReengagementAnalytics implements ReengagementAnalyticsInterface {
 			ARRAY_A
 		);
 
-		$analytics = array();
+		$analytics = [];
 
 		foreach ( $results as $row ) {
 			$sent                               = intval( $row['sent'] );
-			$analytics[ $row['campaign_type'] ] = array(
+			$analytics[ $row['campaign_type'] ] = [
 				'sent'            => $sent,
 				'delivered'       => intval( $row['delivered'] ),
 				'opened'          => intval( $row['opened'] ),
 				'converted'       => intval( $row['converted'] ),
 				'conversion_rate' => $sent > 0 ? round( ( intval( $row['converted'] ) / $sent ) * 100, 2 ) : 0,
-			);
+			];
 		}
 
 		return $analytics;
@@ -127,24 +127,24 @@ class ReengagementAnalytics implements ReengagementAnalyticsInterface {
 
 		$result = $this->wpdb->update(
 			$tableName,
-			array(
+			[
 				'converted'    => 1,
 				'order_id'     => $orderId,
 				'converted_at' => current_time( 'mysql' ),
-			),
-			array( 'id' => $logId ),
-			array( '%d', '%d', '%s' ),
-			array( '%d' )
+			],
+			[ 'id' => $logId ],
+			[ '%d', '%d', '%s' ],
+			[ '%d' ]
 		);
 
 		if ( false !== $result ) {
 			\WCH_Logger::info(
 				'Re-engagement conversion tracked',
-				array(
+				[
 					'phone'    => $customerPhone,
 					'order_id' => $orderId,
 					'log_id'   => $logId,
-				)
+				]
 			);
 			return true;
 		}
@@ -164,10 +164,10 @@ class ReengagementAnalytics implements ReengagementAnalyticsInterface {
 
 		$result = $this->wpdb->update(
 			$tableName,
-			array( 'status' => $status ),
-			array( 'message_id' => $messageId ),
-			array( '%s' ),
-			array( '%s' )
+			[ 'status' => $status ],
+			[ 'message_id' => $messageId ],
+			[ '%s' ],
+			[ '%s' ]
 		);
 
 		return false !== $result;

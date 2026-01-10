@@ -54,12 +54,12 @@ class CartAbandonedEvent extends Event {
 	 * {@inheritdoc}
 	 */
 	public function getPayload(): array {
-		return array(
+		return [
 			'cart_id'        => $this->cart->id,
 			'customer_phone' => $this->cart->customer_phone,
 			'total'          => $this->cart->total,
 			'item_count'     => $this->cart->getItemCount(),
 			'created_at'     => $this->cart->created_at->format( 'c' ),
-		);
+		];
 	}
 }

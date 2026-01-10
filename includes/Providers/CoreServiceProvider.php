@@ -64,7 +64,7 @@ class CoreServiceProvider implements ServiceProviderInterface {
 		$container->singleton(
 			'wch.settings',
 			static function () {
-				$defaults = array(
+				$defaults = [
 					'phone_number_id'       => '',
 					'business_account_id'   => '',
 					'access_token'          => '',
@@ -81,9 +81,9 @@ class CoreServiceProvider implements ServiceProviderInterface {
 					'reminder_3_delay'      => 72,
 					'enable_order_tracking' => true,
 					'enable_debug_logging'  => false,
-				);
+				];
 
-				$settings = get_option( 'wch_settings', array() );
+				$settings = get_option( 'wch_settings', [] );
 
 				return array_merge( $defaults, $settings );
 			}
@@ -116,21 +116,21 @@ class CoreServiceProvider implements ServiceProviderInterface {
 						$this->log_file      = WP_CONTENT_DIR . '/wch-debug.log';
 					}
 
-					public function debug( string $message, array $context = array() ): void {
+					public function debug( string $message, array $context = [] ): void {
 						if ( $this->debug_enabled ) {
 							$this->log( 'DEBUG', $message, $context );
 						}
 					}
 
-					public function info( string $message, array $context = array() ): void {
+					public function info( string $message, array $context = [] ): void {
 						$this->log( 'INFO', $message, $context );
 					}
 
-					public function warning( string $message, array $context = array() ): void {
+					public function warning( string $message, array $context = [] ): void {
 						$this->log( 'WARNING', $message, $context );
 					}
 
-					public function error( string $message, array $context = array() ): void {
+					public function error( string $message, array $context = [] ): void {
 						$this->log( 'ERROR', $message, $context );
 					}
 
@@ -287,7 +287,7 @@ class CoreServiceProvider implements ServiceProviderInterface {
 		$container->singleton(
 			Logger::class,
 			static function ( ContainerInterface $c ) {
-				$settings     = $c->has( 'wch.settings' ) ? $c->get( 'wch.settings' ) : array();
+				$settings     = $c->has( 'wch.settings' ) ? $c->get( 'wch.settings' ) : [];
 				$debugEnabled = (bool) ( $settings['enable_debug_logging'] ?? false );
 				$minLevel     = $debugEnabled ? Logger::LEVEL_DEBUG : Logger::LEVEL_INFO;
 				return new Logger( $minLevel );
@@ -471,7 +471,7 @@ class CoreServiceProvider implements ServiceProviderInterface {
 	 * @return array<string>
 	 */
 	public function provides(): array {
-		return array(
+		return [
 			\wpdb::class,
 			'wpdb',
 			'wch.settings',
@@ -498,6 +498,6 @@ class CoreServiceProvider implements ServiceProviderInterface {
 			'wch.payments',
 			\WCH_Queue::class,
 			'wch.queue',
-		);
+		];
 	}
 }

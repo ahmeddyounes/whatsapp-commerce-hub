@@ -43,11 +43,11 @@ abstract class AbstractController extends WP_REST_Controller {
 	 *
 	 * @var array<string, int>
 	 */
-	protected array $rateLimits = array(
+	protected array $rateLimits = [
 		'admin'   => 100,  // 100 requests per minute for admin endpoints.
 		'webhook' => 1000, // 1000 requests per minute for webhook.
 		'public'  => 60,   // 60 requests per minute for public endpoints.
-	);
+	];
 
 	/**
 	 * Constructor.
@@ -85,7 +85,7 @@ abstract class AbstractController extends WP_REST_Controller {
 			return new WP_Error(
 				'wch_rest_forbidden',
 				__( 'You do not have permission to access this resource.', 'whatsapp-commerce-hub' ),
-				array( 'status' => 403 )
+				[ 'status' => 403 ]
 			);
 		}
 
@@ -106,7 +106,7 @@ abstract class AbstractController extends WP_REST_Controller {
 			return new WP_Error(
 				'wch_rest_invalid_phone',
 				__( 'Phone number cannot be empty.', 'whatsapp-commerce-hub' ),
-				array( 'status' => 400 )
+				[ 'status' => 400 ]
 			);
 		}
 
@@ -115,7 +115,7 @@ abstract class AbstractController extends WP_REST_Controller {
 			return new WP_Error(
 				'wch_rest_invalid_phone',
 				__( 'Phone number must be between 10 and 15 digits.', 'whatsapp-commerce-hub' ),
-				array( 'status' => 400 )
+				[ 'status' => 400 ]
 			);
 		}
 
@@ -165,7 +165,7 @@ abstract class AbstractController extends WP_REST_Controller {
 			}
 		}
 
-		$this->log( 'CORS request blocked', array( 'origin' => $origin ), 'warning' );
+		$this->log( 'CORS request blocked', [ 'origin' => $origin ], 'warning' );
 
 		return null;
 	}
@@ -186,7 +186,7 @@ abstract class AbstractController extends WP_REST_Controller {
 			$origin .= ':' . $parsed['port'];
 		}
 
-		$allowed = array( $origin );
+		$allowed = [ $origin ];
 
 		// Add configured allowed origins.
 		if ( $this->settings ) {
@@ -221,7 +221,7 @@ abstract class AbstractController extends WP_REST_Controller {
 		$response->header( 'X-WP-TotalPages', $totalPages );
 
 		$baseUrl = rest_url( $this->apiNamespace . '/' . $this->rest_base );
-		$links   = array();
+		$links   = [];
 
 		if ( $page > 1 ) {
 			$links['prev'] = add_query_arg( 'page', $page - 1, $baseUrl );
@@ -232,7 +232,7 @@ abstract class AbstractController extends WP_REST_Controller {
 		}
 
 		if ( ! empty( $links ) ) {
-			$linkHeader = array();
+			$linkHeader = [];
 			foreach ( $links as $rel => $url ) {
 				$linkHeader[] = sprintf( '<%s>; rel="%s"', $url, $rel );
 			}
@@ -255,7 +255,7 @@ abstract class AbstractController extends WP_REST_Controller {
 			return new WP_Error(
 				'wch_rest_missing_api_key',
 				__( 'API key is required. Please provide X-WCH-API-Key header.', 'whatsapp-commerce-hub' ),
-				array( 'status' => 401 )
+				[ 'status' => 401 ]
 			);
 		}
 
@@ -263,7 +263,7 @@ abstract class AbstractController extends WP_REST_Controller {
 			return new WP_Error(
 				'wch_rest_api_key_not_configured',
 				__( 'API key authentication is not configured.', 'whatsapp-commerce-hub' ),
-				array( 'status' => 500 )
+				[ 'status' => 500 ]
 			);
 		}
 
@@ -273,7 +273,7 @@ abstract class AbstractController extends WP_REST_Controller {
 			return new WP_Error(
 				'wch_rest_api_key_not_configured',
 				__( 'API key authentication is not configured.', 'whatsapp-commerce-hub' ),
-				array( 'status' => 500 )
+				[ 'status' => 500 ]
 			);
 		}
 
@@ -281,7 +281,7 @@ abstract class AbstractController extends WP_REST_Controller {
 			return new WP_Error(
 				'wch_rest_invalid_api_key',
 				__( 'Invalid API key.', 'whatsapp-commerce-hub' ),
-				array( 'status' => 401 )
+				[ 'status' => 401 ]
 			);
 		}
 
@@ -301,7 +301,7 @@ abstract class AbstractController extends WP_REST_Controller {
 			return new WP_Error(
 				'wch_rest_missing_signature',
 				__( 'Webhook signature is required.', 'whatsapp-commerce-hub' ),
-				array( 'status' => 401 )
+				[ 'status' => 401 ]
 			);
 		}
 
@@ -309,7 +309,7 @@ abstract class AbstractController extends WP_REST_Controller {
 			return new WP_Error(
 				'wch_rest_webhook_not_configured',
 				__( 'Webhook authentication is not configured.', 'whatsapp-commerce-hub' ),
-				array( 'status' => 500 )
+				[ 'status' => 500 ]
 			);
 		}
 
@@ -319,7 +319,7 @@ abstract class AbstractController extends WP_REST_Controller {
 			return new WP_Error(
 				'wch_rest_webhook_not_configured',
 				__( 'Webhook authentication is not configured.', 'whatsapp-commerce-hub' ),
-				array( 'status' => 500 )
+				[ 'status' => 500 ]
 			);
 		}
 
@@ -330,7 +330,7 @@ abstract class AbstractController extends WP_REST_Controller {
 			return new WP_Error(
 				'wch_rest_invalid_signature',
 				__( 'Invalid webhook signature.', 'whatsapp-commerce-hub' ),
-				array( 'status' => 401 )
+				[ 'status' => 401 ]
 			);
 		}
 
@@ -359,12 +359,12 @@ abstract class AbstractController extends WP_REST_Controller {
 						__( 'Rate limit exceeded. Maximum %d requests per minute allowed.', 'whatsapp-commerce-hub' ),
 						$limit
 					),
-					array(
+					[
 						'status'      => 429,
 						'remaining'   => $result['remaining'] ?? 0,
 						'reset_at'    => $result['reset_at'] ?? null,
 						'retry_after' => $result['retry_after'] ?? 60,
-					)
+					]
 				);
 			}
 
@@ -400,7 +400,7 @@ abstract class AbstractController extends WP_REST_Controller {
 					__( 'Rate limit exceeded. Maximum %d requests per minute allowed.', 'whatsapp-commerce-hub' ),
 					$limit
 				),
-				array( 'status' => 429 )
+				[ 'status' => 429 ]
 			);
 		}
 
@@ -472,14 +472,14 @@ abstract class AbstractController extends WP_REST_Controller {
 	 * @return bool True if trusted proxy.
 	 */
 	protected function isTrustedProxy( string $ip ): bool {
-		$trustedRanges = array(
+		$trustedRanges = [
 			'127.0.0.0/8',
 			'10.0.0.0/8',
 			'172.16.0.0/12',
 			'192.168.0.0/16',
 			'::1/128',
 			'fc00::/7',
-		);
+		];
 
 		if ( $this->settings ) {
 			$configured = $this->settings->get( 'api.trusted_proxy_ips', '' );
@@ -573,11 +573,11 @@ abstract class AbstractController extends WP_REST_Controller {
 	 * @param int    $status  HTTP status code.
 	 * @return WP_Error
 	 */
-	protected function prepareError( string $code, string $message, array $details = array(), int $status = 400 ): WP_Error {
+	protected function prepareError( string $code, string $message, array $details = [], int $status = 400 ): WP_Error {
 		return new WP_Error(
 			$code,
 			$message,
-			array_merge( array( 'status' => $status ), $details )
+			array_merge( [ 'status' => $status ], $details )
 		);
 	}
 
@@ -589,7 +589,7 @@ abstract class AbstractController extends WP_REST_Controller {
 	 * @param string $level   Log level.
 	 * @return void
 	 */
-	protected function log( string $message, array $context = array(), string $level = 'info' ): void {
+	protected function log( string $message, array $context = [], string $level = 'info' ): void {
 		if ( class_exists( 'WCH_Logger' ) ) {
 			\WCH_Logger::log( $message, $context, $level );
 		}

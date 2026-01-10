@@ -40,9 +40,9 @@ class LogsPage {
 	 * @return void
 	 */
 	public function init(): void {
-		add_action( 'admin_menu', array( $this, 'addMenuItem' ) );
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueueScripts' ) );
-		add_action( 'wp_ajax_wch_delete_old_logs', array( $this, 'ajaxDeleteOldLogs' ) );
+		add_action( 'admin_menu', [ $this, 'addMenuItem' ] );
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueueScripts' ] );
+		add_action( 'wp_ajax_wch_delete_old_logs', [ $this, 'ajaxDeleteOldLogs' ] );
 	}
 
 	/**
@@ -57,7 +57,7 @@ class LogsPage {
 			__( 'WCH Logs', 'whatsapp-commerce-hub' ),
 			'manage_woocommerce',
 			'wch-logs',
-			array( $this, 'renderPage' )
+			[ $this, 'renderPage' ]
 		);
 	}
 
@@ -72,7 +72,7 @@ class LogsPage {
 			return;
 		}
 
-		wp_enqueue_style( 'wch-admin-logs', false, array(), WCH_VERSION );
+		wp_enqueue_style( 'wch-admin-logs', false, [], WCH_VERSION );
 		wp_add_inline_style( 'wch-admin-logs', $this->getInlineStyles() );
 	}
 
@@ -124,7 +124,7 @@ class LogsPage {
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only log level filter.
 		$logLevel   = isset( $_GET['level'] ) ? sanitize_text_field( wp_unslash( $_GET['level'] ) ) : '';
-		$logEntries = array();
+		$logEntries = [];
 
 		if ( ! empty( $currentLog ) ) {
 			$logEntries = \WCH_Logger::read_log( $currentLog, $logLevel ? strtoupper( $logLevel ) : null );
@@ -299,23 +299,23 @@ class LogsPage {
 	 */
 	public function ajaxDeleteOldLogs(): void {
 		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'wch-delete-old-logs' ) ) {
-			wp_send_json_error( array( 'message' => __( 'Invalid nonce.', 'whatsapp-commerce-hub' ) ) );
+			wp_send_json_error( [ 'message' => __( 'Invalid nonce.', 'whatsapp-commerce-hub' ) ] );
 		}
 
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
-			wp_send_json_error( array( 'message' => __( 'Insufficient permissions.', 'whatsapp-commerce-hub' ) ) );
+			wp_send_json_error( [ 'message' => __( 'Insufficient permissions.', 'whatsapp-commerce-hub' ) ] );
 		}
 
 		$deleted = \WCH_Logger::delete_old_logs( 30 );
 
 		wp_send_json_success(
-			array(
+			[
 				'message' => sprintf(
 					/* translators: %d: number of files deleted */
 					_n( 'Deleted %d log file.', 'Deleted %d log files.', $deleted, 'whatsapp-commerce-hub' ),
 					$deleted
 				),
-			)
+			]
 		);
 	}
 }

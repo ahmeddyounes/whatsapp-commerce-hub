@@ -148,8 +148,8 @@ class CheckoutServiceProvider extends AbstractServiceProvider {
 	 */
 	protected function doBoot(): void {
 		// Register checkout-related hooks.
-		add_action( 'wch_checkout_started', array( $this, 'onCheckoutStarted' ) );
-		add_action( 'wch_checkout_cancelled', array( $this, 'onCheckoutCancelled' ) );
+		add_action( 'wch_checkout_started', [ $this, 'onCheckoutStarted' ] );
+		add_action( 'wch_checkout_cancelled', [ $this, 'onCheckoutCancelled' ] );
 	}
 
 	/**
@@ -158,7 +158,7 @@ class CheckoutServiceProvider extends AbstractServiceProvider {
 	 * @return array
 	 */
 	public function provides(): array {
-		return array(
+		return [
 			CheckoutStateManagerInterface::class,
 			AddressHandlerInterface::class,
 			ShippingCalculatorInterface::class,
@@ -166,7 +166,7 @@ class CheckoutServiceProvider extends AbstractServiceProvider {
 			CheckoutTotalsCalculatorInterface::class,
 			CouponHandlerInterface::class,
 			CheckoutOrchestratorInterface::class,
-		);
+		];
 	}
 
 	/**
@@ -179,7 +179,7 @@ class CheckoutServiceProvider extends AbstractServiceProvider {
 		\WCH_Logger::info(
 			'Checkout started',
 			'checkout',
-			array( 'phone' => $phone )
+			[ 'phone' => $phone ]
 		);
 	}
 
@@ -193,7 +193,7 @@ class CheckoutServiceProvider extends AbstractServiceProvider {
 		\WCH_Logger::info(
 			'Checkout cancelled',
 			'checkout',
-			array( 'phone' => $phone )
+			[ 'phone' => $phone ]
 		);
 	}
 }

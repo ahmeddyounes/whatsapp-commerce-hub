@@ -68,20 +68,20 @@ class CatalogApiService implements CatalogApiInterface {
 	 */
 	public function createProduct( array $catalogData ): array {
 		if ( ! $this->isConfigured() ) {
-			return array(
+			return [
 				'success' => false,
 				'error'   => 'WhatsApp API not configured',
-			);
+			];
 		}
 
 		$apiClient = $this->getApiClient();
 		$catalogId = $this->getCatalogId();
 
 		if ( ! $apiClient || ! $catalogId ) {
-			return array(
+			return [
 				'success' => false,
 				'error'   => 'WhatsApp API not configured',
-			);
+			];
 		}
 
 		try {
@@ -90,30 +90,30 @@ class CatalogApiService implements CatalogApiInterface {
 			$this->log(
 				'info',
 				'Product synced to WhatsApp catalog',
-				array(
+				[
 					'retailer_id' => $catalogData['retailer_id'] ?? 'unknown',
 					'catalog_id'  => $catalogId,
-				)
+				]
 			);
 
-			return array(
+			return [
 				'success'         => true,
 				'catalog_item_id' => $response['id'] ?? null,
-			);
+			];
 		} catch ( Exception $e ) {
 			$this->log(
 				'error',
 				'Failed to sync product to WhatsApp catalog',
-				array(
+				[
 					'retailer_id' => $catalogData['retailer_id'] ?? 'unknown',
 					'error'       => $e->getMessage(),
-				)
+				]
 			);
 
-			return array(
+			return [
 				'success' => false,
 				'error'   => $e->getMessage(),
-			);
+			];
 		}
 	}
 
@@ -122,20 +122,20 @@ class CatalogApiService implements CatalogApiInterface {
 	 */
 	public function deleteProduct( string $catalogItemId ): array {
 		if ( ! $this->isConfigured() ) {
-			return array(
+			return [
 				'success' => false,
 				'error'   => 'WhatsApp API not configured',
-			);
+			];
 		}
 
 		$apiClient = $this->getApiClient();
 		$catalogId = $this->getCatalogId();
 
 		if ( ! $apiClient || ! $catalogId ) {
-			return array(
+			return [
 				'success' => false,
 				'error'   => 'WhatsApp API not configured',
-			);
+			];
 		}
 
 		try {
@@ -144,27 +144,27 @@ class CatalogApiService implements CatalogApiInterface {
 			$this->log(
 				'info',
 				'Product removed from WhatsApp catalog',
-				array(
+				[
 					'catalog_item_id' => $catalogItemId,
 					'catalog_id'      => $catalogId,
-				)
+				]
 			);
 
-			return array( 'success' => true );
+			return [ 'success' => true ];
 		} catch ( Exception $e ) {
 			$this->log(
 				'error',
 				'Failed to delete product from WhatsApp catalog',
-				array(
+				[
 					'catalog_item_id' => $catalogItemId,
 					'error'           => $e->getMessage(),
-				)
+				]
 			);
 
-			return array(
+			return [
 				'success' => false,
 				'error'   => $e->getMessage(),
-			);
+			];
 		}
 	}
 
@@ -260,11 +260,11 @@ class CatalogApiService implements CatalogApiInterface {
 			}
 
 			$this->apiClient = new \WCH_WhatsApp_API_Client(
-				array(
+				[
 					'phone_number_id' => $phoneNumberId,
 					'access_token'    => $accessToken,
 					'api_version'     => $apiVersion,
-				)
+				]
 			);
 
 			return $this->apiClient;
@@ -272,9 +272,9 @@ class CatalogApiService implements CatalogApiInterface {
 			$this->log(
 				'error',
 				'Failed to initialize API client',
-				array(
+				[
 					'error' => $e->getMessage(),
-				)
+				]
 			);
 			return null;
 		}
@@ -307,7 +307,7 @@ class CatalogApiService implements CatalogApiInterface {
 	 * @param array  $context Context data.
 	 * @return void
 	 */
-	protected function log( string $level, string $message, array $context = array() ): void {
+	protected function log( string $level, string $message, array $context = [] ): void {
 		$context['category'] = 'product-sync';
 
 		if ( null !== $this->logger ) {

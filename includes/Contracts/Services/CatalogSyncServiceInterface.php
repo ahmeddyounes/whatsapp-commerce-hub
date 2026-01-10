@@ -88,7 +88,7 @@ interface CatalogSyncServiceInterface {
 		string $triggered_by = 'manual',
 		string $status = 'success',
 		int $duration = 0,
-		array $errors = array()
+		array $errors = []
 	): void;
 
 	/**

@@ -148,7 +148,7 @@ class SagaOrchestrator {
 		$state = $existing['state'];
 
 		// If completed or compensated, return the cached result (idempotent response).
-		if ( in_array( $state, array( self::STATE_COMPLETED, self::STATE_COMPENSATED ), true ) ) {
+		if ( in_array( $state, [ self::STATE_COMPLETED, self::STATE_COMPENSATED ], true ) ) {
 			do_action(
 				'wch_log_info',
 				sprintf(
@@ -163,7 +163,7 @@ class SagaOrchestrator {
 			return new SagaResult(
 				$saga_id,
 				self::STATE_COMPLETED === $state,
-				$existing_context['step_results'] ?? array(),
+				$existing_context['step_results'] ?? [],
 				self::STATE_COMPENSATED === $state ? 'Saga was previously compensated' : null,
 				$existing_context
 			);
@@ -184,14 +184,14 @@ class SagaOrchestrator {
 			return new SagaResult(
 				$saga_id,
 				false,
-				$existing_context['step_results'] ?? array(),
+				$existing_context['step_results'] ?? [],
 				'Saga previously failed',
 				$existing_context
 			);
 		}
 
 		// If running or compensating, reject to prevent concurrent execution.
-		if ( in_array( $state, array( self::STATE_RUNNING, self::STATE_COMPENSATING ), true ) ) {
+		if ( in_array( $state, [ self::STATE_RUNNING, self::STATE_COMPENSATING ], true ) ) {
 			// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception message, not output.
 			throw new \RuntimeException(
 				sprintf( 'Saga %s is already %s - concurrent execution not allowed', $saga_id, $state )
@@ -232,8 +232,8 @@ class SagaOrchestrator {
 		array $steps
 	): SagaResult {
 
-		$completed_steps = array();
-		$step_results    = array();
+		$completed_steps = [];
+		$step_results    = [];
 		$current_context = $context;
 
 		// Add saga metadata to context for step access.
@@ -263,11 +263,11 @@ class SagaOrchestrator {
 					$current_context['last_result']  = $result;
 
 					// Track completed step for potential compensation.
-					$completed_steps[] = array(
+					$completed_steps[] = [
 						'step'    => $step,
 						'result'  => $result,
 						'context' => $current_context,
-					);
+					];
 
 					$this->logStepComplete( $saga_id, $step_name, $result );
 				} catch ( \Throwable $e ) {
@@ -283,10 +283,10 @@ class SagaOrchestrator {
 					}
 
 					// Non-critical step - continue but record failure.
-					$step_results[ $step_name ] = array(
+					$step_results[ $step_name ] = [
 						'error'   => $e->getMessage(),
 						'skipped' => true,
-					);
+					];
 				}
 			}
 
@@ -465,12 +465,12 @@ class SagaOrchestrator {
 		$this->updateState( $saga_id, self::STATE_FAILED );
 		$this->appendLog( $saga_id, 'recovery_failed', 'Steps not available for recovery' );
 
-		$existing_context = $existing['context'] ?? array();
+		$existing_context = $existing['context'] ?? [];
 
 		return new SagaResult(
 			$saga_id,
 			false,
-			array(),
+			[],
 			'Saga found in pending state but cannot be recovered - steps not serialized',
 			$existing_context
 		);
@@ -518,7 +518,7 @@ class SagaOrchestrator {
 	 * @return array Compensation errors (empty if all successful).
 	 */
 	private function compensate( string $saga_id, array $completed_steps ): array {
-		$errors = array();
+		$errors = [];
 
 		// Compensate in reverse order.
 		$reversed = array_reverse( $completed_steps );
@@ -585,7 +585,7 @@ class SagaOrchestrator {
 					json_last_error_msg()
 				)
 			);
-			$row['context'] = array();
+			$row['context'] = [];
 		}
 
 		$row['log'] = json_decode( $row['log'] ?? '[]', true );
@@ -598,7 +598,7 @@ class SagaOrchestrator {
 					json_last_error_msg()
 				)
 			);
-			$row['log'] = array();
+			$row['log'] = [];
 		}
 
 		return $row;
@@ -636,7 +636,7 @@ class SagaOrchestrator {
 	private function createSagaState( string $saga_id, string $saga_type, array $context ): void {
 		$this->wpdb->insert(
 			$this->table,
-			array(
+			[
 				'saga_id'    => $saga_id,
 				'saga_type'  => $saga_type,
 				'state'      => self::STATE_PENDING,
@@ -644,8 +644,8 @@ class SagaOrchestrator {
 				'log'        => '[]',
 				'created_at' => current_time( 'mysql', true ),
 				'updated_at' => current_time( 'mysql', true ),
-			),
-			array( '%s', '%s', '%s', '%s', '%s', '%s', '%s' )
+			],
+			[ '%s', '%s', '%s', '%s', '%s', '%s', '%s' ]
 		);
 	}
 
@@ -659,13 +659,13 @@ class SagaOrchestrator {
 	private function updateState( string $saga_id, string $state ): void {
 		$this->wpdb->update(
 			$this->table,
-			array(
+			[
 				'state'      => $state,
 				'updated_at' => current_time( 'mysql', true ),
-			),
-			array( 'saga_id' => $saga_id ),
-			array( '%s', '%s' ),
-			array( '%s' )
+			],
+			[ 'saga_id' => $saga_id ],
+			[ '%s', '%s' ],
+			[ '%s' ]
 		);
 
 		do_action( 'wch_saga_state_changed', $saga_id, $state );
@@ -681,11 +681,11 @@ class SagaOrchestrator {
 	private function updateContext( string $saga_id, array $context ): void {
 		$this->wpdb->update(
 			$this->table,
-			array(
+			[
 				'context'    => wp_json_encode( $context ),
 				'updated_at' => current_time( 'mysql', true ),
-			),
-			array( 'saga_id' => $saga_id )
+			],
+			[ 'saga_id' => $saga_id ]
 		);
 	}
 
@@ -718,21 +718,21 @@ class SagaOrchestrator {
 				return;
 			}
 
-			$log = ! empty( $row->log ) ? json_decode( $row->log, true ) : array();
+			$log = ! empty( $row->log ) ? json_decode( $row->log, true ) : [];
 			if ( ! is_array( $log ) ) {
-				$log = array();
+				$log = [];
 			}
 
-			$log[] = array(
+			$log[] = [
 				'timestamp' => current_time( 'mysql', true ),
 				'event'     => $event,
 				'message'   => $message,
-			);
+			];
 
 			$this->wpdb->update(
 				$this->table,
-				array( 'log' => wp_json_encode( $log ) ),
-				array( 'saga_id' => $saga_id )
+				[ 'log' => wp_json_encode( $log ) ],
+				[ 'saga_id' => $saga_id ]
 			);
 
 			$this->wpdb->query( 'COMMIT' );
@@ -978,9 +978,9 @@ class SagaResult {
 		bool $success,
 		array $step_results,
 		?string $error = null,
-		array $context = array(),
+		array $context = [],
 		?string $failed_step = null,
-		array $compensation_errors = array()
+		array $compensation_errors = []
 	) {
 		$this->saga_id             = $saga_id;
 		$this->success             = $success;

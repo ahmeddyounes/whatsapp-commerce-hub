@@ -57,13 +57,13 @@ class ErrorHandler {
 		self::$logger = $logger ?? self::getLogger();
 
 		// Register exception handler.
-		set_exception_handler( array( __CLASS__, 'handleException' ) );
+		set_exception_handler( [ __CLASS__, 'handleException' ] );
 
 		// Register error handler.
-		set_error_handler( array( __CLASS__, 'handleError' ) );
+		set_error_handler( [ __CLASS__, 'handleError' ] );
 
 		// Register shutdown handler for fatal errors.
-		register_shutdown_function( array( __CLASS__, 'handleShutdown' ) );
+		register_shutdown_function( [ __CLASS__, 'handleShutdown' ] );
 
 		self::$initialized = true;
 	}
@@ -78,12 +78,12 @@ class ErrorHandler {
 		$logger = self::getLogger();
 
 		// Prepare context.
-		$context = array(
+		$context = [
 			'exception' => get_class( $throwable ),
 			'file'      => $throwable->getFile(),
 			'line'      => $throwable->getLine(),
 			'code'      => $throwable->getCode(),
-		);
+		];
 
 		// Include trace in debug mode.
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
@@ -127,12 +127,12 @@ class ErrorHandler {
 		$logLevel = self::getLogLevelForError( $errno );
 
 		// Log the error.
-		$context = array(
+		$context = [
 			'errno' => $errno,
 			'file'  => $errfile,
 			'line'  => $errline,
 			'type'  => self::getErrorTypeName( $errno ),
-		);
+		];
 
 		// Log based on severity.
 		match ( $logLevel ) {
@@ -145,7 +145,7 @@ class ErrorHandler {
 
 		// Convert to exception in debug mode for fatal errors.
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			if ( in_array( $errno, array( E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR ), true ) ) {
+			if ( in_array( $errno, [ E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR ], true ) ) {
 				throw new ErrorException( $errstr, 0, $errno, $errfile, $errline );
 			}
 		}
@@ -167,7 +167,7 @@ class ErrorHandler {
 		}
 
 		// Only handle fatal errors.
-		$fatalErrors = array( E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR );
+		$fatalErrors = [ E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR ];
 
 		if ( ! in_array( $error['type'], $fatalErrors, true ) ) {
 			return;
@@ -176,12 +176,12 @@ class ErrorHandler {
 		$logger = self::getLogger();
 
 		// Log the fatal error.
-		$context = array(
+		$context = [
 			'type'     => self::getErrorTypeName( $error['type'] ),
 			'file'     => $error['file'],
 			'line'     => $error['line'],
 			'is_fatal' => true,
-		);
+		];
 
 		$logger->critical( $error['message'], 'errors', $context );
 

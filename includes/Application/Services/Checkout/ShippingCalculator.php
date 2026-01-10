@@ -36,7 +36,7 @@ class ShippingCalculator implements ShippingCalculatorInterface {
 	 */
 	public function getAvailableMethods( string $phone, array $address, array $items ): array {
 		if ( empty( $address ) ) {
-			return array();
+			return [];
 		}
 
 		$package     = $this->buildPackage( $items, $address );
@@ -48,7 +48,7 @@ class ShippingCalculator implements ShippingCalculatorInterface {
 		}
 
 		$zoneMethods = $matchedZone->get_shipping_methods( true );
-		$methods     = array();
+		$methods     = [];
 
 		foreach ( $zoneMethods as $method ) {
 			if ( ! $method->is_enabled() ) {
@@ -57,13 +57,13 @@ class ShippingCalculator implements ShippingCalculatorInterface {
 
 			$rate = $this->calculateRate( $method->id . ':' . $method->instance_id, $package );
 
-			$methods[] = array(
+			$methods[] = [
 				'id'          => $method->id . ':' . $method->instance_id,
 				'label'       => $method->get_title(),
 				'cost'        => $rate['cost'],
 				'cost_html'   => wc_price( $rate['cost'] ),
 				'description' => $method->get_method_description(),
-			);
+			];
 		}
 
 		return apply_filters( 'wch_shipping_methods', $methods, $phone, $address );
@@ -79,10 +79,10 @@ class ShippingCalculator implements ShippingCalculatorInterface {
 	public function calculateRate( string $methodId, array $package ): array {
 		$parts = explode( ':', $methodId );
 		if ( count( $parts ) < 2 ) {
-			return array(
+			return [
 				'cost'  => 0.0,
 				'label' => '',
-			);
+			];
 		}
 
 		$methodType = $parts[0];
@@ -92,10 +92,10 @@ class ShippingCalculator implements ShippingCalculatorInterface {
 		$shippingMethods = WC()->shipping()->get_shipping_methods();
 
 		if ( ! isset( $shippingMethods[ $methodType ] ) ) {
-			return array(
+			return [
 				'cost'  => 0.0,
 				'label' => '',
-			);
+			];
 		}
 
 		$method              = clone $shippingMethods[ $methodType ];
@@ -108,16 +108,16 @@ class ShippingCalculator implements ShippingCalculatorInterface {
 
 		if ( ! empty( $rates ) ) {
 			$rate = reset( $rates );
-			return array(
+			return [
 				'cost'  => (float) $rate->get_cost(),
 				'label' => $rate->get_label(),
-			);
+			];
 		}
 
-		return array(
+		return [
 			'cost'  => 0.0,
 			'label' => $method->get_title(),
-		);
+		];
 	}
 
 	/**
@@ -128,7 +128,7 @@ class ShippingCalculator implements ShippingCalculatorInterface {
 	 * @return array Package data.
 	 */
 	public function buildPackage( array $items, array $address ): array {
-		$contents = array();
+		$contents = [];
 		$total    = 0.0;
 
 		foreach ( $items as $index => $item ) {
@@ -137,29 +137,29 @@ class ShippingCalculator implements ShippingCalculatorInterface {
 			if ( $product ) {
 				$lineTotal = ( $item['price'] ?? 0 ) * ( $item['quantity'] ?? 1 );
 
-				$contents[ $index ] = array(
+				$contents[ $index ] = [
 					'product_id' => $item['product_id'],
 					'quantity'   => $item['quantity'] ?? 1,
 					'data'       => $product,
 					'line_total' => $lineTotal,
-				);
+				];
 
 				$total += $lineTotal;
 			}
 		}
 
-		return array(
+		return [
 			'contents'        => $contents,
 			'contents_cost'   => $total,
-			'applied_coupons' => array(),
-			'destination'     => array(
+			'applied_coupons' => [],
+			'destination'     => [
 				'country'  => $address['country'] ?? '',
 				'state'    => $address['state'] ?? '',
 				'postcode' => $address['postcode'] ?? '',
 				'city'     => $address['city'] ?? '',
 				'address'  => $address['address_1'] ?? '',
-			),
-		);
+			],
+		];
 	}
 
 	/**
@@ -227,7 +227,7 @@ class ShippingCalculator implements ShippingCalculatorInterface {
 	 * @return bool True if valid.
 	 */
 	public function validateMethod( string $methodId, array $address ): bool {
-		$availableMethods = $this->getAvailableMethods( '', $address, array() );
+		$availableMethods = $this->getAvailableMethods( '', $address, [] );
 
 		foreach ( $availableMethods as $method ) {
 			if ( $method['id'] === $methodId ) {

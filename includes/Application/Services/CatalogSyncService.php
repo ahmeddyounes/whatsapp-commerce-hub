@@ -99,11 +99,11 @@ class CatalogSyncService implements CatalogSyncServiceInterface {
 			AND meta_value = 'error'"
 		);
 
-		return array(
+		return [
 			'total_synced' => (int) $total_synced,
 			'last_sync'    => $last_sync,
 			'error_count'  => (int) $error_count,
-		);
+		];
 	}
 
 	/**
@@ -120,46 +120,46 @@ class CatalogSyncService implements CatalogSyncServiceInterface {
 		$stock       = $filters['stock'] ?? '';
 		$sync_status = $filters['sync_status'] ?? '';
 
-		$args = array(
+		$args = [
 			'post_type'      => 'product',
 			'posts_per_page' => $per_page,
 			'paged'          => $page,
 			'post_status'    => 'publish',
 			's'              => $search,
-		);
+		];
 
 		if ( $category ) {
-			$args['tax_query'] = array(
-				array(
+			$args['tax_query'] = [
+				[
 					'taxonomy' => 'product_cat',
 					'field'    => 'term_id',
 					'terms'    => $category,
-				),
-			);
+				],
+			];
 		}
 
 		if ( $stock ) {
-			$args['meta_query'] = array(
+			$args['meta_query'] = [
 				'relation' => 'AND',
-				array(
+				[
 					'key'   => '_stock_status',
 					'value' => $stock,
-				),
-			);
+				],
+			];
 		}
 
 		if ( $sync_status ) {
 			if ( ! isset( $args['meta_query'] ) ) {
-				$args['meta_query'] = array( 'relation' => 'AND' );
+				$args['meta_query'] = [ 'relation' => 'AND' ];
 			}
-			$args['meta_query'][] = array(
+			$args['meta_query'][] = [
 				'key'   => '_wch_sync_status',
 				'value' => $sync_status,
-			);
+			];
 		}
 
 		$query    = new \WP_Query( $args );
-		$products = array();
+		$products = [];
 
 		if ( $query->have_posts() ) {
 			while ( $query->have_posts() ) {
@@ -171,7 +171,7 @@ class CatalogSyncService implements CatalogSyncServiceInterface {
 					$last_synced         = get_post_meta( $product->get_id(), '_wch_last_synced', true );
 					$sync_error          = get_post_meta( $product->get_id(), '_wch_sync_error', true );
 
-					$products[] = array(
+					$products[] = [
 						'id'          => $product->get_id(),
 						'name'        => $product->get_name(),
 						'sku'         => $product->get_sku(),
@@ -181,17 +181,17 @@ class CatalogSyncService implements CatalogSyncServiceInterface {
 						'last_synced' => $last_synced ? human_time_diff( strtotime( $last_synced ), time() ) . ' ago' : '-',
 						'image_url'   => get_the_post_thumbnail_url( $product->get_id(), 'thumbnail' ),
 						'error'       => $sync_error,
-					);
+					];
 				}
 			}
 			wp_reset_postdata();
 		}
 
-		return array(
+		return [
 			'products'    => $products,
 			'total'       => $query->found_posts,
 			'total_pages' => $query->max_num_pages,
-		);
+		];
 	}
 
 	/**
@@ -203,10 +203,10 @@ class CatalogSyncService implements CatalogSyncServiceInterface {
 	 */
 	public function bulkSync( array $product_ids, bool $sync_all = false ): array {
 		if ( empty( $product_ids ) && ! $sync_all ) {
-			return array(
+			return [
 				'success' => false,
 				'message' => __( 'No products selected', 'whatsapp-commerce-hub' ),
-			);
+			];
 		}
 
 		$sync_service = \WCH_Product_Sync_Service::instance();
@@ -232,11 +232,11 @@ class CatalogSyncService implements CatalogSyncServiceInterface {
 		// Record sync history.
 		$this->recordSyncHistory( is_numeric( $count ) ? $count : 0, 'manual' );
 
-		return array(
+		return [
 			'success' => true,
 			'message' => __( 'Products queued for sync', 'whatsapp-commerce-hub' ),
 			'count'   => $count,
-		);
+		];
 	}
 
 	/**
@@ -247,10 +247,10 @@ class CatalogSyncService implements CatalogSyncServiceInterface {
 	 */
 	public function syncProduct( int $product_id ): array {
 		if ( ! $product_id ) {
-			return array(
+			return [
 				'success' => false,
 				'message' => __( 'Invalid product ID', 'whatsapp-commerce-hub' ),
-			);
+			];
 		}
 
 		try {
@@ -262,24 +262,24 @@ class CatalogSyncService implements CatalogSyncServiceInterface {
 				update_post_meta( $product_id, '_wch_last_synced', current_time( 'mysql' ) );
 				delete_post_meta( $product_id, '_wch_sync_error' );
 
-				return array(
+				return [
 					'success' => true,
 					'message' => __( 'Product synced successfully', 'whatsapp-commerce-hub' ),
-				);
+				];
 			}
 
-			return array(
+			return [
 				'success' => false,
 				'message' => __( 'Sync failed', 'whatsapp-commerce-hub' ),
-			);
+			];
 		} catch ( \Throwable $e ) {
 			update_post_meta( $product_id, '_wch_sync_status', 'error' );
 			update_post_meta( $product_id, '_wch_sync_error', $e->getMessage() );
 
-			return array(
+			return [
 				'success' => false,
 				'message' => $e->getMessage(),
-			);
+			];
 		}
 	}
 
@@ -291,10 +291,10 @@ class CatalogSyncService implements CatalogSyncServiceInterface {
 	 */
 	public function removeFromCatalog( array $product_ids ): array {
 		if ( empty( $product_ids ) ) {
-			return array(
+			return [
 				'success' => false,
 				'message' => __( 'No products selected', 'whatsapp-commerce-hub' ),
-			);
+			];
 		}
 
 		foreach ( $product_ids as $product_id ) {
@@ -303,11 +303,11 @@ class CatalogSyncService implements CatalogSyncServiceInterface {
 			delete_post_meta( $product_id, '_wch_sync_error' );
 		}
 
-		return array(
+		return [
 			'success' => true,
 			'message' => __( 'Products removed from catalog', 'whatsapp-commerce-hub' ),
 			'count'   => count( $product_ids ),
-		);
+		];
 	}
 
 	/**
@@ -318,7 +318,7 @@ class CatalogSyncService implements CatalogSyncServiceInterface {
 	 * @return array History entries with pagination info.
 	 */
 	public function getSyncHistory( int $page = 1, int $per_page = 20 ): array {
-		$history = get_option( 'wch_sync_history', array() );
+		$history = get_option( 'wch_sync_history', [] );
 		$total   = count( $history );
 
 		// Sort by timestamp descending.
@@ -336,11 +336,11 @@ class CatalogSyncService implements CatalogSyncServiceInterface {
 		// Guard against division by zero.
 		$total_pages = $per_page > 0 ? (int) ceil( $total / $per_page ) : 1;
 
-		return array(
+		return [
 			'history'     => $history,
 			'total'       => $total,
 			'total_pages' => $total_pages,
-		);
+		];
 	}
 
 	/**
@@ -358,11 +358,11 @@ class CatalogSyncService implements CatalogSyncServiceInterface {
 		string $triggered_by = 'manual',
 		string $status = 'success',
 		int $duration = 0,
-		array $errors = array()
+		array $errors = []
 	): void {
-		$history = get_option( 'wch_sync_history', array() );
+		$history = get_option( 'wch_sync_history', [] );
 
-		$entry = array(
+		$entry = [
 			'timestamp'      => current_time( 'mysql' ),
 			'products_count' => $product_count,
 			'status'         => $status,
@@ -370,7 +370,7 @@ class CatalogSyncService implements CatalogSyncServiceInterface {
 			'error_count'    => count( $errors ),
 			'errors'         => $errors,
 			'triggered_by'   => $triggered_by,
-		);
+		];
 
 		array_unshift( $history, $entry );
 
@@ -393,8 +393,8 @@ class CatalogSyncService implements CatalogSyncServiceInterface {
 
 		$sync_mode          = $settings['sync_mode'] ?? 'manual';
 		$sync_frequency     = $settings['sync_frequency'] ?? 'daily';
-		$categories_include = $settings['categories_include'] ?? array();
-		$categories_exclude = $settings['categories_exclude'] ?? array();
+		$categories_include = $settings['categories_include'] ?? [];
+		$categories_exclude = $settings['categories_exclude'] ?? [];
 
 		$this->settings->set( 'sync.mode', $sync_mode );
 		$this->settings->set( 'sync.frequency', $sync_frequency );
@@ -412,45 +412,45 @@ class CatalogSyncService implements CatalogSyncServiceInterface {
 	 */
 	public function dryRunSync( int $limit = 100 ): array {
 		// First get the total count efficiently.
-		$count_args  = array(
+		$count_args  = [
 			'post_type'      => 'product',
 			'posts_per_page' => 1,
 			'post_status'    => 'publish',
 			'fields'         => 'ids',
-		);
+		];
 		$count_query = new \WP_Query( $count_args );
 		$total_count = $count_query->found_posts;
 
 		// Now get the limited preview sample.
 		$preview_limit = min( $limit, 1000 ); // Hard cap at 1000 for memory safety.
-		$args          = array(
+		$args          = [
 			'post_type'      => 'product',
 			'posts_per_page' => $preview_limit,
 			'post_status'    => 'publish',
 			'fields'         => 'ids',
-		);
+		];
 
 		$query       = new \WP_Query( $args );
 		$product_ids = $query->posts;
 
-		$products_info = array();
+		$products_info = [];
 		foreach ( $product_ids as $product_id ) {
 			$product = wc_get_product( $product_id );
 			if ( $product ) {
-				$products_info[] = array(
+				$products_info[] = [
 					'id'   => $product->get_id(),
 					'name' => $product->get_name(),
 					'sku'  => $product->get_sku(),
-				);
+				];
 			}
 		}
 
-		return array(
+		return [
 			'count'         => $total_count,
 			'preview_count' => count( $products_info ),
 			'products'      => $products_info,
 			'truncated'     => $total_count > $preview_limit,
-		);
+		];
 	}
 
 	/**
@@ -467,10 +467,10 @@ class CatalogSyncService implements CatalogSyncServiceInterface {
 		);
 
 		if ( empty( $product_ids ) ) {
-			return array(
+			return [
 				'success' => false,
 				'message' => __( 'No failed products to retry', 'whatsapp-commerce-hub' ),
-			);
+			];
 		}
 
 		// Reset status to pending.
@@ -486,11 +486,11 @@ class CatalogSyncService implements CatalogSyncServiceInterface {
 			\WCH_Queue::getInstance()->schedule_bulk_action( 'wch_sync_product', $product_ids );
 		}
 
-		return array(
+		return [
 			'success' => true,
 			'message' => __( 'Failed products queued for retry', 'whatsapp-commerce-hub' ),
 			'count'   => count( $product_ids ),
-		);
+		];
 	}
 
 	/**

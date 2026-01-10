@@ -84,7 +84,7 @@ class CatalogTransformerService implements CatalogTransformerInterface {
 		// Brand.
 		$brand = $this->getProductBrand( $product );
 
-		$catalogData = array(
+		$catalogData = [
 			'retailer_id'  => (string) $productId,
 			'name'         => $name,
 			'description'  => $description,
@@ -92,7 +92,7 @@ class CatalogTransformerService implements CatalogTransformerInterface {
 			'currency'     => $currency,
 			'url'          => $url,
 			'availability' => $availability,
-		);
+		];
 
 		// Add optional fields.
 		if ( ! empty( $imageUrl ) ) {
@@ -133,12 +133,12 @@ class CatalogTransformerService implements CatalogTransformerInterface {
 	 */
 	public function transformVariableProduct( WC_Product $product ): array {
 		if ( ! $product->is_type( 'variable' ) ) {
-			return array( $this->transform( $product ) );
+			return [ $this->transform( $product ) ];
 		}
 
 		$parentId    = $product->get_id();
 		$variations  = $product->get_available_variations();
-		$transformed = array();
+		$transformed = [];
 
 		foreach ( $variations as $variationData ) {
 			$variationId = $variationData['variation_id'];
@@ -156,10 +156,10 @@ class CatalogTransformerService implements CatalogTransformerInterface {
 				}
 			}
 
-			$transformed[] = array(
+			$transformed[] = [
 				'variation_id' => $variationId,
 				'catalog_data' => $this->transform( $variation, $parentId ),
-			);
+			];
 		}
 
 		return $transformed;

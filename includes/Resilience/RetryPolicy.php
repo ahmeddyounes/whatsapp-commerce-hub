@@ -72,14 +72,14 @@ class RetryPolicy {
 	 *
 	 * @var array<class-string>
 	 */
-	private array $retryable_exceptions = array();
+	private array $retryable_exceptions = [];
 
 	/**
 	 * Non-retryable exception types.
 	 *
 	 * @var array<class-string>
 	 */
-	private array $non_retryable_exceptions = array();
+	private array $non_retryable_exceptions = [];
 
 	/**
 	 * Custom retry condition callback.
@@ -194,7 +194,7 @@ class RetryPolicy {
 				as_schedule_single_action(
 					time() + $delay_seconds,
 					$hook,
-					array( $args ),
+					[ $args ],
 					'wch-normal'
 				);
 			}
@@ -390,7 +390,7 @@ class RetryPolicy {
 	 */
 	public static function forWhatsApp(): self {
 		return ( new self( 3, 2000, 30000, self::BACKOFF_EXPONENTIAL, 20 ) )
-			->dontRetryOn( array( \InvalidArgumentException::class ) );
+			->dontRetryOn( [ \InvalidArgumentException::class ] );
 	}
 
 	/**
@@ -400,7 +400,7 @@ class RetryPolicy {
 	 */
 	public static function forOpenAI(): self {
 		return ( new self( 3, 5000, 60000, self::BACKOFF_EXPONENTIAL, 25 ) )
-			->dontRetryOn( array( \InvalidArgumentException::class ) );
+			->dontRetryOn( [ \InvalidArgumentException::class ] );
 	}
 
 	/**
@@ -410,7 +410,7 @@ class RetryPolicy {
 	 */
 	public static function forPayment(): self {
 		return ( new self( 2, 3000, 30000, self::BACKOFF_LINEAR, 10 ) )
-			->dontRetryOn( array( \InvalidArgumentException::class ) );
+			->dontRetryOn( [ \InvalidArgumentException::class ] );
 	}
 
 	/**

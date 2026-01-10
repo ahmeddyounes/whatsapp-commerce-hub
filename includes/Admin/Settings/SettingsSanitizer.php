@@ -31,7 +31,7 @@ class SettingsSanitizer implements SettingsSanitizerInterface {
 	 *
 	 * @var array<string>
 	 */
-	protected array $booleanFields = array(
+	protected array $booleanFields = [
 		'sync_enabled',
 		'include_out_of_stock',
 		'cod_enabled',
@@ -53,14 +53,14 @@ class SettingsSanitizer implements SettingsSanitizerInterface {
 		'auto_fix_discrepancies',
 		'enable_ai',
 		'discount_enabled',
-	);
+	];
 
 	/**
 	 * Numeric field keys.
 	 *
 	 * @var array<string>
 	 */
-	protected array $numericFields = array(
+	protected array $numericFields = [
 		'cod_extra_charge',
 		'min_order_amount',
 		'max_order_amount',
@@ -76,44 +76,44 @@ class SettingsSanitizer implements SettingsSanitizerInterface {
 		'delay_sequence_2',
 		'delay_sequence_3',
 		'discount_amount',
-	);
+	];
 
 	/**
 	 * Array field keys.
 	 *
 	 * @var array<string>
 	 */
-	protected array $arrayFields = array(
+	protected array $arrayFields = [
 		'operating_hours',
 		'enabled_payment_methods',
 		'categories',
 		'products',
-	);
+	];
 
 	/**
 	 * Textarea field keys.
 	 *
 	 * @var array<string>
 	 */
-	protected array $textareaFields = array(
+	protected array $textareaFields = [
 		'system_prompt',
 		'ai_system_prompt',
 		'welcome_message',
 		'fallback_message',
-	);
+	];
 
 	/**
 	 * Enum fields with allowed values.
 	 *
 	 * @var array<string, array<string>>
 	 */
-	protected array $enumFields = array(
-		'sync_products'     => array( 'all', 'published', 'selected' ),
-		'product_selection' => array( 'all', 'categories', 'products' ),
-		'ai_model'          => array( 'gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo' ),
-		'model'             => array( 'gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo' ),
-		'discount_type'     => array( 'percent', 'fixed' ),
-	);
+	protected array $enumFields = [
+		'sync_products'     => [ 'all', 'published', 'selected' ],
+		'product_selection' => [ 'all', 'categories', 'products' ],
+		'ai_model'          => [ 'gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo' ],
+		'model'             => [ 'gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo' ],
+		'discount_type'     => [ 'percent', 'fixed' ],
+	];
 
 	/**
 	 * Check if a field is boolean type.
@@ -172,7 +172,7 @@ class SettingsSanitizer implements SettingsSanitizerInterface {
 	 * @return array<string> Allowed values.
 	 */
 	public function getEnumValues( string $key ): array {
-		return $this->enumFields[ $key ] ?? array();
+		return $this->enumFields[ $key ] ?? [];
 	}
 
 	/**
@@ -272,44 +272,44 @@ class SettingsSanitizer implements SettingsSanitizerInterface {
 	 * {@inheritdoc}
 	 */
 	public function getImportableWhitelist(): array {
-		return array(
-			'general'       => array(
+		return [
+			'general'       => [
 				'enable_bot',
 				'business_name',
 				'welcome_message',
 				'fallback_message',
 				'operating_hours',
 				'timezone',
-			),
-			'catalog'       => array(
+			],
+			'catalog'       => [
 				'sync_enabled',
 				'sync_products',
 				'include_out_of_stock',
 				'price_format',
 				'currency_symbol',
-			),
-			'checkout'      => array(
+			],
+			'checkout'      => [
 				'enabled_payment_methods',
 				'cod_enabled',
 				'cod_extra_charge',
 				'min_order_amount',
 				'max_order_amount',
 				'require_phone_verification',
-			),
-			'notifications' => array(
+			],
+			'notifications' => [
 				'order_confirmation',
 				'order_status_updates',
 				'shipping_updates',
 				'abandoned_cart_reminder',
 				'abandoned_cart_delay_hours',
-			),
-			'inventory'     => array(
+			],
+			'inventory'     => [
 				'enable_realtime_sync',
 				'low_stock_threshold',
 				'notify_low_stock',
 				'auto_fix_discrepancies',
-			),
-			'ai'            => array(
+			],
+			'ai'            => [
 				'enable_ai',
 				'ai_model',
 				'ai_temperature',
@@ -317,8 +317,8 @@ class SettingsSanitizer implements SettingsSanitizerInterface {
 				'ai_system_prompt',
 				'monthly_budget_cap',
 				// Note: openai_api_key is intentionally excluded (sensitive).
-			),
-			'recovery'      => array(
+			],
+			'recovery'      => [
 				'enabled',
 				'delay_sequence_1',
 				'delay_sequence_2',
@@ -329,9 +329,9 @@ class SettingsSanitizer implements SettingsSanitizerInterface {
 				'discount_enabled',
 				'discount_type',
 				'discount_amount',
-			),
+			],
 			// Note: 'api' section is intentionally excluded (contains sensitive credentials).
-		);
+		];
 	}
 
 	/**
@@ -342,7 +342,7 @@ class SettingsSanitizer implements SettingsSanitizerInterface {
 	 * @return array{valid: bool, errors: array} Validation result.
 	 */
 	public function validateSection( string $section, array $values ): array {
-		$errors = array();
+		$errors = [];
 
 		foreach ( $values as $key => $value ) {
 			$validationResult = $this->validateField( $section, $key, $value );
@@ -351,10 +351,10 @@ class SettingsSanitizer implements SettingsSanitizerInterface {
 			}
 		}
 
-		return array(
+		return [
 			'valid'  => empty( $errors ),
 			'errors' => $errors,
-		);
+		];
 	}
 
 	/**
@@ -370,14 +370,14 @@ class SettingsSanitizer implements SettingsSanitizerInterface {
 		if ( $this->isEnumField( $key ) ) {
 			$allowedValues = $this->getEnumValues( $key );
 			if ( ! in_array( $value, $allowedValues, true ) ) {
-				return array(
+				return [
 					'valid' => false,
 					'error' => sprintf(
 						/* translators: %s: allowed values */
 						__( 'Invalid value. Allowed: %s', 'whatsapp-commerce-hub' ),
 						implode( ', ', $allowedValues )
 					),
-				);
+				];
 			}
 		}
 
@@ -390,37 +390,37 @@ class SettingsSanitizer implements SettingsSanitizerInterface {
 				case 'temperature':
 				case 'ai_temperature':
 					if ( $numericValue < 0 || $numericValue > 1 ) {
-						return array(
+						return [
 							'valid' => false,
 							'error' => __( 'Temperature must be between 0 and 1', 'whatsapp-commerce-hub' ),
-						);
+						];
 					}
 					break;
 
 				case 'log_retention_days':
 					if ( $numericValue < 1 || $numericValue > 365 ) {
-						return array(
+						return [
 							'valid' => false,
 							'error' => __( 'Log retention must be between 1 and 365 days', 'whatsapp-commerce-hub' ),
-						);
+						];
 					}
 					break;
 
 				case 'abandoned_cart_delay':
 				case 'abandoned_cart_delay_hours':
 					if ( $numericValue < 1 || $numericValue > 168 ) {
-						return array(
+						return [
 							'valid' => false,
 							'error' => __( 'Abandoned cart delay must be between 1 and 168 hours', 'whatsapp-commerce-hub' ),
-						);
+						];
 					}
 					break;
 			}
 		}
 
-		return array(
+		return [
 			'valid' => true,
 			'error' => null,
-		);
+		];
 	}
 }

@@ -63,12 +63,12 @@ class CartRecoveredEvent extends Event {
 	 * {@inheritdoc}
 	 */
 	public function getPayload(): array {
-		return array(
+		return [
 			'cart_id'        => $this->cart->id,
 			'order_id'       => $this->order_id,
 			'customer_phone' => $this->cart->customer_phone,
 			'total'          => $this->cart->total,
 			'reminders_sent' => $this->cart->getRemindersSent(),
-		);
+		];
 	}
 }

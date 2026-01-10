@@ -146,20 +146,20 @@ class OrderNotificationProcessor extends AbstractQueueProcessor {
 		if ( ! $this->idempotencyService->claim( $idempotencyKey, IdempotencyService::SCOPE_NOTIFICATION ) ) {
 			$this->logInfo(
 				'Notification already sent, skipping',
-				array(
+				[
 					'order_id' => $orderId,
 					'type'     => $notificationType,
-				)
+				]
 			);
 			return;
 		}
 
 		$this->logDebug(
 			'Processing order notification',
-			array(
+			[
 				'order_id' => $orderId,
 				'type'     => $notificationType,
-			)
+			]
 		);
 
 		// Get the WooCommerce order.
@@ -178,9 +178,9 @@ class OrderNotificationProcessor extends AbstractQueueProcessor {
 		if ( empty( $customerPhone ) ) {
 			$this->logWarning(
 				'No customer phone for notification',
-				array(
+				[
 					'order_id' => $orderId,
-				)
+				]
 			);
 			return; // Don't throw - just skip silently.
 		}
@@ -189,10 +189,10 @@ class OrderNotificationProcessor extends AbstractQueueProcessor {
 		if ( ! $this->canSendNotification( $customerPhone ) ) {
 			$this->logInfo(
 				'Notification blocked by opt-out or quiet hours',
-				array(
+				[
 					'order_id' => $orderId,
 					'phone'    => $this->maskPhone( $customerPhone ),
-				)
+				]
 			);
 			return;
 		}
@@ -218,10 +218,10 @@ class OrderNotificationProcessor extends AbstractQueueProcessor {
 
 		$this->logInfo(
 			'Order notification sent successfully',
-			array(
+			[
 				'order_id' => $orderId,
 				'type'     => $notificationType,
-			)
+			]
 		);
 	}
 
@@ -252,7 +252,7 @@ class OrderNotificationProcessor extends AbstractQueueProcessor {
 				return $this->sendDeliveryConfirmation( $order, $phone );
 
 			default:
-				$this->logWarning( 'Unknown notification type', array( 'type' => $type ) );
+				$this->logWarning( 'Unknown notification type', [ 'type' => $type ] );
 				return false;
 		}
 	}
@@ -265,13 +265,13 @@ class OrderNotificationProcessor extends AbstractQueueProcessor {
 	 * @return bool True on success.
 	 */
 	private function sendOrderConfirmation( \WC_Order $order, string $phone ): bool {
-		$variables = array(
+		$variables = [
 			'customer_name'      => $order->get_billing_first_name(),
 			'order_number'       => $order->get_order_number(),
 			'order_total'        => $order->get_formatted_order_total(),
 			'item_count'         => (string) $order->get_item_count(),
 			'estimated_delivery' => $this->getEstimatedDelivery( $order ),
-		);
+		];
 
 		return $this->sendTemplateMessage(
 			$order->get_id(),
@@ -292,12 +292,12 @@ class OrderNotificationProcessor extends AbstractQueueProcessor {
 	private function sendStatusUpdate( \WC_Order $order, string $phone, string $newStatus ): bool {
 		$statusInfo = $this->getStatusInfo( $newStatus );
 
-		$variables = array(
+		$variables = [
 			'order_number'  => $order->get_order_number(),
 			'status_text'   => $statusInfo['text'],
 			'status_emoji'  => $statusInfo['emoji'],
 			'action_needed' => $statusInfo['action_needed'],
-		);
+		];
 
 		$templateName = $this->getStatusTemplate( $newStatus );
 
@@ -319,12 +319,12 @@ class OrderNotificationProcessor extends AbstractQueueProcessor {
 	 * @return bool True on success.
 	 */
 	private function sendShippingUpdate( \WC_Order $order, string $phone, string $trackingNumber, string $carrier ): bool {
-		$variables = array(
+		$variables = [
 			'order_number'    => $order->get_order_number(),
 			'carrier_name'    => $this->formatCarrierName( $carrier ),
 			'tracking_number' => $trackingNumber,
 			'tracking_url'    => $this->getTrackingUrl( $carrier, $trackingNumber ),
-		);
+		];
 
 		return $this->sendTemplateMessage(
 			$order->get_id(),
@@ -342,10 +342,10 @@ class OrderNotificationProcessor extends AbstractQueueProcessor {
 	 * @return bool True on success.
 	 */
 	private function sendDeliveryConfirmation( \WC_Order $order, string $phone ): bool {
-		$variables = array(
+		$variables = [
 			'order_number'  => $order->get_order_number(),
 			'customer_name' => $order->get_billing_first_name(),
-		);
+		];
 
 		// Add review link if reviews are enabled.
 		if ( post_type_supports( 'product', 'comments' ) ) {
@@ -383,11 +383,11 @@ class OrderNotificationProcessor extends AbstractQueueProcessor {
 			if ( is_wp_error( $result ) ) {
 				$this->logError(
 					'Template send failed',
-					array(
+					[
 						'order_id' => $orderId,
 						'template' => $templateName,
 						'error'    => $result->get_error_message(),
-					)
+					]
 				);
 				return false;
 			}
@@ -410,11 +410,11 @@ class OrderNotificationProcessor extends AbstractQueueProcessor {
 		} catch ( \Throwable $e ) {
 			$this->logError(
 				'Template send exception',
-				array(
+				[
 					'order_id' => $orderId,
 					'template' => $templateName,
 					'error'    => $e->getMessage(),
-				)
+				]
 			);
 
 			// Log failed notification.
@@ -583,44 +583,44 @@ class OrderNotificationProcessor extends AbstractQueueProcessor {
 	 * @return array Status info with text, emoji, and action_needed.
 	 */
 	private function getStatusInfo( string $status ): array {
-		$statuses = array(
-			'processing' => array(
+		$statuses = [
+			'processing' => [
 				'text'          => __( 'Being prepared', 'whatsapp-commerce-hub' ),
 				'emoji'         => '📦',
 				'action_needed' => '',
-			),
-			'on-hold'    => array(
+			],
+			'on-hold'    => [
 				'text'          => __( 'On hold', 'whatsapp-commerce-hub' ),
 				'emoji'         => '⏸️',
 				'action_needed' => __( 'Please contact support', 'whatsapp-commerce-hub' ),
-			),
-			'shipped'    => array(
+			],
+			'shipped'    => [
 				'text'          => __( 'Shipped', 'whatsapp-commerce-hub' ),
 				'emoji'         => '🚚',
 				'action_needed' => '',
-			),
-			'completed'  => array(
+			],
+			'completed'  => [
 				'text'          => __( 'Delivered', 'whatsapp-commerce-hub' ),
 				'emoji'         => '✅',
 				'action_needed' => '',
-			),
-			'cancelled'  => array(
+			],
+			'cancelled'  => [
 				'text'          => __( 'Cancelled', 'whatsapp-commerce-hub' ),
 				'emoji'         => '❌',
 				'action_needed' => __( 'Contact support for refund', 'whatsapp-commerce-hub' ),
-			),
-			'refunded'   => array(
+			],
+			'refunded'   => [
 				'text'          => __( 'Refunded', 'whatsapp-commerce-hub' ),
 				'emoji'         => '💰',
 				'action_needed' => '',
-			),
-		);
+			],
+		];
 
-		return $statuses[ $status ] ?? array(
+		return $statuses[ $status ] ?? [
 			'text'          => ucfirst( str_replace( '-', ' ', $status ) ),
 			'emoji'         => '📋',
 			'action_needed' => '',
-		);
+		];
 	}
 
 	/**
@@ -630,14 +630,14 @@ class OrderNotificationProcessor extends AbstractQueueProcessor {
 	 * @return string Template name.
 	 */
 	private function getStatusTemplate( string $status ): string {
-		$templates = array(
+		$templates = [
 			'processing' => 'order_processing',
 			'on-hold'    => 'order_on_hold',
 			'shipped'    => 'order_shipped',
 			'completed'  => 'order_completed',
 			'cancelled'  => 'order_cancelled',
 			'refunded'   => 'order_refunded',
-		);
+		];
 
 		return $templates[ $status ] ?? 'order_status_update';
 	}
@@ -649,7 +649,7 @@ class OrderNotificationProcessor extends AbstractQueueProcessor {
 	 * @return string Formatted carrier name.
 	 */
 	private function formatCarrierName( string $carrier ): string {
-		$carriers = array(
+		$carriers = [
 			'fedex'    => 'FedEx',
 			'ups'      => 'UPS',
 			'usps'     => 'USPS',
@@ -657,7 +657,7 @@ class OrderNotificationProcessor extends AbstractQueueProcessor {
 			'aramex'   => 'Aramex',
 			'bluedart' => 'Blue Dart',
 			'dtdc'     => 'DTDC',
-		);
+		];
 
 		return $carriers[ strtolower( $carrier ) ] ?? ucfirst( $carrier );
 	}
@@ -670,13 +670,13 @@ class OrderNotificationProcessor extends AbstractQueueProcessor {
 	 * @return string Tracking URL.
 	 */
 	private function getTrackingUrl( string $carrier, string $trackingNumber ): string {
-		$urlPatterns = array(
+		$urlPatterns = [
 			'fedex'  => 'https://www.fedex.com/fedextrack/?trknbr=%s',
 			'ups'    => 'https://www.ups.com/track?tracknum=%s',
 			'usps'   => 'https://tools.usps.com/go/TrackConfirmAction?tLabels=%s',
 			'dhl'    => 'https://www.dhl.com/en/express/tracking.html?AWB=%s',
 			'aramex' => 'https://www.aramex.com/track/shipments?ShipmentNumber=%s',
-		);
+		];
 
 		$carrier = strtolower( $carrier );
 		if ( isset( $urlPatterns[ $carrier ] ) ) {
@@ -727,15 +727,15 @@ class OrderNotificationProcessor extends AbstractQueueProcessor {
 
 		$this->wpdb->insert(
 			$tableName,
-			array(
+			[
 				'order_id'       => $orderId,
 				'customer_phone' => $phone,
 				'template_name'  => $templateName,
 				'status'         => $status,
 				'response'       => is_string( $response ) ? $response : wp_json_encode( $response ),
 				'created_at'     => current_time( 'mysql' ),
-			),
-			array( '%d', '%s', '%s', '%s', '%s', '%s' )
+			],
+			[ '%d', '%s', '%s', '%s', '%s', '%s' ]
 		);
 	}
 

@@ -32,7 +32,7 @@ class HealthCheck {
 	 *
 	 * @var array<string, callable>
 	 */
-	private array $checks = array();
+	private array $checks = [];
 
 	/**
 	 * Container instance.
@@ -67,10 +67,10 @@ class HealthCheck {
 				$result  = $wpdb->get_var( 'SELECT 1' );
 				$latency = ( microtime( true ) - $start ) * 1000;
 
-				return array(
+				return [
 					'status'  => '1' === $result ? 'healthy' : 'unhealthy',
 					'latency' => round( $latency, 2 ),
-				);
+				];
 			}
 		);
 
@@ -78,10 +78,10 @@ class HealthCheck {
 		$this->register(
 			'woocommerce',
 			function (): array {
-				return array(
+				return [
 					'status'  => class_exists( 'WooCommerce' ) ? 'healthy' : 'unhealthy',
 					'version' => defined( 'WC_VERSION' ) ? WC_VERSION : 'unknown',
-				);
+				];
 			}
 		);
 
@@ -90,7 +90,7 @@ class HealthCheck {
 			'action_scheduler',
 			function (): array {
 				if ( ! function_exists( 'as_has_scheduled_action' ) ) {
-					return array( 'status' => 'unavailable' );
+					return [ 'status' => 'unavailable' ];
 				}
 
 				global $wpdb;
@@ -112,11 +112,11 @@ class HealthCheck {
 					$status = 'degraded';
 				}
 
-				return array(
+				return [
 					'status'  => $status,
 					'pending' => $pending,
 					'failed'  => $failed,
-				);
+				];
 			}
 		);
 
@@ -128,16 +128,16 @@ class HealthCheck {
 					$monitor = $this->container->get( JobMonitor::class );
 					$health  = $monitor->getHealthStatus();
 
-					return array(
+					return [
 						'status'     => $health['status'],
 						'pending'    => $health['queue']['totals']['pending'] ?? 0,
 						'throughput' => $health['throughput']['jobs_per_minute'] ?? 0,
-					);
+					];
 				} catch ( \Throwable $e ) {
-					return array(
+					return [
 						'status' => 'error',
 						'error'  => $e->getMessage(),
-					);
+					];
 				}
 			}
 		);
@@ -150,15 +150,15 @@ class HealthCheck {
 					$registry = $this->container->get( CircuitBreakerRegistry::class );
 					$summary  = $registry->getHealthSummary();
 
-					return array(
+					return [
 						'status' => $summary['status'],
 						'open'   => $summary['open'],
 						'total'  => $summary['total'],
-					);
+					];
 				} catch ( \Throwable $e ) {
-					return array(
+					return [
 						'status' => 'unknown',
-					);
+					];
 				}
 			}
 		);
@@ -171,7 +171,7 @@ class HealthCheck {
 				$path       = $upload_dir['basedir'];
 
 				if ( ! is_dir( $path ) ) {
-					return array( 'status' => 'error' );
+					return [ 'status' => 'error' ];
 				}
 
 				$free  = disk_free_space( $path );
@@ -187,11 +187,11 @@ class HealthCheck {
 					$status = 'critical';
 				}
 
-				return array(
+				return [
 					'status'       => $status,
 					'free_percent' => round( $free_percent, 1 ),
 					'free_gb'      => round( $free / ( 1024 * 1024 * 1024 ), 2 ),
-				);
+				];
 			}
 		);
 
@@ -214,13 +214,13 @@ class HealthCheck {
 					$status = 'critical';
 				}
 
-				return array(
+				return [
 					'status'        => $status,
 					'limit'         => $limit,
 					'usage_percent' => round( $usage_percent, 1 ),
 					'usage_mb'      => round( $usage / ( 1024 * 1024 ), 2 ),
 					'peak_mb'       => round( $peak / ( 1024 * 1024 ), 2 ),
-				);
+				];
 			}
 		);
 	}
@@ -244,9 +244,9 @@ class HealthCheck {
 	 * @return array<string, mixed> Health status.
 	 */
 	public function check(): array {
-		$results         = array();
+		$results         = [];
 		$overall_status  = 'healthy';
-		$status_priority = array(
+		$status_priority = [
 			'healthy'   => 0,
 			'unknown'   => 1,
 			'warning'   => 2,
@@ -254,7 +254,7 @@ class HealthCheck {
 			'unhealthy' => 4,
 			'critical'  => 5,
 			'error'     => 6,
-		);
+		];
 
 		foreach ( $this->checks as $name => $check ) {
 			try {
@@ -271,20 +271,20 @@ class HealthCheck {
 					$overall_status = $check_status;
 				}
 			} catch ( \Throwable $e ) {
-				$results[ $name ] = array(
+				$results[ $name ] = [
 					'status' => 'error',
 					'error'  => $e->getMessage(),
-				);
+				];
 				$overall_status   = 'error';
 			}
 		}
 
-		return array(
+		return [
 			'status'    => $overall_status,
 			'timestamp' => gmdate( 'c' ),
 			'version'   => defined( 'WCH_VERSION' ) ? WCH_VERSION : 'unknown',
 			'checks'    => $results,
-		);
+		];
 	}
 
 	/**
@@ -302,10 +302,10 @@ class HealthCheck {
 		try {
 			return ( $this->checks[ $name ] )();
 		} catch ( \Throwable $e ) {
-			return array(
+			return [
 				'status' => 'error',
 				'error'  => $e->getMessage(),
-			);
+			];
 		}
 	}
 
@@ -347,10 +347,10 @@ class HealthCheck {
 	 * @return array Simple liveness response.
 	 */
 	public function liveness(): array {
-		return array(
+		return [
 			'status' => 'ok',
 			'time'   => time(),
-		);
+		];
 	}
 
 	/**
@@ -364,10 +364,10 @@ class HealthCheck {
 
 		$ready = 'healthy' === ( $db['status'] ?? '' ) && 'healthy' === ( $wc['status'] ?? '' );
 
-		return array(
+		return [
 			'ready'       => $ready,
 			'database'    => $db['status'] ?? 'unknown',
 			'woocommerce' => $wc['status'] ?? 'unknown',
-		);
+		];
 	}
 }

@@ -33,10 +33,10 @@ class JobsPage {
 	 * @return void
 	 */
 	public function init(): void {
-		add_action( 'admin_menu', array( $this, 'addMenuPage' ), 60 );
-		add_action( 'admin_post_wch_retry_failed_job', array( $this, 'handleRetryJob' ) );
-		add_action( 'admin_post_wch_trigger_cart_cleanup', array( $this, 'handleTriggerCleanup' ) );
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueueScripts' ) );
+		add_action( 'admin_menu', [ $this, 'addMenuPage' ], 60 );
+		add_action( 'admin_post_wch_retry_failed_job', [ $this, 'handleRetryJob' ] );
+		add_action( 'admin_post_wch_trigger_cart_cleanup', [ $this, 'handleTriggerCleanup' ] );
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueueScripts' ] );
 	}
 
 	/**
@@ -51,7 +51,7 @@ class JobsPage {
 			__( 'WCH Jobs', 'whatsapp-commerce-hub' ),
 			'manage_woocommerce',
 			'wch-jobs',
-			array( $this, 'renderPage' )
+			[ $this, 'renderPage' ]
 		);
 	}
 
@@ -69,14 +69,14 @@ class JobsPage {
 		wp_enqueue_style(
 			'wch-admin-jobs',
 			WCH_PLUGIN_URL . 'assets/css/admin-jobs.css',
-			array(),
+			[],
 			WCH_VERSION
 		);
 
 		wp_enqueue_script(
 			'wch-admin-jobs',
 			WCH_PLUGIN_URL . 'assets/js/admin-jobs.js',
-			array( 'jquery' ),
+			[ 'jquery' ],
 			WCH_VERSION,
 			true
 		);

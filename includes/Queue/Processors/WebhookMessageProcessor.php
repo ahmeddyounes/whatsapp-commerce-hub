@@ -127,20 +127,20 @@ class WebhookMessageProcessor extends AbstractQueueProcessor {
 		if ( ! $this->idempotencyService->claim( $messageId, IdempotencyService::SCOPE_WEBHOOK ) ) {
 			$this->logInfo(
 				'Message already processed, skipping',
-				array(
+				[
 					'message_id' => $messageId,
-				)
+				]
 			);
 			return;
 		}
 
 		$this->logDebug(
 			'Processing incoming message',
-			array(
+			[
 				'message_id' => $messageId,
 				'from'       => $from,
 				'type'       => $type,
-			)
+			]
 		);
 
 		// Find or create conversation for this phone number.
@@ -181,11 +181,11 @@ class WebhookMessageProcessor extends AbstractQueueProcessor {
 
 		$this->logInfo(
 			'Message processed successfully',
-			array(
+			[
 				'message_id'      => $messageId,
 				'conversation_id' => $conversation->id,
 				'intent'          => $intent ? $intent->getIntentName() : null,
-			)
+			]
 		);
 	}
 
@@ -209,7 +209,7 @@ class WebhookMessageProcessor extends AbstractQueueProcessor {
 		int $timestamp
 	): ?object {
 		try {
-			$messageData = array(
+			$messageData = [
 				'conversation_id' => $conversationId,
 				'wa_message_id'   => $waMessageId,
 				'direction'       => 'inbound',
@@ -218,7 +218,7 @@ class WebhookMessageProcessor extends AbstractQueueProcessor {
 				'raw_payload'     => $data,
 				'status'          => 'received',
 				'created_at'      => gmdate( 'Y-m-d H:i:s', $timestamp ),
-			);
+			];
 
 			$messageId = $this->messageRepository->create( $messageData );
 
@@ -226,10 +226,10 @@ class WebhookMessageProcessor extends AbstractQueueProcessor {
 		} catch ( \Throwable $e ) {
 			$this->logError(
 				'Failed to store message',
-				array(
+				[
 					'error'      => $e->getMessage(),
 					'message_id' => $waMessageId,
-				)
+				]
 			);
 			return null;
 		}
@@ -252,7 +252,7 @@ class WebhookMessageProcessor extends AbstractQueueProcessor {
 
 			case 'interactive':
 				// Handle list/button replies.
-				$interactive = $data['interactive'] ?? array();
+				$interactive = $data['interactive'] ?? [];
 				if ( isset( $interactive['list_reply'] ) ) {
 					return $interactive['list_reply']['title'] ?? $interactive['list_reply']['id'] ?? '';
 				}
@@ -263,7 +263,7 @@ class WebhookMessageProcessor extends AbstractQueueProcessor {
 
 			case 'location':
 				// Return a structured location string for processing.
-				$location = $data['location'] ?? array();
+				$location = $data['location'] ?? [];
 				return sprintf(
 					'Location: %s, %s',
 					$location['latitude'] ?? '',
@@ -275,7 +275,7 @@ class WebhookMessageProcessor extends AbstractQueueProcessor {
 			case 'audio':
 			case 'document':
 				// Media messages may have captions.
-				$media = $data[ $type ] ?? array();
+				$media = $data[ $type ] ?? [];
 				return $media['caption'] ?? '';
 
 			default:
@@ -298,16 +298,16 @@ class WebhookMessageProcessor extends AbstractQueueProcessor {
 
 		try {
 			$classifier = new \WCH_Intent_Classifier();
-			$context    = $conversation->context ?? array();
+			$context    = $conversation->context ?? [];
 
 			return $classifier->classify( $text, $context );
 		} catch ( \Throwable $e ) {
 			$this->logError(
 				'Intent classification failed',
-				array(
+				[
 					'error' => $e->getMessage(),
 					'text'  => substr( $text, 0, 100 ),
-				)
+				]
 			);
 			return null;
 		}
@@ -335,9 +335,9 @@ class WebhookMessageProcessor extends AbstractQueueProcessor {
 			if ( ! $event ) {
 				$this->logDebug(
 					'No FSM event mapping for intent',
-					array(
+					[
 						'intent' => $intent->getIntentName(),
-					)
+					]
 				);
 				return null;
 			}
@@ -345,11 +345,11 @@ class WebhookMessageProcessor extends AbstractQueueProcessor {
 			// Prepare payload for FSM.
 			$payload = array_merge(
 				$data,
-				array(
+				[
 					'intent'     => $intent->getIntentName(),
 					'confidence' => $intent->getConfidence(),
 					'entities'   => $intent->getEntities(),
-				)
+				]
 			);
 
 			// Convert conversation entity to array for FSM.
@@ -361,10 +361,10 @@ class WebhookMessageProcessor extends AbstractQueueProcessor {
 			if ( is_wp_error( $result ) ) {
 				$this->logWarning(
 					'FSM transition failed',
-					array(
+					[
 						'error' => $result->get_error_message(),
 						'event' => $event,
-					)
+					]
 				);
 				return $result;
 			}
@@ -373,10 +373,10 @@ class WebhookMessageProcessor extends AbstractQueueProcessor {
 		} catch ( \Throwable $e ) {
 			$this->logError(
 				'FSM routing failed',
-				array(
+				[
 					'error'  => $e->getMessage(),
 					'intent' => $intent->getIntentName(),
-				)
+				]
 			);
 			return null;
 		}
@@ -392,7 +392,7 @@ class WebhookMessageProcessor extends AbstractQueueProcessor {
 		$intentName = $intent->getIntentName();
 
 		// Intent to FSM event mapping.
-		$mapping = array(
+		$mapping = [
 			'GREETING'      => \WCH_Conversation_FSM::EVENT_START,
 			'START'         => \WCH_Conversation_FSM::EVENT_START,
 			'BROWSE'        => \WCH_Conversation_FSM::EVENT_START,
@@ -405,7 +405,7 @@ class WebhookMessageProcessor extends AbstractQueueProcessor {
 			'CONFIRM_ORDER' => \WCH_Conversation_FSM::EVENT_CONFIRM_ORDER,
 			'HUMAN_SUPPORT' => \WCH_Conversation_FSM::EVENT_REQUEST_HUMAN,
 			'HELP'          => \WCH_Conversation_FSM::EVENT_REQUEST_HUMAN,
-		);
+		];
 
 		/**
 		 * Filter the intent to FSM event mapping.

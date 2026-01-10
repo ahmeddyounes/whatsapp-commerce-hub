@@ -51,12 +51,12 @@ class MessageRepository extends AbstractRepository implements MessageRepositoryI
 		}
 
 		// Convert DateTimeImmutable objects.
-		$date_fields = array(
+		$date_fields = [
 			'created_at',
 			'sent_at',
 			'delivered_at',
 			'read_at',
-		);
+		];
 
 		foreach ( $date_fields as $field ) {
 			if ( isset( $data[ $field ] ) && $data[ $field ] instanceof \DateTimeInterface ) {
@@ -86,10 +86,10 @@ class MessageRepository extends AbstractRepository implements MessageRepositoryI
 
 		$rows = $this->query(
 			$sql,
-			array( $conversation_id, $limit, $offset )
+			[ $conversation_id, $limit, $offset ]
 		);
 
-		return array_map( array( $this, 'mapToEntity' ), $rows );
+		return array_map( [ $this, 'mapToEntity' ], $rows );
 	}
 
 	/**
@@ -98,7 +98,7 @@ class MessageRepository extends AbstractRepository implements MessageRepositoryI
 	public function findByWhatsAppMessageId( string $wa_message_id ): ?Message {
 		$row = $this->queryRow(
 			"SELECT * FROM {$this->table} WHERE wa_message_id = %s LIMIT 1",
-			array( $wa_message_id )
+			[ $wa_message_id ]
 		);
 
 		return $row ? $this->mapToEntity( $row ) : null;
@@ -114,7 +114,7 @@ class MessageRepository extends AbstractRepository implements MessageRepositoryI
 			return false;
 		}
 
-		$data = array( 'status' => $status );
+		$data = [ 'status' => $status ];
 
 		// Set the appropriate timestamp based on status.
 		$now = current_time( 'mysql' );
@@ -153,7 +153,7 @@ class MessageRepository extends AbstractRepository implements MessageRepositoryI
 
 		$count = $this->queryVar(
 			$sql,
-			array( $conversation_id, Message::DIRECTION_INBOUND, Message::STATUS_READ )
+			[ $conversation_id, Message::DIRECTION_INBOUND, Message::STATUS_READ ]
 		);
 
 		return (int) ( $count ?? 0 );
@@ -198,15 +198,15 @@ class MessageRepository extends AbstractRepository implements MessageRepositoryI
 
 		$rows = $this->query(
 			$sql,
-			array(
+			[
 				Message::STATUS_FAILED,
 				Message::DIRECTION_OUTBOUND,
 				$max_retries,
 				$limit,
-			)
+			]
 		);
 
-		return array_map( array( $this, 'mapToEntity' ), $rows );
+		return array_map( [ $this, 'mapToEntity' ], $rows );
 	}
 
 	/**
@@ -253,7 +253,7 @@ class MessageRepository extends AbstractRepository implements MessageRepositoryI
 
 		$row = $this->queryRow(
 			$sql,
-			array(
+			[
 				Message::DIRECTION_INBOUND,
 				Message::DIRECTION_OUTBOUND,
 				Message::STATUS_DELIVERED,
@@ -261,16 +261,16 @@ class MessageRepository extends AbstractRepository implements MessageRepositoryI
 				Message::STATUS_FAILED,
 				$start,
 				$end,
-			)
+			]
 		);
 
-		return array(
+		return [
 			'total'     => (int) ( $row['total'] ?? 0 ),
 			'inbound'   => (int) ( $row['inbound'] ?? 0 ),
 			'outbound'  => (int) ( $row['outbound'] ?? 0 ),
 			'delivered' => (int) ( $row['delivered'] ?? 0 ),
 			'failed'    => (int) ( $row['failed'] ?? 0 ),
-		);
+		];
 	}
 
 	/**
@@ -278,7 +278,7 @@ class MessageRepository extends AbstractRepository implements MessageRepositoryI
 	 *
 	 * @var array
 	 */
-	private const VALID_TYPES = array(
+	private const VALID_TYPES = [
 		Message::TYPE_TEXT,
 		Message::TYPE_IMAGE,
 		Message::TYPE_DOCUMENT,
@@ -288,7 +288,7 @@ class MessageRepository extends AbstractRepository implements MessageRepositoryI
 		Message::TYPE_INTERACTIVE,
 		Message::TYPE_TEMPLATE,
 		Message::TYPE_REACTION,
-	);
+	];
 
 	/**
 	 * Validate message type.
@@ -318,13 +318,13 @@ class MessageRepository extends AbstractRepository implements MessageRepositoryI
 		$this->validateType( $type );
 
 		return $this->create(
-			array(
+			[
 				'conversation_id' => $conversation_id,
 				'direction'       => Message::DIRECTION_OUTBOUND,
 				'type'            => $type,
 				'content'         => $content,
 				'status'          => Message::STATUS_PENDING,
-			)
+			]
 		);
 	}
 
@@ -347,14 +347,14 @@ class MessageRepository extends AbstractRepository implements MessageRepositoryI
 		$this->validateType( $type );
 
 		return $this->create(
-			array(
+			[
 				'conversation_id' => $conversation_id,
 				'wa_message_id'   => $wa_message_id,
 				'direction'       => Message::DIRECTION_INBOUND,
 				'type'            => $type,
 				'content'         => $content,
 				'status'          => Message::STATUS_DELIVERED,
-			)
+			]
 		);
 	}
 
@@ -368,11 +368,11 @@ class MessageRepository extends AbstractRepository implements MessageRepositoryI
 	public function setWhatsAppMessageId( int $message_id, string $wa_message_id ): bool {
 		return $this->update(
 			$message_id,
-			array(
+			[
 				'wa_message_id' => $wa_message_id,
 				'status'        => Message::STATUS_SENT,
 				'sent_at'       => current_time( 'mysql' ),
-			)
+			]
 		);
 	}
 
@@ -388,7 +388,7 @@ class MessageRepository extends AbstractRepository implements MessageRepositoryI
 				ORDER BY created_at DESC
 				LIMIT 1";
 
-		$row = $this->queryRow( $sql, array( $conversation_id ) );
+		$row = $this->queryRow( $sql, [ $conversation_id ] );
 
 		return $row ? $this->mapToEntity( $row ) : null;
 	}
@@ -408,7 +408,7 @@ class MessageRepository extends AbstractRepository implements MessageRepositoryI
 
 		$row = $this->queryRow(
 			$sql,
-			array( $conversation_id, Message::DIRECTION_INBOUND )
+			[ $conversation_id, Message::DIRECTION_INBOUND ]
 		);
 
 		return $row ? $this->mapToEntity( $row ) : null;
@@ -431,10 +431,10 @@ class MessageRepository extends AbstractRepository implements MessageRepositoryI
 
 		$rows = $this->query(
 			$sql,
-			array( $conversation_id, $type, $limit )
+			[ $conversation_id, $type, $limit ]
 		);
 
-		return array_map( array( $this, 'mapToEntity' ), $rows );
+		return array_map( [ $this, 'mapToEntity' ], $rows );
 	}
 
 	/**

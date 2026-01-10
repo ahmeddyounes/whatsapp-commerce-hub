@@ -72,13 +72,13 @@ class MessageReceivedEvent extends Event {
 	 * {@inheritdoc}
 	 */
 	public function getPayload(): array {
-		return array(
+		return [
 			'message_id'      => $this->message->id,
 			'wa_message_id'   => $this->message->wa_message_id,
 			'conversation_id' => $this->conversation_id,
 			'from'            => $this->from,
 			'type'            => $this->message->type,
 			'content'         => $this->message->content,
-		);
+		];
 	}
 }

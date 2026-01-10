@@ -40,15 +40,15 @@ class StateMachine {
 	/**
 	 * Valid state transitions.
 	 */
-	private array $transitions = array(
-		self::STATE_INITIAL   => array( self::STATE_BROWSING, self::STATE_ABANDONED ),
-		self::STATE_BROWSING  => array( self::STATE_CART, self::STATE_INITIAL, self::STATE_ABANDONED ),
-		self::STATE_CART      => array( self::STATE_CHECKOUT, self::STATE_BROWSING, self::STATE_ABANDONED ),
-		self::STATE_CHECKOUT  => array( self::STATE_PAYMENT, self::STATE_CART, self::STATE_ABANDONED ),
-		self::STATE_PAYMENT   => array( self::STATE_COMPLETED, self::STATE_CHECKOUT, self::STATE_ABANDONED ),
-		self::STATE_COMPLETED => array( self::STATE_INITIAL, self::STATE_BROWSING ),
-		self::STATE_ABANDONED => array( self::STATE_INITIAL, self::STATE_BROWSING ),
-	);
+	private array $transitions = [
+		self::STATE_INITIAL   => [ self::STATE_BROWSING, self::STATE_ABANDONED ],
+		self::STATE_BROWSING  => [ self::STATE_CART, self::STATE_INITIAL, self::STATE_ABANDONED ],
+		self::STATE_CART      => [ self::STATE_CHECKOUT, self::STATE_BROWSING, self::STATE_ABANDONED ],
+		self::STATE_CHECKOUT  => [ self::STATE_PAYMENT, self::STATE_CART, self::STATE_ABANDONED ],
+		self::STATE_PAYMENT   => [ self::STATE_COMPLETED, self::STATE_CHECKOUT, self::STATE_ABANDONED ],
+		self::STATE_COMPLETED => [ self::STATE_INITIAL, self::STATE_BROWSING ],
+		self::STATE_ABANDONED => [ self::STATE_INITIAL, self::STATE_BROWSING ],
+	];
 
 	/**
 	 * Conversation context.
@@ -118,7 +118,7 @@ class StateMachine {
 	 */
 	public function getAvailableTransitions(): array {
 		$currentState = $this->getCurrentState();
-		return $this->transitions[ $currentState ] ?? array();
+		return $this->transitions[ $currentState ] ?? [];
 	}
 
 	/**
@@ -129,7 +129,7 @@ class StateMachine {
 	 */
 	public function isTerminalState( ?string $state = null ): bool {
 		$state = $state ?? $this->getCurrentState();
-		return in_array( $state, array( self::STATE_COMPLETED, self::STATE_ABANDONED ), true );
+		return in_array( $state, [ self::STATE_COMPLETED, self::STATE_ABANDONED ], true );
 	}
 
 	/**

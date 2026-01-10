@@ -240,10 +240,10 @@ final class DataValidator {
 	 * @return array Array with 'valid' and 'invalid' keys.
 	 */
 	public static function validatePhones( array $phones, bool $sanitize = true ): array {
-		$result = array(
-			'valid'   => array(),
-			'invalid' => array(),
-		);
+		$result = [
+			'valid'   => [],
+			'invalid' => [],
+		];
 
 		foreach ( $phones as $phone ) {
 			$validated = self::validatePhone( (string) $phone, $sanitize );

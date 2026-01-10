@@ -63,9 +63,9 @@ class AdminSettingsController {
 	 * @return void
 	 */
 	public function init(): void {
-		add_action( 'admin_menu', array( $this, 'addMenuItem' ), 50 );
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueueScripts' ) );
-		add_action( 'admin_post_wch_save_settings', array( $this, 'handleSaveSettings' ) );
+		add_action( 'admin_menu', [ $this, 'addMenuItem' ], 50 );
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueueScripts' ] );
+		add_action( 'admin_post_wch_save_settings', [ $this, 'handleSaveSettings' ] );
 
 		// Register AJAX handlers.
 		$this->ajaxHandler->register();
@@ -83,10 +83,10 @@ class AdminSettingsController {
 			__( 'WhatsApp Commerce Hub', 'whatsapp-commerce-hub' ),
 			self::CAPABILITY,
 			self::MENU_SLUG,
-			array( $this, 'renderPage' )
+			[ $this, 'renderPage' ]
 		);
 
-		add_action( 'load-' . $hook, array( $this, 'addHelpTab' ) );
+		add_action( 'load-' . $hook, [ $this, 'addHelpTab' ] );
 	}
 
 	/**
@@ -102,7 +102,7 @@ class AdminSettingsController {
 		}
 
 		$screen->add_help_tab(
-			array(
+			[
 				'id'      => 'wch_settings_help',
 				'title'   => __( 'Settings Help', 'whatsapp-commerce-hub' ),
 				'content' => '<p>' . __( 'Configure your WhatsApp Commerce Hub settings here. For detailed documentation, visit:', 'whatsapp-commerce-hub' ) . '</p>' .
@@ -110,7 +110,7 @@ class AdminSettingsController {
 							'<li><a href="https://developers.facebook.com/docs/whatsapp/business-platform" target="_blank">' . __( 'WhatsApp Business Platform Documentation', 'whatsapp-commerce-hub' ) . '</a></li>' .
 							'<li><a href="https://woocommerce.com/documentation/" target="_blank">' . __( 'WooCommerce Documentation', 'whatsapp-commerce-hub' ) . '</a></li>' .
 							'</ul>',
-			)
+			]
 		);
 
 		$screen->set_help_sidebar(
@@ -133,14 +133,14 @@ class AdminSettingsController {
 		wp_enqueue_style(
 			'wch-admin-settings',
 			WCH_PLUGIN_URL . 'assets/css/admin-settings.css',
-			array(),
+			[],
 			WCH_VERSION
 		);
 
 		wp_enqueue_script(
 			'wch-admin-settings',
 			WCH_PLUGIN_URL . 'assets/js/admin-settings.js',
-			array( 'jquery' ),
+			[ 'jquery' ],
 			WCH_VERSION,
 			true
 		);
@@ -148,11 +148,11 @@ class AdminSettingsController {
 		wp_localize_script(
 			'wch-admin-settings',
 			'wchSettings',
-			array(
+			[
 				'ajax_url'    => admin_url( 'admin-ajax.php' ),
 				'nonce'       => wp_create_nonce( 'wch_settings_nonce' ),
 				'webhook_url' => rest_url( 'wch/v1/webhook' ),
-				'strings'     => array(
+				'strings'     => [
 					'testing'        => __( 'Testing...', 'whatsapp-commerce-hub' ),
 					'syncing'        => __( 'Syncing...', 'whatsapp-commerce-hub' ),
 					'success'        => __( 'Success', 'whatsapp-commerce-hub' ),
@@ -162,8 +162,8 @@ class AdminSettingsController {
 					'confirm_clear'  => __( 'Are you sure you want to clear all logs?', 'whatsapp-commerce-hub' ),
 					'settings_saved' => __( 'Settings saved successfully', 'whatsapp-commerce-hub' ),
 					'settings_error' => __( 'Error saving settings', 'whatsapp-commerce-hub' ),
-				),
-			)
+				],
+			]
 		);
 	}
 
@@ -230,7 +230,7 @@ class AdminSettingsController {
 		$activeTab = isset( $_POST['active_tab'] ) ? sanitize_key( $_POST['active_tab'] ) : 'connection';
 
 		// Process each tab's settings.
-		$sections = array( 'api', 'catalog', 'checkout', 'notifications', 'ai', 'advanced' );
+		$sections = [ 'api', 'catalog', 'checkout', 'notifications', 'ai', 'advanced' ];
 
 		foreach ( $sections as $section ) {
 			if ( isset( $_POST[ $section ] ) && is_array( $_POST[ $section ] ) ) {
@@ -253,11 +253,11 @@ class AdminSettingsController {
 		set_transient( 'settings_errors', get_settings_errors(), 30 );
 
 		$redirectUrl = add_query_arg(
-			array(
+			[
 				'page'             => self::MENU_SLUG,
 				'tab'              => $activeTab,
 				'settings-updated' => 'true',
-			),
+			],
 			admin_url( 'admin.php' )
 		);
 

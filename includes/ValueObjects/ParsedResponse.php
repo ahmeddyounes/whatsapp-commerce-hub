@@ -88,7 +88,7 @@ class ParsedResponse {
 	public function __construct(
 		string $type,
 		mixed $rawContent,
-		array $parsedData = array(),
+		array $parsedData = [],
 		?string $intent = null,
 		?int $timestamp = null
 	) {
@@ -219,7 +219,7 @@ class ParsedResponse {
 	public function isMedia(): bool {
 		return in_array(
 			$this->type,
-			array( self::TYPE_IMAGE, self::TYPE_DOCUMENT, self::TYPE_AUDIO, self::TYPE_VIDEO, self::TYPE_STICKER ),
+			[ self::TYPE_IMAGE, self::TYPE_DOCUMENT, self::TYPE_AUDIO, self::TYPE_VIDEO, self::TYPE_STICKER ],
 			true
 		);
 	}
@@ -270,13 +270,13 @@ class ParsedResponse {
 	 * @return array
 	 */
 	public function toArray(): array {
-		return array(
+		return [
 			'type'        => $this->type,
 			'raw_content' => $this->rawContent,
 			'parsed_data' => $this->parsedData,
 			'intent'      => $this->intent,
 			'timestamp'   => $this->timestamp,
-		);
+		];
 	}
 
 	/**
@@ -298,7 +298,7 @@ class ParsedResponse {
 		return new static(
 			$data['type'] ?? self::TYPE_UNKNOWN,
 			$data['raw_content'] ?? null,
-			$data['parsed_data'] ?? array(),
+			$data['parsed_data'] ?? [],
 			$data['intent'] ?? null,
 			$data['timestamp'] ?? null
 		);
@@ -312,7 +312,7 @@ class ParsedResponse {
 	 * @return static
 	 */
 	public static function text( string $text, ?string $intent = null ): static {
-		return new static( self::TYPE_TEXT, $text, array( 'text' => $text ), $intent );
+		return new static( self::TYPE_TEXT, $text, [ 'text' => $text ], $intent );
 	}
 
 	/**
@@ -326,10 +326,10 @@ class ParsedResponse {
 		return new static(
 			self::TYPE_BUTTON_REPLY,
 			$buttonId,
-			array(
+			[
 				'id'    => $buttonId,
 				'title' => $buttonTitle,
-			)
+			]
 		);
 	}
 
@@ -345,11 +345,11 @@ class ParsedResponse {
 		return new static(
 			self::TYPE_LIST_REPLY,
 			$listId,
-			array(
+			[
 				'id'          => $listId,
 				'title'       => $listTitle,
 				'description' => $listDescription,
-			)
+			]
 		);
 	}
 
@@ -365,16 +365,16 @@ class ParsedResponse {
 	public static function location( float $latitude, float $longitude, ?string $name = null, ?string $address = null ): static {
 		return new static(
 			self::TYPE_LOCATION,
-			array(
+			[
 				'latitude'  => $latitude,
 				'longitude' => $longitude,
-			),
-			array(
+			],
+			[
 				'latitude'  => $latitude,
 				'longitude' => $longitude,
 				'name'      => $name,
 				'address'   => $address,
-			)
+			]
 		);
 	}
 

@@ -24,7 +24,7 @@ class LegacyClassMapper {
 	 *
 	 * @var array
 	 */
-	private static array $mapping = array();
+	private static array $mapping = [];
 
 	/**
 	 * Get complete class mapping
@@ -38,7 +38,7 @@ class LegacyClassMapper {
 			return self::$mapping;
 		}
 
-		self::$mapping = array(
+		self::$mapping = [
 			// Phase 2: Core Infrastructure.
 			'WCH_Logger'                   => 'WhatsAppCommerceHub\Core\Logger',
 			'WCH_Error_Handler'            => 'WhatsAppCommerceHub\Core\ErrorHandler',
@@ -128,7 +128,7 @@ class LegacyClassMapper {
 			// AI Services.
 			'WCH_AI_Service'               => 'WhatsAppCommerceHub\Support\AI\AiAssistant',
 			'WCH_OpenAI_Client'            => 'WhatsAppCommerceHub\Clients\OpenAIClient',
-		);
+		];
 
 		// Only apply filter if WordPress is loaded.
 		if ( function_exists( 'apply_filters' ) ) {

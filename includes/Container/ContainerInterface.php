@@ -85,7 +85,7 @@ interface ContainerInterface {
 	 * @param array  $parameters Override parameters.
 	 * @return mixed
 	 */
-	public function make( string $concrete, array $parameters = array() ): mixed;
+	public function make( string $concrete, array $parameters = [] ): mixed;
 
 	/**
 	 * Create an alias for an abstract binding.

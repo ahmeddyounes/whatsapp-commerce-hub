@@ -115,7 +115,7 @@ class RepositoryServiceProvider implements ServiceProviderInterface {
 	 * @return array<string>
 	 */
 	public function provides(): array {
-		return array(
+		return [
 			CartRepositoryInterface::class,
 			CartRepository::class,
 			ConversationRepositoryInterface::class,
@@ -124,6 +124,6 @@ class RepositoryServiceProvider implements ServiceProviderInterface {
 			CustomerRepository::class,
 			MessageRepositoryInterface::class,
 			MessageRepository::class,
-		);
+		];
 	}
 }

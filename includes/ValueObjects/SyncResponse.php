@@ -63,10 +63,10 @@ final class SyncResponse {
 		public readonly int $synced_count,
 		public readonly int $failed_count,
 		public readonly int $skipped_count = 0,
-		public readonly array $errors = array(),
-		public readonly array $synced_ids = array(),
-		public readonly array $failed_ids = array(),
-		public readonly array $details = array(),
+		public readonly array $errors = [],
+		public readonly array $synced_ids = [],
+		public readonly array $failed_ids = [],
+		public readonly array $details = [],
 		public readonly float $duration = 0.0,
 	) {}
 
@@ -83,8 +83,8 @@ final class SyncResponse {
 	public static function success(
 		string $type,
 		int $count,
-		array $synced_ids = array(),
-		array $details = array(),
+		array $synced_ids = [],
+		array $details = [],
 		float $duration = 0.0
 	): self {
 		return new self(
@@ -117,9 +117,9 @@ final class SyncResponse {
 		int $total,
 		int $synced,
 		int $failed,
-		array $errors = array(),
-		array $synced_ids = array(),
-		array $failed_ids = array(),
+		array $errors = [],
+		array $synced_ids = [],
+		array $failed_ids = [],
 		float $duration = 0.0
 	): self {
 		return new self(
@@ -144,8 +144,8 @@ final class SyncResponse {
 	 * @param array  $errors Additional errors.
 	 * @return self
 	 */
-	public static function failure( string $type, string $error, int $total = 0, array $errors = array() ): self {
-		$all_errors = array_merge( array( $error ), $errors );
+	public static function failure( string $type, string $error, int $total = 0, array $errors = [] ): self {
+		$all_errors = array_merge( [ $error ], $errors );
 
 		return new self(
 			type: $type,
@@ -173,7 +173,7 @@ final class SyncResponse {
 			synced_count: 0,
 			failed_count: 0,
 			skipped_count: $count,
-			details: array( 'skip_reason' => $reason ),
+			details: [ 'skip_reason' => $reason ],
 		);
 	}
 
@@ -250,7 +250,7 @@ final class SyncResponse {
 	 * @return array
 	 */
 	public function toArray(): array {
-		return array(
+		return [
 			'type'          => $this->type,
 			'status'        => $this->status,
 			'total_items'   => $this->total_items,
@@ -263,7 +263,7 @@ final class SyncResponse {
 			'failed_ids'    => $this->failed_ids,
 			'details'       => $this->details,
 			'duration'      => $this->duration,
-		);
+		];
 	}
 
 	/**

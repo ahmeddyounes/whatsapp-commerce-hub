@@ -52,33 +52,33 @@ class WebhookErrorProcessor extends AbstractQueueProcessor {
 	/**
 	 * Error codes that indicate rate limiting.
 	 */
-	private const RATE_LIMIT_CODES = array(
+	private const RATE_LIMIT_CODES = [
 		130429, // Rate limit hit.
 		131048, // Spam rate limit.
 		131056, // Too many messages sent.
-	);
+	];
 
 	/**
 	 * Error codes that indicate authentication issues.
 	 */
-	private const AUTH_ERROR_CODES = array(
+	private const AUTH_ERROR_CODES = [
 		190,    // Access token has expired.
 		200,    // Permission denied.
 		10,     // Application does not have permission.
 		100,    // Invalid parameter.
-	);
+	];
 
 	/**
 	 * Error codes that indicate template issues.
 	 */
-	private const TEMPLATE_ERROR_CODES = array(
+	private const TEMPLATE_ERROR_CODES = [
 		132000, // Template param count mismatch.
 		132001, // Template does not exist.
 		132005, // Template paused.
 		132007, // Template disabled.
 		132012, // Template not found.
 		132015, // Template character policy violated.
-	);
+	];
 
 	/**
 	 * Idempotency service.
@@ -138,7 +138,7 @@ class WebhookErrorProcessor extends AbstractQueueProcessor {
 		$errorCode    = $data['code'] ?? $data['error_code'] ?? 0;
 		$errorMessage = $data['message'] ?? $data['error_message'] ?? 'Unknown error';
 		$errorTitle   = $data['title'] ?? $data['error_title'] ?? '';
-		$errorDetails = $data['error_data'] ?? $data['details'] ?? array();
+		$errorDetails = $data['error_data'] ?? $data['details'] ?? [];
 		$messageId    = $data['message_id'] ?? '';
 		$timestamp    = $data['timestamp'] ?? time();
 
@@ -153,23 +153,23 @@ class WebhookErrorProcessor extends AbstractQueueProcessor {
 		if ( ! $this->idempotencyService->claim( $idempotencyKey, IdempotencyService::SCOPE_WEBHOOK ) ) {
 			$this->logDebug(
 				'Error already processed, skipping',
-				array(
+				[
 					'error_code' => $errorCode,
 					'message_id' => $messageId,
-				)
+				]
 			);
 			return;
 		}
 
 		$this->logError(
 			'Processing webhook error',
-			array(
+			[
 				'code'       => $errorCode,
 				'message'    => $errorMessage,
 				'title'      => $errorTitle,
 				'message_id' => $messageId,
 				'details'    => $errorDetails,
-			)
+			]
 		);
 
 		// Categorize the error.
@@ -213,10 +213,10 @@ class WebhookErrorProcessor extends AbstractQueueProcessor {
 
 		$this->logInfo(
 			'Error processed',
-			array(
+			[
 				'code'     => $errorCode,
 				'category' => $errorCategory,
-			)
+			]
 		);
 	}
 
@@ -271,10 +271,10 @@ class WebhookErrorProcessor extends AbstractQueueProcessor {
 
 		$this->logDebug(
 			'Recorded circuit breaker failure',
-			array(
+			[
 				'reason'   => $reason,
 				'category' => $errorCategory,
-			)
+			]
 		);
 	}
 

@@ -44,7 +44,7 @@ class ShowCartAction extends AbstractAction {
 	 */
 	public function handle( string $phone, array $params, ConversationContext $context ): ActionResult {
 		try {
-			$this->log( 'Showing cart', array( 'phone' => $phone ) );
+			$this->log( 'Showing cart', [ 'phone' => $phone ] );
 
 			$cart = $this->getCart( $phone );
 
@@ -52,32 +52,32 @@ class ShowCartAction extends AbstractAction {
 				return $this->showEmptyCart();
 			}
 
-			$items = is_array( $cart ) ? ( $cart['items'] ?? array() ) : ( $cart->items ?? array() );
+			$items = is_array( $cart ) ? ( $cart['items'] ?? [] ) : ( $cart->items ?? [] );
 
 			if ( empty( $items ) ) {
 				return $this->showEmptyCart();
 			}
 
-			$cartData = array(
+			$cartData = [
 				'id'    => is_array( $cart ) ? ( $cart['id'] ?? null ) : ( $cart->id ?? null ),
 				'items' => $items,
 				'total' => is_array( $cart ) ? ( $cart['total'] ?? 0 ) : ( $cart->total ?? 0 ),
-			);
+			];
 
 			$message = $this->buildCartMessage( $cartData );
 
 			return ActionResult::success(
-				array( $message ),
+				[ $message ],
 				null,
-				array(
+				[
 					'cart_id'         => $cartData['id'],
 					'cart_item_count' => count( $cartData['items'] ),
 					'cart_total'      => $cartData['total'],
-				)
+				]
 			);
 
 		} catch ( \Exception $e ) {
-			$this->log( 'Error showing cart', array( 'error' => $e->getMessage() ), 'error' );
+			$this->log( 'Error showing cart', [ 'error' => $e->getMessage() ], 'error' );
 			return $this->error( __( 'Sorry, we could not load your cart. Please try again.', 'whatsapp-commerce-hub' ) );
 		}
 	}
@@ -125,26 +125,26 @@ class ShowCartAction extends AbstractAction {
 		// Action buttons.
 		$message->button(
 			'reply',
-			array(
+			[
 				'id'    => 'checkout',
 				'title' => __( 'Checkout', 'whatsapp-commerce-hub' ),
-			)
+			]
 		);
 
 		$message->button(
 			'reply',
-			array(
+			[
 				'id'    => 'continue_shopping',
 				'title' => __( 'Continue Shopping', 'whatsapp-commerce-hub' ),
-			)
+			]
 		);
 
 		$message->button(
 			'reply',
-			array(
+			[
 				'id'    => 'clear_cart',
 				'title' => __( 'Clear Cart', 'whatsapp-commerce-hub' ),
-			)
+			]
 		);
 
 		return $message;
@@ -187,7 +187,7 @@ class ShowCartAction extends AbstractAction {
 	 * @return string Formatted items.
 	 */
 	private function formatCartItems( array $items ): string {
-		$lines = array();
+		$lines = [];
 
 		foreach ( $items as $index => $item ) {
 			$product  = wc_get_product( $item['product_id'] );
@@ -219,10 +219,10 @@ class ShowCartAction extends AbstractAction {
 
 				$this->log(
 					'Cart item missing stored price, using live price',
-					array(
+					[
 						'product_id' => $item['product_id'],
 						'variant_id' => $item['variant_id'] ?? null,
-					),
+					],
 					'warning'
 				);
 			}
@@ -251,7 +251,7 @@ class ShowCartAction extends AbstractAction {
 	 * @return array Rows for interactive list.
 	 */
 	private function buildItemRows( array $items ): array {
-		$rows = array();
+		$rows = [];
 
 		foreach ( $items as $item ) {
 			$product = wc_get_product( $item['product_id'] );
@@ -271,7 +271,7 @@ class ShowCartAction extends AbstractAction {
 
 			$itemKey = $this->getCartItemKey( $item['product_id'], $item['variant_id'] ?? null );
 
-			$rows[] = array(
+			$rows[] = [
 				'id'          => 'modify_item_' . $itemKey,
 				'title'       => wp_trim_words( $productName, 3, '...' ),
 				'description' => sprintf(
@@ -280,7 +280,7 @@ class ShowCartAction extends AbstractAction {
 					$item['quantity'],
 					__( 'Edit or Remove', 'whatsapp-commerce-hub' )
 				),
-			);
+			];
 
 			// Limit to 10 items.
 			if ( count( $rows ) >= 10 ) {
@@ -320,20 +320,20 @@ class ShowCartAction extends AbstractAction {
 
 		$message->button(
 			'reply',
-			array(
+			[
 				'id'    => 'browse_products',
 				'title' => __( 'Browse Products', 'whatsapp-commerce-hub' ),
-			)
+			]
 		);
 
 		$message->button(
 			'reply',
-			array(
+			[
 				'id'    => 'main_menu',
 				'title' => __( 'Main Menu', 'whatsapp-commerce-hub' ),
-			)
+			]
 		);
 
-		return ActionResult::success( array( $message ) );
+		return ActionResult::success( [ $message ] );
 	}
 }

@@ -29,14 +29,14 @@ class FallbackStrategy {
 	 *
 	 * @var array<string, callable>
 	 */
-	private array $handlers = array();
+	private array $handlers = [];
 
 	/**
 	 * Cached fallback values.
 	 *
 	 * @var array<string, mixed>
 	 */
-	private array $cache = array();
+	private array $cache = [];
 
 	/**
 	 * Cache TTL in seconds.
@@ -67,7 +67,7 @@ class FallbackStrategy {
 	 *
 	 * @return mixed Fallback result.
 	 */
-	public function execute( string $service, array $context = array(), mixed $default = null ): mixed {
+	public function execute( string $service, array $context = [], mixed $default = null ): mixed {
 		if ( ! isset( $this->handlers[ $service ] ) ) {
 			$this->logFallback( $service, 'no_handler', $context );
 			return $default;
@@ -83,9 +83,9 @@ class FallbackStrategy {
 				'failed',
 				array_merge(
 					$context,
-					array(
+					[
 						'error' => $e->getMessage(),
-					)
+					]
 				)
 			);
 			return $default;
@@ -149,22 +149,22 @@ class FallbackStrategy {
 		$strategy->register(
 			'whatsapp',
 			function ( array $context ): array {
-				$message_data = $context['message'] ?? array();
+				$message_data = $context['message'] ?? [];
 
 				// Store in outbox for later sending.
 				if ( ! empty( $message_data ) && function_exists( 'as_schedule_single_action' ) ) {
 					as_schedule_single_action(
 						time() + 300, // Retry in 5 minutes.
 						'wch_retry_whatsapp_message',
-						array( $message_data ),
+						[ $message_data ],
 						'wch-urgent'
 					);
 				}
 
-				return array(
+				return [
 					'status'  => 'queued',
 					'message' => 'Message queued for later delivery',
-				);
+				];
 			}
 		);
 
@@ -175,13 +175,13 @@ class FallbackStrategy {
 				$message = strtolower( $context['message'] ?? '' );
 
 				// Simple keyword-based intent detection.
-				$intents = array(
-					'order'    => array( 'order', 'buy', 'purchase', 'checkout' ),
-					'support'  => array( 'help', 'support', 'problem', 'issue' ),
-					'status'   => array( 'status', 'where', 'track', 'shipping' ),
-					'catalog'  => array( 'products', 'catalog', 'show', 'list' ),
-					'greeting' => array( 'hi', 'hello', 'hey', 'good' ),
-				);
+				$intents = [
+					'order'    => [ 'order', 'buy', 'purchase', 'checkout' ],
+					'support'  => [ 'help', 'support', 'problem', 'issue' ],
+					'status'   => [ 'status', 'where', 'track', 'shipping' ],
+					'catalog'  => [ 'products', 'catalog', 'show', 'list' ],
+					'greeting' => [ 'hi', 'hello', 'hey', 'good' ],
+				];
 
 				$detected_intent = 'unknown';
 				$confidence      = 0.3; // Low confidence for rule-based.
@@ -196,12 +196,12 @@ class FallbackStrategy {
 					}
 				}
 
-				return array(
+				return [
 					'intent'     => $detected_intent,
 					'confidence' => $confidence,
 					'fallback'   => true,
 					'message'    => 'Rule-based detection (AI unavailable)',
-				);
+				];
 			}
 		);
 
@@ -209,12 +209,12 @@ class FallbackStrategy {
 		$strategy->register(
 			'payment',
 			function ( array $context ): array {
-				return array(
+				return [
 					'status'          => 'gateway_unavailable',
 					'alternative'     => 'cod',
 					'message'         => 'Online payment is temporarily unavailable. Would you like to pay Cash on Delivery?',
 					'show_cod_option' => true,
-				);
+				];
 			}
 		);
 
@@ -227,20 +227,20 @@ class FallbackStrategy {
 					function (): array {
 						// Return cached catalog summary.
 						$products = wc_get_products(
-							array(
+							[
 								'status'  => 'publish',
 								'limit'   => 20,
 								'orderby' => 'popularity',
-							)
+							]
 						);
 
 						return array_map(
 							function ( $product ) {
-								return array(
+								return [
 									'id'    => $product->get_id(),
 									'name'  => $product->get_name(),
 									'price' => $product->get_price(),
-								);
+								];
 							},
 							$products
 						);
@@ -259,11 +259,11 @@ class FallbackStrategy {
 				return $strategy->cached(
 					'analytics_' . $metric,
 					function (): array {
-						return array(
+						return [
 							'status'  => 'cached',
-							'data'    => array(),
+							'data'    => [],
 							'message' => 'Live analytics temporarily unavailable',
-						);
+						];
 					},
 					600
 				); // Cache for 10 minutes.

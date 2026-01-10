@@ -36,16 +36,16 @@ class IntentClassifier {
 	/**
 	 * Pattern-based intent rules.
 	 */
-	private array $patterns = array(
-		Intent::INTENT_GREETING     => array( '/^(hi|hello|hey|good\s+(morning|afternoon|evening))/i' ),
-		Intent::INTENT_BROWSE       => array( '/^(browse|show|list|catalog|products)/i' ),
-		Intent::INTENT_SEARCH       => array( '/^(search|find|looking for)/i' ),
-		Intent::INTENT_VIEW_CART    => array( '/^(cart|basket|my cart)/i' ),
-		Intent::INTENT_CHECKOUT     => array( '/^(checkout|buy|purchase|order)/i' ),
-		Intent::INTENT_ORDER_STATUS => array( '/^(order|status|where|track)/i' ),
-		Intent::INTENT_HELP         => array( '/^(help|support|assist)/i' ),
-		Intent::INTENT_CANCEL       => array( '/^(cancel|stop|nevermind)/i' ),
-	);
+	private array $patterns = [
+		Intent::INTENT_GREETING     => [ '/^(hi|hello|hey|good\s+(morning|afternoon|evening))/i' ],
+		Intent::INTENT_BROWSE       => [ '/^(browse|show|list|catalog|products)/i' ],
+		Intent::INTENT_SEARCH       => [ '/^(search|find|looking for)/i' ],
+		Intent::INTENT_VIEW_CART    => [ '/^(cart|basket|my cart)/i' ],
+		Intent::INTENT_CHECKOUT     => [ '/^(checkout|buy|purchase|order)/i' ],
+		Intent::INTENT_ORDER_STATUS => [ '/^(order|status|where|track)/i' ],
+		Intent::INTENT_HELP         => [ '/^(help|support|assist)/i' ],
+		Intent::INTENT_CANCEL       => [ '/^(cancel|stop|nevermind)/i' ],
+	];
 
 	/**
 	 * Classify message into intent.
@@ -54,7 +54,7 @@ class IntentClassifier {
 	 * @param array  $context Optional conversation context.
 	 * @return Intent
 	 */
-	public function classify( string $message, array $context = array() ): Intent {
+	public function classify( string $message, array $context = [] ): Intent {
 		$message = trim( $message );
 
 		// Try pattern matching first.
@@ -65,7 +65,7 @@ class IntentClassifier {
 						$intentName,
 						0.9,
 						$this->extractEntities( $message ),
-						array( 'method' => 'pattern_matching' )
+						[ 'method' => 'pattern_matching' ]
 					);
 				}
 			}
@@ -75,8 +75,8 @@ class IntentClassifier {
 		return new Intent(
 			Intent::INTENT_UNKNOWN,
 			0.5,
-			array(),
-			array( 'method' => 'fallback' )
+			[],
+			[ 'method' => 'fallback' ]
 		);
 	}
 
@@ -87,7 +87,7 @@ class IntentClassifier {
 	 * @return array
 	 */
 	private function extractEntities( string $message ): array {
-		$entities = array();
+		$entities = [];
 
 		// Extract numbers (potential product IDs, quantities).
 		if ( preg_match_all( '/\b\d+\b/', $message, $matches ) ) {

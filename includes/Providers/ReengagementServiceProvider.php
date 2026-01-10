@@ -171,9 +171,9 @@ class ReengagementServiceProvider extends AbstractServiceProvider {
 		$orchestrator->init();
 
 		// Register job handlers for scheduled tasks.
-		add_action( 'wch_process_reengagement_campaigns', array( $this, 'handleProcessCampaigns' ) );
-		add_action( 'wch_send_reengagement_message', array( $this, 'handleSendMessage' ) );
-		add_action( 'wch_check_back_in_stock', array( $this, 'handleCheckBackInStock' ) );
+		add_action( 'wch_process_reengagement_campaigns', [ $this, 'handleProcessCampaigns' ] );
+		add_action( 'wch_send_reengagement_message', [ $this, 'handleSendMessage' ] );
+		add_action( 'wch_check_back_in_stock', [ $this, 'handleCheckBackInStock' ] );
 	}
 
 	/**
@@ -182,7 +182,7 @@ class ReengagementServiceProvider extends AbstractServiceProvider {
 	 * @return array
 	 */
 	public function provides(): array {
-		return array(
+		return [
 			InactiveCustomerIdentifierInterface::class,
 			CampaignTypeResolverInterface::class,
 			ProductTrackingServiceInterface::class,
@@ -191,7 +191,7 @@ class ReengagementServiceProvider extends AbstractServiceProvider {
 			FrequencyCapManagerInterface::class,
 			ReengagementAnalyticsInterface::class,
 			ReengagementOrchestratorInterface::class,
-		);
+		];
 	}
 
 	/**
@@ -254,12 +254,12 @@ class ReengagementServiceProvider extends AbstractServiceProvider {
 			}
 
 			public function all(): array {
-				return get_option( 'wch_settings', array() );
+				return get_option( 'wch_settings', [] );
 			}
 
 			public function getGroup( string $group ): array {
 				$all = $this->all();
-				return $all[ $group ] ?? array();
+				return $all[ $group ] ?? [];
 			}
 
 			public function isConfigured(): bool {
@@ -268,11 +268,11 @@ class ReengagementServiceProvider extends AbstractServiceProvider {
 			}
 
 			public function getApiCredentials(): array {
-				return array(
+				return [
 					'access_token'        => $this->get( 'api.access_token', '' ),
 					'phone_number_id'     => $this->get( 'api.phone_number_id', '' ),
 					'business_account_id' => $this->get( 'api.business_account_id', '' ),
-				);
+				];
 			}
 
 			public function refresh(): void {

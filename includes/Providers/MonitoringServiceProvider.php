@@ -56,7 +56,7 @@ class MonitoringServiceProvider implements ServiceProviderInterface {
 				register_rest_route(
 					'wch/v1',
 					'/health',
-					array(
+					[
 						'methods'             => 'GET',
 						'callback'            => function () use ( $container ) {
 							$health = $container->get( HealthCheck::class );
@@ -65,28 +65,28 @@ class MonitoringServiceProvider implements ServiceProviderInterface {
 						'permission_callback' => function () {
 							return current_user_can( 'manage_woocommerce' );
 						},
-					)
+					]
 				);
 
 				// Liveness probe (public, for load balancers).
 				register_rest_route(
 					'wch/v1',
 					'/health/live',
-					array(
+					[
 						'methods'             => 'GET',
 						'callback'            => function () use ( $container ) {
 							$health = $container->get( HealthCheck::class );
 							return rest_ensure_response( $health->liveness() );
 						},
 						'permission_callback' => '__return_true',
-					)
+					]
 				);
 
 				// Readiness probe (public, for load balancers).
 				register_rest_route(
 					'wch/v1',
 					'/health/ready',
-					array(
+					[
 						'methods'             => 'GET',
 						'callback'            => function () use ( $container ) {
 							$health = $container->get( HealthCheck::class );
@@ -99,14 +99,14 @@ class MonitoringServiceProvider implements ServiceProviderInterface {
 							return rest_ensure_response( $result );
 						},
 						'permission_callback' => '__return_true',
-					)
+					]
 				);
 
 				// Individual component check.
 				register_rest_route(
 					'wch/v1',
 					'/health/(?P<component>[a-z_]+)',
-					array(
+					[
 						'methods'             => 'GET',
 						'callback'            => function ( $request ) use ( $container ) {
 							$health = $container->get( HealthCheck::class );
@@ -114,7 +114,7 @@ class MonitoringServiceProvider implements ServiceProviderInterface {
 
 							if ( null === $result ) {
 								return new \WP_REST_Response(
-									array( 'error' => 'Component not found' ),
+									[ 'error' => 'Component not found' ],
 									404
 								);
 							}
@@ -124,13 +124,13 @@ class MonitoringServiceProvider implements ServiceProviderInterface {
 						'permission_callback' => function () {
 							return current_user_can( 'manage_woocommerce' );
 						},
-						'args'                => array(
-							'component' => array(
+						'args'                => [
+							'component' => [
 								'required'          => true,
 								'sanitize_callback' => 'sanitize_key',
-							),
-						),
-					)
+							],
+						],
+					]
 				);
 			}
 		);
@@ -186,9 +186,9 @@ class MonitoringServiceProvider implements ServiceProviderInterface {
 	 * @return array<string>
 	 */
 	public function provides(): array {
-		return array(
+		return [
 			HealthCheck::class,
 			'wch.health',
-		);
+		];
 	}
 }

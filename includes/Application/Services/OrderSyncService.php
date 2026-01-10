@@ -58,22 +58,22 @@ class OrderSyncService implements OrderSyncServiceInterface {
 	 *
 	 * @var array<string, array<string, string>>
 	 */
-	private const STATUS_TEMPLATES = array(
-		'pending'    => array(
+	private const STATUS_TEMPLATES = [
+		'pending'    => [
 			'processing' => 'order_confirmed',
 			'on-hold'    => 'order_on_hold',
 			'cancelled'  => 'order_cancelled',
-		),
-		'processing' => array(
+		],
+		'processing' => [
 			'completed' => 'order_shipped',
 			'cancelled' => 'order_cancelled',
 			'refunded'  => 'order_refunded',
-		),
-		'on-hold'    => array(
+		],
+		'on-hold'    => [
 			'processing' => 'order_confirmed',
 			'cancelled'  => 'order_cancelled',
-		),
-	);
+		],
+	];
 
 	/**
 	 * Constructor.
@@ -187,10 +187,10 @@ class OrderSyncService implements OrderSyncServiceInterface {
 			do_action(
 				'wch_log_error',
 				'OrderSyncService: Order creation failed',
-				array(
+				[
 					'error'          => $e->getMessage(),
 					'customer_phone' => $customer_phone,
-				)
+				]
 			);
 
 			throw new \RuntimeException( 'Order creation failed: ' . $e->getMessage(), 0, $e );
@@ -204,18 +204,18 @@ class OrderSyncService implements OrderSyncServiceInterface {
 	 * @return array{valid: bool, issues: array}
 	 */
 	public function validateCartItems( array $items ): array {
-		$issues = array();
+		$issues = [];
 
 		if ( empty( $items ) ) {
-			return array(
+			return [
 				'valid'  => false,
-				'issues' => array(
-					array(
+				'issues' => [
+					[
 						'type'    => 'empty_cart',
 						'message' => 'Cart is empty',
-					),
-				),
-			);
+					],
+				],
+			];
 		}
 
 		foreach ( $items as $index => $item ) {
@@ -227,31 +227,31 @@ class OrderSyncService implements OrderSyncServiceInterface {
 			$product = $variation_id > 0 ? wc_get_product( $variation_id ) : wc_get_product( $product_id );
 
 			if ( ! $product ) {
-				$issues[] = array(
+				$issues[] = [
 					'type'       => 'product_not_found',
 					'product_id' => $product_id,
 					'message'    => sprintf( 'Product #%d not found', $product_id ),
-				);
+				];
 				continue;
 			}
 
 			// Check purchasability.
 			if ( ! $product->is_purchasable() ) {
-				$issues[] = array(
+				$issues[] = [
 					'type'       => 'not_purchasable',
 					'product_id' => $product_id,
 					'message'    => sprintf( 'Product "%s" is not purchasable', $product->get_name() ),
-				);
+				];
 				continue;
 			}
 
 			// Check stock.
 			if ( ! $product->is_in_stock() ) {
-				$issues[] = array(
+				$issues[] = [
 					'type'       => 'out_of_stock',
 					'product_id' => $product_id,
 					'message'    => sprintf( 'Product "%s" is out of stock', $product->get_name() ),
-				);
+				];
 				continue;
 			}
 
@@ -259,7 +259,7 @@ class OrderSyncService implements OrderSyncServiceInterface {
 			if ( $product->managing_stock() ) {
 				$stock_qty = $product->get_stock_quantity();
 				if ( $stock_qty !== null && $stock_qty < $quantity ) {
-					$issues[] = array(
+					$issues[] = [
 						'type'       => 'insufficient_stock',
 						'product_id' => $product_id,
 						'requested'  => $quantity,
@@ -270,7 +270,7 @@ class OrderSyncService implements OrderSyncServiceInterface {
 							$quantity,
 							$stock_qty
 						),
-					);
+					];
 				}
 			}
 
@@ -279,26 +279,26 @@ class OrderSyncService implements OrderSyncServiceInterface {
 			$max_qty = apply_filters( 'woocommerce_quantity_input_max', -1, $product );
 
 			if ( $quantity < $min_qty ) {
-				$issues[] = array(
+				$issues[] = [
 					'type'       => 'below_min_quantity',
 					'product_id' => $product_id,
 					'message'    => sprintf( 'Quantity for "%s" below minimum (%d)', $product->get_name(), $min_qty ),
-				);
+				];
 			}
 
 			if ( $max_qty > 0 && $quantity > $max_qty ) {
-				$issues[] = array(
+				$issues[] = [
 					'type'       => 'above_max_quantity',
 					'product_id' => $product_id,
 					'message'    => sprintf( 'Quantity for "%s" above maximum (%d)', $product->get_name(), $max_qty ),
-				);
+				];
 			}
 		}
 
-		return array(
+		return [
 			'valid'  => empty( $issues ),
 			'issues' => $issues,
-		);
+		];
 	}
 
 	/**
@@ -391,16 +391,16 @@ class OrderSyncService implements OrderSyncServiceInterface {
 	public function getTrackingInfo( int $order_id ): array {
 		$order = wc_get_order( $order_id );
 		if ( ! $order ) {
-			return array(
+			return [
 				'tracking_number' => null,
 				'carrier'         => null,
-			);
+			];
 		}
 
-		return array(
+		return [
 			'tracking_number' => $order->get_meta( self::META_TRACKING_NUMBER ) ?: null,
 			'carrier'         => $order->get_meta( self::META_CARRIER ) ?: null,
-		);
+		];
 	}
 
 	/**
@@ -427,18 +427,18 @@ class OrderSyncService implements OrderSyncServiceInterface {
 	public function getWhatsAppOrderMeta( int $order_id ): array {
 		$order = wc_get_order( $order_id );
 		if ( ! $order ) {
-			return array(
+			return [
 				'customer_phone'  => null,
 				'conversation_id' => null,
-			);
+			];
 		}
 
 		$conversation_id = $order->get_meta( self::META_CONVERSATION_ID );
 
-		return array(
+		return [
 			'customer_phone'  => $order->get_meta( self::META_CUSTOMER_PHONE ) ?: null,
 			'conversation_id' => $conversation_id ? (int) $conversation_id : null,
-		);
+		];
 	}
 
 	/**
@@ -464,18 +464,18 @@ class OrderSyncService implements OrderSyncServiceInterface {
 	 * @param array  $template_data Template variable data.
 	 * @return bool Success status.
 	 */
-	public function queueNotification( int $order_id, string $template_name, array $template_data = array() ): bool {
+	public function queueNotification( int $order_id, string $template_name, array $template_data = [] ): bool {
 		$meta = $this->getWhatsAppOrderMeta( $order_id );
 		if ( empty( $meta['customer_phone'] ) ) {
 			return false;
 		}
 
-		$notification_data = array(
+		$notification_data = [
 			'order_id'       => $order_id,
 			'customer_phone' => $meta['customer_phone'],
 			'template_name'  => $template_name,
 			'template_data'  => $template_data,
-		);
+		];
 
 		// Use queue service if available.
 		if ( $this->queue_service ) {
@@ -490,7 +490,7 @@ class OrderSyncService implements OrderSyncServiceInterface {
 		if ( function_exists( 'as_enqueue_async_action' ) ) {
 			$action_id = as_enqueue_async_action(
 				'wch_send_order_notification',
-				array( $notification_data ),
+				[ $notification_data ],
 				'wch-orders'
 			);
 			return $action_id > 0;
@@ -511,22 +511,22 @@ class OrderSyncService implements OrderSyncServiceInterface {
 	public function getOrdersByPhone( string $phone, int $limit = 10 ): array {
 		$phone = $this->sanitizePhone( $phone );
 		if ( empty( $phone ) ) {
-			return array();
+			return [];
 		}
 
 		$limit = max( 1, min( 100, $limit ) );
 
 		$orders = wc_get_orders(
-			array(
+			[
 				'limit'      => $limit,
 				'orderby'    => 'date',
 				'order'      => 'DESC',
 				'meta_key'   => self::META_CUSTOMER_PHONE,
 				'meta_value' => $phone,
-			)
+			]
 		);
 
-		$result = array();
+		$result = [];
 		foreach ( $orders as $order ) {
 			$result[] = $this->formatOrderData( $order );
 		}
@@ -563,11 +563,11 @@ class OrderSyncService implements OrderSyncServiceInterface {
 				do_action(
 					'wch_log_warning',
 					'OrderSyncService: Unauthorized order cancellation attempt',
-					array(
+					[
 						'order_id'       => $order_id,
 						'provided_phone' => $customer_phone ? substr( $customer_phone, 0, 4 ) . '****' : 'none',
 						'caller_context' => defined( 'DOING_CRON' ) && DOING_CRON ? 'cron' : 'request',
-					)
+					]
 				);
 				return false;
 			}
@@ -575,16 +575,16 @@ class OrderSyncService implements OrderSyncServiceInterface {
 
 		// Check if order can be cancelled.
 		$current_status = $order->get_status();
-		$cancellable    = array( 'pending', 'processing', 'on-hold' );
+		$cancellable    = [ 'pending', 'processing', 'on-hold' ];
 
 		if ( ! in_array( $current_status, $cancellable, true ) ) {
 			do_action(
 				'wch_log_warning',
 				'OrderSyncService: Cannot cancel order',
-				array(
+				[
 					'order_id'       => $order_id,
 					'current_status' => $current_status,
-				)
+				]
 			);
 			return false;
 		}
@@ -600,10 +600,10 @@ class OrderSyncService implements OrderSyncServiceInterface {
 			do_action(
 				'wch_log_error',
 				'OrderSyncService: Order cancellation failed',
-				array(
+				[
 					'order_id' => $order_id,
 					'error'    => $e->getMessage(),
-				)
+				]
 			);
 			return false;
 		}
@@ -615,19 +615,19 @@ class OrderSyncService implements OrderSyncServiceInterface {
 	 * @param array $args Query arguments.
 	 * @return array{orders: array, total: int}
 	 */
-	public function getWhatsAppOrders( array $args = array() ): array {
-		$defaults = array(
-			'status'    => array( 'any' ),
+	public function getWhatsAppOrders( array $args = [] ): array {
+		$defaults = [
+			'status'    => [ 'any' ],
 			'date_from' => null,
 			'date_to'   => null,
 			'limit'     => 20,
 			'offset'    => 0,
-		);
+		];
 
 		$args  = wp_parse_args( $args, $defaults );
 		$limit = max( 1, min( 100, (int) $args['limit'] ) );
 
-		$query_args = array(
+		$query_args = [
 			'limit'      => $limit,
 			'offset'     => max( 0, (int) $args['offset'] ),
 			'orderby'    => 'date',
@@ -635,7 +635,7 @@ class OrderSyncService implements OrderSyncServiceInterface {
 			'meta_key'   => self::META_WHATSAPP_ORDER,
 			'meta_value' => '1',
 			'paginate'   => true,
-		);
+		];
 
 		// Filter by status.
 		if ( ! empty( $args['status'] ) && 'any' !== $args['status'] ) {
@@ -657,15 +657,15 @@ class OrderSyncService implements OrderSyncServiceInterface {
 
 		$result = wc_get_orders( $query_args );
 
-		$orders = array();
+		$orders = [];
 		foreach ( $result->orders as $order ) {
 			$orders[] = $this->formatOrderData( $order );
 		}
 
-		return array(
+		return [
 			'orders' => $orders,
 			'total'  => (int) $result->total,
-		);
+		];
 	}
 
 	/**
@@ -731,7 +731,7 @@ class OrderSyncService implements OrderSyncServiceInterface {
 
 		$total     = 0;
 		$revenue   = 0.0;
-		$by_status = array();
+		$by_status = [];
 
 		foreach ( $results as $row ) {
 			$status = str_replace( 'wc-', '', $row['status'] );
@@ -740,17 +740,17 @@ class OrderSyncService implements OrderSyncServiceInterface {
 
 			$total               += $count;
 			$revenue             += $rev;
-			$by_status[ $status ] = array(
+			$by_status[ $status ] = [
 				'count'   => $count,
 				'revenue' => $rev,
-			);
+			];
 		}
 
-		return array(
+		return [
 			'total'     => $total,
 			'revenue'   => $revenue,
 			'by_status' => $by_status,
-		);
+		];
 	}
 
 	/**
@@ -762,7 +762,7 @@ class OrderSyncService implements OrderSyncServiceInterface {
 	 */
 	private function setOrderAddresses( \WC_Order $order, array $cart_data, string $customer_phone ): void {
 		// Billing address.
-		$billing = $cart_data['billing_address'] ?? array();
+		$billing = $cart_data['billing_address'] ?? [];
 		$order->set_billing_first_name( sanitize_text_field( $billing['first_name'] ?? '' ) );
 		$order->set_billing_last_name( sanitize_text_field( $billing['last_name'] ?? '' ) );
 		$order->set_billing_company( sanitize_text_field( $billing['company'] ?? '' ) );
@@ -821,11 +821,11 @@ class OrderSyncService implements OrderSyncServiceInterface {
 		}
 
 		// Fallback titles.
-		$titles = array(
+		$titles = [
 			'cod'    => __( 'Cash on Delivery', 'whatsapp-commerce-hub' ),
 			'bacs'   => __( 'Direct Bank Transfer', 'whatsapp-commerce-hub' ),
 			'cheque' => __( 'Check Payment', 'whatsapp-commerce-hub' ),
-		);
+		];
 
 		return $titles[ $method_id ] ?? $method_id;
 	}
@@ -837,7 +837,7 @@ class OrderSyncService implements OrderSyncServiceInterface {
 	 * @return array Template data.
 	 */
 	private function buildTemplateData( \WC_Order $order ): array {
-		return array(
+		return [
 			'order_id'        => $order->get_id(),
 			'order_number'    => $order->get_order_number(),
 			'order_date'      => $order->get_date_created() ? $order->get_date_created()->format( 'Y-m-d' ) : '',
@@ -849,7 +849,7 @@ class OrderSyncService implements OrderSyncServiceInterface {
 			'item_count'      => $order->get_item_count(),
 			'payment_method'  => $order->get_payment_method_title(),
 			'shipping_method' => $order->get_shipping_method(),
-		);
+		];
 	}
 
 	/**
@@ -859,18 +859,18 @@ class OrderSyncService implements OrderSyncServiceInterface {
 	 * @return array Formatted order data.
 	 */
 	private function formatOrderData( \WC_Order $order ): array {
-		$items = array();
+		$items = [];
 		foreach ( $order->get_items() as $item ) {
-			$items[] = array(
+			$items[] = [
 				'name'     => $item->get_name(),
 				'quantity' => $item->get_quantity(),
 				'total'    => (float) $item->get_total(),
-			);
+			];
 		}
 
 		$tracking = $this->getTrackingInfo( $order->get_id() );
 
-		return array(
+		return [
 			'id'              => $order->get_id(),
 			'order_number'    => $order->get_order_number(),
 			'status'          => $order->get_status(),
@@ -881,7 +881,7 @@ class OrderSyncService implements OrderSyncServiceInterface {
 			'items'           => $items,
 			'tracking_number' => $tracking['tracking_number'],
 			'carrier'         => $tracking['carrier'],
-		);
+		];
 	}
 
 	/**
@@ -910,11 +910,11 @@ class OrderSyncService implements OrderSyncServiceInterface {
 			do_action(
 				'wch_log_warning',
 				'OrderSyncService: Customer link failed',
-				array(
+				[
 					'order_id'       => $order_id,
 					'customer_phone' => $customer_phone,
 					'error'          => $e->getMessage(),
-				)
+				]
 			);
 		}
 	}

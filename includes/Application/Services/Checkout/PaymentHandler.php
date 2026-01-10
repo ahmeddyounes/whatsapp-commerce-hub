@@ -31,7 +31,7 @@ class PaymentHandler implements PaymentHandlerInterface {
 	 *
 	 * @var array
 	 */
-	private const DEFAULT_ENABLED_METHODS = array( 'cod' );
+	private const DEFAULT_ENABLED_METHODS = [ 'cod' ];
 
 	/**
 	 * Get available payment methods for WhatsApp checkout.
@@ -42,20 +42,20 @@ class PaymentHandler implements PaymentHandlerInterface {
 	public function getAvailableMethods( string $phone ): array {
 		$gateways       = WC()->payment_gateways()->get_available_payment_gateways();
 		$enabledMethods = $this->getEnabledMethods();
-		$methods        = array();
+		$methods        = [];
 
 		foreach ( $gateways as $gateway ) {
 			if ( ! in_array( $gateway->id, $enabledMethods, true ) ) {
 				continue;
 			}
 
-			$methods[] = array(
+			$methods[] = [
 				'id'          => $gateway->id,
 				'label'       => $gateway->get_title(),
 				'description' => $gateway->get_description(),
 				'icon'        => $gateway->get_icon(),
 				'fee'         => $this->getPaymentFee( $gateway->id ),
-			);
+			];
 		}
 
 		return apply_filters( 'wch_payment_methods', $methods, $phone );
@@ -109,14 +109,14 @@ class PaymentHandler implements PaymentHandlerInterface {
 
 		$gateway = $gateways[ $methodId ];
 
-		return array(
+		return [
 			'id'                => $gateway->id,
 			'label'             => $gateway->get_title(),
 			'description'       => $gateway->get_description(),
 			'icon'              => $gateway->get_icon(),
 			'fee'               => $this->getPaymentFee( $methodId ),
 			'requires_redirect' => $this->requiresRedirect( $methodId ),
-		);
+		];
 	}
 
 	/**
@@ -148,11 +148,11 @@ class PaymentHandler implements PaymentHandlerInterface {
 	 */
 	public function requiresRedirect( string $methodId ): bool {
 		// Methods that typically require redirect.
-		$redirectMethods = array(
+		$redirectMethods = [
 			'stripe',
 			'paypal',
 			'razorpay',
-		);
+		];
 
 		$requiresRedirect = in_array( $methodId, $redirectMethods, true );
 

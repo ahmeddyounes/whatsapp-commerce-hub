@@ -156,7 +156,7 @@ class DatabaseManager {
 	 * @return array<string> Array of CREATE TABLE SQL statements.
 	 */
 	private function getTableSchemas( string $charsetCollate ): array {
-		return array(
+		return [
 			$this->getConversationsTableSchema( $charsetCollate ),
 			$this->getMessagesTableSchema( $charsetCollate ),
 			$this->getCartsTableSchema( $charsetCollate ),
@@ -166,7 +166,7 @@ class DatabaseManager {
 			$this->getNotificationLogTableSchema( $charsetCollate ),
 			$this->getProductViewsTableSchema( $charsetCollate ),
 			$this->getReengagementTableSchema( $charsetCollate ),
-		);
+		];
 	}
 
 	/**
@@ -418,7 +418,7 @@ class DatabaseManager {
 	private function getMigrations(): array {
 		// Future: Load migration files from Infrastructure/Database/Migrations/
 		// For now, return empty array as all migrations are in install()
-		return array();
+		return [];
 	}
 
 	/**
@@ -429,7 +429,7 @@ class DatabaseManager {
 	 * @return void
 	 */
 	public function dropTables(): void {
-		$tables = array(
+		$tables = [
 			'reengagement',
 			'product_views',
 			'notification_log',
@@ -439,7 +439,7 @@ class DatabaseManager {
 			'carts',
 			'messages',
 			'conversations',
-		);
+		];
 
 		foreach ( $tables as $table ) {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.DirectDatabaseQuery.SchemaChange

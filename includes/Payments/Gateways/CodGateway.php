@@ -61,7 +61,7 @@ class CodGateway extends AbstractGateway {
 	 * @return bool
 	 */
 	public function isAvailable( string $country ): bool {
-		$disabledCountries = get_option( 'wch_cod_disabled_countries', array() );
+		$disabledCountries = get_option( 'wch_cod_disabled_countries', [] );
 		return ! in_array( $country, $disabledCountries, true );
 	}
 
@@ -105,7 +105,7 @@ class CodGateway extends AbstractGateway {
 		$this->storeTransactionMeta( $order, $transactionId );
 		$order->save();
 
-		$this->log( 'COD payment processed', array( 'order_id' => $orderId ) );
+		$this->log( 'COD payment processed', [ 'order_id' => $orderId ] );
 
 		return PaymentResult::success(
 			$transactionId,
@@ -153,10 +153,10 @@ class CodGateway extends AbstractGateway {
 					$transactionId,
 					(float) $order->get_total(),
 					$order->get_currency(),
-					array(
+					[
 						'order_id' => $orderId,
 						'method'   => 'cod',
-					)
+					]
 				);
 			}
 		}

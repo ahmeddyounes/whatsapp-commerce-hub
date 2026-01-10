@@ -43,26 +43,26 @@ class PriorityQueue {
 	 *
 	 * @var array<int, string>
 	 */
-	private const PRIORITY_GROUPS = array(
+	private const PRIORITY_GROUPS = [
 		self::PRIORITY_CRITICAL    => 'critical',
 		self::PRIORITY_URGENT      => 'urgent',
 		self::PRIORITY_NORMAL      => 'normal',
 		self::PRIORITY_BULK        => 'bulk',
 		self::PRIORITY_MAINTENANCE => 'maintenance',
-	);
+	];
 
 	/**
 	 * Rate limits per group (jobs per minute).
 	 *
 	 * @var array<string, int>
 	 */
-	private array $rate_limits = array(
+	private array $rate_limits = [
 		'critical'    => 1000, // No practical limit for critical.
 		'urgent'      => 100,
 		'normal'      => 50,
 		'bulk'        => 20,
 		'maintenance' => 10,
-	);
+	];
 
 	/**
 	 * Constructor.
@@ -84,7 +84,7 @@ class PriorityQueue {
 	 */
 	public function schedule(
 		string $hook,
-		array $args = array(),
+		array $args = [],
 		int $priority = self::PRIORITY_NORMAL,
 		int $delay = 0
 	): int|false {
@@ -101,7 +101,7 @@ class PriorityQueue {
 		return as_schedule_single_action(
 			$timestamp,
 			$hook,
-			array( $job_payload ),
+			[ $job_payload ],
 			$group
 		);
 	}
@@ -118,15 +118,15 @@ class PriorityQueue {
 	 * @return array Wrapped payload with separate metadata.
 	 */
 	private function wrapPayload( array $args, int $priority, int $attempt = 1 ): array {
-		return array(
+		return [
 			'_wch_version' => 2, // Payload version for migration support.
-			'_wch_meta'    => array(
+			'_wch_meta'    => [
 				'priority'     => $priority,
 				'scheduled_at' => time(),
 				'attempt'      => $attempt,
-			),
+			],
 			'args'         => $args,
-		);
+		];
 	}
 
 	/**
@@ -141,21 +141,21 @@ class PriorityQueue {
 	public static function unwrapPayload( array $payload ): array {
 		// v2 format: separate args and metadata.
 		if ( isset( $payload['_wch_version'] ) && 2 === $payload['_wch_version'] ) {
-			return array(
-				'args' => $payload['args'] ?? array(),
-				'meta' => $payload['_wch_meta'] ?? array(),
-			);
+			return [
+				'args' => $payload['args'] ?? [],
+				'meta' => $payload['_wch_meta'] ?? [],
+			];
 		}
 
 		// v1 format (legacy): metadata was inline with args.
-		$meta = $payload['_wch_job_meta'] ?? array();
+		$meta = $payload['_wch_job_meta'] ?? [];
 		$args = $payload;
 		unset( $args['_wch_job_meta'] );
 
-		return array(
+		return [
 			'args' => $args,
 			'meta' => $meta,
-		);
+		];
 	}
 
 	/**
@@ -170,7 +170,7 @@ class PriorityQueue {
 	 */
 	public function scheduleRecurring(
 		string $hook,
-		array $args = array(),
+		array $args = [],
 		int $interval = 3600,
 		int $priority = self::PRIORITY_NORMAL
 	): int|false {
@@ -181,22 +181,22 @@ class PriorityQueue {
 		$group = $this->getGroup( $priority );
 
 		// Use wrapped payload format.
-		$job_payload = array(
+		$job_payload = [
 			'_wch_version' => 2,
-			'_wch_meta'    => array(
+			'_wch_meta'    => [
 				'priority'     => $priority,
 				'scheduled_at' => time(),
 				'recurring'    => true,
 				'interval'     => $interval,
-			),
+			],
 			'args'         => $args,
-		);
+		];
 
 		return as_schedule_recurring_action(
 			time(),
 			$interval,
 			$hook,
-			array( $job_payload ),
+			[ $job_payload ],
 			$group
 		);
 	}
@@ -216,7 +216,7 @@ class PriorityQueue {
 	 */
 	public function scheduleUnique(
 		string $hook,
-		array $args = array(),
+		array $args = [],
 		int $priority = self::PRIORITY_NORMAL,
 		int $delay = 0
 	): int|false {
@@ -313,7 +313,7 @@ class PriorityQueue {
 	 *
 	 * @return bool True if any job with this hook is pending.
 	 */
-	public function isPending( string $hook, array $args = array() ): bool {
+	public function isPending( string $hook, array $args = [] ): bool {
 		if ( ! function_exists( 'as_next_scheduled_action' ) ) {
 			return false;
 		}
@@ -346,7 +346,7 @@ class PriorityQueue {
 	 *
 	 * @return int Number of cancelled actions.
 	 */
-	public function cancel( string $hook, array $args = array() ): int {
+	public function cancel( string $hook, array $args = [] ): int {
 		if ( ! function_exists( 'as_unschedule_all_actions' ) ) {
 			return 0;
 		}
@@ -380,7 +380,7 @@ class PriorityQueue {
 		}
 
 		$group = $this->getGroup( $priority );
-		as_unschedule_all_actions( '', array(), $group );
+		as_unschedule_all_actions( '', [], $group );
 	}
 
 	/**
@@ -463,10 +463,10 @@ class PriorityQueue {
 			do_action(
 				'wch_log_info',
 				'Retry skipped - another process is handling',
-				array(
+				[
 					'hook'    => $hook,
 					'attempt' => $attempt,
-				)
+				]
 			);
 			return false;
 		}
@@ -494,10 +494,10 @@ class PriorityQueue {
 				do_action(
 					'wch_log_info',
 					'Retry already processed by another request',
-					array(
+					[
 						'hook'    => $hook,
 						'attempt' => $attempt,
-					)
+					]
 				);
 				return false;
 			}
@@ -515,11 +515,11 @@ class PriorityQueue {
 						do_action(
 							'wch_log_critical',
 							'Failed to push failed job to DLQ - job data may be lost',
-							array(
+							[
 								'hook'    => $hook,
 								'attempt' => $attempt,
 								'meta'    => $meta,
-							)
+							]
 						);
 					}
 				} else {
@@ -527,10 +527,10 @@ class PriorityQueue {
 					do_action(
 						'wch_log_warning',
 						'Job exceeded max retries with no DLQ configured',
-						array(
+						[
 							'hook'    => $hook,
 							'attempt' => $attempt,
-						)
+						]
 					);
 				}
 				return false;
@@ -543,16 +543,16 @@ class PriorityQueue {
 			$priority = $meta['priority'] ?? self::PRIORITY_NORMAL;
 
 			// Schedule with incremented attempt using wrapped format.
-			$job_payload = array(
+			$job_payload = [
 				'_wch_version' => 2,
-				'_wch_meta'    => array(
+				'_wch_meta'    => [
 					'priority'     => $priority,
 					'scheduled_at' => $meta['scheduled_at'] ?? time(),
 					'attempt'      => $attempt + 1,
 					'last_retry'   => time(),
-				),
+				],
 				'args'         => $user_args,
-			);
+			];
 
 			if ( ! function_exists( 'as_schedule_single_action' ) ) {
 				return false;
@@ -562,7 +562,7 @@ class PriorityQueue {
 			as_schedule_single_action(
 				time() + $delay,
 				$hook,
-				array( $job_payload ),
+				[ $job_payload ],
 				$group
 			);
 
@@ -707,7 +707,7 @@ class PriorityQueue {
 		global $wpdb;
 
 		$table = $wpdb->prefix . 'actionscheduler_actions';
-		$stats = array();
+		$stats = [];
 
 		foreach ( self::PRIORITY_GROUPS as $priority => $group_suffix ) {
 			$group = self::GROUP_PREFIX . $group_suffix;
@@ -727,13 +727,13 @@ class PriorityQueue {
 				ARRAY_A
 			);
 
-			$stats[ $group_suffix ] = array(
+			$stats[ $group_suffix ] = [
 				'priority'  => $priority,
 				'pending'   => (int) ( $row['pending'] ?? 0 ),
 				'running'   => (int) ( $row['running'] ?? 0 ),
 				'completed' => (int) ( $row['completed'] ?? 0 ),
 				'failed'    => (int) ( $row['failed'] ?? 0 ),
-			);
+			];
 		}
 
 		return $stats;

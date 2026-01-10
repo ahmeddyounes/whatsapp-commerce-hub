@@ -56,15 +56,15 @@ class CartService implements CartServiceInterface {
 		$expiresAt = $now->modify( '+' . self::CART_EXPIRY_HOURS . ' hours' );
 
 		$cart_id = $this->repository->create(
-			array(
+			[
 				'customer_phone' => $phone,
-				'items'          => array(),
+				'items'          => [],
 				'total'          => 0.00,
 				'status'         => Cart::STATUS_ACTIVE,
 				'expires_at'     => $expiresAt,
 				'created_at'     => $now,
 				'updated_at'     => $now,
-			)
+			]
 		);
 
 		return $this->repository->find( $cart_id );
@@ -135,7 +135,7 @@ class CartService implements CartServiceInterface {
 			}
 
 			if ( ! $item_found ) {
-				$items[] = array(
+				$items[] = [
 					'product_id'         => $product_id,
 					'variation_id'       => $variation_id,
 					'quantity'           => $quantity,
@@ -144,7 +144,7 @@ class CartService implements CartServiceInterface {
 					'variant_attributes' => $variation_id && $product->is_type( 'variation' )
 						? $product->get_variation_attributes()
 						: null,
-				);
+				];
 			}
 
 			// Calculate new total and update.
@@ -153,12 +153,12 @@ class CartService implements CartServiceInterface {
 
 			$this->repository->updateLocked(
 				$cart->id,
-				array(
+				[
 					'items'      => $items,
 					'total'      => $total,
 					'expires_at' => $expiresAt,
 					'updated_at' => new \DateTimeImmutable(),
-				)
+				]
 			);
 
 			$this->repository->commit();
@@ -230,11 +230,11 @@ class CartService implements CartServiceInterface {
 
 			$this->repository->updateLocked(
 				$cart->id,
-				array(
+				[
 					'items'      => $items,
 					'total'      => $total,
 					'updated_at' => new \DateTimeImmutable(),
-				)
+				]
 			);
 
 			$this->repository->commit();
@@ -275,11 +275,11 @@ class CartService implements CartServiceInterface {
 
 			$this->repository->updateLocked(
 				$cart->id,
-				array(
+				[
 					'items'      => $items,
 					'total'      => $total,
 					'updated_at' => new \DateTimeImmutable(),
-				)
+				]
 			);
 
 			$this->repository->commit();
@@ -302,12 +302,12 @@ class CartService implements CartServiceInterface {
 
 		$this->repository->update(
 			$cart->id,
-			array(
-				'items'       => array(),
+			[
+				'items'       => [],
 				'total'       => 0.00,
 				'coupon_code' => null,
 				'updated_at'  => new \DateTimeImmutable(),
-			)
+			]
 		);
 
 		$this->stopRecoverySequence( $phone );
@@ -410,16 +410,16 @@ class CartService implements CartServiceInterface {
 		// Update cart.
 		$this->repository->update(
 			$cart->id,
-			array(
+			[
 				'coupon_code' => $coupon_code,
 				'updated_at'  => new \DateTimeImmutable(),
-			)
+			]
 		);
 
-		return array(
+		return [
 			'discount' => round( $discount, 2 ),
 			'cart'     => $this->repository->find( $cart->id ),
-		);
+		];
 	}
 
 	/**
@@ -430,10 +430,10 @@ class CartService implements CartServiceInterface {
 
 		$this->repository->update(
 			$cart->id,
-			array(
+			[
 				'coupon_code' => null,
 				'updated_at'  => new \DateTimeImmutable(),
-			)
+			]
 		);
 
 		return $this->repository->find( $cart->id );
@@ -471,13 +471,13 @@ class CartService implements CartServiceInterface {
 
 		$total = $amount_after_discount + $tax + $shipping_estimate;
 
-		return array(
+		return [
 			'subtotal'          => round( $subtotal, 2 ),
 			'discount'          => round( $discount, 2 ),
 			'tax'               => round( $tax, 2 ),
 			'shipping_estimate' => round( $shipping_estimate, 2 ),
 			'total'             => round( $total, 2 ),
-		);
+		];
 	}
 
 	/**
@@ -542,36 +542,36 @@ class CartService implements CartServiceInterface {
 	public function checkCartValidity( string $phone ): array {
 		$cart = $this->getCart( $phone );
 
-		$issues   = array();
+		$issues   = [];
 		$is_valid = true;
 
 		foreach ( $cart->items as $index => $item ) {
 			$product = wc_get_product( $item['variation_id'] ?? $item['product_id'] );
 
 			if ( ! $product ) {
-				$issues[] = array(
+				$issues[] = [
 					'item_index' => $index,
 					'product_id' => $item['product_id'],
 					'issue'      => 'product_not_found',
 					'message'    => sprintf( '%s is no longer available', $item['product_name'] ),
-				);
+				];
 				$is_valid = false;
 				continue;
 			}
 
 			if ( ! $product->is_in_stock() ) {
-				$issues[] = array(
+				$issues[] = [
 					'item_index' => $index,
 					'product_id' => $item['product_id'],
 					'issue'      => 'out_of_stock',
 					'message'    => sprintf( '%s is out of stock', $product->get_name() ),
-				);
+				];
 				$is_valid = false;
 				continue;
 			}
 
 			if ( $product->managing_stock() && $product->get_stock_quantity() < $item['quantity'] ) {
-				$issues[] = array(
+				$issues[] = [
 					'item_index' => $index,
 					'product_id' => $item['product_id'],
 					'issue'      => 'insufficient_stock',
@@ -581,7 +581,7 @@ class CartService implements CartServiceInterface {
 						$product->get_name(),
 						$item['quantity']
 					),
-				);
+				];
 				$is_valid = false;
 				continue;
 			}
@@ -589,7 +589,7 @@ class CartService implements CartServiceInterface {
 			// Check price changes (warning only).
 			$current_price = (float) $product->get_price();
 			if ( abs( $current_price - $item['price_at_add'] ) > 0.01 ) {
-				$issues[] = array(
+				$issues[] = [
 					'item_index' => $index,
 					'product_id' => $item['product_id'],
 					'issue'      => 'price_changed',
@@ -601,15 +601,15 @@ class CartService implements CartServiceInterface {
 					),
 					'old_price'  => $item['price_at_add'],
 					'new_price'  => $current_price,
-				);
+				];
 			}
 		}
 
-		return array(
+		return [
 			'is_valid' => $is_valid,
 			'issues'   => $issues,
 			'cart'     => $cart,
-		);
+		];
 	}
 
 	/**
@@ -636,9 +636,9 @@ class CartService implements CartServiceInterface {
 		foreach ( $expired_carts as $cart ) {
 			$this->repository->update(
 				$cart->id,
-				array(
+				[
 					'status' => Cart::STATUS_EXPIRED,
-				)
+				]
 			);
 			++$count;
 		}
@@ -654,10 +654,10 @@ class CartService implements CartServiceInterface {
 
 		$this->repository->update(
 			$cart->id,
-			array(
+			[
 				'shipping_address' => $address,
 				'updated_at'       => new \DateTimeImmutable(),
-			)
+			]
 		);
 
 		return $this->repository->find( $cart->id );
@@ -671,10 +671,10 @@ class CartService implements CartServiceInterface {
 
 		$was_abandoned = $cart->status === Cart::STATUS_ABANDONED;
 
-		$update_data = array(
+		$update_data = [
 			'status'     => Cart::STATUS_CONVERTED,
 			'updated_at' => new \DateTimeImmutable(),
-		);
+		];
 
 		if ( $was_abandoned ) {
 			$update_data['recovered']          = true;
@@ -715,10 +715,10 @@ class CartService implements CartServiceInterface {
 				do_action(
 					'wch_log_warning',
 					'Cart item missing price_at_add, using live price',
-					array(
+					[
 						'product_id' => $item['product_id'] ?? 0,
 						'live_price' => $price,
-					)
+					]
 				);
 			}
 
@@ -822,7 +822,7 @@ class CartService implements CartServiceInterface {
 		}
 
 		// Get all category IDs from cart products.
-		$cart_category_ids = array();
+		$cart_category_ids = [];
 		foreach ( $cart->items as $item ) {
 			$product = wc_get_product( $item['product_id'] );
 			if ( $product ) {
@@ -953,11 +953,11 @@ class CartService implements CartServiceInterface {
 
 		// Fallback: Search WooCommerce customers by billing phone.
 		$customer_query = new \WC_Customer_Query(
-			array(
+			[
 				'meta_key'   => 'billing_phone',
 				'meta_value' => $normalized_phone,
 				'number'     => 1,
-			)
+			]
 		);
 
 		$customers = $customer_query->get_customers();
@@ -1030,12 +1030,12 @@ class CartService implements CartServiceInterface {
 			do_action(
 				'wch_log_error',
 				'Failed to record coupon phone usage',
-				array(
+				[
 					'coupon_id' => $coupon_id,
 					'phone'     => $normalized_phone,
 					'order_id'  => $order_id,
 					'error'     => $wpdb->last_error,
-				)
+				]
 			);
 			return false;
 		}

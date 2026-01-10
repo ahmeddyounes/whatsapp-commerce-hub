@@ -73,12 +73,12 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 		// Validate cart.
 		$validation = $this->validateCheckout( $phone );
 		if ( ! $validation['valid'] ) {
-			return array(
+			return [
 				'success' => false,
 				'step'    => '',
-				'data'    => array(),
+				'data'    => [],
 				'error'   => implode( ', ', array_column( $validation['issues'], 'message' ) ),
-			);
+			];
 		}
 
 		// Initialize checkout state.
@@ -86,12 +86,12 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 
 		do_action( 'wch_checkout_started', $phone );
 
-		return array(
+		return [
 			'success' => true,
 			'step'    => CheckoutStateManagerInterface::STEP_ADDRESS,
 			'data'    => $this->getStepData( $phone, CheckoutStateManagerInterface::STEP_ADDRESS ),
 			'error'   => null,
-		);
+		];
 	}
 
 	/**
@@ -105,25 +105,25 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 		$state = $this->stateManager->loadState( $phone );
 
 		if ( ! $state ) {
-			return array(
+			return [
 				'step' => null,
-				'data' => array(),
-			);
+				'data' => [],
+			];
 		}
 
 		// Check timeout.
 		if ( $this->stateManager->hasTimedOut( $phone ) ) {
 			$this->cancelCheckout( $phone );
-			return array(
+			return [
 				'step' => null,
-				'data' => array(),
-			);
+				'data' => [],
+			];
 		}
 
-		return array(
+		return [
 			'step' => $state['step'],
 			'data' => $this->getStepData( $phone, $state['step'] ),
-		);
+		];
 	}
 
 	/**
@@ -161,18 +161,18 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 		// Update state.
 		$this->stateManager->updateState(
 			$phone,
-			array(
+			[
 				'address' => $address,
 				'step'    => CheckoutStateManagerInterface::STEP_SHIPPING_METHOD,
-			)
+			]
 		);
 
-		return array(
+		return [
 			'success' => true,
 			'step'    => CheckoutStateManagerInterface::STEP_SHIPPING_METHOD,
 			'data'    => $this->getStepData( $phone, CheckoutStateManagerInterface::STEP_SHIPPING_METHOD ),
 			'error'   => null,
-		);
+		];
 	}
 
 	/**
@@ -208,18 +208,18 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 		// Update state.
 		$this->stateManager->updateState(
 			$phone,
-			array(
+			[
 				'shipping_method' => $selected,
 				'step'            => CheckoutStateManagerInterface::STEP_PAYMENT_METHOD,
-			)
+			]
 		);
 
-		return array(
+		return [
 			'success' => true,
 			'step'    => CheckoutStateManagerInterface::STEP_PAYMENT_METHOD,
 			'data'    => $this->getStepData( $phone, CheckoutStateManagerInterface::STEP_PAYMENT_METHOD ),
 			'error'   => null,
-		);
+		];
 	}
 
 	/**
@@ -247,18 +247,18 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 		// Update state.
 		$this->stateManager->updateState(
 			$phone,
-			array(
+			[
 				'payment_method' => $methodDetails,
 				'step'           => CheckoutStateManagerInterface::STEP_REVIEW,
-			)
+			]
 		);
 
-		return array(
+		return [
 			'success' => true,
 			'step'    => CheckoutStateManagerInterface::STEP_REVIEW,
 			'data'    => $this->getStepData( $phone, CheckoutStateManagerInterface::STEP_REVIEW ),
 			'error'   => null,
-		);
+		];
 	}
 
 	/**
@@ -272,34 +272,34 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 		$state = $this->stateManager->loadState( $phone );
 
 		if ( ! $state ) {
-			return array(
+			return [
 				'success'      => false,
 				'order_id'     => null,
 				'order_number' => null,
 				'error'        => __( 'No active checkout session', 'whatsapp-commerce-hub' ),
-			);
+			];
 		}
 
 		// Final validation.
 		$validation = $this->validateCheckout( $phone );
 		if ( ! $validation['valid'] ) {
-			return array(
+			return [
 				'success'      => false,
 				'order_id'     => null,
 				'order_number' => null,
 				'error'        => implode( ', ', array_column( $validation['issues'], 'message' ) ),
-			);
+			];
 		}
 
 		try {
 			// Use saga if available.
 			if ( $this->checkoutSaga ) {
-				$checkoutData = array(
+				$checkoutData = [
 					'shipping_address' => $state['address'],
 					'shipping_method'  => $state['shipping_method']['id'] ?? '',
 					'payment_method'   => $state['payment_method']['id'] ?? 'cod',
 					'coupon_code'      => $state['coupon_code'],
-				);
+				];
 
 				$result = $this->checkoutSaga->execute( $phone, $checkoutData );
 
@@ -307,19 +307,19 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 					$orderData = $result->getStepResult( 'create_order' );
 					$this->stateManager->clearState( $phone );
 
-					return array(
+					return [
 						'success'      => true,
 						'order_id'     => $orderData['order_id'] ?? null,
 						'order_number' => $orderData['order_number'] ?? null,
 						'error'        => null,
-					);
+					];
 				} else {
-					return array(
+					return [
 						'success'      => false,
 						'order_id'     => null,
 						'order_number' => null,
 						'error'        => $result->getError() ?? __( 'Order creation failed', 'whatsapp-commerce-hub' ),
-					);
+					];
 				}
 			}
 
@@ -327,7 +327,7 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 			if ( $this->orderSyncService && $this->cartService ) {
 				$cart = $this->cartService->getCart( $phone );
 
-				$cartData = array(
+				$cartData = [
 					'items'            => $cart->items,
 					'billing_address'  => $state['address'],
 					'shipping_address' => $state['address'],
@@ -336,7 +336,7 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 					'shipping_title'   => $state['shipping_method']['label'] ?? '',
 					'payment_method'   => $state['payment_method']['id'] ?? 'cod',
 					'coupon_code'      => $state['coupon_code'],
-				);
+				];
 
 				$orderId = $this->orderSyncService->createOrderFromCart( $cartData, $phone );
 
@@ -346,12 +346,12 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 
 				$order = wc_get_order( $orderId );
 
-				return array(
+				return [
 					'success'      => true,
 					'order_id'     => $orderId,
 					'order_number' => $order ? $order->get_order_number() : (string) $orderId,
 					'error'        => null,
-				);
+				];
 			}
 
 			throw new \RuntimeException( __( 'No order service available', 'whatsapp-commerce-hub' ) );
@@ -360,18 +360,18 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 			do_action(
 				'wch_log_error',
 				'CheckoutOrchestrator: Order confirmation failed',
-				array(
+				[
 					'phone' => $phone,
 					'error' => $e->getMessage(),
-				)
+				]
 			);
 
-			return array(
+			return [
 				'success'      => false,
 				'order_id'     => null,
 				'order_number' => null,
 				'error'        => $e->getMessage(),
-			);
+			];
 		}
 	}
 
@@ -401,21 +401,21 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 		$state = $this->stateManager->loadState( $phone );
 
 		if ( ! $state ) {
-			return array(
+			return [
 				'success' => false,
 				'step'    => '',
-				'data'    => array(),
-			);
+				'data'    => [],
+			];
 		}
 
 		$previousStep = $this->stateManager->getPreviousStep( $state['step'] );
 		$this->stateManager->advanceToStep( $phone, $previousStep );
 
-		return array(
+		return [
 			'success' => true,
 			'step'    => $previousStep,
 			'data'    => $this->getStepData( $phone, $previousStep ),
-		);
+		];
 	}
 
 	/**
@@ -426,48 +426,48 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 	 */
 	public function validateCheckout( string $phone ): array {
 		$phone  = $this->sanitizePhone( $phone );
-		$issues = array();
+		$issues = [];
 
 		// Check cart service.
 		if ( ! $this->cartService ) {
-			$issues[] = array(
+			$issues[] = [
 				'type'    => 'service',
 				'message' => __( 'Cart service unavailable', 'whatsapp-commerce-hub' ),
-			);
-			return array(
+			];
+			return [
 				'valid'  => false,
 				'issues' => $issues,
-			);
+			];
 		}
 
 		// Check cart exists and is valid.
 		$cart = $this->cartService->getCart( $phone );
 		if ( ! $cart || $cart->isEmpty() ) {
-			$issues[] = array(
+			$issues[] = [
 				'type'    => 'cart',
 				'message' => __( 'Cart is empty', 'whatsapp-commerce-hub' ),
-			);
-			return array(
+			];
+			return [
 				'valid'  => false,
 				'issues' => $issues,
-			);
+			];
 		}
 
 		// Check cart validity (stock, etc.).
 		$cartValidation = $this->cartService->checkCartValidity( $phone );
 		if ( ! $cartValidation['is_valid'] ) {
 			foreach ( $cartValidation['issues'] as $issue ) {
-				$issues[] = array(
+				$issues[] = [
 					'type'    => 'item',
 					'message' => $issue['message'] ?? __( 'Item validation failed', 'whatsapp-commerce-hub' ),
-				);
+				];
 			}
 		}
 
-		return array(
+		return [
 			'valid'  => empty( $issues ),
 			'issues' => $issues,
-		);
+		];
 	}
 
 	/**
@@ -482,11 +482,11 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 		$state = $this->stateManager->loadState( $phone );
 
 		if ( ! $state ) {
-			return array(
+			return [
 				'success'  => false,
 				'discount' => 0,
 				'error'    => __( 'No active checkout', 'whatsapp-commerce-hub' ),
-			);
+			];
 		}
 
 		// Get cart total.
@@ -501,9 +501,9 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 		if ( $result['success'] ) {
 			$this->stateManager->updateState(
 				$phone,
-				array(
+				[
 					'coupon_code' => $this->couponHandler->sanitizeCouponCode( $couponCode ),
-				)
+				]
 			);
 		}
 
@@ -519,7 +519,7 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 	public function removeCoupon( string $phone ): bool {
 		$phone = $this->sanitizePhone( $phone );
 
-		return $this->stateManager->updateState( $phone, array( 'coupon_code' => null ) );
+		return $this->stateManager->updateState( $phone, [ 'coupon_code' => null ] );
 	}
 
 	/**
@@ -533,7 +533,7 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 		$state = $this->stateManager->loadState( $phone );
 
 		if ( ! $state || empty( $state['address'] ) ) {
-			return array();
+			return [];
 		}
 
 		$items = $this->getCartItems( $phone );
@@ -562,7 +562,7 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 		$state = $this->stateManager->loadState( $phone );
 
 		if ( ! $state ) {
-			return array();
+			return [];
 		}
 
 		$items = $this->getCartItems( $phone );
@@ -582,13 +582,13 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 		$items = $this->getCartItems( $phone );
 
 		return $this->totalsCalculator->calculateTotals(
-			array(
+			[
 				'items'         => $items,
 				'coupon_code'   => $state['coupon_code'] ?? '',
 				'shipping_cost' => $state['shipping_method']['cost'] ?? 0,
 				'payment_fee'   => $state['payment_method']['fee'] ?? 0,
-				'address'       => $state['address'] ?? array(),
-			)
+				'address'       => $state['address'] ?? [],
+			]
 		);
 	}
 
@@ -604,33 +604,33 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 
 		switch ( $step ) {
 			case CheckoutStateManagerInterface::STEP_ADDRESS:
-				return array(
+				return [
 					'saved_addresses' => $this->addressHandler->getSavedAddresses( $phone ),
 					'current_address' => $state['address'] ?? null,
-				);
+				];
 
 			case CheckoutStateManagerInterface::STEP_SHIPPING_METHOD:
-				return array(
+				return [
 					'methods'  => $this->getShippingMethods( $phone ),
 					'selected' => $state['shipping_method'] ?? null,
-				);
+				];
 
 			case CheckoutStateManagerInterface::STEP_PAYMENT_METHOD:
-				return array(
+				return [
 					'methods'  => $this->getPaymentMethods( $phone ),
 					'selected' => $state['payment_method'] ?? null,
-				);
+				];
 
 			case CheckoutStateManagerInterface::STEP_REVIEW:
 				return $this->getOrderReview( $phone );
 
 			case CheckoutStateManagerInterface::STEP_CONFIRM:
-				return array(
+				return [
 					'totals' => $this->calculateTotals( $phone ),
-				);
+				];
 
 			default:
-				return array();
+				return [];
 		}
 	}
 
@@ -642,12 +642,12 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 	 */
 	private function getCartItems( string $phone ): array {
 		if ( ! $this->cartService ) {
-			return array();
+			return [];
 		}
 
 		$cart = $this->cartService->getCart( $phone );
 
-		return $cart ? $cart->items : array();
+		return $cart ? $cart->items : [];
 	}
 
 	/**
@@ -657,12 +657,12 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 	 * @return array Error response.
 	 */
 	private function errorResponse( string $error ): array {
-		return array(
+		return [
 			'success' => false,
 			'step'    => '',
-			'data'    => array(),
+			'data'    => [],
 			'error'   => $error,
-		);
+		];
 	}
 
 	/**

@@ -36,23 +36,23 @@ class CampaignRepository implements CampaignRepositoryInterface {
 	 *
 	 * @var array<string>
 	 */
-	protected array $validStatuses = array(
+	protected array $validStatuses = [
 		'draft',
 		'scheduled',
 		'sending',
 		'completed',
 		'failed',
 		'cancelled',
-	);
+	];
 
 	/**
 	 * {@inheritdoc}
 	 */
 	public function getAll(): array {
-		$campaigns = get_option( self::OPTION_NAME, array() );
+		$campaigns = get_option( self::OPTION_NAME, [] );
 
 		if ( ! is_array( $campaigns ) ) {
-			return array();
+			return [];
 		}
 
 		// Sort by created_at descending.
@@ -110,7 +110,7 @@ class CampaignRepository implements CampaignRepositoryInterface {
 			if ( (int) $existing['id'] === $campaign['id'] ) {
 				// Preserve fields that shouldn't be overwritten.
 				$campaign['created_at'] = $existing['created_at'] ?? $campaign['created_at'];
-				$campaign['stats']      = $campaignData['stats'] ?? $existing['stats'] ?? array();
+				$campaign['stats']      = $campaignData['stats'] ?? $existing['stats'] ?? [];
 
 				$campaigns[ $index ] = $campaign;
 				$found               = true;
@@ -132,7 +132,7 @@ class CampaignRepository implements CampaignRepositoryInterface {
 	 */
 	public function delete( int $campaignId ): bool {
 		$campaigns = $this->getAll();
-		$updated   = array();
+		$updated   = [];
 
 		foreach ( $campaigns as $campaign ) {
 			if ( (int) $campaign['id'] !== $campaignId ) {
@@ -183,7 +183,7 @@ class CampaignRepository implements CampaignRepositoryInterface {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function updateStatus( int $campaignId, string $status, array $extraData = array() ): bool {
+	public function updateStatus( int $campaignId, string $status, array $extraData = [] ): bool {
 		if ( ! in_array( $status, $this->validStatuses, true ) ) {
 			return false;
 		}
@@ -243,18 +243,18 @@ class CampaignRepository implements CampaignRepositoryInterface {
 	 * @return array Sanitized campaign data.
 	 */
 	protected function sanitizeCampaignData( array $data ): array {
-		return array(
+		return [
 			'id'              => isset( $data['id'] ) ? absint( $data['id'] ) : 0,
 			'name'            => sanitize_text_field( $data['name'] ?? '' ),
 			'template_name'   => sanitize_text_field( $data['template_name'] ?? '' ),
-			'template_data'   => $this->sanitizeTemplateData( $data['template_data'] ?? array() ),
-			'audience'        => $this->sanitizeAudienceData( $data['audience'] ?? array() ),
+			'template_data'   => $this->sanitizeTemplateData( $data['template_data'] ?? [] ),
+			'audience'        => $this->sanitizeAudienceData( $data['audience'] ?? [] ),
 			'audience_size'   => absint( $data['audience_size'] ?? 0 ),
-			'personalization' => $this->sanitizePersonalization( $data['personalization'] ?? array() ),
-			'schedule'        => $this->sanitizeScheduleData( $data['schedule'] ?? array() ),
+			'personalization' => $this->sanitizePersonalization( $data['personalization'] ?? [] ),
+			'schedule'        => $this->sanitizeScheduleData( $data['schedule'] ?? [] ),
 			'status'          => sanitize_key( $data['status'] ?? 'draft' ),
 			'created_at'      => $data['created_at'] ?? gmdate( 'Y-m-d H:i:s' ),
-		);
+		];
 	}
 
 	/**
@@ -264,7 +264,7 @@ class CampaignRepository implements CampaignRepositoryInterface {
 	 * @return array Sanitized data.
 	 */
 	protected function sanitizeTemplateData( array $data ): array {
-		$sanitized = array();
+		$sanitized = [];
 
 		foreach ( $data as $key => $value ) {
 			$sanitizedKey = sanitize_key( $key );
@@ -285,7 +285,7 @@ class CampaignRepository implements CampaignRepositoryInterface {
 	 * @return array Sanitized data.
 	 */
 	protected function sanitizeAudienceData( array $data ): array {
-		return array(
+		return [
 			'audience_all'             => ! empty( $data['audience_all'] ),
 			'audience_recent_orders'   => ! empty( $data['audience_recent_orders'] ),
 			'recent_orders_days'       => absint( $data['recent_orders_days'] ?? 30 ),
@@ -294,7 +294,7 @@ class CampaignRepository implements CampaignRepositoryInterface {
 			'audience_cart_abandoners' => ! empty( $data['audience_cart_abandoners'] ),
 			'exclude_recent_broadcast' => ! empty( $data['exclude_recent_broadcast'] ),
 			'exclude_broadcast_days'   => absint( $data['exclude_broadcast_days'] ?? 7 ),
-		);
+		];
 	}
 
 	/**
@@ -304,7 +304,7 @@ class CampaignRepository implements CampaignRepositoryInterface {
 	 * @return array Sanitized data.
 	 */
 	protected function sanitizePersonalization( array $data ): array {
-		$sanitized = array();
+		$sanitized = [];
 
 		foreach ( $data as $key => $value ) {
 			$sanitized[ sanitize_key( $key ) ] = sanitize_text_field( (string) $value );
@@ -320,14 +320,14 @@ class CampaignRepository implements CampaignRepositoryInterface {
 	 * @return array Sanitized data.
 	 */
 	protected function sanitizeScheduleData( array $data ): array {
-		return array(
-			'timing'   => in_array( $data['timing'] ?? 'now', array( 'now', 'scheduled' ), true )
+		return [
+			'timing'   => in_array( $data['timing'] ?? 'now', [ 'now', 'scheduled' ], true )
 				? $data['timing']
 				: 'now',
 			'date'     => sanitize_text_field( $data['date'] ?? '' ),
 			'time'     => sanitize_text_field( $data['time'] ?? '' ),
 			'timezone' => sanitize_text_field( $data['timezone'] ?? 'UTC' ),
 			'datetime' => sanitize_text_field( $data['datetime'] ?? '' ),
-		);
+		];
 	}
 }

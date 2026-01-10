@@ -50,15 +50,15 @@ abstract class Event {
 	 *
 	 * @param array $metadata Optional event metadata.
 	 */
-	public function __construct( array $metadata = array() ) {
+	public function __construct( array $metadata = [] ) {
 		$this->id          = $this->generateId();
 		$this->occurred_at = new \DateTimeImmutable();
 		$this->metadata    = array_merge(
-			array(
+			[
 				'source'     => 'wch',
 				'version'    => WCH_VERSION,
 				'request_id' => $this->getRequestId(),
-			),
+			],
 			$metadata
 		);
 	}
@@ -83,13 +83,13 @@ abstract class Event {
 	 * @return array The serialized event.
 	 */
 	public function toArray(): array {
-		return array(
+		return [
 			'id'          => $this->id,
 			'name'        => $this->getName(),
 			'payload'     => $this->getPayload(),
 			'metadata'    => $this->metadata,
 			'occurred_at' => $this->occurred_at->format( 'c' ),
-		);
+		];
 	}
 
 	/**
@@ -112,9 +112,9 @@ abstract class Event {
 				do_action(
 					'wch_log_warning',
 					'Event ID generated without secure entropy',
-					array(
+					[
 						'error' => $e->getMessage(),
-					)
+					]
 				);
 			}
 
@@ -138,14 +138,14 @@ abstract class Event {
 	 */
 	private function generateFallbackEntropy(): string {
 		// Combine multiple entropy sources.
-		$sources = array(
+		$sources = [
 			microtime( true ),
 			getmypid(),
 			memory_get_usage( true ),
 			spl_object_id( $this ),
 			mt_rand(),
 			mt_rand(),
-		);
+		];
 
 		// Add server-specific entropy if available.
 		if ( isset( $_SERVER['REQUEST_TIME_FLOAT'] ) ) {

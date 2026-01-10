@@ -120,10 +120,10 @@ class ReengagementMessageBuilder implements ReengagementMessageBuilderInterface 
 				return null;
 		}
 
-		return array(
+		return [
 			'text' => $text,
 			'type' => $campaignType,
-		);
+		];
 	}
 
 	/**
@@ -256,7 +256,7 @@ class ReengagementMessageBuilder implements ReengagementMessageBuilderInterface 
 			return '';
 		}
 
-		$lines = array();
+		$lines = [];
 		foreach ( array_slice( $products, 0, $limit ) as $product ) {
 			if ( $showPriceDrop && isset( $product['drop'] ) ) {
 				$lines[] = sprintf(
@@ -294,36 +294,36 @@ class ReengagementMessageBuilder implements ReengagementMessageBuilderInterface 
 		$daysInactive = (int) $this->settings->get( 'reengagement.inactivity_threshold', 60 );
 		$sinceDate    = gmdate( 'Y-m-d', current_time( 'timestamp' ) - ( $daysInactive * DAY_IN_SECONDS ) );
 
-		$args = array(
+		$args = [
 			'post_type'      => 'product',
 			'posts_per_page' => $limit,
 			'orderby'        => 'date',
 			'order'          => 'DESC',
-			'date_query'     => array(
-				array(
+			'date_query'     => [
+				[
 					'after' => $sinceDate,
-				),
-			),
-			'tax_query'      => array(
-				array(
+				],
+			],
+			'tax_query'      => [
+				[
 					'taxonomy' => 'product_cat',
 					'field'    => 'term_id',
 					'terms'    => $purchasedCategories,
-				),
-			),
-		);
+				],
+			],
+		];
 
 		$posts = get_posts( $args );
 
 		return array_map(
 			function ( $post ) {
 				$wcProduct = wc_get_product( $post->ID );
-				return array(
+				return [
 					'id'    => $post->ID,
 					'name'  => $post->post_title,
 					'price' => $wcProduct ? $wcProduct->get_price() : 0,
 					'url'   => get_permalink( $post->ID ),
-				);
+				];
 			},
 			$posts
 		);
@@ -337,18 +337,18 @@ class ReengagementMessageBuilder implements ReengagementMessageBuilderInterface 
 	 */
 	public function getCustomerCategories( object $customer ): array {
 		if ( ! isset( $customer->wc_customer_id ) || ! $customer->wc_customer_id ) {
-			return array();
+			return [];
 		}
 
 		$orders = wc_get_orders(
-			array(
+			[
 				'customer_id' => $customer->wc_customer_id,
 				'limit'       => -1,
-				'status'      => array( 'completed', 'processing' ),
-			)
+				'status'      => [ 'completed', 'processing' ],
+			]
 		);
 
-		$categories = array();
+		$categories = [];
 
 		foreach ( $orders as $order ) {
 			foreach ( $order->get_items() as $item ) {
@@ -379,13 +379,13 @@ class ReengagementMessageBuilder implements ReengagementMessageBuilderInterface 
 		}
 
 		$orders = wc_get_orders(
-			array(
+			[
 				'customer_id' => $customer->wc_customer_id,
 				'limit'       => 1,
 				'orderby'     => 'date',
 				'order'       => 'DESC',
-				'status'      => array( 'completed', 'processing' ),
-			)
+				'status'      => [ 'completed', 'processing' ],
+			]
 		);
 
 		if ( empty( $orders ) ) {
@@ -400,10 +400,10 @@ class ReengagementMessageBuilder implements ReengagementMessageBuilderInterface 
 		}
 
 		$item = reset( $items );
-		return array(
+		return [
 			'id'   => $item->get_product_id(),
 			'name' => $item->get_name(),
-		);
+		];
 	}
 
 	/**
@@ -413,24 +413,24 @@ class ReengagementMessageBuilder implements ReengagementMessageBuilderInterface 
 	 * @return array Array of product data.
 	 */
 	protected function getRecentProducts( int $limit = 3 ): array {
-		$args = array(
+		$args = [
 			'post_type'      => 'product',
 			'posts_per_page' => $limit,
 			'orderby'        => 'date',
 			'order'          => 'DESC',
-		);
+		];
 
 		$posts = get_posts( $args );
 
 		return array_map(
 			function ( $post ) {
 				$wcProduct = wc_get_product( $post->ID );
-				return array(
+				return [
 					'id'    => $post->ID,
 					'name'  => $post->post_title,
 					'price' => $wcProduct ? $wcProduct->get_price() : 0,
 					'url'   => get_permalink( $post->ID ),
-				);
+				];
 			},
 			$posts
 		);

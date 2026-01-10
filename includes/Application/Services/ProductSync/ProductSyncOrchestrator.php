@@ -63,36 +63,36 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 	public function syncProduct( int $productId ): array {
 		// Check if sync is enabled.
 		if ( ! $this->validator->isSyncEnabled() ) {
-			return array(
+			return [
 				'success' => false,
 				'error'   => 'Product sync is not enabled',
-			);
+			];
 		}
 
 		// Get product.
 		$product = wc_get_product( $productId );
 		if ( ! $product ) {
-			return array(
+			return [
 				'success' => false,
 				'error'   => 'Product not found',
-			);
+			];
 		}
 
 		// Validate product.
 		$validation = $this->validator->validate( $product );
 		if ( ! $validation['valid'] ) {
-			return array(
+			return [
 				'success' => false,
 				'error'   => $validation['reason'],
-			);
+			];
 		}
 
 		// Check API configuration.
 		if ( ! $this->catalogApi->isConfigured() ) {
-			return array(
+			return [
 				'success' => false,
 				'error'   => 'WhatsApp API not configured',
-			);
+			];
 		}
 
 		// Handle variable products.
@@ -115,9 +115,9 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 			$this->log(
 				'info',
 				'Product synced to WhatsApp catalog',
-				array(
+				[
 					'product_id' => $productId,
-				)
+				]
 			);
 		} else {
 			$this->catalogApi->updateSyncStatus(
@@ -130,10 +130,10 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 			$this->log(
 				'error',
 				'Failed to sync product',
-				array(
+				[
 					'product_id' => $productId,
 					'error'      => $result['error'] ?? 'Unknown error',
-				)
+				]
 			);
 		}
 
@@ -150,7 +150,7 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 		$parentId   = $product->get_id();
 		$variations = $this->transformer->transformVariableProduct( $product );
 		$synced     = 0;
-		$errors     = array();
+		$errors     = [];
 
 		foreach ( $variations as $variation ) {
 			$variationId = $variation['variation_id'];
@@ -188,12 +188,12 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 			);
 		}
 
-		return array(
+		return [
 			'success'      => $synced > 0,
 			'synced_count' => $synced,
 			'total_count'  => count( $variations ),
 			'errors'       => $errors,
-		);
+		];
 	}
 
 	/**
@@ -201,7 +201,7 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 	 */
 	public function syncAllProducts(): ?string {
 		if ( ! $this->validator->isSyncEnabled() ) {
-			$this->log( 'warning', 'Attempted to sync all products but sync is disabled', array() );
+			$this->log( 'warning', 'Attempted to sync all products but sync is disabled', [] );
 			return null;
 		}
 
@@ -211,9 +211,9 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 			$this->log(
 				'warning',
 				'Bulk sync already in progress',
-				array(
+				[
 					'sync_id' => $existingProgress['sync_id'],
-				)
+				]
 			);
 			return $existingProgress['sync_id'];
 		}
@@ -222,7 +222,7 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 		$productIds = $this->getProductsToSync();
 
 		if ( empty( $productIds ) ) {
-			$this->log( 'info', 'No products found to sync', array() );
+			$this->log( 'info', 'No products found to sync', [] );
 			return null;
 		}
 
@@ -232,10 +232,10 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 		$this->log(
 			'info',
 			'Starting bulk product sync',
-			array(
+			[
 				'sync_id'        => $syncId,
 				'total_products' => count( $productIds ),
-			)
+			]
 		);
 
 		// Process in batches via queue.
@@ -248,10 +248,10 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 		$this->log(
 			'info',
 			'Queued all product batches for sync',
-			array(
+			[
 				'sync_id'       => $syncId,
 				'total_batches' => count( $batches ),
-			)
+			]
 		);
 
 		return $syncId;
@@ -264,10 +264,10 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 		$catalogItemId = $this->catalogApi->getCatalogItemId( $productId );
 
 		if ( empty( $catalogItemId ) ) {
-			return array(
+			return [
 				'success' => false,
 				'error'   => 'Product not synced to catalog',
-			);
+			];
 		}
 
 		$result = $this->catalogApi->deleteProduct( $catalogItemId );
@@ -278,9 +278,9 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 			$this->log(
 				'info',
 				'Product removed from WhatsApp catalog',
-				array(
+				[
 					'product_id' => $productId,
-				)
+				]
 			);
 		}
 
@@ -299,15 +299,15 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 		}
 
 		// Get published products using pagination.
-		$allProductIds = array();
+		$allProductIds = [];
 		$page          = 1;
 		$perPage       = 100;
 
-		$baseArgs = array(
+		$baseArgs = [
 			'status' => 'publish',
 			'return' => 'ids',
 			'limit'  => $perPage,
-		);
+		];
 
 		// Exclude out of stock if setting enabled.
 		$includeOutOfStock = $this->getSetting( 'catalog.include_out_of_stock', false );
@@ -316,7 +316,7 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 		}
 
 		do {
-			$args       = array_merge( $baseArgs, array( 'page' => $page ) );
+			$args       = array_merge( $baseArgs, [ 'page' => $page ] );
 			$productIds = wc_get_products( $args );
 
 			if ( empty( $productIds ) ) {
@@ -331,9 +331,9 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 				$this->log(
 					'warning',
 					'Product sync hit safety limit',
-					array(
+					[
 						'fetched' => count( $allProductIds ),
-					)
+					]
 				);
 				break;
 			}
@@ -366,10 +366,10 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 		$this->log(
 			'info',
 			'Retrying failed sync items',
-			array(
+			[
 				'sync_id'     => $syncId,
 				'retry_count' => count( $failedProductIds ),
-			)
+			]
 		);
 
 		return $syncId;
@@ -400,9 +400,9 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 		$this->log(
 			'debug',
 			'Product update queued for sync',
-			array(
+			[
 				'product_id' => $productId,
-			)
+			]
 		);
 	}
 
@@ -431,7 +431,7 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 	 * @return void
 	 */
 	public function processBatch( array $args ): void {
-		$productIds   = $args['product_ids'] ?? array();
+		$productIds   = $args['product_ids'] ?? [];
 		$batchIndex   = $args['batch_index'] ?? 0;
 		$totalBatches = $args['total_batches'] ?? 1;
 		$syncId       = $args['sync_id'] ?? null;
@@ -439,12 +439,12 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 		$this->log(
 			'info',
 			'Processing product batch',
-			array(
+			[
 				'sync_id'       => $syncId,
 				'batch_index'   => $batchIndex,
 				'total_batches' => $totalBatches,
 				'product_count' => count( $productIds ),
-			)
+			]
 		);
 
 		$processed  = 0;
@@ -475,13 +475,13 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 		$this->log(
 			'info',
 			'Completed product batch',
-			array(
+			[
 				'sync_id'    => $syncId,
 				'batch'      => $batchIndex,
 				'processed'  => $processed,
 				'successful' => $successful,
 				'failed'     => $failed,
-			)
+			]
 		);
 	}
 
@@ -499,13 +499,13 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 		if ( class_exists( 'WCH_Job_Dispatcher' ) ) {
 			\WCH_Job_Dispatcher::dispatch(
 				'wch_sync_product_batch',
-				array(
+				[
 					'product_ids'   => $productIds,
 					'batch_index'   => $batchIndex,
 					'total_batches' => $totalBatches,
 					'sync_id'       => $syncId,
 					'is_retry'      => $isRetry,
-				)
+				]
 			);
 		}
 	}
@@ -520,7 +520,7 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 		if ( class_exists( 'WCH_Job_Dispatcher' ) ) {
 			\WCH_Job_Dispatcher::dispatch(
 				'wch_sync_single_product',
-				array( 'product_id' => $productId )
+				[ 'product_id' => $productId ]
 			);
 		}
 	}
@@ -552,7 +552,7 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 	 * @param array  $context Context data.
 	 * @return void
 	 */
-	protected function log( string $level, string $message, array $context = array() ): void {
+	protected function log( string $level, string $message, array $context = [] ): void {
 		$context['category'] = 'product-sync';
 
 		if ( null !== $this->logger ) {

@@ -47,12 +47,12 @@ class WebhookStatusProcessor extends AbstractQueueProcessor {
 	/**
 	 * Valid status values.
 	 */
-	private const VALID_STATUSES = array(
+	private const VALID_STATUSES = [
 		'sent',
 		'delivered',
 		'read',
 		'failed',
-	);
+	];
 
 	/**
 	 * Idempotency service.
@@ -112,7 +112,7 @@ class WebhookStatusProcessor extends AbstractQueueProcessor {
 		$messageId = $data['message_id'] ?? $data['id'] ?? '';
 		$status    = $data['status'] ?? '';
 		$timestamp = $data['timestamp'] ?? time();
-		$errors    = $data['errors'] ?? array();
+		$errors    = $data['errors'] ?? [];
 
 		// Validate required fields.
 		if ( empty( $messageId ) ) {
@@ -140,21 +140,21 @@ class WebhookStatusProcessor extends AbstractQueueProcessor {
 		if ( ! $this->idempotencyService->claim( $idempotencyKey, IdempotencyService::SCOPE_NOTIFICATION ) ) {
 			$this->logInfo(
 				'Status update already processed, skipping',
-				array(
+				[
 					'message_id' => $messageId,
 					'status'     => $status,
-				)
+				]
 			);
 			return;
 		}
 
 		$this->logDebug(
 			'Processing status update',
-			array(
+			[
 				'message_id' => $messageId,
 				'status'     => $status,
 				'timestamp'  => $timestamp,
-			)
+			]
 		);
 
 		// Find the message in our database.
@@ -163,10 +163,10 @@ class WebhookStatusProcessor extends AbstractQueueProcessor {
 		if ( ! $message ) {
 			$this->logWarning(
 				'Message not found for status update',
-				array(
+				[
 					'message_id' => $messageId,
 					'status'     => $status,
-				)
+				]
 			);
 
 			// Don't throw - the message might not exist in our system.
@@ -178,11 +178,11 @@ class WebhookStatusProcessor extends AbstractQueueProcessor {
 		if ( ! $this->isValidStatusProgression( $message->status ?? '', $status ) ) {
 			$this->logDebug(
 				'Ignoring out-of-order status update',
-				array(
+				[
 					'message_id'     => $messageId,
 					'current_status' => $message->status ?? 'unknown',
 					'new_status'     => $status,
-				)
+				]
 			);
 			return;
 		}
@@ -206,10 +206,10 @@ class WebhookStatusProcessor extends AbstractQueueProcessor {
 
 		$this->logInfo(
 			'Status update processed successfully',
-			array(
+			[
 				'message_id' => $messageId,
 				'status'     => $status,
-			)
+			]
 		);
 	}
 
@@ -230,13 +230,13 @@ class WebhookStatusProcessor extends AbstractQueueProcessor {
 		}
 
 		// Define status order for progression.
-		$statusOrder = array(
+		$statusOrder = [
 			'pending'   => 0,
 			'queued'    => 1,
 			'sent'      => 2,
 			'delivered' => 3,
 			'read'      => 4,
-		);
+		];
 
 		$currentOrder = $statusOrder[ $currentStatus ] ?? -1;
 		$newOrder     = $statusOrder[ $newStatus ] ?? -1;
@@ -256,7 +256,7 @@ class WebhookStatusProcessor extends AbstractQueueProcessor {
 		// Log the failure details.
 		$errorMessage = '';
 		if ( ! empty( $errors ) ) {
-			$firstError   = $errors[0] ?? array();
+			$firstError   = $errors[0] ?? [];
 			$errorMessage = sprintf(
 				'%s: %s',
 				$firstError['code'] ?? 'unknown',
@@ -266,11 +266,11 @@ class WebhookStatusProcessor extends AbstractQueueProcessor {
 
 		$this->logWarning(
 			'Message delivery failed',
-			array(
+			[
 				'message_id' => $message->wa_message_id ?? 'unknown',
 				'error'      => $errorMessage,
 				'errors'     => $errors,
-			)
+			]
 		);
 
 		// Increment retry count if applicable.

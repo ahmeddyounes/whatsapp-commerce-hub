@@ -42,7 +42,7 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 	 *
 	 * @var array<string, StepInterface>
 	 */
-	private array $steps = array();
+	private array $steps = [];
 
 	/**
 	 * Constructor.
@@ -84,13 +84,13 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 		);
 
 		// Register steps.
-		$this->steps = array(
+		$this->steps = [
 			'address'  => $address_step,
 			'shipping' => $shipping_step,
 			'payment'  => $payment_step,
 			'review'   => $review_step,
 			'confirm'  => $confirmation_step,
-		);
+		];
 	}
 
 	/**
@@ -101,7 +101,7 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 	 */
 	public function startCheckout( string $customer_phone ): CheckoutResponse {
 		try {
-			$this->log( 'Starting checkout', array( 'phone' => $customer_phone ) );
+			$this->log( 'Starting checkout', [ 'phone' => $customer_phone ] );
 
 			// Get and validate cart.
 			$cart = $this->cart_service->getCart( $customer_phone );
@@ -111,11 +111,11 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 					'address',
 					__( 'Cart is empty', 'whatsapp-commerce-hub' ),
 					'empty_cart',
-					array(
+					[
 						$this->message_builder->text(
 							__( 'Your cart is empty. Please add items before checkout.', 'whatsapp-commerce-hub' )
 						),
-					)
+					]
 				);
 			}
 
@@ -133,12 +133,12 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 					'address',
 					__( 'Cart validation failed', 'whatsapp-commerce-hub' ),
 					'cart_validation_failed',
-					array( $this->message_builder->text( $issues_text ) )
+					[ $this->message_builder->text( $issues_text ) ]
 				);
 			}
 
 			// Build initial context.
-			$context = $this->buildContext( $customer_phone, array() );
+			$context = $this->buildContext( $customer_phone, [] );
 
 			// Execute first step.
 			$first_step = $this->getStep( 'address' );
@@ -155,21 +155,21 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 		} catch ( \Throwable $e ) {
 			$this->logError(
 				'Error starting checkout',
-				array(
+				[
 					'phone' => $customer_phone,
 					'error' => $e->getMessage(),
-				)
+				]
 			);
 
 			return CheckoutResponse::failure(
 				'address',
 				$e->getMessage(),
 				'checkout_start_failed',
-				array(
+				[
 					$this->message_builder->text(
 						__( 'Sorry, we encountered an error starting checkout. Please try again.', 'whatsapp-commerce-hub' )
 					),
-				)
+				]
 			);
 		}
 	}
@@ -187,11 +187,11 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 		try {
 			$this->log(
 				'Processing input',
-				array(
+				[
 					'phone'        => $customer_phone,
 					'step'         => $current_step,
 					'input_length' => strlen( $input ),
-				)
+				]
 			);
 
 			$step = $this->getStep( $current_step );
@@ -201,11 +201,11 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 					$current_step,
 					__( 'Invalid checkout step', 'whatsapp-commerce-hub' ),
 					'invalid_step',
-					array(
+					[
 						$this->message_builder->text(
 							__( 'Something went wrong. Please start checkout again.', 'whatsapp-commerce-hub' )
 						),
-					)
+					]
 				);
 			}
 
@@ -218,7 +218,7 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 			// If successful and there's step data, merge it into state.
 			if ( $response->success && ! empty( $response->step_data ) ) {
 				$state_data['checkout_data'] = array_merge(
-					$state_data['checkout_data'] ?? array(),
+					$state_data['checkout_data'] ?? [],
 					$response->step_data
 				);
 
@@ -236,22 +236,22 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 		} catch ( \Throwable $e ) {
 			$this->logError(
 				'Error processing input',
-				array(
+				[
 					'phone' => $customer_phone,
 					'step'  => $current_step,
 					'error' => $e->getMessage(),
-				)
+				]
 			);
 
 			return CheckoutResponse::failure(
 				$current_step,
 				$e->getMessage(),
 				'input_processing_failed',
-				array(
+				[
 					$this->message_builder->text(
 						__( 'Sorry, an error occurred. Please try again.', 'whatsapp-commerce-hub' )
 					),
-				)
+				]
 			);
 		}
 	}
@@ -303,11 +303,11 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 		} catch ( \Throwable $e ) {
 			$this->logError(
 				'Error going to step',
-				array(
+				[
 					'phone' => $customer_phone,
 					'step'  => $step_id,
 					'error' => $e->getMessage(),
-				)
+				]
 			);
 
 			return CheckoutResponse::failure(
@@ -344,11 +344,11 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 				$current_step,
 				__( 'No previous step', 'whatsapp-commerce-hub' ),
 				'no_previous_step',
-				array(
+				[
 					$this->message_builder->text(
 						__( 'You are at the first step. Type "cancel" to exit checkout.', 'whatsapp-commerce-hub' )
 					),
-				)
+				]
 			);
 		}
 
@@ -362,13 +362,13 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 	 * @return CheckoutResponse
 	 */
 	public function cancelCheckout( string $customer_phone ): CheckoutResponse {
-		$this->log( 'Checkout cancelled', array( 'phone' => $customer_phone ) );
+		$this->log( 'Checkout cancelled', [ 'phone' => $customer_phone ] );
 
 		return CheckoutResponse::failure(
 			'cancelled',
 			__( 'Checkout cancelled', 'whatsapp-commerce-hub' ),
 			'checkout_cancelled',
-			array(
+			[
 				$this->message_builder->text(
 					__(
 						"Checkout cancelled. Your cart items are still saved.\n\n" .
@@ -376,7 +376,7 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 						'whatsapp-commerce-hub'
 					)
 				),
-			)
+			]
 		);
 	}
 
@@ -410,13 +410,13 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 		$cart     = $this->cart_service->getCart( $customer_phone );
 		$customer = $this->customer_service->getProfile( $customer_phone );
 
-		return array(
+		return [
 			'customer_phone' => $customer_phone,
 			'cart'           => $cart->toArray(),
 			'customer'       => $customer,
-			'checkout_data'  => $state_data['checkout_data'] ?? array(),
+			'checkout_data'  => $state_data['checkout_data'] ?? [],
 			'state_data'     => $state_data,
-		);
+		];
 	}
 
 	/**
@@ -440,7 +440,7 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 				$this->cart_service->setShippingAddress( $customer_phone, $step_data['shipping_address'] );
 			}
 		} catch ( \Throwable $e ) {
-			$this->logError( 'Error updating cart with checkout data', array( 'error' => $e->getMessage() ) );
+			$this->logError( 'Error updating cart with checkout data', [ 'error' => $e->getMessage() ] );
 		}
 	}
 
@@ -451,7 +451,7 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 	 * @param array  $data    Additional data.
 	 * @return void
 	 */
-	private function log( string $message, array $data = array() ): void {
+	private function log( string $message, array $data = [] ): void {
 		if ( class_exists( '\WCH_Logger' ) ) {
 			\WCH_Logger::info( $message, 'checkout', $data );
 		}
@@ -464,7 +464,7 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 	 * @param array  $data    Additional data.
 	 * @return void
 	 */
-	private function logError( string $message, array $data = array() ): void {
+	private function logError( string $message, array $data = [] ): void {
 		if ( class_exists( '\WCH_Logger' ) ) {
 			\WCH_Logger::error( $message, 'checkout', $data );
 		}

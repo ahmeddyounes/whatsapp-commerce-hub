@@ -37,8 +37,8 @@ class Context {
 	public function __construct(
 		private string $conversationId,
 		private string $currentState = 'initial',
-		private array $variables = array(),
-		private array $history = array()
+		private array $variables = [],
+		private array $history = []
 	) {
 	}
 
@@ -137,12 +137,12 @@ class Context {
 	 * @return array
 	 */
 	public function toArray(): array {
-		return array(
+		return [
 			'conversation_id' => $this->conversationId,
 			'current_state'   => $this->currentState,
 			'variables'       => $this->variables,
 			'history'         => $this->history,
-		);
+		];
 	}
 
 	/**
@@ -155,8 +155,8 @@ class Context {
 		return new self(
 			$data['conversation_id'] ?? '',
 			$data['current_state'] ?? 'initial',
-			$data['variables'] ?? array(),
-			$data['history'] ?? array()
+			$data['variables'] ?? [],
+			$data['history'] ?? []
 		);
 	}
 }

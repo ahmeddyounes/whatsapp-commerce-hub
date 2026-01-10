@@ -55,7 +55,7 @@ abstract class AbstractGateway implements PaymentGatewayInterface {
 	 *
 	 * @var string[]
 	 */
-	protected array $supportedCountries = array();
+	protected array $supportedCountries = [];
 
 	/**
 	 * Get gateway ID.
@@ -187,7 +187,7 @@ abstract class AbstractGateway implements PaymentGatewayInterface {
 	 * @param array     $metadata      Additional metadata.
 	 * @return void
 	 */
-	protected function storeTransactionMeta( \WC_Order $order, string $transactionId, array $metadata = array() ): void {
+	protected function storeTransactionMeta( \WC_Order $order, string $transactionId, array $metadata = [] ): void {
 		$order->update_meta_data( '_wch_transaction_id', $transactionId );
 		$order->update_meta_data( '_wch_payment_method', $this->getId() );
 
@@ -204,7 +204,7 @@ abstract class AbstractGateway implements PaymentGatewayInterface {
 	 * @param string $level   Log level (info, error, warning, debug).
 	 * @return void
 	 */
-	protected function log( string $message, array $context = array(), string $level = 'info' ): void {
+	protected function log( string $message, array $context = [], string $level = 'info' ): void {
 		$context['gateway'] = $this->getId();
 		\WCH_Logger::log( $message, $context, $level );
 	}
@@ -217,14 +217,14 @@ abstract class AbstractGateway implements PaymentGatewayInterface {
 	 * @param string $method  HTTP method.
 	 * @return array|null Response data or null on failure.
 	 */
-	protected function makeRequest( string $url, array $args = array(), string $method = 'POST' ): ?array {
-		$defaults = array(
+	protected function makeRequest( string $url, array $args = [], string $method = 'POST' ): ?array {
+		$defaults = [
 			'method'  => $method,
 			'timeout' => 30,
-			'headers' => array(
+			'headers' => [
 				'Content-Type' => 'application/json',
-			),
-		);
+			],
+		];
 
 		$args = wp_parse_args( $args, $defaults );
 
@@ -238,10 +238,10 @@ abstract class AbstractGateway implements PaymentGatewayInterface {
 		if ( is_wp_error( $response ) ) {
 			$this->log(
 				'HTTP request failed',
-				array(
+				[
 					'url'   => $url,
 					'error' => $response->get_error_message(),
-				),
+				],
 				'error'
 			);
 			return null;

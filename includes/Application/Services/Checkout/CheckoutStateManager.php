@@ -36,13 +36,13 @@ class CheckoutStateManager implements CheckoutStateManagerInterface {
 	 *
 	 * @var array<string, int>
 	 */
-	private const STEP_ORDER = array(
+	private const STEP_ORDER = [
 		self::STEP_ADDRESS         => 1,
 		self::STEP_SHIPPING_METHOD => 2,
 		self::STEP_PAYMENT_METHOD  => 3,
 		self::STEP_REVIEW          => 4,
 		self::STEP_CONFIRM         => 5,
-	);
+	];
 
 	/**
 	 * Initialize a new checkout state.
@@ -53,7 +53,7 @@ class CheckoutStateManager implements CheckoutStateManagerInterface {
 	public function initializeState( string $phone ): array {
 		$phone = $this->sanitizePhone( $phone );
 
-		$state = array(
+		$state = [
 			'step'            => self::STEP_ADDRESS,
 			'phone'           => $phone,
 			'address'         => null,
@@ -62,7 +62,7 @@ class CheckoutStateManager implements CheckoutStateManagerInterface {
 			'coupon_code'     => null,
 			'started_at'      => time(),
 			'updated_at'      => time(),
-		);
+		];
 
 		$this->saveState( $phone, $state );
 
@@ -142,7 +142,7 @@ class CheckoutStateManager implements CheckoutStateManagerInterface {
 	 * @return bool Success status.
 	 */
 	public function advanceToStep( string $phone, string $step ): bool {
-		return $this->updateState( $phone, array( 'step' => $step ) );
+		return $this->updateState( $phone, [ 'step' => $step ] );
 	}
 
 	/**
@@ -201,7 +201,7 @@ class CheckoutStateManager implements CheckoutStateManagerInterface {
 	 */
 	public function extendTimeout( string $phone, int $seconds = 900 ): bool {
 		// Extending by resetting started_at to current time.
-		return $this->updateState( $phone, array( 'started_at' => time() ) );
+		return $this->updateState( $phone, [ 'started_at' => time() ] );
 	}
 
 	/**
@@ -215,17 +215,17 @@ class CheckoutStateManager implements CheckoutStateManagerInterface {
 		$state = $this->loadState( $phone );
 
 		if ( ! $state ) {
-			return array();
+			return [];
 		}
 
 		// Return basic state data - orchestrator will enrich this.
-		return array(
+		return [
 			'current_step'    => $step,
 			'address'         => $state['address'] ?? null,
 			'shipping_method' => $state['shipping_method'] ?? null,
 			'payment_method'  => $state['payment_method'] ?? null,
 			'coupon_code'     => $state['coupon_code'] ?? null,
-		);
+		];
 	}
 
 	/**

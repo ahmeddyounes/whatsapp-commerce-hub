@@ -55,11 +55,11 @@ class SettingsImportExporter implements SettingsImportExporterInterface {
 	 * {@inheritdoc}
 	 */
 	public function getSensitiveKeys(): array {
-		return array(
+		return [
 			'api.access_token',
 			'api.webhook_verify_token',
 			'ai.openai_api_key',
-		);
+		];
 	}
 
 	/**
@@ -69,10 +69,10 @@ class SettingsImportExporter implements SettingsImportExporterInterface {
 		$allSettings    = $this->settings->all();
 		$exportSettings = $this->removeSensitiveData( $allSettings );
 
-		return array(
+		return [
 			'settings' => $exportSettings,
 			'filename' => 'wch-settings-' . gmdate( 'Y-m-d-H-i-s' ) . '.json',
-		);
+		];
 	}
 
 	/**
@@ -99,17 +99,17 @@ class SettingsImportExporter implements SettingsImportExporterInterface {
 		$importData = json_decode( $jsonData, true );
 
 		if ( json_last_error() !== JSON_ERROR_NONE ) {
-			return array(
+			return [
 				'imported' => 0,
 				'skipped'  => 0,
-				'errors'   => array( __( 'Invalid JSON format', 'whatsapp-commerce-hub' ) ),
-			);
+				'errors'   => [ __( 'Invalid JSON format', 'whatsapp-commerce-hub' ) ],
+			];
 		}
 
 		$whitelist     = $this->sanitizer->getImportableWhitelist();
 		$importedCount = 0;
 		$skippedCount  = 0;
-		$errors        = array();
+		$errors        = [];
 
 		foreach ( $importData as $section => $values ) {
 			// Reject unknown sections.
@@ -149,11 +149,11 @@ class SettingsImportExporter implements SettingsImportExporterInterface {
 			}
 		}
 
-		return array(
+		return [
 			'imported' => $importedCount,
 			'skipped'  => $skippedCount,
 			'errors'   => $errors,
-		);
+		];
 	}
 
 	/**
@@ -199,29 +199,29 @@ class SettingsImportExporter implements SettingsImportExporterInterface {
 		$backup = get_transient( 'wch_settings_backup' );
 
 		if ( empty( $backup ) ) {
-			return array(
+			return [
 				'success' => false,
 				'message' => __( 'No backup found', 'whatsapp-commerce-hub' ),
-			);
+			];
 		}
 
 		$result = $this->import( $backup );
 
 		if ( $result['imported'] > 0 ) {
-			return array(
+			return [
 				'success' => true,
 				'message' => sprintf(
 					/* translators: %d: number of restored settings */
 					__( 'Restored %d settings from backup', 'whatsapp-commerce-hub' ),
 					$result['imported']
 				),
-			);
+			];
 		}
 
-		return array(
+		return [
 			'success' => false,
 			'message' => __( 'Failed to restore settings from backup', 'whatsapp-commerce-hub' ),
-		);
+		];
 	}
 
 	/**
@@ -231,22 +231,22 @@ class SettingsImportExporter implements SettingsImportExporterInterface {
 	 * @return array{valid: bool, errors: array} Validation result.
 	 */
 	public function validateImportData( string $jsonData ): array {
-		$errors = array();
+		$errors = [];
 
 		$importData = json_decode( $jsonData, true );
 
 		if ( json_last_error() !== JSON_ERROR_NONE ) {
-			return array(
+			return [
 				'valid'  => false,
-				'errors' => array( __( 'Invalid JSON format', 'whatsapp-commerce-hub' ) ),
-			);
+				'errors' => [ __( 'Invalid JSON format', 'whatsapp-commerce-hub' ) ],
+			];
 		}
 
 		if ( ! is_array( $importData ) ) {
-			return array(
+			return [
 				'valid'  => false,
-				'errors' => array( __( 'Settings data must be an object', 'whatsapp-commerce-hub' ) ),
-			);
+				'errors' => [ __( 'Settings data must be an object', 'whatsapp-commerce-hub' ) ],
+			];
 		}
 
 		$whitelist = $this->sanitizer->getImportableWhitelist();
@@ -261,10 +261,10 @@ class SettingsImportExporter implements SettingsImportExporterInterface {
 			}
 		}
 
-		return array(
+		return [
 			'valid'  => empty( $errors ),
 			'errors' => $errors,
-		);
+		];
 	}
 
 	/**
@@ -277,17 +277,17 @@ class SettingsImportExporter implements SettingsImportExporterInterface {
 		$importData = json_decode( $jsonData, true );
 
 		if ( json_last_error() !== JSON_ERROR_NONE ) {
-			return array(
-				'sections'       => array(),
+			return [
+				'sections'       => [],
 				'total_settings' => 0,
-				'warnings'       => array( __( 'Invalid JSON format', 'whatsapp-commerce-hub' ) ),
-			);
+				'warnings'       => [ __( 'Invalid JSON format', 'whatsapp-commerce-hub' ) ],
+			];
 		}
 
 		$whitelist     = $this->sanitizer->getImportableWhitelist();
-		$sections      = array();
+		$sections      = [];
 		$totalSettings = 0;
-		$warnings      = array();
+		$warnings      = [];
 
 		foreach ( $importData as $section => $values ) {
 			if ( ! isset( $whitelist[ $section ] ) ) {
@@ -304,11 +304,11 @@ class SettingsImportExporter implements SettingsImportExporterInterface {
 			}
 
 			$allowedKeys    = $whitelist[ $section ];
-			$sectionDetails = array(
+			$sectionDetails = [
 				'name'     => $section,
-				'settings' => array(),
-				'skipped'  => array(),
-			);
+				'settings' => [],
+				'skipped'  => [],
+			];
 
 			foreach ( $values as $key => $value ) {
 				if ( in_array( $key, $allowedKeys, true ) ) {
@@ -322,10 +322,10 @@ class SettingsImportExporter implements SettingsImportExporterInterface {
 			$sections[] = $sectionDetails;
 		}
 
-		return array(
+		return [
 			'sections'       => $sections,
 			'total_settings' => $totalSettings,
 			'warnings'       => $warnings,
-		);
+		];
 	}
 }

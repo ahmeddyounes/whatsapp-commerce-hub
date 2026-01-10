@@ -111,37 +111,37 @@ class ReengagementOrchestrator implements ReengagementOrchestratorInterface {
 	 */
 	public function init(): void {
 		// Initialize API client.
-		add_action( 'init', array( $this, 'initApiClient' ) );
+		add_action( 'init', [ $this, 'initApiClient' ] );
 
 		// Schedule daily task to identify and engage inactive customers.
-		if ( ! as_next_scheduled_action( 'wch_process_reengagement_campaigns', array(), 'wch' ) ) {
+		if ( ! as_next_scheduled_action( 'wch_process_reengagement_campaigns', [], 'wch' ) ) {
 			as_schedule_recurring_action(
 				strtotime( 'tomorrow 9:00am' ),
 				DAY_IN_SECONDS,
 				'wch_process_reengagement_campaigns',
-				array(),
+				[],
 				'wch'
 			);
 		}
 
 		// Schedule hourly task to check for back-in-stock notifications.
-		if ( ! as_next_scheduled_action( 'wch_check_back_in_stock', array(), 'wch' ) ) {
+		if ( ! as_next_scheduled_action( 'wch_check_back_in_stock', [], 'wch' ) ) {
 			as_schedule_recurring_action(
 				time(),
 				HOUR_IN_SECONDS,
 				'wch_check_back_in_stock',
-				array(),
+				[],
 				'wch'
 			);
 		}
 
 		// Schedule hourly task to check for price drops.
-		if ( ! as_next_scheduled_action( 'wch_check_price_drops', array(), 'wch' ) ) {
+		if ( ! as_next_scheduled_action( 'wch_check_price_drops', [], 'wch' ) ) {
 			as_schedule_recurring_action(
 				time(),
 				HOUR_IN_SECONDS,
 				'wch_check_price_drops',
-				array(),
+				[],
 				'wch'
 			);
 		}
@@ -160,16 +160,16 @@ class ReengagementOrchestrator implements ReengagementOrchestratorInterface {
 		if ( $phoneNumberId && $accessToken ) {
 			try {
 				$this->apiClient = new \WCH_WhatsApp_API_Client(
-					array(
+					[
 						'phone_number_id' => $phoneNumberId,
 						'access_token'    => $accessToken,
 						'api_version'     => $apiVersion,
-					)
+					]
 				);
 			} catch ( \Exception $e ) {
 				\WCH_Logger::error(
 					'Failed to initialize WhatsApp API client for re-engagement',
-					array( 'error' => $e->getMessage() )
+					[ 'error' => $e->getMessage() ]
 				);
 			}
 		}
@@ -192,7 +192,7 @@ class ReengagementOrchestrator implements ReengagementOrchestratorInterface {
 		\WCH_Logger::info(
 			'Found inactive customers',
 			'reengagement',
-			array( 'count' => count( $inactiveCustomers ) )
+			[ 'count' => count( $inactiveCustomers ) ]
 		);
 
 		$queued = 0;
@@ -216,19 +216,19 @@ class ReengagementOrchestrator implements ReengagementOrchestratorInterface {
 
 		\WCH_Job_Dispatcher::dispatch(
 			'wch_send_reengagement_message',
-			array(
+			[
 				'customer_phone' => $customer['phone'],
 				'campaign_type'  => $campaignType,
-			),
+			],
 			0
 		);
 
 		\WCH_Logger::debug(
 			'Queued re-engagement message',
-			array(
+			[
 				'phone'         => $customer['phone'],
 				'campaign_type' => $campaignType,
-			)
+			]
 		);
 
 		return true;
@@ -247,12 +247,12 @@ class ReengagementOrchestrator implements ReengagementOrchestratorInterface {
 		if ( ! $customerPhone ) {
 			\WCH_Logger::error(
 				'Missing customer phone in re-engagement job',
-				array( 'args' => $args )
+				[ 'args' => $args ]
 			);
-			return array(
+			return [
 				'success' => false,
 				'error'   => 'Missing customer phone',
-			);
+			];
 		}
 
 		// Get customer profile.
@@ -260,24 +260,24 @@ class ReengagementOrchestrator implements ReengagementOrchestratorInterface {
 		if ( ! $customer ) {
 			\WCH_Logger::error(
 				'Customer profile not found for re-engagement',
-				array( 'phone' => $customerPhone )
+				[ 'phone' => $customerPhone ]
 			);
-			return array(
+			return [
 				'success' => false,
 				'error'   => 'Customer not found',
-			);
+			];
 		}
 
 		// Check frequency cap.
 		if ( ! $this->frequencyCap->canSend( $customerPhone ) ) {
 			\WCH_Logger::info(
 				'Skipping re-engagement due to frequency cap',
-				array( 'phone' => $customerPhone )
+				[ 'phone' => $customerPhone ]
 			);
-			return array(
+			return [
 				'success' => false,
 				'error'   => 'Frequency cap reached',
-			);
+			];
 		}
 
 		// Send the message.
@@ -293,19 +293,19 @@ class ReengagementOrchestrator implements ReengagementOrchestratorInterface {
 
 			\WCH_Logger::info(
 				'Re-engagement message sent successfully',
-				array(
+				[
 					'phone'         => $customerPhone,
 					'campaign_type' => $campaignType,
-				)
+				]
 			);
 		} else {
 			\WCH_Logger::error(
 				'Failed to send re-engagement message',
-				array(
+				[
 					'phone'         => $customerPhone,
 					'campaign_type' => $campaignType,
 					'error'         => $result['error'] ?? 'Unknown error',
-				)
+				]
 			);
 		}
 
@@ -325,19 +325,19 @@ class ReengagementOrchestrator implements ReengagementOrchestratorInterface {
 		}
 
 		if ( ! $this->apiClient ) {
-			return array(
+			return [
 				'success' => false,
 				'error'   => 'WhatsApp API client not initialized',
-			);
+			];
 		}
 
 		$messageData = $this->messageBuilder->build( $customer, $campaignType );
 
 		if ( ! $messageData ) {
-			return array(
+			return [
 				'success' => false,
 				'error'   => 'Failed to build message content',
-			);
+			];
 		}
 
 		try {
@@ -347,15 +347,15 @@ class ReengagementOrchestrator implements ReengagementOrchestratorInterface {
 				true
 			);
 
-			return array(
+			return [
 				'success'    => true,
 				'message_id' => $result['message_id'] ?? null,
-			);
+			];
 		} catch ( \Exception $e ) {
-			return array(
+			return [
 				'success' => false,
 				'error'   => $e->getMessage(),
-			);
+			];
 		}
 	}
 

@@ -224,13 +224,13 @@ class ProductSyncServiceProvider extends AbstractServiceProvider {
 	 * @return array
 	 */
 	public function provides(): array {
-		return array(
+		return [
 			ProductValidatorInterface::class,
 			CatalogTransformerInterface::class,
 			CatalogApiInterface::class,
 			SyncProgressTrackerInterface::class,
 			ProductSyncOrchestratorInterface::class,
 			ProductSyncAdminUI::class,
-		);
+		];
 	}
 }

@@ -41,13 +41,13 @@ class PaymentServiceProvider implements ServiceProviderInterface {
 	 *
 	 * @var array<string, class-string<PaymentGatewayInterface>>
 	 */
-	private array $gatewayClasses = array(
+	private array $gatewayClasses = [
 		'cod'         => CodGateway::class,
 		'stripe'      => StripeGateway::class,
 		'razorpay'    => RazorpayGateway::class,
 		'pix'         => PixGateway::class,
 		'whatsapppay' => WhatsAppPayGateway::class,
-	);
+	];
 
 	/**
 	 * Register services with the container.
@@ -86,7 +86,7 @@ class PaymentServiceProvider implements ServiceProviderInterface {
 		$container->singleton(
 			'payment.gateways',
 			function ( ContainerInterface $c ) {
-				$gateways = array();
+				$gateways = [];
 				foreach ( $this->gatewayClasses as $id => $class ) {
 					$gateways[ $id ] = $c->get( $class );
 				}
@@ -225,7 +225,7 @@ class PaymentServiceProvider implements ServiceProviderInterface {
 	 * @return array<string>
 	 */
 	public function provides(): array {
-		$provides = array(
+		$provides = [
 			PaymentGatewayInterface::class,
 			PaymentWebhookController::class,
 			RefundService::class,
@@ -234,7 +234,7 @@ class PaymentServiceProvider implements ServiceProviderInterface {
 			'payment.refund',
 			'payment.notifications',
 			'payment.webhook.controller',
-		);
+		];
 
 		// Add gateway classes and aliases.
 		foreach ( $this->gatewayClasses as $id => $class ) {
@@ -280,7 +280,7 @@ class PaymentServiceProvider implements ServiceProviderInterface {
 
 		$gateways           = $container->get( 'payment.gateways' );
 		$gatewayIds         = array_keys( $gateways );
-		$configuredGateways = array();
+		$configuredGateways = [];
 
 		foreach ( $gateways as $id => $gateway ) {
 			if ( $gateway->isConfigured() ) {
@@ -290,11 +290,11 @@ class PaymentServiceProvider implements ServiceProviderInterface {
 
 		\WCH_Logger::log(
 			'Payment services registered',
-			array(
+			[
 				'total_gateways'      => count( $gatewayIds ),
 				'available_gateways'  => $gatewayIds,
 				'configured_gateways' => $configuredGateways,
-			),
+			],
 			'debug'
 		);
 	}

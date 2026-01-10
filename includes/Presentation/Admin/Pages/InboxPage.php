@@ -40,8 +40,8 @@ class InboxPage {
 	 * @return void
 	 */
 	public function init(): void {
-		add_action( 'admin_menu', array( $this, 'addMenuItem' ), 49 );
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueueScripts' ) );
+		add_action( 'admin_menu', [ $this, 'addMenuItem' ], 49 );
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueueScripts' ] );
 	}
 
 	/**
@@ -56,10 +56,10 @@ class InboxPage {
 			__( 'WhatsApp Inbox', 'whatsapp-commerce-hub' ),
 			'manage_woocommerce',
 			'wch-inbox',
-			array( $this, 'renderPage' )
+			[ $this, 'renderPage' ]
 		);
 
-		add_action( 'load-' . $this->pageHook, array( $this, 'addHelpTab' ) );
+		add_action( 'load-' . $this->pageHook, [ $this, 'addHelpTab' ] );
 	}
 
 	/**
@@ -71,27 +71,27 @@ class InboxPage {
 		$screen = get_current_screen();
 
 		$screen->add_help_tab(
-			array(
+			[
 				'id'      => 'wch_inbox_overview',
 				'title'   => __( 'Overview', 'whatsapp-commerce-hub' ),
 				'content' => '<p>' . __( 'The Inbox allows you to view and manage customer conversations from WhatsApp.', 'whatsapp-commerce-hub' ) . '</p>',
-			)
+			]
 		);
 
 		$screen->add_help_tab(
-			array(
+			[
 				'id'      => 'wch_inbox_conversations',
 				'title'   => __( 'Conversations', 'whatsapp-commerce-hub' ),
 				'content' => '<p>' . __( 'Filter and search conversations by status, assigned agent, or customer information. Click on a conversation to view the full message history.', 'whatsapp-commerce-hub' ) . '</p>',
-			)
+			]
 		);
 
 		$screen->add_help_tab(
-			array(
+			[
 				'id'      => 'wch_inbox_actions',
 				'title'   => __( 'Actions', 'whatsapp-commerce-hub' ),
 				'content' => '<p>' . __( 'You can assign conversations to agents, mark them as closed, send replies, and use AI to suggest contextual responses.', 'whatsapp-commerce-hub' ) . '</p>',
-			)
+			]
 		);
 	}
 
@@ -109,14 +109,14 @@ class InboxPage {
 		wp_enqueue_style(
 			'wch-admin-inbox',
 			WCH_PLUGIN_URL . 'assets/css/admin-inbox.css',
-			array(),
+			[],
 			WCH_VERSION
 		);
 
 		wp_enqueue_script(
 			'wch-admin-inbox',
 			WCH_PLUGIN_URL . 'assets/js/admin-inbox.js',
-			array( 'jquery', 'wp-util' ),
+			[ 'jquery', 'wp-util' ],
 			WCH_VERSION,
 			true
 		);
@@ -126,14 +126,14 @@ class InboxPage {
 		wp_localize_script(
 			'wch-admin-inbox',
 			'wchInbox',
-			array(
+			[
 				'ajax_url'        => admin_url( 'admin-ajax.php' ),
 				'rest_url'        => rest_url( 'wch/v1/conversations' ),
 				'nonce'           => wp_create_nonce( 'wp_rest' ),
 				'agents'          => $agents,
 				'current_user_id' => get_current_user_id(),
 				'strings'         => $this->getLocalizedStrings(),
-			)
+			]
 		);
 	}
 
@@ -144,10 +144,10 @@ class InboxPage {
 	 */
 	private function getAvailableAgents(): array {
 		return get_users(
-			array(
-				'role__in' => array( 'administrator', 'shop_manager' ),
-				'fields'   => array( 'ID', 'display_name' ),
-			)
+			[
+				'role__in' => [ 'administrator', 'shop_manager' ],
+				'fields'   => [ 'ID', 'display_name' ],
+			]
 		);
 	}
 
@@ -157,7 +157,7 @@ class InboxPage {
 	 * @return array
 	 */
 	private function getLocalizedStrings(): array {
-		return array(
+		return [
 			'loading'              => __( 'Loading...', 'whatsapp-commerce-hub' ),
 			'error'                => __( 'An error occurred', 'whatsapp-commerce-hub' ),
 			'no_conversations'     => __( 'No conversations found', 'whatsapp-commerce-hub' ),
@@ -174,7 +174,7 @@ class InboxPage {
 			'select_agent'         => __( 'Please select an agent', 'whatsapp-commerce-hub' ),
 			'ai_generating'        => __( 'Generating AI suggestion...', 'whatsapp-commerce-hub' ),
 			'ai_error'             => __( 'Failed to generate AI suggestion', 'whatsapp-commerce-hub' ),
-		);
+		];
 	}
 
 	/**

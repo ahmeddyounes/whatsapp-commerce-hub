@@ -67,7 +67,7 @@ class CatalogBrowser {
 			return $legacy->show_main_menu( $conversation );
 		}
 
-		return array();
+		return [];
 	}
 
 	/**
@@ -85,7 +85,7 @@ class CatalogBrowser {
 			return $legacy->show_category( $categoryId, $page, $conversation );
 		}
 
-		return array();
+		return [];
 	}
 
 	/**
@@ -102,7 +102,7 @@ class CatalogBrowser {
 			return $legacy->show_product( $productId, $conversation );
 		}
 
-		return array();
+		return [];
 	}
 
 	/**
@@ -120,7 +120,7 @@ class CatalogBrowser {
 			return $legacy->search_products( $query, $page, $conversation );
 		}
 
-		return array();
+		return [];
 	}
 
 	/**
@@ -137,7 +137,7 @@ class CatalogBrowser {
 			return $legacy->show_featured_products( $page, $conversation );
 		}
 
-		return array();
+		return [];
 	}
 
 	/**

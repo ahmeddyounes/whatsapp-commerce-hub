@@ -30,31 +30,31 @@ class PIIEncryptor {
 	 *
 	 * @var array<string, array>
 	 */
-	private array $pii_fields = array(
-		'phone'         => array(
+	private array $pii_fields = [
+		'phone'         => [
 			'searchable' => true,
 			'normalize'  => 'phone',
-		),
-		'email'         => array(
+		],
+		'email'         => [
 			'searchable' => true,
 			'normalize'  => 'email',
-		),
-		'name'          => array( 'searchable' => false ),
-		'address_line1' => array( 'searchable' => false ),
-		'address_line2' => array( 'searchable' => false ),
-		'city'          => array(
+		],
+		'name'          => [ 'searchable' => false ],
+		'address_line1' => [ 'searchable' => false ],
+		'address_line2' => [ 'searchable' => false ],
+		'city'          => [
 			'searchable' => true,
 			'normalize'  => 'lowercase',
-		),
-		'postcode'      => array(
+		],
+		'postcode'      => [
 			'searchable' => true,
 			'normalize'  => 'uppercase',
-		),
-		'country'       => array(
+		],
+		'country'       => [
 			'searchable' => true,
 			'normalize'  => 'uppercase',
-		),
-	);
+		],
+	];
 
 	/**
 	 * Constructor.
@@ -73,13 +73,13 @@ class PIIEncryptor {
 	 */
 	public function encrypt( string $field, string $value ): array {
 		if ( empty( $value ) ) {
-			return array(
+			return [
 				'encrypted'   => '',
 				'blind_index' => null,
-			);
+			];
 		}
 
-		$field_config = $this->pii_fields[ $field ] ?? array();
+		$field_config = $this->pii_fields[ $field ] ?? [];
 
 		// Encrypt the value.
 		$encrypted = $this->vault->encrypt( $value, "pii-{$field}" );
@@ -91,10 +91,10 @@ class PIIEncryptor {
 			$blind_index = $this->generateBlindIndex( $field, $normalized );
 		}
 
-		return array(
+		return [
 			'encrypted'   => $encrypted,
 			'blind_index' => $blind_index,
-		);
+		];
 	}
 
 	/**
@@ -137,7 +137,7 @@ class PIIEncryptor {
 	 * @return string The blind index to search for.
 	 */
 	public function getSearchIndex( string $field, string $value ): string {
-		$field_config = $this->pii_fields[ $field ] ?? array();
+		$field_config = $this->pii_fields[ $field ] ?? [];
 
 		if ( empty( $field_config['searchable'] ) ) {
 			return '';
@@ -196,8 +196,8 @@ class PIIEncryptor {
 	 * @return array{encrypted: array, indexes: array}
 	 */
 	public function encryptMany( array $data ): array {
-		$encrypted = array();
-		$indexes   = array();
+		$encrypted = [];
+		$indexes   = [];
 
 		foreach ( $data as $field => $value ) {
 			if ( ! isset( $this->pii_fields[ $field ] ) ) {
@@ -214,10 +214,10 @@ class PIIEncryptor {
 			}
 		}
 
-		return array(
+		return [
 			'encrypted' => $encrypted,
 			'indexes'   => $indexes,
-		);
+		];
 	}
 
 	/**
@@ -227,7 +227,7 @@ class PIIEncryptor {
 	 * @return array Key-value pairs of field => decrypted_value.
 	 */
 	public function decryptMany( array $data ): array {
-		$decrypted = array();
+		$decrypted = [];
 
 		foreach ( $data as $field => $value ) {
 			// Skip index fields.
@@ -276,10 +276,10 @@ class PIIEncryptor {
 	 * @return void
 	 */
 	public function registerField( string $field, bool $searchable = false, string $normalize = '' ): void {
-		$this->pii_fields[ $field ] = array(
+		$this->pii_fields[ $field ] = [
 			'searchable' => $searchable,
 			'normalize'  => $normalize,
-		);
+		];
 	}
 
 	/**
@@ -412,7 +412,7 @@ class PIIEncryptor {
 	 * @return array Anonymized placeholder values.
 	 */
 	public function getAnonymizedValues(): array {
-		return array(
+		return [
 			'phone'         => '[DELETED]',
 			'email'         => '[DELETED]',
 			'name'          => '[DELETED]',
@@ -421,6 +421,6 @@ class PIIEncryptor {
 			'city'          => '[DELETED]',
 			'postcode'      => '[DELETED]',
 			'country'       => '[DELETED]',
-		);
+		];
 	}
 }

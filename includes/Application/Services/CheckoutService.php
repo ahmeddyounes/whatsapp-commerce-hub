@@ -46,13 +46,13 @@ class CheckoutService implements CheckoutServiceInterface {
 	 *
 	 * @var array<string, int>
 	 */
-	private const STEP_ORDER = array(
+	private const STEP_ORDER = [
 		self::STEP_ADDRESS         => 1,
 		self::STEP_SHIPPING_METHOD => 2,
 		self::STEP_PAYMENT_METHOD  => 3,
 		self::STEP_REVIEW          => 4,
 		self::STEP_CONFIRM         => 5,
-	);
+	];
 
 	/**
 	 * Constructor.
@@ -83,16 +83,16 @@ class CheckoutService implements CheckoutServiceInterface {
 		// Validate cart.
 		$validation = $this->validateCheckout( $phone );
 		if ( ! $validation['valid'] ) {
-			return array(
+			return [
 				'success' => false,
 				'step'    => '',
-				'data'    => array(),
+				'data'    => [],
 				'error'   => implode( ', ', array_column( $validation['issues'], 'message' ) ),
-			);
+			];
 		}
 
 		// Initialize checkout state.
-		$state = array(
+		$state = [
 			'step'            => self::STEP_ADDRESS,
 			'phone'           => $phone,
 			'address'         => null,
@@ -101,18 +101,18 @@ class CheckoutService implements CheckoutServiceInterface {
 			'coupon_code'     => null,
 			'started_at'      => time(),
 			'updated_at'      => time(),
-		);
+		];
 
 		$this->saveState( $phone, $state );
 
 		do_action( 'wch_checkout_started', $phone );
 
-		return array(
+		return [
 			'success' => true,
 			'step'    => self::STEP_ADDRESS,
 			'data'    => $this->getStepData( $phone, self::STEP_ADDRESS ),
 			'error'   => null,
-		);
+		];
 	}
 
 	/**
@@ -126,25 +126,25 @@ class CheckoutService implements CheckoutServiceInterface {
 		$state = $this->loadState( $phone );
 
 		if ( ! $state ) {
-			return array(
+			return [
 				'step' => null,
-				'data' => array(),
-			);
+				'data' => [],
+			];
 		}
 
 		// Check timeout.
 		if ( $this->hasTimedOut( $phone ) ) {
 			$this->cancelCheckout( $phone );
-			return array(
+			return [
 				'step' => null,
-				'data' => array(),
-			);
+				'data' => [],
+			];
 		}
 
-		return array(
+		return [
 			'step' => $state['step'],
 			'data' => $this->getStepData( $phone, $state['step'] ),
-		);
+		];
 	}
 
 	/**
@@ -183,12 +183,12 @@ class CheckoutService implements CheckoutServiceInterface {
 		$state['updated_at'] = time();
 		$this->saveState( $phone, $state );
 
-		return array(
+		return [
 			'success' => true,
 			'step'    => self::STEP_SHIPPING_METHOD,
 			'data'    => $this->getStepData( $phone, self::STEP_SHIPPING_METHOD ),
 			'error'   => null,
-		);
+		];
 	}
 
 	/**
@@ -202,12 +202,12 @@ class CheckoutService implements CheckoutServiceInterface {
 		$state = $this->loadState( $phone );
 
 		if ( ! $state || empty( $state['address'] ) ) {
-			return array();
+			return [];
 		}
 
 		// Get WooCommerce shipping zones.
 		$shipping_zones = \WC_Shipping_Zones::get_zones();
-		$methods        = array();
+		$methods        = [];
 
 		// Build package for shipping calculation.
 		$package = $this->buildShippingPackage( $phone, $state['address'] );
@@ -238,13 +238,13 @@ class CheckoutService implements CheckoutServiceInterface {
 			// Calculate rate.
 			$rate = $this->calculateShippingRate( $method, $package );
 
-			$methods[] = array(
+			$methods[] = [
 				'id'          => $method->id . ':' . $method->instance_id,
 				'label'       => $method->get_title(),
 				'cost'        => $rate['cost'],
 				'cost_html'   => wc_price( $rate['cost'] ),
 				'description' => $method->get_method_description(),
-			);
+			];
 		}
 
 		// Allow filtering.
@@ -287,12 +287,12 @@ class CheckoutService implements CheckoutServiceInterface {
 		$state['updated_at']      = time();
 		$this->saveState( $phone, $state );
 
-		return array(
+		return [
 			'success' => true,
 			'step'    => self::STEP_PAYMENT_METHOD,
 			'data'    => $this->getStepData( $phone, self::STEP_PAYMENT_METHOD ),
 			'error'   => null,
-		);
+		];
 	}
 
 	/**
@@ -303,12 +303,12 @@ class CheckoutService implements CheckoutServiceInterface {
 	 */
 	public function getPaymentMethods( string $phone ): array {
 		$gateways = WC()->payment_gateways()->get_available_payment_gateways();
-		$methods  = array();
+		$methods  = [];
 
 		// Get enabled WhatsApp payment methods.
-		$enabled_methods = get_option( 'wch_enabled_payment_methods', array( 'cod' ) );
+		$enabled_methods = get_option( 'wch_enabled_payment_methods', [ 'cod' ] );
 		if ( ! is_array( $enabled_methods ) ) {
-			$enabled_methods = array( 'cod' );
+			$enabled_methods = [ 'cod' ];
 		}
 
 		foreach ( $gateways as $gateway ) {
@@ -316,13 +316,13 @@ class CheckoutService implements CheckoutServiceInterface {
 				continue;
 			}
 
-			$methods[] = array(
+			$methods[] = [
 				'id'          => $gateway->id,
 				'label'       => $gateway->get_title(),
 				'description' => $gateway->get_description(),
 				'icon'        => $gateway->get_icon(),
 				'fee'         => $this->getPaymentFee( $gateway ),
-			);
+			];
 		}
 
 		return apply_filters( 'wch_payment_methods', $methods, $phone );
@@ -364,12 +364,12 @@ class CheckoutService implements CheckoutServiceInterface {
 		$state['updated_at']     = time();
 		$this->saveState( $phone, $state );
 
-		return array(
+		return [
 			'success' => true,
 			'step'    => self::STEP_REVIEW,
 			'data'    => $this->getStepData( $phone, self::STEP_REVIEW ),
 			'error'   => null,
-		);
+		];
 	}
 
 	/**
@@ -383,35 +383,35 @@ class CheckoutService implements CheckoutServiceInterface {
 		$state = $this->loadState( $phone );
 
 		if ( ! $state ) {
-			return array();
+			return [];
 		}
 
 		// Get cart items.
-		$items = array();
+		$items = [];
 		if ( $this->cart_service ) {
 			$cart = $this->cart_service->getCart( $phone );
 			if ( $cart ) {
 				foreach ( $cart->items as $item ) {
 					$product = wc_get_product( $item['product_id'] );
-					$items[] = array(
+					$items[] = [
 						'name'     => $product ? $product->get_name() : 'Unknown Product',
 						'quantity' => $item['quantity'],
 						'price'    => $item['price'] ?? 0,
 						'total'    => ( $item['price'] ?? 0 ) * $item['quantity'],
-					);
+					];
 				}
 			}
 		}
 
 		$totals = $this->calculateTotals( $phone );
 
-		return array(
+		return [
 			'items'    => $items,
-			'address'  => $state['address'] ?? array(),
-			'shipping' => $state['shipping_method'] ?? array(),
+			'address'  => $state['address'] ?? [],
+			'shipping' => $state['shipping_method'] ?? [],
 			'payment'  => $state['payment_method']['label'] ?? '',
 			'totals'   => $totals,
-		);
+		];
 	}
 
 	/**
@@ -469,14 +469,14 @@ class CheckoutService implements CheckoutServiceInterface {
 
 		$total = $subtotal - $discount + $shipping + $tax + $payment_fee;
 
-		return array(
+		return [
 			'subtotal'    => round( $subtotal, 2 ),
 			'discount'    => round( $discount, 2 ),
 			'shipping'    => round( $shipping, 2 ),
 			'tax'         => round( $tax, 2 ),
 			'payment_fee' => round( $payment_fee, 2 ),
 			'total'       => round( max( 0, $total ), 2 ),
-		);
+		];
 	}
 
 	/**
@@ -490,34 +490,34 @@ class CheckoutService implements CheckoutServiceInterface {
 		$state = $this->loadState( $phone );
 
 		if ( ! $state ) {
-			return array(
+			return [
 				'success'      => false,
 				'order_id'     => null,
 				'order_number' => null,
 				'error'        => 'No active checkout session',
-			);
+			];
 		}
 
 		// Final validation.
 		$validation = $this->validateCheckout( $phone );
 		if ( ! $validation['valid'] ) {
-			return array(
+			return [
 				'success'      => false,
 				'order_id'     => null,
 				'order_number' => null,
 				'error'        => implode( ', ', array_column( $validation['issues'], 'message' ) ),
-			);
+			];
 		}
 
 		try {
 			// Use saga if available.
 			if ( $this->checkout_saga ) {
-				$checkout_data = array(
+				$checkout_data = [
 					'shipping_address' => $state['address'],
 					'shipping_method'  => $state['shipping_method']['id'] ?? '',
 					'payment_method'   => $state['payment_method']['id'] ?? 'cod',
 					'coupon_code'      => $state['coupon_code'],
-				);
+				];
 
 				$result = $this->checkout_saga->execute( $phone, $checkout_data );
 
@@ -525,19 +525,19 @@ class CheckoutService implements CheckoutServiceInterface {
 					$order_data = $result->getStepResult( 'create_order' );
 					$this->clearState( $phone );
 
-					return array(
+					return [
 						'success'      => true,
 						'order_id'     => $order_data['order_id'] ?? null,
 						'order_number' => $order_data['order_number'] ?? null,
 						'error'        => null,
-					);
+					];
 				} else {
-					return array(
+					return [
 						'success'      => false,
 						'order_id'     => null,
 						'order_number' => null,
 						'error'        => $result->getError() ?? 'Order creation failed',
-					);
+					];
 				}
 			}
 
@@ -545,7 +545,7 @@ class CheckoutService implements CheckoutServiceInterface {
 			if ( $this->order_sync_service && $this->cart_service ) {
 				$cart = $this->cart_service->getCart( $phone );
 
-				$cart_data = array(
+				$cart_data = [
 					'items'            => $cart->items,
 					'billing_address'  => $state['address'],
 					'shipping_address' => $state['address'],
@@ -554,7 +554,7 @@ class CheckoutService implements CheckoutServiceInterface {
 					'shipping_title'   => $state['shipping_method']['label'] ?? '',
 					'payment_method'   => $state['payment_method']['id'] ?? 'cod',
 					'coupon_code'      => $state['coupon_code'],
-				);
+				];
 
 				$order_id = $this->order_sync_service->createOrderFromCart( $cart_data, $phone );
 
@@ -564,12 +564,12 @@ class CheckoutService implements CheckoutServiceInterface {
 
 				$order = wc_get_order( $order_id );
 
-				return array(
+				return [
 					'success'      => true,
 					'order_id'     => $order_id,
 					'order_number' => $order ? $order->get_order_number() : (string) $order_id,
 					'error'        => null,
-				);
+				];
 			}
 
 			throw new \RuntimeException( 'No order service available' );
@@ -578,18 +578,18 @@ class CheckoutService implements CheckoutServiceInterface {
 			do_action(
 				'wch_log_error',
 				'CheckoutService: Order confirmation failed',
-				array(
+				[
 					'phone' => $phone,
 					'error' => $e->getMessage(),
-				)
+				]
 			);
 
-			return array(
+			return [
 				'success'      => false,
 				'order_id'     => null,
 				'order_number' => null,
 				'error'        => $e->getMessage(),
-			);
+			];
 		}
 	}
 
@@ -619,11 +619,11 @@ class CheckoutService implements CheckoutServiceInterface {
 		$state = $this->loadState( $phone );
 
 		if ( ! $state ) {
-			return array(
+			return [
 				'success' => false,
 				'step'    => '',
-				'data'    => array(),
-			);
+				'data'    => [],
+			];
 		}
 
 		$current_step  = $state['step'];
@@ -642,11 +642,11 @@ class CheckoutService implements CheckoutServiceInterface {
 		$state['updated_at'] = time();
 		$this->saveState( $phone, $state );
 
-		return array(
+		return [
 			'success' => true,
 			'step'    => $previous_step,
 			'data'    => $this->getStepData( $phone, $previous_step ),
-		);
+		];
 	}
 
 	/**
@@ -657,48 +657,48 @@ class CheckoutService implements CheckoutServiceInterface {
 	 */
 	public function validateCheckout( string $phone ): array {
 		$phone  = $this->sanitizePhone( $phone );
-		$issues = array();
+		$issues = [];
 
 		// Check cart service.
 		if ( ! $this->cart_service ) {
-			$issues[] = array(
+			$issues[] = [
 				'type'    => 'service',
 				'message' => 'Cart service unavailable',
-			);
-			return array(
+			];
+			return [
 				'valid'  => false,
 				'issues' => $issues,
-			);
+			];
 		}
 
 		// Check cart exists and is valid.
 		$cart = $this->cart_service->getCart( $phone );
 		if ( ! $cart || $cart->isEmpty() ) {
-			$issues[] = array(
+			$issues[] = [
 				'type'    => 'cart',
 				'message' => 'Cart is empty',
-			);
-			return array(
+			];
+			return [
 				'valid'  => false,
 				'issues' => $issues,
-			);
+			];
 		}
 
 		// Check cart validity (stock, etc.).
 		$cart_validation = $this->cart_service->checkCartValidity( $phone );
 		if ( ! $cart_validation['is_valid'] ) {
 			foreach ( $cart_validation['issues'] as $issue ) {
-				$issues[] = array(
+				$issues[] = [
 					'type'    => 'item',
 					'message' => $issue['message'] ?? 'Item validation failed',
-				);
+				];
 			}
 		}
 
-		return array(
+		return [
 			'valid'  => empty( $issues ),
 			'issues' => $issues,
-		);
+		];
 	}
 
 	/**
@@ -714,21 +714,21 @@ class CheckoutService implements CheckoutServiceInterface {
 		$state       = $this->loadState( $phone );
 
 		if ( ! $state ) {
-			return array(
+			return [
 				'success'  => false,
 				'discount' => 0,
 				'error'    => 'No active checkout',
-			);
+			];
 		}
 
 		$coupon = new \WC_Coupon( $coupon_code );
 
 		if ( ! $coupon->get_id() ) {
-			return array(
+			return [
 				'success'  => false,
 				'discount' => 0,
 				'error'    => 'Invalid coupon code',
-			);
+			];
 		}
 
 		// Check coupon validity.
@@ -736,11 +736,11 @@ class CheckoutService implements CheckoutServiceInterface {
 		$valid     = $discounts->is_coupon_valid( $coupon );
 
 		if ( is_wp_error( $valid ) ) {
-			return array(
+			return [
 				'success'  => false,
 				'discount' => 0,
 				'error'    => $valid->get_error_message(),
-			);
+			];
 		}
 
 		// Calculate discount.
@@ -757,11 +757,11 @@ class CheckoutService implements CheckoutServiceInterface {
 		$state['updated_at']  = time();
 		$this->saveState( $phone, $state );
 
-		return array(
+		return [
 			'success'  => true,
 			'discount' => round( $discount, 2 ),
 			'error'    => null,
-		);
+		];
 	}
 
 	/**
@@ -811,12 +811,12 @@ class CheckoutService implements CheckoutServiceInterface {
 			Logger::instance()->debug(
 				'Coupon discount capped by maximum_amount',
 				'checkout',
-				array(
+				[
 					'coupon_code' => $coupon->get_code(),
 					'calculated'  => $discount,
 					'max_amount'  => $maxAmount,
 					'subtotal'    => $subtotal,
-				)
+				]
 			);
 			$discount = $maxAmount;
 		}
@@ -928,33 +928,33 @@ class CheckoutService implements CheckoutServiceInterface {
 
 		switch ( $step ) {
 			case self::STEP_ADDRESS:
-				return array(
+				return [
 					'saved_addresses' => $this->getSavedAddresses( $phone ),
 					'current_address' => $state['address'] ?? null,
-				);
+				];
 
 			case self::STEP_SHIPPING_METHOD:
-				return array(
+				return [
 					'methods'  => $this->getShippingMethods( $phone ),
 					'selected' => $state['shipping_method'] ?? null,
-				);
+				];
 
 			case self::STEP_PAYMENT_METHOD:
-				return array(
+				return [
 					'methods'  => $this->getPaymentMethods( $phone ),
 					'selected' => $state['payment_method'] ?? null,
-				);
+				];
 
 			case self::STEP_REVIEW:
 				return $this->getOrderReview( $phone );
 
 			case self::STEP_CONFIRM:
-				return array(
+				return [
 					'totals' => $this->calculateTotals( $phone ),
-				);
+				];
 
 			default:
-				return array();
+				return [];
 		}
 	}
 
@@ -966,25 +966,25 @@ class CheckoutService implements CheckoutServiceInterface {
 	 */
 	private function getSavedAddresses( string $phone ): array {
 		if ( ! $this->customer_repository ) {
-			return array();
+			return [];
 		}
 
 		try {
 			$customer = $this->customer_repository->findByPhone( $phone );
 			if ( $customer && $customer->last_known_address ) {
-				return array(
-					array(
+				return [
+					[
 						'id'      => 'last',
 						'label'   => 'Last used address',
 						'address' => $customer->last_known_address,
-					),
-				);
+					],
+				];
 			}
 		} catch ( \Exception $e ) {
 			// Ignore.
 		}
 
-		return array();
+		return [];
 	}
 
 	/**
@@ -1013,30 +1013,30 @@ class CheckoutService implements CheckoutServiceInterface {
 	 * @return array{valid: bool, error: string|null}
 	 */
 	private function validateAddress( array $address ): array {
-		$required = array( 'address_1', 'city', 'country' );
+		$required = [ 'address_1', 'city', 'country' ];
 
 		foreach ( $required as $field ) {
 			if ( empty( $address[ $field ] ) ) {
-				return array(
+				return [
 					'valid' => false,
 					'error' => sprintf( 'Missing required field: %s', $field ),
-				);
+				];
 			}
 		}
 
 		// Validate country code.
 		$countries = WC()->countries->get_countries();
 		if ( ! isset( $countries[ $address['country'] ] ) ) {
-			return array(
+			return [
 				'valid' => false,
 				'error' => 'Invalid country',
-			);
+			];
 		}
 
-		return array(
+		return [
 			'valid' => true,
 			'error' => null,
-		);
+		];
 	}
 
 	/**
@@ -1047,7 +1047,7 @@ class CheckoutService implements CheckoutServiceInterface {
 	 * @return array Package data.
 	 */
 	private function buildShippingPackage( string $phone, array $address ): array {
-		$contents = array();
+		$contents = [];
 		$total    = 0;
 
 		if ( $this->cart_service ) {
@@ -1056,30 +1056,30 @@ class CheckoutService implements CheckoutServiceInterface {
 				foreach ( $cart->items as $index => $item ) {
 					$product = wc_get_product( $item['product_id'] );
 					if ( $product ) {
-						$contents[ $index ] = array(
+						$contents[ $index ] = [
 							'product_id' => $item['product_id'],
 							'quantity'   => $item['quantity'],
 							'data'       => $product,
 							'line_total' => $item['price'] * $item['quantity'],
-						);
+						];
 						$total             += $item['price'] * $item['quantity'];
 					}
 				}
 			}
 		}
 
-		return array(
+		return [
 			'contents'        => $contents,
 			'contents_cost'   => $total,
-			'applied_coupons' => array(),
-			'destination'     => array(
+			'applied_coupons' => [],
+			'destination'     => [
 				'country'  => $address['country'] ?? '',
 				'state'    => $address['state'] ?? '',
 				'postcode' => $address['postcode'] ?? '',
 				'city'     => $address['city'] ?? '',
 				'address'  => $address['address_1'] ?? '',
-			),
-		);
+			],
+		];
 	}
 
 	/**
@@ -1125,10 +1125,10 @@ class CheckoutService implements CheckoutServiceInterface {
 
 		if ( ! empty( $rates ) ) {
 			$rate = reset( $rates );
-			return array( 'cost' => (float) $rate->get_cost() );
+			return [ 'cost' => (float) $rate->get_cost() ];
 		}
 
-		return array( 'cost' => 0 );
+		return [ 'cost' => 0 ];
 	}
 
 	/**
@@ -1150,12 +1150,12 @@ class CheckoutService implements CheckoutServiceInterface {
 	 * @return array Error response.
 	 */
 	private function errorResponse( string $error ): array {
-		return array(
+		return [
 			'success' => false,
 			'step'    => '',
-			'data'    => array(),
+			'data'    => [],
 			'error'   => $error,
-		);
+		];
 	}
 
 	/**

@@ -48,8 +48,8 @@ final class Intent {
 	public function __construct(
 		public readonly string $name,
 		public readonly float $confidence,
-		public readonly array $entities = array(),
-		public readonly array $metadata = array()
+		public readonly array $entities = [],
+		public readonly array $metadata = []
 	) {}
 
 	/**
@@ -110,11 +110,11 @@ final class Intent {
 	 * @return array
 	 */
 	public function toArray(): array {
-		return array(
+		return [
 			'name'       => $this->name,
 			'confidence' => $this->confidence,
 			'entities'   => $this->entities,
 			'metadata'   => $this->metadata,
-		);
+		];
 	}
 }

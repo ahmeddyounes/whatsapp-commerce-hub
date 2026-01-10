@@ -82,10 +82,10 @@ abstract class AbstractQueueProcessor implements QueueProcessorInterface {
 
 		$this->logDebug(
 			'Processing job',
-			array(
+			[
 				'attempt'      => $attempt,
 				'payload_keys' => array_keys( $payload ),
-			)
+			]
 		);
 
 		try {
@@ -100,9 +100,9 @@ abstract class AbstractQueueProcessor implements QueueProcessorInterface {
 
 			$this->logInfo(
 				'Job processed successfully',
-				array(
+				[
 					'attempt' => $attempt,
-				)
+				]
 			);
 
 		} catch ( \Throwable $exception ) {
@@ -129,11 +129,11 @@ abstract class AbstractQueueProcessor implements QueueProcessorInterface {
 	): void {
 		$this->logError(
 			'Job processing failed',
-			array(
+			[
 				'attempt'   => $attempt,
 				'exception' => $exception->getMessage(),
 				'trace'     => $exception->getTraceAsString(),
-			)
+			]
 		);
 
 		// Check if we should retry.
@@ -160,9 +160,9 @@ abstract class AbstractQueueProcessor implements QueueProcessorInterface {
 	protected function handleCircuitOpen( array $rawPayload, array $meta ): void {
 		$this->logWarning(
 			'Circuit breaker is open, rescheduling job',
-			array(
+			[
 				'reschedule_delay' => 60,
-			)
+			]
 		);
 
 		// Reschedule for later when circuit might be closed.
@@ -188,11 +188,11 @@ abstract class AbstractQueueProcessor implements QueueProcessorInterface {
 
 		$this->logInfo(
 			'Scheduling retry',
-			array(
+			[
 				'attempt'      => $attempt,
 				'next_attempt' => $attempt + 1,
 				'delay'        => $delay,
-			)
+			]
 		);
 
 		$this->priorityQueue->retry(
@@ -220,10 +220,10 @@ abstract class AbstractQueueProcessor implements QueueProcessorInterface {
 	): void {
 		$this->logWarning(
 			'Moving job to dead letter queue',
-			array(
+			[
 				'reason' => $reason,
 				'error'  => $error,
-			)
+			]
 		);
 
 		// Add metadata for DLQ.
@@ -235,17 +235,17 @@ abstract class AbstractQueueProcessor implements QueueProcessorInterface {
 			$dlqPayload,
 			$reason,
 			$error,
-			array(
+			[
 				'processor' => $this->getName(),
-			)
+			]
 		);
 
 		if ( false === $result ) {
 			$this->logError(
 				'Failed to push job to dead letter queue - job data may be lost',
-				array(
+				[
 					'payload_keys' => array_keys( $payload ),
-				)
+				]
 			);
 		}
 	}
@@ -281,10 +281,10 @@ abstract class AbstractQueueProcessor implements QueueProcessorInterface {
 	 */
 	public function shouldRetry( \Throwable $exception ): bool {
 		// By default, retry on all exceptions except validation errors.
-		$noRetryExceptions = array(
+		$noRetryExceptions = [
 			\InvalidArgumentException::class,
 			\DomainException::class,
-		);
+		];
 
 		foreach ( $noRetryExceptions as $noRetryClass ) {
 			if ( $exception instanceof $noRetryClass ) {
@@ -314,7 +314,7 @@ abstract class AbstractQueueProcessor implements QueueProcessorInterface {
 	 * @param array<string, mixed> $context Additional context.
 	 * @return void
 	 */
-	protected function logDebug( string $message, array $context = array() ): void {
+	protected function logDebug( string $message, array $context = [] ): void {
 		$this->log( 'debug', $message, $context );
 	}
 
@@ -325,7 +325,7 @@ abstract class AbstractQueueProcessor implements QueueProcessorInterface {
 	 * @param array<string, mixed> $context Additional context.
 	 * @return void
 	 */
-	protected function logInfo( string $message, array $context = array() ): void {
+	protected function logInfo( string $message, array $context = [] ): void {
 		$this->log( 'info', $message, $context );
 	}
 
@@ -336,7 +336,7 @@ abstract class AbstractQueueProcessor implements QueueProcessorInterface {
 	 * @param array<string, mixed> $context Additional context.
 	 * @return void
 	 */
-	protected function logWarning( string $message, array $context = array() ): void {
+	protected function logWarning( string $message, array $context = [] ): void {
 		$this->log( 'warning', $message, $context );
 	}
 
@@ -347,7 +347,7 @@ abstract class AbstractQueueProcessor implements QueueProcessorInterface {
 	 * @param array<string, mixed> $context Additional context.
 	 * @return void
 	 */
-	protected function logError( string $message, array $context = array() ): void {
+	protected function logError( string $message, array $context = [] ): void {
 		$this->log( 'error', $message, $context );
 	}
 
@@ -359,7 +359,7 @@ abstract class AbstractQueueProcessor implements QueueProcessorInterface {
 	 * @param array<string, mixed> $context Additional context.
 	 * @return void
 	 */
-	private function log( string $level, string $message, array $context = array() ): void {
+	private function log( string $level, string $message, array $context = [] ): void {
 		$context['processor'] = $this->getName();
 
 		// Use WordPress action for logging integration.

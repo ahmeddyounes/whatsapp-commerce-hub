@@ -34,7 +34,7 @@ interface HttpClientInterface {
 	 * @return array{status_code: int, headers: array, body: string}
 	 * @throws \RuntimeException If request fails after retries.
 	 */
-	public function get( string $url, array $headers = array(), array $options = array() ): array;
+	public function get( string $url, array $headers = [], array $options = [] ): array;
 
 	/**
 	 * Perform POST request.
@@ -46,7 +46,7 @@ interface HttpClientInterface {
 	 * @return array{status_code: int, headers: array, body: string}
 	 * @throws \RuntimeException If request fails after retries.
 	 */
-	public function post( string $url, $body = array(), array $headers = array(), array $options = array() ): array;
+	public function post( string $url, $body = [], array $headers = [], array $options = [] ): array;
 
 	/**
 	 * Perform PUT request.
@@ -58,7 +58,7 @@ interface HttpClientInterface {
 	 * @return array{status_code: int, headers: array, body: string}
 	 * @throws \RuntimeException If request fails after retries.
 	 */
-	public function put( string $url, $body = array(), array $headers = array(), array $options = array() ): array;
+	public function put( string $url, $body = [], array $headers = [], array $options = [] ): array;
 
 	/**
 	 * Perform PATCH request.
@@ -70,7 +70,7 @@ interface HttpClientInterface {
 	 * @return array{status_code: int, headers: array, body: string}
 	 * @throws \RuntimeException If request fails after retries.
 	 */
-	public function patch( string $url, $body = array(), array $headers = array(), array $options = array() ): array;
+	public function patch( string $url, $body = [], array $headers = [], array $options = [] ): array;
 
 	/**
 	 * Perform DELETE request.
@@ -81,7 +81,7 @@ interface HttpClientInterface {
 	 * @return array{status_code: int, headers: array, body: string}
 	 * @throws \RuntimeException If request fails after retries.
 	 */
-	public function delete( string $url, array $headers = array(), array $options = array() ): array;
+	public function delete( string $url, array $headers = [], array $options = [] ): array;
 
 	/**
 	 * Perform generic HTTP request.
@@ -98,8 +98,8 @@ interface HttpClientInterface {
 		string $method,
 		string $url,
 		$body = null,
-		array $headers = array(),
-		array $options = array()
+		array $headers = [],
+		array $options = []
 	): array;
 
 	/**
@@ -115,10 +115,10 @@ interface HttpClientInterface {
 	 */
 	public function upload(
 		string $url,
-		array $fields = array(),
-		array $files = array(),
-		array $headers = array(),
-		array $options = array()
+		array $fields = [],
+		array $files = [],
+		array $headers = [],
+		array $options = []
 	): array;
 
 	/**

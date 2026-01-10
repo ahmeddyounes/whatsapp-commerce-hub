@@ -48,36 +48,36 @@ class RateLimiter {
 	 *
 	 * @var array<string, array{limit: int, window: int}>
 	 */
-	private array $limits = array(
-		'webhook'      => array(
+	private array $limits = [
+		'webhook'      => [
 			'limit'  => 1000,
 			'window' => 60,
-		),    // 1000/min.
-		'api'          => array(
+		],    // 1000/min.
+		'api'          => [
 			'limit'  => 100,
 			'window' => 60,
-		),     // 100/min.
-		'admin'        => array(
+		],     // 100/min.
+		'admin'        => [
 			'limit'  => 60,
 			'window' => 60,
-		),      // 60/min.
-		'auth'         => array(
+		],      // 60/min.
+		'auth'         => [
 			'limit'  => 5,
 			'window' => 300,
-		),      // 5/5min.
-		'message_send' => array(
+		],      // 5/5min.
+		'message_send' => [
 			'limit'  => 30,
 			'window' => 60,
-		),      // 30/min (WhatsApp limit).
-		'broadcast'    => array(
+		],      // 30/min (WhatsApp limit).
+		'broadcast'    => [
 			'limit'  => 10,
 			'window' => 3600,
-		),    // 10/hour.
-		'export'       => array(
+		],    // 10/hour.
+		'export'       => [
 			'limit'  => 5,
 			'window' => 3600,
-		),     // 5/hour.
-	);
+		],     // 5/hour.
+	];
 
 	/**
 	 * Constructor.
@@ -134,10 +134,10 @@ class RateLimiter {
 		?int $limit = null,
 		?int $window = null
 	): array {
-		$config = $this->limits[ $limit_type ] ?? array(
+		$config = $this->limits[ $limit_type ] ?? [
 			'limit'  => 100,
 			'window' => 60,
-		);
+		];
 
 		$limit  = $limit ?? $config['limit'];
 		$window = $window ?? $config['window'];
@@ -179,11 +179,11 @@ class RateLimiter {
 
 		$reset_at = $this->calculateResetTime( $oldest, $window, $now );
 
-		return array(
+		return [
 			'allowed'   => $allowed,
 			'remaining' => $remaining,
 			'reset_at'  => $reset_at,
-		);
+		];
 	}
 
 	/**
@@ -205,10 +205,10 @@ class RateLimiter {
 		?int $limit = null,
 		?int $window = null
 	): array {
-		$config = $this->limits[ $limit_type ] ?? array(
+		$config = $this->limits[ $limit_type ] ?? [
 			'limit'  => 100,
 			'window' => 60,
-		);
+		];
 
 		$limit  = $limit ?? $config['limit'];
 		$window = $window ?? $config['window'];
@@ -255,12 +255,12 @@ class RateLimiter {
 				// Insert the new hit while still holding the lock.
 				$this->wpdb->insert(
 					$this->table,
-					array(
+					[
 						'identifier_hash' => $identifier_hash,
 						'limit_type'      => $limit_type,
 						'created_at'      => $now_mysql,
-					),
-					array( '%s', '%s', '%s' )
+					],
+					[ '%s', '%s', '%s' ]
 				);
 				++$count; // Increment for the just-inserted record.
 			}
@@ -274,11 +274,11 @@ class RateLimiter {
 		$remaining = max( 0, $limit - $count );
 		$reset_at  = $now + $window;
 
-		return array(
+		return [
 			'allowed'   => $allowed,
 			'remaining' => $remaining,
 			'reset_at'  => $reset_at,
-		);
+		];
 	}
 
 	/**
@@ -303,12 +303,12 @@ class RateLimiter {
 
 		$result = $this->wpdb->insert(
 			$this->table,
-			array(
+			[
 				'identifier_hash' => $identifier_hash,
 				'limit_type'      => $limit_type,
 				'created_at'      => current_time( 'mysql', true ),
-			),
-			array( '%s', '%s', '%s' )
+			],
+			[ '%s', '%s', '%s' ]
 		);
 
 		return false !== $result;
@@ -329,21 +329,21 @@ class RateLimiter {
 		$check = $this->checkAndHit( $identifier, $limit_type );
 
 		if ( ! $check['allowed'] ) {
-			return array(
+			return [
 				'success'    => false,
 				'result'     => null,
 				'rate_limit' => $check,
-			);
+			];
 		}
 
 		// Perform the action.
 		$result = $callback();
 
-		return array(
+		return [
 			'success'    => true,
 			'result'     => $result,
 			'rate_limit' => $check,
-		);
+		];
 	}
 
 	/**
@@ -359,17 +359,17 @@ class RateLimiter {
 		if ( $limit_type ) {
 			$this->wpdb->delete(
 				$this->table,
-				array(
+				[
 					'identifier_hash' => $identifier_hash,
 					'limit_type'      => $limit_type,
-				),
-				array( '%s', '%s' )
+				],
+				[ '%s', '%s' ]
 			);
 		} else {
 			$this->wpdb->delete(
 				$this->table,
-				array( 'identifier_hash' => $identifier_hash ),
-				array( '%s' )
+				[ 'identifier_hash' => $identifier_hash ],
+				[ '%s' ]
 			);
 		}
 
@@ -389,25 +389,25 @@ class RateLimiter {
 
 		$result = $this->wpdb->replace(
 			$this->table,
-			array(
+			[
 				'identifier_hash' => $identifier_hash,
 				'limit_type'      => 'blocked',
 				'created_at'      => current_time( 'mysql', true ),
 				'expires_at'      => gmdate( 'Y-m-d H:i:s', time() + $duration ),
-				'metadata'        => wp_json_encode( array( 'reason' => $reason ) ),
-			),
-			array( '%s', '%s', '%s', '%s', '%s' )
+				'metadata'        => wp_json_encode( [ 'reason' => $reason ] ),
+			],
+			[ '%s', '%s', '%s', '%s', '%s' ]
 		);
 
 		if ( $result ) {
 			do_action(
 				'wch_security_log',
 				'rate_limit_block',
-				array(
+				[
 					'identifier' => $identifier_hash,
 					'duration'   => $duration,
 					'reason'     => $reason,
-				)
+				]
 			);
 		}
 
@@ -449,11 +449,11 @@ class RateLimiter {
 
 		$this->wpdb->delete(
 			$this->table,
-			array(
+			[
 				'identifier_hash' => $identifier_hash,
 				'limit_type'      => 'blocked',
-			),
-			array( '%s', '%s' )
+			],
+			[ '%s', '%s' ]
 		);
 
 		return $this->wpdb->rows_affected > 0;
@@ -468,10 +468,10 @@ class RateLimiter {
 	 * @return void
 	 */
 	public function configure( string $limit_type, int $limit, int $window ): void {
-		$this->limits[ $limit_type ] = array(
+		$this->limits[ $limit_type ] = [
 			'limit'  => $limit,
 			'window' => $window,
-		);
+		];
 	}
 
 	/**
@@ -481,10 +481,10 @@ class RateLimiter {
 	 * @return array<string, string> HTTP headers.
 	 */
 	public function getHeaders( array $check ): array {
-		return array(
+		return [
 			'X-RateLimit-Remaining' => (string) $check['remaining'],
 			'X-RateLimit-Reset'     => (string) $check['reset_at'],
-		);
+		];
 	}
 
 	/**
@@ -551,9 +551,9 @@ class RateLimiter {
 			do_action(
 				'wch_log_warning',
 				'RateLimiter: Invalid date string in database',
-				array(
+				[
 					'date_string' => $oldest_date,
-				)
+				]
 			);
 			return min( $now + $window, $max_timestamp );
 		}
@@ -657,10 +657,10 @@ class RateLimiter {
 			);
 		}
 
-		return array(
+		return [
 			'total_hits'         => (int) ( $stats['total_hits'] ?? 0 ),
 			'unique_identifiers' => (int) ( $stats['unique_identifiers'] ?? 0 ),
-			'top_identifiers'    => $top_identifiers ?: array(),
-		);
+			'top_identifiers'    => $top_identifiers ?: [],
+		];
 	}
 }

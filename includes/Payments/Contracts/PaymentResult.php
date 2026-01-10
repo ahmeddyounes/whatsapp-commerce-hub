@@ -39,7 +39,7 @@ final class PaymentResult {
 		private readonly string $paymentUrl = '',
 		private readonly string $message = '',
 		private readonly ?array $error = null,
-		private readonly array $metadata = array()
+		private readonly array $metadata = []
 	) {
 	}
 
@@ -56,7 +56,7 @@ final class PaymentResult {
 		string $transactionId,
 		string $message,
 		string $paymentUrl = '',
-		array $metadata = array()
+		array $metadata = []
 	): self {
 		return new self( true, $transactionId, $paymentUrl, $message, null, $metadata );
 	}
@@ -69,16 +69,16 @@ final class PaymentResult {
 	 * @param array  $metadata     Additional metadata.
 	 * @return self
 	 */
-	public static function failure( string $errorCode, string $errorMessage, array $metadata = array() ): self {
+	public static function failure( string $errorCode, string $errorMessage, array $metadata = [] ): self {
 		return new self(
 			false,
 			'',
 			'',
 			'',
-			array(
+			[
 				'code'    => $errorCode,
 				'message' => $errorMessage,
-			),
+			],
 			$metadata
 		);
 	}
@@ -161,12 +161,12 @@ final class PaymentResult {
 	 * @return array
 	 */
 	public function toArray(): array {
-		$result = array(
+		$result = [
 			'success'        => $this->success,
 			'transaction_id' => $this->transactionId,
 			'payment_url'    => $this->paymentUrl,
 			'message'        => $this->message,
-		);
+		];
 
 		if ( $this->error ) {
 			$result['error'] = $this->error;

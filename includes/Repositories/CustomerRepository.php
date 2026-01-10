@@ -67,12 +67,12 @@ class CustomerRepository extends AbstractRepository implements CustomerRepositor
 		}
 
 		// Convert DateTimeImmutable objects.
-		$date_fields = array(
+		$date_fields = [
 			'created_at',
 			'updated_at',
 			'last_interaction_at',
 			'marketing_opted_at',
-		);
+		];
 
 		foreach ( $date_fields as $field ) {
 			if ( isset( $data[ $field ] ) && $data[ $field ] instanceof \DateTimeInterface ) {
@@ -97,7 +97,7 @@ class CustomerRepository extends AbstractRepository implements CustomerRepositor
 	public function findByPhone( string $phone ): ?Customer {
 		$row = $this->queryRow(
 			"SELECT * FROM {$this->table} WHERE phone = %s LIMIT 1",
-			array( $phone )
+			[ $phone ]
 		);
 
 		return $row ? $this->mapToEntity( $row ) : null;
@@ -109,7 +109,7 @@ class CustomerRepository extends AbstractRepository implements CustomerRepositor
 	public function findByWcCustomerId( int $wc_customer_id ): ?Customer {
 		$row = $this->queryRow(
 			"SELECT * FROM {$this->table} WHERE wc_customer_id = %d LIMIT 1",
-			array( $wc_customer_id )
+			[ $wc_customer_id ]
 		);
 
 		return $row ? $this->mapToEntity( $row ) : null;
@@ -127,7 +127,7 @@ class CustomerRepository extends AbstractRepository implements CustomerRepositor
 
 		return $this->update(
 			$customer->id,
-			array( 'wc_customer_id' => $wc_customer_id )
+			[ 'wc_customer_id' => $wc_customer_id ]
 		);
 	}
 
@@ -164,18 +164,18 @@ class CustomerRepository extends AbstractRepository implements CustomerRepositor
 				do_action(
 					'wch_log_error',
 					'Corrupted preferences JSON',
-					array(
+					[
 						'customer_id' => $id,
 						'json_error'  => json_last_error_msg(),
-					)
+					]
 				);
 				return false;
 			}
 
-			$existing = $existing ?: array();
+			$existing = $existing ?: [];
 			$merged   = array_merge( $existing, $preferences );
 
-			$result = $this->update( $id, array( 'preferences' => $merged ) );
+			$result = $this->update( $id, [ 'preferences' => $merged ] );
 
 			// update() returns rows affected (0 if no change) or false on error.
 			// Treat 0 as success since no-change update is not an error.
@@ -202,18 +202,18 @@ class CustomerRepository extends AbstractRepository implements CustomerRepositor
 				ORDER BY created_at DESC
 				LIMIT %d OFFSET %d";
 
-		$rows = $this->query( $sql, array( $limit, $offset ) );
+		$rows = $this->query( $sql, [ $limit, $offset ] );
 
-		return array_map( array( $this, 'mapToEntity' ), $rows );
+		return array_map( [ $this, 'mapToEntity' ], $rows );
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
 	public function updateMarketingOptIn( int $id, bool $opted_in ): bool {
-		$data = array(
+		$data = [
 			'opt_in_marketing' => $opted_in ? 1 : 0,
-		);
+		];
 
 		if ( $opted_in ) {
 			$data['marketing_opted_at'] = current_time( 'mysql' );
@@ -234,10 +234,10 @@ class CustomerRepository extends AbstractRepository implements CustomerRepositor
 
 		$rows = $this->query(
 			$sql,
-			array( wp_json_encode( $tag ), $limit, $offset )
+			[ wp_json_encode( $tag ), $limit, $offset ]
 		);
 
-		return array_map( array( $this, 'mapToEntity' ), $rows );
+		return array_map( [ $this, 'mapToEntity' ], $rows );
 	}
 
 	/**
@@ -253,7 +253,7 @@ class CustomerRepository extends AbstractRepository implements CustomerRepositor
 		$tags   = $customer->tags;
 		$tags[] = $tag;
 
-		return $this->update( $id, array( 'tags' => $tags ) );
+		return $this->update( $id, [ 'tags' => $tags ] );
 	}
 
 	/**
@@ -273,7 +273,7 @@ class CustomerRepository extends AbstractRepository implements CustomerRepositor
 			)
 		);
 
-		return $this->update( $id, array( 'tags' => $tags ) );
+		return $this->update( $id, [ 'tags' => $tags ] );
 	}
 
 	/**
@@ -283,26 +283,26 @@ class CustomerRepository extends AbstractRepository implements CustomerRepositor
 		$customer = $this->find( $id );
 
 		if ( ! $customer ) {
-			return array();
+			return [];
 		}
 
 		// Get associated conversations.
 		$conversations_table = $this->wpdb->prefix . 'wch_conversations';
 		$conversations       = $this->query(
 			"SELECT id, status, state, created_at, message_count FROM {$conversations_table} WHERE customer_phone = %s",
-			array( $customer->phone )
+			[ $customer->phone ]
 		);
 
 		// Get associated carts.
 		$carts_table = $this->wpdb->prefix . 'wch_carts';
 		$carts       = $this->query(
 			"SELECT id, total, status, created_at FROM {$carts_table} WHERE customer_phone = %s",
-			array( $customer->phone )
+			[ $customer->phone ]
 		);
 
 		// Get associated messages.
 		$messages_table = $this->wpdb->prefix . 'wch_messages';
-		$messages       = array();
+		$messages       = [];
 
 		if ( ! empty( $conversations ) ) {
 			$conversation_ids = array_column( $conversations, 'id' );
@@ -314,13 +314,13 @@ class CustomerRepository extends AbstractRepository implements CustomerRepositor
 			);
 		}
 
-		return array(
+		return [
 			'customer'      => $customer->exportData(),
 			'conversations' => $conversations,
 			'messages'      => $messages,
 			'carts'         => $carts,
 			'exported_at'   => ( new \DateTimeImmutable() )->format( 'c' ),
-		);
+		];
 	}
 
 	/**
@@ -389,8 +389,8 @@ class CustomerRepository extends AbstractRepository implements CustomerRepositor
 			// Delete conversations.
 			$result = $this->wpdb->delete(
 				$conversations_table,
-				array( 'customer_phone' => $customer->phone ),
-				array( '%s' )
+				[ 'customer_phone' => $customer->phone ],
+				[ '%s' ]
 			);
 
 			if ( false === $result ) {
@@ -401,8 +401,8 @@ class CustomerRepository extends AbstractRepository implements CustomerRepositor
 			$carts_table = $this->wpdb->prefix . 'wch_carts';
 			$result      = $this->wpdb->delete(
 				$carts_table,
-				array( 'customer_phone' => $customer->phone ),
-				array( '%s' )
+				[ 'customer_phone' => $customer->phone ],
+				[ '%s' ]
 			);
 
 			if ( false === $result ) {
@@ -424,9 +424,9 @@ class CustomerRepository extends AbstractRepository implements CustomerRepositor
 			do_action(
 				'wch_log_error',
 				'GDPR deleteAllData failed: ' . $e->getMessage(),
-				array(
+				[
 					'customer_id' => $id,
-				)
+				]
 			);
 
 			return false;
@@ -443,13 +443,13 @@ class CustomerRepository extends AbstractRepository implements CustomerRepositor
 					SUM(CASE WHEN total_orders > 0 THEN 1 ELSE 0 END) as with_orders
 				FROM {$this->table}";
 
-		$row = $this->queryRow( $sql, array() );
+		$row = $this->queryRow( $sql, [] );
 
-		return array(
+		return [
 			'total'       => (int) ( $row['total'] ?? 0 ),
 			'opted_in'    => (int) ( $row['opted_in'] ?? 0 ),
 			'with_orders' => (int) ( $row['with_orders'] ?? 0 ),
-		);
+		];
 	}
 
 	/**
@@ -461,7 +461,7 @@ class CustomerRepository extends AbstractRepository implements CustomerRepositor
 	public function touchInteraction( int $id ): bool {
 		return $this->update(
 			$id,
-			array( 'last_interaction_at' => current_time( 'mysql' ) )
+			[ 'last_interaction_at' => current_time( 'mysql' ) ]
 		);
 	}
 
@@ -505,9 +505,9 @@ class CustomerRepository extends AbstractRepository implements CustomerRepositor
 	 */
 	public function findBySegment( string $segment, int $limit = 100, int $offset = 0 ): array {
 		// Whitelist valid segments.
-		$valid_segments = array( 'new', 'bronze', 'silver', 'gold', 'platinum' );
+		$valid_segments = [ 'new', 'bronze', 'silver', 'gold', 'platinum' ];
 		if ( ! in_array( $segment, $valid_segments, true ) ) {
-			return array();
+			return [];
 		}
 
 		// Build fully parameterized query based on segment.
@@ -536,7 +536,7 @@ class CustomerRepository extends AbstractRepository implements CustomerRepositor
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		$rows = $this->wpdb->get_results( $sql, ARRAY_A );
 
-		return array_map( array( $this, 'mapToEntity' ), $rows ?: array() );
+		return array_map( [ $this, 'mapToEntity' ], $rows ?: [] );
 	}
 
 	/**

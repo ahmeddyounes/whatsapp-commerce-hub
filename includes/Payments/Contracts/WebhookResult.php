@@ -48,7 +48,7 @@ final class WebhookResult {
 		private readonly string $status = '',
 		private readonly string $message = '',
 		private readonly string $transactionId = '',
-		private readonly array $metadata = array()
+		private readonly array $metadata = []
 	) {
 	}
 
@@ -67,7 +67,7 @@ final class WebhookResult {
 		string $status,
 		string $message,
 		string $transactionId = '',
-		array $metadata = array()
+		array $metadata = []
 	): self {
 		return new self( true, $orderId, $status, $message, $transactionId, $metadata );
 	}
@@ -79,7 +79,7 @@ final class WebhookResult {
 	 * @param array  $metadata Additional metadata.
 	 * @return self
 	 */
-	public static function failure( string $message, array $metadata = array() ): self {
+	public static function failure( string $message, array $metadata = [] ): self {
 		return new self( false, 0, self::STATUS_UNKNOWN, $message, '', $metadata );
 	}
 
@@ -178,13 +178,13 @@ final class WebhookResult {
 	 * @return array
 	 */
 	public function toArray(): array {
-		return array(
+		return [
 			'success'        => $this->success,
 			'order_id'       => $this->orderId,
 			'status'         => $this->status,
 			'message'        => $this->message,
 			'transaction_id' => $this->transactionId,
 			'metadata'       => $this->metadata,
-		);
+		];
 	}
 }

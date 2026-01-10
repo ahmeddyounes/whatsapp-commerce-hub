@@ -50,14 +50,14 @@ class MessageReceivedHandler implements EventHandlerInterface {
 		// Log for analytics.
 		\WCH_Logger::debug(
 			'Message received event handled',
-			array(
+			[
 				'category'        => 'events',
 				'message_id'      => $payload['message_id'] ?? 0,
 				'conversation_id' => $payload['conversation_id'] ?? 0,
 				'from'            => $payload['from'] ?? '',
 				'type'            => $payload['type'] ?? '',
 				'event_id'        => $event->id,
-			)
+			]
 		);
 
 		// Update customer activity timestamp.
@@ -86,21 +86,21 @@ class MessageReceivedHandler implements EventHandlerInterface {
 			$customer_service = \WCH_Customer_Service::instance();
 			$customer_service->update_customer_profile(
 				$phone,
-				array(
+				[
 					'last_activity_at'  => current_time( 'mysql' ),
 					'last_message_at'   => current_time( 'mysql' ),
 					'total_messages_in' => 'INCREMENT', // Special handling in update method.
-				)
+				]
 			);
 		} catch ( \Exception $e ) {
 			// Non-critical, just log.
 			\WCH_Logger::debug(
 				'Failed to update customer activity',
-				array(
+				[
 					'category' => 'events',
 					'error'    => $e->getMessage(),
 					'phone'    => $phone,
-				)
+				]
 			);
 		}
 	}

@@ -66,17 +66,17 @@ class DeadLetterQueue {
 	 * @param array  $context   Additional context.
 	 * @return void
 	 */
-	private function logUnauthorizedAttempt( string $operation, array $context = array() ): void {
+	private function logUnauthorizedAttempt( string $operation, array $context = [] ): void {
 		do_action(
 			'wch_log_warning',
 			sprintf( 'Unauthorized DLQ %s attempt blocked', $operation ),
 			array_merge(
-				array(
+				[
 					'user_id' => get_current_user_id(),
 					'ip'      => isset( $_SERVER['REMOTE_ADDR'] )
 						? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) )
 						: 'unknown',
-				),
+				],
 				$context
 			)
 		);
@@ -135,12 +135,12 @@ class DeadLetterQueue {
 		array $args,
 		string $reason,
 		?string $error_msg = null,
-		array $metadata = array()
+		array $metadata = []
 	): int|false {
 		$table = $this->getTableName();
 
 		// Extract job meta if present (check both v1 and v2 formats).
-		$job_meta = $args['_wch_job_meta'] ?? $args['_wch_meta'] ?? array();
+		$job_meta = $args['_wch_job_meta'] ?? $args['_wch_meta'] ?? [];
 
 		// Encode JSON with strict error handling - fail instead of losing data.
 		$args_json = wp_json_encode( $args );
@@ -148,35 +148,35 @@ class DeadLetterQueue {
 			do_action(
 				'wch_log_error',
 				'Failed to encode DLQ args for hook: ' . $hook,
-				array(
+				[
 					'args_type'  => gettype( $args ),
 					'last_error' => json_last_error_msg(),
-				)
+				]
 			);
 			return false; // Don't insert invalid data - fail explicitly.
 		}
 
 		$metadata_merged = array_merge(
 			$metadata,
-			array(
+			[
 				'original_scheduled_at' => $job_meta['scheduled_at'] ?? null,
 				'last_retry'            => $job_meta['last_retry'] ?? null,
-			)
+			]
 		);
 		$metadata_json   = wp_json_encode( $metadata_merged );
 		if ( false === $metadata_json ) {
 			do_action(
 				'wch_log_error',
 				'Failed to encode DLQ metadata for hook: ' . $hook,
-				array(
+				[
 					'metadata_type' => gettype( $metadata_merged ),
 					'last_error'    => json_last_error_msg(),
-				)
+				]
 			);
 			return false; // Don't insert invalid data - fail explicitly.
 		}
 
-		$data = array(
+		$data = [
 			'hook'          => $hook,
 			'args'          => $args_json,
 			'reason'        => $reason,
@@ -186,7 +186,7 @@ class DeadLetterQueue {
 			'metadata'      => $metadata_json,
 			'created_at'    => current_time( 'mysql', true ),
 			'status'        => 'pending',
-		);
+		];
 
 		$result = $this->wpdb->insert( $table, $data );
 
@@ -241,7 +241,7 @@ class DeadLetterQueue {
 	public function replay( int $id, int $delay = 0, ?int $new_priority = null ): bool {
 		// SECURITY: Verify authorization before replaying jobs.
 		if ( ! $this->isAuthorized() ) {
-			$this->logUnauthorizedAttempt( 'replay', array( 'dlq_id' => $id ) );
+			$this->logUnauthorizedAttempt( 'replay', [ 'dlq_id' => $id ] );
 			return false;
 		}
 
@@ -264,12 +264,12 @@ class DeadLetterQueue {
 			do_action(
 				'wch_log_error',
 				'DLQ replay failed: corrupted args JSON',
-				array(
+				[
 					'dlq_id'     => $id,
 					'hook'       => $entry->hook,
 					'json_error' => $error_msg,
 					'raw_length' => strlen( $entry->args ?? '' ),
-				)
+				]
 			);
 
 			// Mark as dismissed with corruption reason rather than silently failing.
@@ -284,11 +284,11 @@ class DeadLetterQueue {
 			do_action(
 				'wch_log_error',
 				'DLQ replay failed: args is not an array',
-				array(
+				[
 					'dlq_id'    => $id,
 					'hook'      => $entry->hook,
 					'args_type' => gettype( $args ),
-				)
+				]
 			);
 
 			$this->dismiss( $id, 'Data corruption: args decoded to ' . gettype( $args ) );
@@ -302,7 +302,7 @@ class DeadLetterQueue {
 
 		// Ensure _wch_job_meta exists and reset attempt counter for replay.
 		if ( ! isset( $args['_wch_job_meta'] ) || ! is_array( $args['_wch_job_meta'] ) ) {
-			$args['_wch_job_meta'] = array();
+			$args['_wch_job_meta'] = [];
 		}
 		$args['_wch_job_meta']['attempt']           = 1;
 		$args['_wch_job_meta']['replayed_from_dlq'] = $id;
@@ -321,13 +321,13 @@ class DeadLetterQueue {
 			$action_id = as_schedule_single_action(
 				time() + $delay,
 				$entry->hook,
-				array( $args ),
+				[ $args ],
 				$group
 			);
 
 			if ( $action_id ) {
 				// Decode existing metadata with error handling.
-				$existing_metadata = array();
+				$existing_metadata = [];
 				if ( ! empty( $entry->metadata ) ) {
 					$decoded = json_decode( $entry->metadata, true );
 					if ( JSON_ERROR_NONE === json_last_error() && is_array( $decoded ) ) {
@@ -338,10 +338,10 @@ class DeadLetterQueue {
 						do_action(
 							'wch_log_warning',
 							'DLQ metadata corrupted during replay',
-							array(
+							[
 								'dlq_id'     => $id,
 								'json_error' => json_last_error_msg(),
-							)
+							]
 						);
 					}
 				}
@@ -349,17 +349,17 @@ class DeadLetterQueue {
 				// Mark as replayed.
 				$this->wpdb->update(
 					$table,
-					array(
+					[
 						'status'      => 'replayed',
 						'replayed_at' => current_time( 'mysql', true ),
 						'metadata'    => wp_json_encode(
 							array_merge(
 								$existing_metadata,
-								array( 'replay_action_id' => $action_id )
+								[ 'replay_action_id' => $action_id ]
 							)
 						),
-					),
-					array( 'id' => $id )
+					],
+					[ 'id' => $id ]
 				);
 
 				do_action( 'wch_dead_letter_replayed', $id, $action_id );
@@ -381,34 +381,34 @@ class DeadLetterQueue {
 	public function dismiss( int $id, string $reason = '' ): bool {
 		// SECURITY: Verify authorization before dismissing jobs.
 		if ( ! $this->isAuthorized() ) {
-			$this->logUnauthorizedAttempt( 'dismiss', array( 'dlq_id' => $id ) );
+			$this->logUnauthorizedAttempt( 'dismiss', [ 'dlq_id' => $id ] );
 			return false;
 		}
 
 		$table = $this->getTableName();
 
 		// Validate JSON encoding.
-		$metadata = wp_json_encode( array( 'dismiss_reason' => $reason ) );
+		$metadata = wp_json_encode( [ 'dismiss_reason' => $reason ] );
 		if ( false === $metadata ) {
 			do_action(
 				'wch_log_error',
 				'DeadLetterQueue: Failed to encode dismiss metadata',
-				array(
+				[
 					'id'     => $id,
 					'reason' => $reason,
-				)
+				]
 			);
 			return false;
 		}
 
 		$result = $this->wpdb->update(
 			$table,
-			array(
+			[
 				'status'       => 'dismissed',
 				'dismissed_at' => current_time( 'mysql', true ),
 				'metadata'     => $metadata,
-			),
-			array( 'id' => $id )
+			],
+			[ 'id' => $id ]
 		);
 
 		if ( false !== $result ) {
@@ -454,13 +454,13 @@ class DeadLetterQueue {
 			 GROUP BY status, reason"
 		);
 
-		$stats = array(
+		$stats = [
 			'total'     => 0,
 			'pending'   => 0,
 			'replayed'  => 0,
 			'dismissed' => 0,
-			'by_reason' => array(),
-		);
+			'by_reason' => [],
+		];
 
 		foreach ( $results as $row ) {
 			$stats['total']       += (int) $row->count;
@@ -485,7 +485,7 @@ class DeadLetterQueue {
 	public function cleanup( int $days_old = 30 ): int {
 		// SECURITY: Verify authorization before cleaning up jobs.
 		if ( ! $this->isAuthorized() ) {
-			$this->logUnauthorizedAttempt( 'cleanup', array( 'days_old' => $days_old ) );
+			$this->logUnauthorizedAttempt( 'cleanup', [ 'days_old' => $days_old ] );
 			return 0;
 		}
 
@@ -514,7 +514,7 @@ class DeadLetterQueue {
 	 * @return object Hydrated entry with decoded JSON fields.
 	 */
 	private function hydrateEntry( object $row ): object {
-		$row->_json_errors = array();
+		$row->_json_errors = [];
 
 		// Decode args with error tracking.
 		$row->args = json_decode( $row->args, true );
@@ -535,11 +535,11 @@ class DeadLetterQueue {
 			do_action(
 				'wch_log_warning',
 				'DLQ entry has corrupted JSON fields',
-				array(
+				[
 					'dlq_id' => $row->id ?? 'unknown',
 					'hook'   => $row->hook ?? 'unknown',
 					'errors' => $row->_json_errors,
-				)
+				]
 			);
 		}
 

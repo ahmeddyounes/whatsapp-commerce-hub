@@ -93,7 +93,7 @@ final class Conversation {
 		$customer_phone = self::validatePhone( $customer_phone );
 
 		// Parse JSON context safely, handling corruption.
-		$context = array();
+		$context = [];
 		if ( isset( $row['context'] ) && is_string( $row['context'] ) ) {
 			$decoded = json_decode( $row['context'], true );
 			if ( JSON_ERROR_NONE === json_last_error() && is_array( $decoded ) ) {
@@ -197,7 +197,7 @@ final class Conversation {
 	 * @return array
 	 */
 	public function toArray(): array {
-		return array(
+		return [
 			'id'                 => $this->id,
 			'customer_phone'     => $this->customer_phone,
 			'wa_conversation_id' => $this->wa_conversation_id,
@@ -210,7 +210,7 @@ final class Conversation {
 			'last_message_at'    => $this->last_message_at?->format( 'Y-m-d H:i:s' ),
 			'message_count'      => $this->message_count,
 			'unread_count'       => $this->unread_count,
-		);
+		];
 	}
 
 	/**
@@ -269,11 +269,11 @@ final class Conversation {
 	public function isInCheckout(): bool {
 		return in_array(
 			$this->state,
-			array(
+			[
 				self::STATE_CHECKOUT_ADDRESS,
 				self::STATE_CHECKOUT_PAYMENT,
 				self::STATE_CHECKOUT_CONFIRM,
-			),
+			],
 			true
 		);
 	}

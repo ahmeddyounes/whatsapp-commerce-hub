@@ -39,9 +39,9 @@ final class CustomerProfile {
 		public readonly ?int $woocommerceId = null,
 		public readonly ?string $name = null,
 		public readonly ?string $email = null,
-		public readonly array $addresses = array(),
-		public readonly array $preferences = array(),
-		public readonly array $metadata = array()
+		public readonly array $addresses = [],
+		public readonly array $preferences = [],
+		public readonly array $metadata = []
 	) {}
 
 	/**
@@ -96,7 +96,7 @@ final class CustomerProfile {
 	 * @return array
 	 */
 	public function toArray(): array {
-		return array(
+		return [
 			'phone'          => $this->phone,
 			'woocommerce_id' => $this->woocommerceId,
 			'name'           => $this->name,
@@ -104,7 +104,7 @@ final class CustomerProfile {
 			'addresses'      => $this->addresses,
 			'preferences'    => $this->preferences,
 			'metadata'       => $this->metadata,
-		);
+		];
 	}
 
 	/**
@@ -119,9 +119,9 @@ final class CustomerProfile {
 			$data['woocommerce_id'] ?? null,
 			$data['name'] ?? null,
 			$data['email'] ?? null,
-			$data['addresses'] ?? array(),
-			$data['preferences'] ?? array(),
-			$data['metadata'] ?? array()
+			$data['addresses'] ?? [],
+			$data['preferences'] ?? [],
+			$data['metadata'] ?? []
 		);
 	}
 }

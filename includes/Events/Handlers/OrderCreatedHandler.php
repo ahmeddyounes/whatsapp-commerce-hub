@@ -50,14 +50,14 @@ class OrderCreatedHandler implements EventHandlerInterface {
 		// Log the order creation.
 		\WCH_Logger::info(
 			'Order created event received',
-			array(
+			[
 				'category'       => 'events',
 				'order_id'       => $payload['order_id'] ?? 0,
 				'customer_phone' => $payload['customer_phone'] ?? '',
 				'total'          => $payload['total'] ?? 0,
 				'source'         => $payload['source'] ?? 'whatsapp',
 				'event_id'       => $event->id,
-			)
+			]
 		);
 
 		// Update customer statistics.
@@ -89,22 +89,22 @@ class OrderCreatedHandler implements EventHandlerInterface {
 			if ( $profile ) {
 				$customer_service->update_customer_profile(
 					$phone,
-					array(
+					[
 						'total_orders'  => ( $profile['total_orders'] ?? 0 ) + 1,
 						'total_spent'   => ( $profile['total_spent'] ?? 0 ) + ( $payload['total'] ?? 0 ),
 						'last_order_at' => current_time( 'mysql' ),
 						'last_order_id' => $payload['order_id'] ?? 0,
-					)
+					]
 				);
 			}
 		} catch ( \Exception $e ) {
 			\WCH_Logger::warning(
 				'Failed to update customer stats on order',
-				array(
+				[
 					'category' => 'events',
 					'error'    => $e->getMessage(),
 					'phone'    => $phone,
-				)
+				]
 			);
 		}
 	}
@@ -138,11 +138,11 @@ class OrderCreatedHandler implements EventHandlerInterface {
 			// This was an abandoned cart that converted - dispatch recovery event.
 			\WCH_Logger::info(
 				'Abandoned cart converted to order',
-				array(
+				[
 					'category' => 'events',
 					'cart_id'  => $cart_id,
 					'order_id' => $payload['order_id'] ?? 0,
-				)
+				]
 			);
 
 			// Track the recovery in the recovery system.

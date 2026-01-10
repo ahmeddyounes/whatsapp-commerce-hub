@@ -45,11 +45,11 @@ class ProductSyncAdminUI {
 	 * @return void
 	 */
 	public function init(): void {
-		add_filter( 'manage_product_posts_columns', array( $this, 'addSyncStatusColumn' ) );
-		add_action( 'manage_product_posts_custom_column', array( $this, 'renderSyncStatusColumn' ), 10, 2 );
-		add_filter( 'bulk_actions-edit-product', array( $this, 'addBulkActions' ) );
-		add_filter( 'handle_bulk_actions-edit-product', array( $this, 'handleBulkActions' ), 10, 3 );
-		add_action( 'admin_notices', array( $this, 'showBulkActionNotices' ) );
+		add_filter( 'manage_product_posts_columns', [ $this, 'addSyncStatusColumn' ] );
+		add_action( 'manage_product_posts_custom_column', [ $this, 'renderSyncStatusColumn' ], 10, 2 );
+		add_filter( 'bulk_actions-edit-product', [ $this, 'addBulkActions' ] );
+		add_filter( 'handle_bulk_actions-edit-product', [ $this, 'handleBulkActions' ], 10, 3 );
+		add_action( 'admin_notices', [ $this, 'showBulkActionNotices' ] );
 	}
 
 	/**
@@ -59,7 +59,7 @@ class ProductSyncAdminUI {
 	 * @return array Modified columns.
 	 */
 	public function addSyncStatusColumn( array $columns ): array {
-		$newColumns = array();
+		$newColumns = [];
 
 		foreach ( $columns as $key => $value ) {
 			$newColumns[ $key ] = $value;
@@ -179,10 +179,10 @@ class ProductSyncAdminUI {
 			}
 
 			$redirectTo = add_query_arg(
-				array(
+				[
 					'wch_bulk_synced' => $synced,
 					'wch_bulk_total'  => count( $postIds ),
-				),
+				],
 				$redirectTo
 			);
 		} elseif ( 'wch_remove_from_whatsapp' === $action ) {
@@ -196,10 +196,10 @@ class ProductSyncAdminUI {
 			}
 
 			$redirectTo = add_query_arg(
-				array(
+				[
 					'wch_bulk_removed' => $removed,
 					'wch_bulk_total'   => count( $postIds ),
-				),
+				],
 				$redirectTo
 			);
 		}
@@ -259,12 +259,12 @@ class ProductSyncAdminUI {
 		$lastSynced  = get_post_meta( $productId, CatalogApiService::META_LAST_SYNCED, true );
 		$syncMessage = get_post_meta( $productId, '_wch_sync_message', true );
 
-		return array(
+		return [
 			'status'      => $status ?: 'not_synced',
 			'synced'      => 'synced' === $status,
 			'catalog_id'  => $catalogId ?: null,
 			'last_synced' => $lastSynced ?: null,
 			'error'       => 'error' === $status ? ( $syncMessage ?: null ) : null,
-		);
+		];
 	}
 }

@@ -50,14 +50,14 @@ class CartAbandonedHandler implements EventHandlerInterface {
 		// Log the abandoned cart event for analytics.
 		\WCH_Logger::info(
 			'Cart abandoned event received',
-			array(
+			[
 				'category'       => 'events',
 				'cart_id'        => $payload['cart_id'] ?? 0,
 				'customer_phone' => $payload['customer_phone'] ?? '',
 				'total'          => $payload['total'] ?? 0,
 				'item_count'     => $payload['item_count'] ?? 0,
 				'event_id'       => $event->id,
-			)
+			]
 		);
 
 		// Track the abandonment for analytics.
@@ -86,20 +86,20 @@ class CartAbandonedHandler implements EventHandlerInterface {
 			if ( $profile ) {
 				$customer_service->update_customer_profile(
 					$payload['customer_phone'],
-					array(
+					[
 						'cart_abandonment_count' => ( $profile['cart_abandonment_count'] ?? 0 ) + 1,
 						'last_cart_abandoned_at' => current_time( 'mysql' ),
-					)
+					]
 				);
 			}
 		} catch ( \Exception $e ) {
 			\WCH_Logger::warning(
 				'Failed to track cart abandonment',
-				array(
+				[
 					'category' => 'events',
 					'error'    => $e->getMessage(),
 					'phone'    => $payload['customer_phone'] ?? '',
-				)
+				]
 			);
 		}
 	}

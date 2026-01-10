@@ -50,7 +50,7 @@ class ShowProductAction extends AbstractAction {
 
 			$productId = (int) $params['product_id'];
 
-			$this->log( 'Showing product', array( 'product_id' => $productId ) );
+			$this->log( 'Showing product', [ 'product_id' => $productId ] );
 
 			// Get product.
 			$product = wc_get_product( $productId );
@@ -65,16 +65,16 @@ class ShowProductAction extends AbstractAction {
 			return ActionResult::success(
 				$messages,
 				null,
-				array(
+				[
 					'current_product' => $productId,
 					'product_name'    => $product->get_name(),
 					'product_price'   => $product->get_price(),
 					'has_variations'  => $product->is_type( 'variable' ),
-				)
+				]
 			);
 
 		} catch ( \Exception $e ) {
-			$this->log( 'Error showing product', array( 'error' => $e->getMessage() ), 'error' );
+			$this->log( 'Error showing product', [ 'error' => $e->getMessage() ], 'error' );
 			return $this->error( __( 'Sorry, we could not load the product. Please try again.', 'whatsapp-commerce-hub' ) );
 		}
 	}
@@ -86,7 +86,7 @@ class ShowProductAction extends AbstractAction {
 	 * @return array Array of message builders.
 	 */
 	private function buildProductMessages( \WC_Product $product ): array {
-		$messages = array();
+		$messages = [];
 
 		// Product image (if available).
 		if ( $product->get_image_id() ) {
@@ -149,20 +149,20 @@ class ShowProductAction extends AbstractAction {
 		if ( $product->is_type( 'simple' ) && $product->is_in_stock() ) {
 			$message->button(
 				'reply',
-				array(
+				[
 					'id'    => 'add_to_cart_' . $product->get_id(),
 					'title' => __( 'Add to Cart', 'whatsapp-commerce-hub' ),
-				)
+				]
 			);
 		}
 
 		// Back button.
 		$message->button(
 			'reply',
-			array(
+			[
 				'id'    => 'back_to_category',
 				'title' => __( 'Back', 'whatsapp-commerce-hub' ),
-			)
+			]
 		);
 
 		return $message;
@@ -188,7 +188,7 @@ class ShowProductAction extends AbstractAction {
 		$message = $this->createMessageBuilder();
 		$message->body( __( 'Please select a variant:', 'whatsapp-commerce-hub' ) );
 
-		$rows = array();
+		$rows = [];
 
 		foreach ( $variations as $variation ) {
 			$variationObj = wc_get_product( $variation['variation_id'] );
@@ -197,7 +197,7 @@ class ShowProductAction extends AbstractAction {
 				continue;
 			}
 
-			$attributes = array();
+			$attributes = [];
 			foreach ( $variation['attributes'] as $attrValue ) {
 				if ( ! empty( $attrValue ) ) {
 					$attributes[] = $attrValue;
@@ -208,11 +208,11 @@ class ShowProductAction extends AbstractAction {
 			$variantPrice = $this->formatPrice( (float) $variationObj->get_price() );
 			$inStock      = $variationObj->is_in_stock() ? '✅' : '❌';
 
-			$rows[] = array(
+			$rows[] = [
 				'id'          => 'variant_' . $variation['variation_id'],
 				'title'       => wp_trim_words( $variantName, 3, '...' ),
 				'description' => sprintf( '%s %s', $variantPrice, $inStock ),
-			);
+			];
 
 			// Limit to 10 variations per message.
 			if ( count( $rows ) >= 10 ) {

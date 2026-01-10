@@ -146,8 +146,8 @@ class ApiClientServiceProvider implements ServiceProviderInterface {
 					 * @param array  $args    Additional args.
 					 * @return array{success: bool, data: mixed, status_code: int, error: string|null}
 					 */
-					public function get( string $url, array $headers = array(), array $args = array() ): array {
-						return $this->request( 'GET', $url, array(), $headers, $args );
+					public function get( string $url, array $headers = [], array $args = [] ): array {
+						return $this->request( 'GET', $url, [], $headers, $args );
 					}
 
 					/**
@@ -159,7 +159,7 @@ class ApiClientServiceProvider implements ServiceProviderInterface {
 					 * @param array  $args    Additional args.
 					 * @return array{success: bool, data: mixed, status_code: int, error: string|null}
 					 */
-					public function post( string $url, array $data = array(), array $headers = array(), array $args = array() ): array {
+					public function post( string $url, array $data = [], array $headers = [], array $args = [] ): array {
 						return $this->request( 'POST', $url, $data, $headers, $args );
 					}
 
@@ -172,7 +172,7 @@ class ApiClientServiceProvider implements ServiceProviderInterface {
 					 * @param array  $args    Additional args.
 					 * @return array{success: bool, data: mixed, status_code: int, error: string|null}
 					 */
-					public function put( string $url, array $data = array(), array $headers = array(), array $args = array() ): array {
+					public function put( string $url, array $data = [], array $headers = [], array $args = [] ): array {
 						return $this->request( 'PUT', $url, $data, $headers, $args );
 					}
 
@@ -184,8 +184,8 @@ class ApiClientServiceProvider implements ServiceProviderInterface {
 					 * @param array  $args    Additional args.
 					 * @return array{success: bool, data: mixed, status_code: int, error: string|null}
 					 */
-					public function delete( string $url, array $headers = array(), array $args = array() ): array {
-						return $this->request( 'DELETE', $url, array(), $headers, $args );
+					public function delete( string $url, array $headers = [], array $args = [] ): array {
+						return $this->request( 'DELETE', $url, [], $headers, $args );
 					}
 
 					/**
@@ -201,20 +201,20 @@ class ApiClientServiceProvider implements ServiceProviderInterface {
 					private function request(
 						string $method,
 						string $url,
-						array $data = array(),
-						array $headers = array(),
-						array $args = array()
+						array $data = [],
+						array $headers = [],
+						array $args = []
 					): array {
-						$default_args = array(
+						$default_args = [
 							'method'  => $method,
 							'timeout' => 30,
 							'headers' => array_merge(
-								array( 'Content-Type' => 'application/json' ),
+								[ 'Content-Type' => 'application/json' ],
 								$headers
 							),
-						);
+						];
 
-						if ( ! empty( $data ) && in_array( $method, array( 'POST', 'PUT', 'PATCH' ), true ) ) {
+						if ( ! empty( $data ) && in_array( $method, [ 'POST', 'PUT', 'PATCH' ], true ) ) {
 							$default_args['body'] = wp_json_encode( $data );
 						}
 
@@ -223,24 +223,24 @@ class ApiClientServiceProvider implements ServiceProviderInterface {
 						$response = wp_remote_request( $url, $request_args );
 
 						if ( is_wp_error( $response ) ) {
-							return array(
+							return [
 								'success'     => false,
 								'data'        => null,
 								'status_code' => 0,
 								'error'       => $response->get_error_message(),
-							);
+							];
 						}
 
 						$status_code = wp_remote_retrieve_response_code( $response );
 						$body        = wp_remote_retrieve_body( $response );
 						$decoded     = json_decode( $body, true );
 
-						return array(
+						return [
 							'success'     => $status_code >= 200 && $status_code < 300,
 							'data'        => $decoded ?? $body,
 							'status_code' => $status_code,
 							'error'       => $status_code >= 400 ? ( $decoded['error']['message'] ?? 'Request failed' ) : null,
-						);
+						];
 					}
 				};
 			}
@@ -276,10 +276,10 @@ class ApiClientServiceProvider implements ServiceProviderInterface {
 					public function sendText( string $to, string $text ): array {
 						return $this->send(
 							$to,
-							array(
+							[
 								'type' => 'text',
-								'text' => array( 'body' => $text ),
-							)
+								'text' => [ 'body' => $text ],
+							]
 						);
 					}
 
@@ -293,10 +293,10 @@ class ApiClientServiceProvider implements ServiceProviderInterface {
 					public function sendInteractive( string $to, array $interactive ): array {
 						return $this->send(
 							$to,
-							array(
+							[
 								'type'        => 'interactive',
 								'interactive' => $interactive,
-							)
+							]
 						);
 					}
 
@@ -312,13 +312,13 @@ class ApiClientServiceProvider implements ServiceProviderInterface {
 					public function sendTemplate(
 						string $to,
 						string $template,
-						array $params = array(),
+						array $params = [],
 						string $language = 'en'
 					): array {
-						$template_data = array(
+						$template_data = [
 							'name'     => $template,
-							'language' => array( 'code' => $language ),
-						);
+							'language' => [ 'code' => $language ],
+						];
 
 						if ( ! empty( $params ) ) {
 							$template_data['components'] = $params;
@@ -326,10 +326,10 @@ class ApiClientServiceProvider implements ServiceProviderInterface {
 
 						return $this->send(
 							$to,
-							array(
+							[
 								'type'     => 'template',
 								'template' => $template_data,
-							)
+							]
 						);
 					}
 
@@ -345,61 +345,61 @@ class ApiClientServiceProvider implements ServiceProviderInterface {
 						$access_token    = $this->settings['access_token'] ?? '';
 
 						if ( empty( $phone_number_id ) || empty( $access_token ) ) {
-							return array(
+							return [
 								'success'    => false,
 								'message_id' => null,
 								'error'      => 'WhatsApp API not configured',
-							);
+							];
 						}
 
 						$url = "{$this->api_url}/{$phone_number_id}/messages";
 
 						$payload = array_merge(
-							array(
+							[
 								'messaging_product' => 'whatsapp',
 								'recipient_type'    => 'individual',
 								'to'                => $to,
-							),
+							],
 							$message
 						);
 
 						$response = $this->http->post(
 							$url,
 							$payload,
-							array( 'Authorization' => "Bearer {$access_token}" )
+							[ 'Authorization' => "Bearer {$access_token}" ]
 						);
 
 						if ( ! $response['success'] ) {
 							$this->logger->error(
 								'WhatsApp send failed',
-								array(
+								[
 									'to'    => $to,
 									'error' => $response['error'],
-								)
+								]
 							);
 
-							return array(
+							return [
 								'success'    => false,
 								'message_id' => null,
 								'error'      => $response['error'],
-							);
+							];
 						}
 
 						$message_id = $response['data']['messages'][0]['id'] ?? null;
 
 						$this->logger->debug(
 							'WhatsApp message sent',
-							array(
+							[
 								'to'         => $to,
 								'message_id' => $message_id,
-							)
+							]
 						);
 
-						return array(
+						return [
 							'success'    => true,
 							'message_id' => $message_id,
 							'error'      => null,
-						);
+						];
 					}
 				};
 			}
@@ -422,7 +422,7 @@ class ApiClientServiceProvider implements ServiceProviderInterface {
 	 * @return array<string>
 	 */
 	public function provides(): array {
-		return array(
+		return [
 			'wch.whatsapp.client',
 			'wch.openai.client',
 			WhatsAppClientInterface::class,
@@ -431,6 +431,6 @@ class ApiClientServiceProvider implements ServiceProviderInterface {
 			OpenAIClient::class,
 			'wch.http',
 			'wch.whatsapp.sender',
-		);
+		];
 	}
 }

@@ -51,7 +51,7 @@ class RazorpayGateway extends AbstractGateway {
 	 *
 	 * @var string[]
 	 */
-	protected array $supportedCountries = array( 'IN', 'MY' );
+	protected array $supportedCountries = [ 'IN', 'MY' ];
 
 	/**
 	 * Razorpay API key ID.
@@ -135,16 +135,16 @@ class RazorpayGateway extends AbstractGateway {
 			$this->storeTransactionMeta(
 				$order,
 				$paymentLink['id'],
-				array( '_razorpay_payment_link_id' => $paymentLink['id'] )
+				[ '_razorpay_payment_link_id' => $paymentLink['id'] ]
 			);
 			$order->save();
 
 			$this->log(
 				'Razorpay payment link created',
-				array(
+				[
 					'order_id' => $orderId,
 					'link_id'  => $paymentLink['id'],
-				)
+				]
 			);
 
 			return PaymentResult::success(
@@ -162,7 +162,7 @@ class RazorpayGateway extends AbstractGateway {
 			);
 
 		} catch ( \Exception $e ) {
-			$this->log( 'Razorpay payment error', array( 'error' => $e->getMessage() ), 'error' );
+			$this->log( 'Razorpay payment error', [ 'error' => $e->getMessage() ], 'error' );
 
 			return PaymentResult::failure( 'razorpay_error', $e->getMessage() );
 		}
@@ -179,7 +179,7 @@ class RazorpayGateway extends AbstractGateway {
 		$amount        = intval( $order->get_total() * 100 ); // Convert to paise.
 		$customerPhone = $this->getCustomerPhone( $conversation );
 
-		$data = array(
+		$data = [
 			'amount'          => $amount,
 			'currency'        => $order->get_currency(),
 			'description'     => sprintf(
@@ -187,23 +187,23 @@ class RazorpayGateway extends AbstractGateway {
 				__( 'Order #%s', 'whatsapp-commerce-hub' ),
 				$order->get_order_number()
 			),
-			'customer'        => array(
+			'customer'        => [
 				'name'    => trim( $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() ),
 				'email'   => $order->get_billing_email() ?: 'noreply@example.com',
 				'contact' => preg_replace( '/[^0-9]/', '', $customerPhone ),
-			),
-			'notify'          => array(
+			],
+			'notify'          => [
 				'sms'   => false,
 				'email' => false,
-			),
+			],
 			'callback_url'    => add_query_arg( 'wch_payment', 'success', home_url() ),
 			'callback_method' => 'get',
-			'notes'           => array(
+			'notes'           => [
 				'order_id'        => (string) $order->get_id(),
 				'customer_phone'  => $customerPhone,
 				'conversation_id' => $conversation['id'] ?? '',
-			),
-		);
+			],
+		];
 
 		return $this->razorpayRequest( 'payment_links', $data );
 	}
@@ -221,7 +221,7 @@ class RazorpayGateway extends AbstractGateway {
 		// Validate webhook timestamp (5-minute tolerance).
 		$webhookTimestamp = intval( $data['created_at'] ?? 0 );
 		if ( $webhookTimestamp > 0 && abs( time() - $webhookTimestamp ) > 300 ) {
-			$this->log( 'Razorpay webhook timestamp expired', array( 'event' => $event ), 'warning' );
+			$this->log( 'Razorpay webhook timestamp expired', [ 'event' => $event ], 'warning' );
 			return WebhookResult::failure( __( 'Webhook timestamp expired.', 'whatsapp-commerce-hub' ) );
 		}
 
@@ -243,8 +243,8 @@ class RazorpayGateway extends AbstractGateway {
 	 * @return WebhookResult
 	 */
 	private function handlePaymentCaptured( array $data ): WebhookResult {
-		$payment = $data['payload']['payment']['entity'] ?? array();
-		$notes   = $payment['notes'] ?? array();
+		$payment = $data['payload']['payment']['entity'] ?? [];
+		$notes   = $payment['notes'] ?? [];
 		$orderId = intval( $notes['order_id'] ?? 0 );
 
 		if ( ! $orderId ) {
@@ -260,10 +260,10 @@ class RazorpayGateway extends AbstractGateway {
 		if ( ! $this->orderNeedsPayment( $order ) ) {
 			$this->log(
 				'Razorpay webhook skipped - order already paid',
-				array(
+				[
 					'order_id'   => $orderId,
 					'payment_id' => $payment['id'] ?? '',
-				)
+				]
 			);
 			return WebhookResult::alreadyCompleted( $orderId, $payment['id'] ?? '' );
 		}
@@ -277,7 +277,7 @@ class RazorpayGateway extends AbstractGateway {
 			)
 		);
 
-		$this->log( 'Razorpay payment completed', array( 'order_id' => $orderId ) );
+		$this->log( 'Razorpay payment completed', [ 'order_id' => $orderId ] );
 
 		return WebhookResult::success(
 			$orderId,
@@ -294,8 +294,8 @@ class RazorpayGateway extends AbstractGateway {
 	 * @return WebhookResult
 	 */
 	private function handlePaymentFailed( array $data ): WebhookResult {
-		$payment = $data['payload']['payment']['entity'] ?? array();
-		$notes   = $payment['notes'] ?? array();
+		$payment = $data['payload']['payment']['entity'] ?? [];
+		$notes   = $payment['notes'] ?? [];
 		$orderId = intval( $notes['order_id'] ?? 0 );
 
 		if ( ! $orderId ) {
@@ -341,7 +341,7 @@ class RazorpayGateway extends AbstractGateway {
 		if ( empty( $this->webhookSecret ) ) {
 			$this->log(
 				'Razorpay webhook rejected - webhook secret not configured',
-				array( 'payload_length' => strlen( $payload ) ),
+				[ 'payload_length' => strlen( $payload ) ],
 				'error'
 			);
 			return false;
@@ -358,27 +358,27 @@ class RazorpayGateway extends AbstractGateway {
 	 * @return PaymentStatus
 	 */
 	public function getPaymentStatus( string $transactionId ): PaymentStatus {
-		$response = $this->razorpayRequest( "payment_links/{$transactionId}", array(), 'GET' );
+		$response = $this->razorpayRequest( "payment_links/{$transactionId}", [], 'GET' );
 
 		if ( ! $response ) {
 			return PaymentStatus::unknown( $transactionId );
 		}
 
 		$paymentStatus = $response['status'] ?? 'created';
-		$statusMap     = array(
+		$statusMap     = [
 			'paid'           => PaymentStatus::COMPLETED,
 			'created'        => PaymentStatus::PENDING,
 			'partially_paid' => PaymentStatus::PENDING,
 			'expired'        => PaymentStatus::FAILED,
 			'cancelled'      => PaymentStatus::FAILED,
-		);
+		];
 
 		return new PaymentStatus(
 			$statusMap[ $paymentStatus ] ?? PaymentStatus::PENDING,
 			$transactionId,
 			( $response['amount'] ?? 0 ) / 100,
 			$response['currency'] ?? '',
-			$response['notes'] ?? array()
+			$response['notes'] ?? []
 		);
 	}
 
@@ -390,17 +390,17 @@ class RazorpayGateway extends AbstractGateway {
 	 * @param string $method   HTTP method.
 	 * @return array|null
 	 */
-	private function razorpayRequest( string $endpoint, array $data = array(), string $method = 'POST' ): ?array {
+	private function razorpayRequest( string $endpoint, array $data = [], string $method = 'POST' ): ?array {
 		$url = self::API_BASE . '/' . $endpoint;
 
-		$args = array(
+		$args = [
 			'method'  => $method,
-			'headers' => array(
+			'headers' => [
 				'Authorization' => 'Basic ' . base64_encode( $this->apiKey . ':' . $this->apiSecret ),
 				'Content-Type'  => 'application/json',
-			),
+			],
 			'timeout' => 30,
-		);
+		];
 
 		if ( $method === 'POST' && ! empty( $data ) ) {
 			$args['body'] = wp_json_encode( $data );
@@ -409,7 +409,7 @@ class RazorpayGateway extends AbstractGateway {
 		$response = wp_remote_request( $url, $args );
 
 		if ( is_wp_error( $response ) ) {
-			$this->log( 'Razorpay API error', array( 'error' => $response->get_error_message() ), 'error' );
+			$this->log( 'Razorpay API error', [ 'error' => $response->get_error_message() ], 'error' );
 			return null;
 		}
 
@@ -417,7 +417,7 @@ class RazorpayGateway extends AbstractGateway {
 		$result = json_decode( $body, true );
 
 		if ( isset( $result['error'] ) ) {
-			$this->log( 'Razorpay API error', array( 'error' => $result['error']['description'] ?? 'Unknown error' ), 'error' );
+			$this->log( 'Razorpay API error', [ 'error' => $result['error']['description'] ?? 'Unknown error' ], 'error' );
 			return null;
 		}
 

@@ -52,7 +52,7 @@ class SecureVault {
 	 *
 	 * @var array<int, string>
 	 */
-	private array $keys = array();
+	private array $keys = [];
 
 	/**
 	 * Installation-unique HKDF salt.
@@ -130,16 +130,16 @@ class SecureVault {
 		}
 
 		// Load key versions from options.
-		$key_versions = get_option( 'wch_encryption_key_versions', array() );
+		$key_versions = get_option( 'wch_encryption_key_versions', [] );
 
 		if ( empty( $key_versions ) ) {
 			// Initialize with version 1.
-			$key_versions = array(
-				1 => array(
+			$key_versions = [
+				1 => [
 					'created_at' => time(),
 					'active'     => true,
-				),
-			);
+				],
+			];
 			update_option( 'wch_encryption_key_versions', $key_versions );
 		}
 
@@ -380,7 +380,7 @@ class SecureVault {
 			}
 
 			// Re-read key versions inside lock to get current state.
-			$key_versions = get_option( 'wch_encryption_key_versions', array() );
+			$key_versions = get_option( 'wch_encryption_key_versions', [] );
 			$old_version  = $this->current_key_version;
 
 			// Deactivate current key.
@@ -390,10 +390,10 @@ class SecureVault {
 
 			// Create new version.
 			$new_version                  = empty( $key_versions ) ? 1 : max( array_keys( $key_versions ) ) + 1;
-			$key_versions[ $new_version ] = array(
+			$key_versions[ $new_version ] = [
 				'created_at' => time(),
 				'active'     => true,
-			);
+			];
 
 			update_option( 'wch_encryption_key_versions', $key_versions );
 
@@ -404,10 +404,10 @@ class SecureVault {
 			do_action(
 				'wch_security_log',
 				'key_rotation',
-				array(
+				[
 					'old_version' => $old_version,
 					'new_version' => $new_version,
-				)
+				]
 			);
 
 			return $new_version;
@@ -518,10 +518,10 @@ class SecureVault {
 		if ( class_exists( 'WCH_Logger' ) ) {
 			\WCH_Logger::error(
 				$message,
-				array(
+				[
 					'category'      => 'security',
 					'openssl_error' => $detailed_error ?: 'No additional details',
-				)
+				]
 			);
 		} elseif ( function_exists( 'error_log' ) ) {
 			// Fallback to PHP error log if WCH_Logger is not available.
@@ -541,7 +541,7 @@ class SecureVault {
 	 */
 	private function logSecurityWarning( string $message, string $details ): void {
 		// Only log once per request to avoid flooding logs.
-		static $logged = array();
+		static $logged = [];
 		$key           = md5( $message );
 
 		if ( isset( $logged[ $key ] ) ) {
@@ -552,10 +552,10 @@ class SecureVault {
 		if ( class_exists( 'WCH_Logger' ) ) {
 			\WCH_Logger::warning(
 				$message,
-				array(
+				[
 					'category' => 'security',
 					'details'  => $details,
-				)
+				]
 			);
 		} elseif ( function_exists( 'error_log' ) && defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			// Only log to PHP error log in debug mode for warnings.

@@ -169,7 +169,7 @@ class CampaignReportGenerator {
 	 * @return void
 	 */
 	protected function renderErrorsBreakdown( array $stats ): void {
-		$errors = $stats['errors'] ?? array();
+		$errors = $stats['errors'] ?? [];
 
 		if ( empty( $errors ) ) {
 			return;
@@ -231,32 +231,32 @@ class CampaignReportGenerator {
 
 		$stats = $campaign['stats'] ?? $this->getDefaultStats();
 
-		return array(
-			'campaign'    => array(
+		return [
+			'campaign'    => [
 				'id'       => $campaign['id'],
 				'name'     => $campaign['name'],
 				'template' => $campaign['template_name'],
 				'status'   => $campaign['status'],
 				'sent_at'  => $campaign['sent_at'] ?? null,
-			),
-			'statistics'  => array(
+			],
+			'statistics'  => [
 				'total'     => $stats['total'] ?? 0,
 				'sent'      => $stats['sent'] ?? 0,
 				'delivered' => $stats['delivered'] ?? 0,
 				'read'      => $stats['read'] ?? 0,
 				'failed'    => $stats['failed'] ?? 0,
-			),
-			'rates'       => array(
+			],
+			'rates'       => [
 				'delivery_rate' => $stats['sent'] > 0
 					? round( ( $stats['delivered'] / $stats['sent'] ) * 100, 2 )
 					: 0,
 				'read_rate'     => $stats['delivered'] > 0
 					? round( ( $stats['read'] / $stats['delivered'] ) * 100, 2 )
 					: 0,
-			),
-			'errors'      => $stats['errors'] ?? array(),
+			],
+			'errors'      => $stats['errors'] ?? [],
 			'exported_at' => gmdate( 'Y-m-d H:i:s' ),
-		);
+		];
 	}
 
 	/**
@@ -266,7 +266,7 @@ class CampaignReportGenerator {
 	 * @return string Formatted date.
 	 */
 	protected function formatCampaignDate( array $campaign ): string {
-		$dateField = in_array( $campaign['status'] ?? '', array( 'scheduled', 'draft' ), true )
+		$dateField = in_array( $campaign['status'] ?? '', [ 'scheduled', 'draft' ], true )
 			? 'scheduled_at'
 			: 'sent_at';
 
@@ -288,12 +288,12 @@ class CampaignReportGenerator {
 	 * @return array Default stats.
 	 */
 	protected function getDefaultStats(): array {
-		return array(
+		return [
 			'sent'      => 0,
 			'delivered' => 0,
 			'read'      => 0,
 			'failed'    => 0,
-			'errors'    => array(),
-		);
+			'errors'    => [],
+		];
 	}
 }

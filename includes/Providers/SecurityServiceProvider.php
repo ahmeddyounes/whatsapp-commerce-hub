@@ -105,23 +105,23 @@ class SecurityServiceProvider implements ServiceProviderInterface {
 					 * @param string $level   Log level (info, warning, error).
 					 * @return void
 					 */
-					public function log( string $event, array $context = array(), string $level = 'info' ): void {
+					public function log( string $event, array $context = [], string $level = 'info' ): void {
 						// Always log to file.
 						$this->logger->$level( "Security: {$event}", $context );
 
 						// Log to database for important events.
-						if ( in_array( $level, array( 'warning', 'error' ), true ) ) {
+						if ( in_array( $level, [ 'warning', 'error' ], true ) ) {
 							$this->wpdb->insert(
 								$this->table,
-								array(
+								[
 									'event'      => $event,
 									'level'      => $level,
 									'context'    => wp_json_encode( $context ),
 									'ip_address' => $this->getClientIP(),
 									'user_id'    => get_current_user_id() ?: null,
 									'created_at' => current_time( 'mysql' ),
-								),
-								array( '%s', '%s', '%s', '%s', '%d', '%s' )
+								],
+								[ '%s', '%s', '%s', '%s', '%d', '%s' ]
 							);
 						}
 					}
@@ -134,9 +134,9 @@ class SecurityServiceProvider implements ServiceProviderInterface {
 					 * @param int   $offset  Offset.
 					 * @return array Security events.
 					 */
-					public function getEvents( array $filters = array(), int $limit = 50, int $offset = 0 ): array {
-						$where  = array( '1=1' );
-						$params = array();
+					public function getEvents( array $filters = [], int $limit = 50, int $offset = 0 ): array {
+						$where  = [ '1=1' ];
+						$params = [];
 
 						if ( isset( $filters['event'] ) ) {
 							$where[]  = 'event = %s';
@@ -167,7 +167,7 @@ class SecurityServiceProvider implements ServiceProviderInterface {
 								...$params
 							),
 							ARRAY_A
-						) ?: array();
+						) ?: [];
 					}
 
 					/**
@@ -176,12 +176,12 @@ class SecurityServiceProvider implements ServiceProviderInterface {
 					 * @return string The client IP.
 					 */
 					private function getClientIP(): string {
-						$headers = array(
+						$headers = [
 							'HTTP_CF_CONNECTING_IP',
 							'HTTP_X_FORWARDED_FOR',
 							'HTTP_X_REAL_IP',
 							'REMOTE_ADDR',
-						);
+						];
 
 						foreach ( $headers as $header ) {
 							if ( ! empty( $_SERVER[ $header ] ) ) {
@@ -235,7 +235,7 @@ class SecurityServiceProvider implements ServiceProviderInterface {
 		// Register security log action.
 		add_action(
 			'wch_security_log',
-			function ( string $event, array $context = array() ) use ( $container ) {
+			function ( string $event, array $context = [] ) use ( $container ) {
 				$logger = $container->get( 'wch.security.logger' );
 				$logger->log( $event, $context, 'info' );
 			},
@@ -276,7 +276,7 @@ class SecurityServiceProvider implements ServiceProviderInterface {
 	 * @return array<string>
 	 */
 	public function provides(): array {
-		return array(
+		return [
 			SecureVault::class,
 			'wch.security.vault',
 			PIIEncryptor::class,
@@ -284,6 +284,6 @@ class SecurityServiceProvider implements ServiceProviderInterface {
 			RateLimiter::class,
 			'wch.security.rate_limiter',
 			'wch.security.logger',
-		);
+		];
 	}
 }

@@ -32,20 +32,20 @@ class SettingsTabRenderer implements SettingsTabRendererInterface {
 	 *
 	 * @var array<string, string>
 	 */
-	protected array $tabs = array();
+	protected array $tabs = [];
 
 	/**
 	 * Constructor.
 	 */
 	public function __construct() {
-		$this->tabs = array(
+		$this->tabs = [
 			'connection'    => __( 'Connection', 'whatsapp-commerce-hub' ),
 			'catalog'       => __( 'Catalog', 'whatsapp-commerce-hub' ),
 			'checkout'      => __( 'Checkout', 'whatsapp-commerce-hub' ),
 			'notifications' => __( 'Notifications', 'whatsapp-commerce-hub' ),
 			'ai'            => __( 'AI', 'whatsapp-commerce-hub' ),
 			'advanced'      => __( 'Advanced', 'whatsapp-commerce-hub' ),
-		);
+		];
 	}
 
 	/**
@@ -208,8 +208,8 @@ class SettingsTabRenderer implements SettingsTabRendererInterface {
 	protected function renderCatalogTab( SettingsInterface $settings ): void {
 		$syncEnabled = $settings->get( 'catalog.sync_enabled', false );
 		$productMode = $settings->get( 'catalog.product_selection', 'all' );
-		$categories  = $settings->get( 'catalog.categories', array() );
-		$products    = $settings->get( 'catalog.products', array() );
+		$categories  = $settings->get( 'catalog.categories', [] );
+		$products    = $settings->get( 'catalog.products', [] );
 		$includeOos  = $settings->get( 'catalog.include_out_of_stock', false );
 		$lastSync    = $settings->get( 'catalog.last_sync', '' );
 		?>
@@ -312,7 +312,7 @@ class SettingsTabRenderer implements SettingsTabRendererInterface {
 	 * @return void
 	 */
 	protected function renderCheckoutTab( SettingsInterface $settings ): void {
-		$enabledMethods = $settings->get( 'checkout.enabled_payment_methods', array() );
+		$enabledMethods = $settings->get( 'checkout.enabled_payment_methods', [] );
 		$codEnabled     = $settings->get( 'checkout.cod_enabled', false );
 		$codExtraCharge = $settings->get( 'checkout.cod_extra_charge', 0 );
 		$minOrder       = $settings->get( 'checkout.min_order_amount', 0 );
@@ -417,12 +417,12 @@ class SettingsTabRenderer implements SettingsTabRendererInterface {
 	 * @return void
 	 */
 	protected function renderNotificationsTab( SettingsInterface $settings ): void {
-		$notificationTypes = array(
+		$notificationTypes = [
 			'order_confirmation' => __( 'Order Confirmation', 'whatsapp-commerce-hub' ),
 			'status_updates'     => __( 'Order Status Updates', 'whatsapp-commerce-hub' ),
 			'shipping'           => __( 'Shipping Notifications', 'whatsapp-commerce-hub' ),
 			'abandoned_cart'     => __( 'Abandoned Cart Reminders', 'whatsapp-commerce-hub' ),
-		);
+		];
 
 		$cartDelay = $settings->get( 'notifications.abandoned_cart_delay', 24 );
 		?>
@@ -649,10 +649,10 @@ class SettingsTabRenderer implements SettingsTabRendererInterface {
 	 */
 	protected function renderCategorySelect( array $selectedCategories ): void {
 		$productCategories = get_terms(
-			array(
+			[
 				'taxonomy'   => 'product_cat',
 				'hide_empty' => false,
-			)
+			]
 		);
 
 		if ( empty( $productCategories ) || is_wp_error( $productCategories ) ) {
@@ -707,7 +707,7 @@ class SettingsTabRenderer implements SettingsTabRendererInterface {
 	 * @return array<string, string> Gateway ID => Title.
 	 */
 	protected function getAvailablePaymentGateways(): array {
-		$gateways = array();
+		$gateways = [];
 
 		if ( class_exists( 'WCH_Payment_Manager' ) ) {
 			$paymentManager    = \WCH_Payment_Manager::getInstance();
