@@ -8,6 +8,10 @@ parameters:
 		- includes
 		- whatsapp-commerce-hub.php
 
+	# Parallel processing - disable to reduce memory usage
+	parallel:
+		maximumNumberOfProcesses: 1
+
 	# Exclude patterns
 	excludePaths:
 		- includes/class-wch-test.php
