@@ -175,8 +175,8 @@ final class Intent {
 	 * @param array $data Intent data.
 	 * @return static
 	 */
-	public static function fromArray( array $data ): static {
-		return new static(
+	public static function fromArray( array $data ): self {
+		return new self(
 			$data['intent_name'] ?? $data['name'] ?? self::UNKNOWN,
 			(float) ( $data['confidence'] ?? 0.0 ),
 			$data['entities'] ?? []
@@ -189,9 +189,9 @@ final class Intent {
 	 * @param string $json JSON string.
 	 * @return static
 	 */
-	public static function fromJson( string $json ): static {
+	public static function fromJson( string $json ): self {
 		$data = json_decode( $json, true );
-		return static::fromArray( is_array( $data ) ? $data : [] );
+		return self::fromArray( is_array( $data ) ? $data : [] );
 	}
 
 	/**
@@ -258,7 +258,7 @@ final class Intent {
 	 *
 	 * @return static
 	 */
-	public static function unknown(): static {
-		return new static( self::UNKNOWN, 0.0 );
+	public static function unknown(): self {
+		return new self( self::UNKNOWN, 0.0 );
 	}
 }

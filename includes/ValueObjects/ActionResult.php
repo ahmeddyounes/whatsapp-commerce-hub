@@ -57,8 +57,8 @@ final class ActionResult {
 		array $messages = [],
 		?string $nextState = null,
 		array $contextUpdates = []
-	): static {
-		return new static( true, $messages, $nextState, $contextUpdates );
+	): self {
+		return new self( true, $messages, $nextState, $contextUpdates );
 	}
 
 	/**
@@ -77,8 +77,8 @@ final class ActionResult {
 		?string $errorCode = null,
 		?string $nextState = null,
 		array $contextUpdates = []
-	): static {
-		return new static( false, $messages, $nextState, $contextUpdates, $errorMessage, $errorCode );
+	): self {
+		return new self( false, $messages, $nextState, $contextUpdates, $errorMessage, $errorCode );
 	}
 
 	/**
@@ -89,8 +89,8 @@ final class ActionResult {
 	 * @param array  $context   Context updates.
 	 * @return static
 	 */
-	public static function transitionTo( string $nextState, array $messages = [], array $context = [] ): static {
-		return new static( true, $messages, $nextState, $context );
+	public static function transitionTo( string $nextState, array $messages = [], array $context = [] ): self {
+		return new self( true, $messages, $nextState, $context );
 	}
 
 	/**
@@ -145,7 +145,7 @@ final class ActionResult {
 	 * @param mixed $message Message to add.
 	 * @return static New instance with message added.
 	 */
-	public function withMessage( mixed $message ): static {
+	public function withMessage( mixed $message ): self {
 		$new             = clone $this;
 		$new->messages[] = $message;
 		return $new;
@@ -157,7 +157,7 @@ final class ActionResult {
 	 * @param string $state State to transition to.
 	 * @return static New instance with state set.
 	 */
-	public function withNextState( string $state ): static {
+	public function withNextState( string $state ): self {
 		$new            = clone $this;
 		$new->nextState = $state;
 		return $new;
@@ -169,7 +169,7 @@ final class ActionResult {
 	 * @param array $context Context data to merge.
 	 * @return static New instance with context updated.
 	 */
-	public function withContext( array $context ): static {
+	public function withContext( array $context ): self {
 		$new                 = clone $this;
 		$new->contextUpdates = array_merge( $new->contextUpdates, $context );
 		return $new;

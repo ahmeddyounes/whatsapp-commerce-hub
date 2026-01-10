@@ -294,8 +294,8 @@ final class ParsedResponse {
 	 * @param array $data Response data.
 	 * @return static
 	 */
-	public static function fromArray( array $data ): static {
-		return new static(
+	public static function fromArray( array $data ): self {
+		return new self(
 			$data['type'] ?? self::TYPE_UNKNOWN,
 			$data['raw_content'] ?? null,
 			$data['parsed_data'] ?? [],
@@ -311,8 +311,8 @@ final class ParsedResponse {
 	 * @param string|null $intent Detected intent.
 	 * @return static
 	 */
-	public static function text( string $text, ?string $intent = null ): static {
-		return new static( self::TYPE_TEXT, $text, [ 'text' => $text ], $intent );
+	public static function text( string $text, ?string $intent = null ): self {
+		return new self( self::TYPE_TEXT, $text, [ 'text' => $text ], $intent );
 	}
 
 	/**
@@ -322,8 +322,8 @@ final class ParsedResponse {
 	 * @param string $buttonTitle Button title/text.
 	 * @return static
 	 */
-	public static function buttonReply( string $buttonId, string $buttonTitle ): static {
-		return new static(
+	public static function buttonReply( string $buttonId, string $buttonTitle ): self {
+		return new self(
 			self::TYPE_BUTTON_REPLY,
 			$buttonId,
 			[
@@ -341,8 +341,8 @@ final class ParsedResponse {
 	 * @param string|null $listDescription List item description.
 	 * @return static
 	 */
-	public static function listReply( string $listId, string $listTitle, ?string $listDescription = null ): static {
-		return new static(
+	public static function listReply( string $listId, string $listTitle, ?string $listDescription = null ): self {
+		return new self(
 			self::TYPE_LIST_REPLY,
 			$listId,
 			[
@@ -362,8 +362,8 @@ final class ParsedResponse {
 	 * @param string|null $address   Location address.
 	 * @return static
 	 */
-	public static function location( float $latitude, float $longitude, ?string $name = null, ?string $address = null ): static {
-		return new static(
+	public static function location( float $latitude, float $longitude, ?string $name = null, ?string $address = null ): self {
+		return new self(
 			self::TYPE_LOCATION,
 			[
 				'latitude'  => $latitude,
@@ -384,7 +384,7 @@ final class ParsedResponse {
 	 * @param mixed $content Raw content.
 	 * @return static
 	 */
-	public static function unknown( mixed $content ): static {
-		return new static( self::TYPE_UNKNOWN, $content );
+	public static function unknown( mixed $content ): self {
+		return new self( self::TYPE_UNKNOWN, $content );
 	}
 }

@@ -84,6 +84,26 @@ class BroadcastsAjaxHandler {
 	}
 
 	/**
+	 * Parse JSON from POST data.
+	 *
+	 * @param string $key POST key to parse.
+	 * @return array Parsed data or empty array.
+	 */
+	protected function parseJsonPost( string $key ): array {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in verifyRequest().
+		if ( ! isset( $_POST[ $key ] ) ) {
+			return [];
+		}
+
+		// phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.NonceVerification.Missing
+		// JSON data is decoded and validated after, nonce verified in verifyRequest().
+		$decoded = json_decode( stripslashes( $_POST[ $key ] ), true );
+		// phpcs:enable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.NonceVerification.Missing
+
+		return is_array( $decoded ) ? $decoded : [];
+	}
+
+	/**
 	 * Handle get campaigns AJAX request.
 	 *
 	 * @return void
@@ -125,13 +145,9 @@ class BroadcastsAjaxHandler {
 	 * @return void
 	 */
 	public function handleSaveCampaign(): void {
-		$this->verifyRequest(); // Calls check_ajax_referer()
+		$this->verifyRequest();
 
-		// phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.NonceVerification.Missing -- Nonce verified, JSON decoded and sanitized.
-		$campaignData = isset( $_POST['campaign'] )
-			? json_decode( stripslashes( $_POST['campaign'] ), true )
-			: [];
-		// phpcs:enable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.NonceVerification.Missing
+		$campaignData = $this->parseJsonPost( 'campaign' );
 
 		if ( empty( $campaignData ) ) {
 			wp_send_json_error( [ 'message' => __( 'Invalid campaign data', 'whatsapp-commerce-hub' ) ] );
@@ -206,13 +222,9 @@ class BroadcastsAjaxHandler {
 	 * @return void
 	 */
 	public function handleGetAudienceCount(): void {
-		$this->verifyRequest(); // Calls check_ajax_referer()
+		$this->verifyRequest();
 
-		// phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.NonceVerification.Missing -- Nonce verified, JSON decoded.
-		$criteria = isset( $_POST['criteria'] )
-			? json_decode( stripslashes( $_POST['criteria'] ), true )
-			: [];
-		// phpcs:enable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.NonceVerification.Missing
+		$criteria = $this->parseJsonPost( 'criteria' );
 
 		$count = $this->audienceCalculator->calculateCount( $criteria );
 
@@ -225,13 +237,9 @@ class BroadcastsAjaxHandler {
 	 * @return void
 	 */
 	public function handleSendCampaign(): void {
-		$this->verifyRequest(); // Calls check_ajax_referer()
+		$this->verifyRequest();
 
-		// phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.NonceVerification.Missing -- Nonce verified, JSON decoded.
-		$campaignData = isset( $_POST['campaign'] )
-			? json_decode( stripslashes( $_POST['campaign'] ), true )
-			: [];
-		// phpcs:enable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.NonceVerification.Missing
+		$campaignData = $this->parseJsonPost( 'campaign' );
 
 		if ( empty( $campaignData ) ) {
 			wp_send_json_error( [ 'message' => __( 'Invalid campaign data', 'whatsapp-commerce-hub' ) ] );
@@ -276,17 +284,15 @@ class BroadcastsAjaxHandler {
 	 * @return void
 	 */
 	public function handleSendTestBroadcast(): void {
-		$this->verifyRequest(); // Calls check_ajax_referer()
+		$this->verifyRequest();
 
-		// phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.NonceVerification.Missing -- Nonce verified, JSON decoded.
-		$campaignData = isset( $_POST['campaign'] )
-			? json_decode( stripslashes( $_POST['campaign'] ), true )
-			: [];
+		$campaignData = $this->parseJsonPost( 'campaign' );
 
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Nonce verified in verifyRequest().
 		$testPhone = isset( $_POST['test_phone'] )
 			? sanitize_text_field( wp_unslash( $_POST['test_phone'] ) )
 			: '';
-		// phpcs:enable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.NonceVerification.Missing
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		$result = $this->dispatcher->sendTest( $campaignData, $testPhone );
 

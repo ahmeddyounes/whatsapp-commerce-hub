@@ -452,8 +452,8 @@ final class ConversationContext {
 	 * @param array $data Context data.
 	 * @return static
 	 */
-	public static function fromArray( array $data ): static {
-		return new static( $data );
+	public static function fromArray( array $data ): self {
+		return new self( $data );
 	}
 
 	/**
@@ -462,9 +462,9 @@ final class ConversationContext {
 	 * @param string $json JSON string.
 	 * @return static
 	 */
-	public static function fromJson( string $json ): static {
+	public static function fromJson( string $json ): self {
 		$data = json_decode( $json, true );
-		return new static( is_array( $data ) ? $data : [] );
+		return new self( is_array( $data ) ? $data : [] );
 	}
 
 	/**
@@ -473,8 +473,8 @@ final class ConversationContext {
 	 * @param string $phone Customer phone.
 	 * @return static
 	 */
-	public static function forPhone( string $phone ): static {
-		return new static( [ 'customer_phone' => $phone ] );
+	public static function forPhone( string $phone ): self {
+		return new self( [ 'customer_phone' => $phone ] );
 	}
 
 	/**
