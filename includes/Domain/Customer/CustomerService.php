@@ -8,7 +8,9 @@
  * @since 2.0.0
  */
 
-namespace WhatsAppCommerceHub\Services;
+declare(strict_types=1);
+
+namespace WhatsAppCommerceHub\Domain\Customer;
 
 use WhatsAppCommerceHub\Contracts\Services\CustomerServiceInterface;
 use WhatsAppCommerceHub\Contracts\Repositories\CustomerRepositoryInterface;

@@ -22,7 +22,7 @@ use WhatsAppCommerceHub\Contracts\Payments\PaymentGatewayRegistryInterface;
 use WhatsAppCommerceHub\Contracts\Repositories\CartRepositoryInterface;
 use WhatsAppCommerceHub\Contracts\Repositories\CustomerRepositoryInterface;
 use WhatsAppCommerceHub\Domain\Cart\CartService;
-use WhatsAppCommerceHub\Services\CustomerService;
+use WhatsAppCommerceHub\Domain\Customer\CustomerService;
 use WhatsAppCommerceHub\Services\AddressService;
 use WhatsAppCommerceHub\Services\BroadcastService;
 use WhatsAppCommerceHub\Services\CatalogSyncService;
