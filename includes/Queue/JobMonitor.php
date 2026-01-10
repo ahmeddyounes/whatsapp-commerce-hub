@@ -25,17 +25,6 @@ class JobMonitor {
 	/**
 	 * Priority queue instance.
 	 *
-	 * @var PriorityQueue
-	 */
-	private PriorityQueue $priority_queue;
-
-	/**
-	 * Dead letter queue instance.
-	 *
-	 * @var DeadLetterQueue
-	 */
-	private DeadLetterQueue $dead_letter_queue;
-
 	/**
 	 * Alert thresholds.
 	 *
@@ -56,11 +45,9 @@ class JobMonitor {
 	 * @param DeadLetterQueue $dead_letter_queue Dead letter queue instance.
 	 */
 	public function __construct(
-		PriorityQueue $priority_queue,
-		DeadLetterQueue $dead_letter_queue
+		private PriorityQueue $priority_queue,
+		private DeadLetterQueue $dead_letter_queue
 	) {
-		$this->priority_queue    = $priority_queue;
-		$this->dead_letter_queue = $dead_letter_queue;
 	}
 
 	/**
