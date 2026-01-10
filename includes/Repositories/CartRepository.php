@@ -18,6 +18,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
+// SQL uses safe table names from $wpdb->prefix. Hook names use wch_ project prefix.
+
 /**
  * Class CartRepository
  *
@@ -26,21 +29,29 @@ if ( ! defined( 'ABSPATH' ) ) {
 class CartRepository extends AbstractRepository implements CartRepositoryInterface {
 
 	/**
-	 * {@inheritdoc}
+	 * Get the table name for carts.
+	 *
+	 * @return string Table name without prefix.
 	 */
 	protected function getTableName(): string {
 		return 'wch_carts';
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * Map a database row to a Cart entity.
+	 *
+	 * @param array $row Database row data.
+	 * @return Cart The mapped cart entity.
 	 */
 	protected function mapToEntity( array $row ): Cart {
 		return Cart::fromArray( $row );
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * Prepare data for database insertion/update.
+	 *
+	 * @param array $data Data to prepare.
+	 * @return array Prepared data.
 	 */
 	protected function prepareData( array $data ): array {
 		// Convert arrays to JSON.
@@ -77,7 +88,10 @@ class CartRepository extends AbstractRepository implements CartRepositoryInterfa
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * Find a cart by ID.
+	 *
+	 * @param int $id Cart ID.
+	 * @return Cart|null The cart or null if not found.
 	 */
 	public function find( int $id ): ?Cart {
 		$entity = parent::find( $id );
@@ -85,7 +99,10 @@ class CartRepository extends AbstractRepository implements CartRepositoryInterfa
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * Find active cart by customer phone number.
+	 *
+	 * @param string $phone Customer phone number.
+	 * @return Cart|null The active cart or null.
 	 */
 	public function findActiveByPhone( string $phone ): ?Cart {
 		$sql = "SELECT * FROM {$this->table}
@@ -104,7 +121,10 @@ class CartRepository extends AbstractRepository implements CartRepositoryInterfa
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * Find abandoned carts older than threshold.
+	 *
+	 * @param int $hours_threshold Hours since last update.
+	 * @return array Array of abandoned Cart entities.
 	 */
 	public function findAbandonedCarts( int $hours_threshold = 24 ): array {
 		$threshold_time = ( new \DateTimeImmutable() )
@@ -125,7 +145,9 @@ class CartRepository extends AbstractRepository implements CartRepositoryInterfa
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * Find all expired carts.
+	 *
+	 * @return array Array of expired Cart entities.
 	 */
 	public function findExpiredCarts(): array {
 		$sql = "SELECT * FROM {$this->table}
@@ -142,7 +164,10 @@ class CartRepository extends AbstractRepository implements CartRepositoryInterfa
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * Mark a cart as abandoned.
+	 *
+	 * @param int $cart_id Cart ID.
+	 * @return bool True on success.
 	 */
 	public function markAsAbandoned( int $cart_id ): bool {
 		return $this->update(
@@ -163,7 +188,11 @@ class CartRepository extends AbstractRepository implements CartRepositoryInterfa
 	);
 
 	/**
-	 * {@inheritdoc}
+	 * Mark a reminder as sent.
+	 *
+	 * @param int $cart_id         Cart ID.
+	 * @param int $reminder_number Reminder number (1, 2, or 3).
+	 * @return bool True on success.
 	 */
 	public function markReminderSent( int $cart_id, int $reminder_number ): bool {
 		// Use whitelist for SQL safety - prevents SQL injection via column name.
@@ -180,10 +209,14 @@ class CartRepository extends AbstractRepository implements CartRepositoryInterfa
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * Mark a cart as recovered with linked order.
 	 *
 	 * Uses transaction with FOR UPDATE lock to prevent double-marking
 	 * when recovery is triggered concurrently.
+	 *
+	 * @param int $cart_id  Cart ID.
+	 * @param int $order_id Order ID that recovered the cart.
+	 * @return bool True on success.
 	 */
 	public function markAsRecovered( int $cart_id, int $order_id ): bool {
 		$this->beginTransaction();
@@ -243,7 +276,11 @@ class CartRepository extends AbstractRepository implements CartRepositoryInterfa
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * Get recovery statistics for a date range.
+	 *
+	 * @param \DateTimeInterface $start_date Start date.
+	 * @param \DateTimeInterface $end_date   End date.
+	 * @return array Statistics array with total_abandoned, recovered_count, recovered_revenue, recovery_rate.
 	 */
 	public function getRecoveryStats( \DateTimeInterface $start_date, \DateTimeInterface $end_date ): array {
 		$start = $start_date->format( 'Y-m-d H:i:s' );
@@ -278,7 +315,10 @@ class CartRepository extends AbstractRepository implements CartRepositoryInterfa
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * Cleanup expired carts in batches.
+	 *
+	 * @param int $batch_size Number of carts to delete per batch.
+	 * @return int Number of carts deleted.
 	 */
 	public function cleanupExpired( int $batch_size = 100 ): int {
 		$sql = "DELETE FROM {$this->table}
@@ -294,7 +334,12 @@ class CartRepository extends AbstractRepository implements CartRepositoryInterfa
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * Find carts due for a reminder.
+	 *
+	 * @param int $reminder_number Reminder number (1, 2, or 3).
+	 * @param int $delay_hours     Hours since last activity.
+	 * @param int $limit           Maximum carts to return.
+	 * @return array Array of Cart entities due for reminder.
 	 */
 	public function findDueForReminder( int $reminder_number, int $delay_hours, int $limit = 50 ): array {
 		// Use whitelist for SQL safety - prevents SQL injection via column name.
@@ -309,9 +354,9 @@ class CartRepository extends AbstractRepository implements CartRepositoryInterfa
 			->format( 'Y-m-d H:i:s' );
 
 		$conditions = array(
-			"status = %s",
+			'status = %s',
 			"{$reminder_column} IS NULL",
-			"updated_at < %s",
+			'updated_at < %s',
 		);
 
 		$params = array( Cart::STATUS_ABANDONED, $threshold_time );
@@ -322,9 +367,9 @@ class CartRepository extends AbstractRepository implements CartRepositoryInterfa
 		}
 
 		$sql = "SELECT * FROM {$this->table}
-				WHERE " . implode( ' AND ', $conditions ) . "
+				WHERE " . implode( ' AND ', $conditions ) . '
 				ORDER BY updated_at ASC
-				LIMIT %d";
+				LIMIT %d';
 
 		$params[] = $limit;
 
@@ -394,7 +439,7 @@ class CartRepository extends AbstractRepository implements CartRepositoryInterfa
 	 * @return bool Success status.
 	 */
 	public function updateLocked( int $id, array $data ): bool {
-		$data = $this->prepareData( $data );
+		$data               = $this->prepareData( $data );
 		$data['updated_at'] = current_time( 'mysql' );
 
 		$result = $this->wpdb->update(
@@ -457,6 +502,7 @@ class CartRepository extends AbstractRepository implements CartRepositoryInterfa
 	 * @param \DateTimeImmutable $expiresAt Cart expiration time.
 	 * @return Cart The active cart (locked for update).
 	 * @throws \RuntimeException If cart cannot be created or locked.
+	 * @throws \Throwable If any other error occurs during cart creation.
 	 */
 	public function findOrCreateActiveForUpdate( string $phone, \DateTimeImmutable $expiresAt ): Cart {
 		// Generate a unique lock key based on the phone number.
@@ -487,15 +533,17 @@ class CartRepository extends AbstractRepository implements CartRepositoryInterfa
 
 			// No active cart exists - create one.
 			$now = new \DateTimeImmutable();
-			$id  = $this->create( array(
-				'customer_phone' => $phone,
-				'items'          => array(),
-				'total'          => 0.00,
-				'status'         => Cart::STATUS_ACTIVE,
-				'expires_at'     => $expiresAt,
-				'created_at'     => $now,
-				'updated_at'     => $now,
-			) );
+			$id  = $this->create(
+				array(
+					'customer_phone' => $phone,
+					'items'          => array(),
+					'total'          => 0.00,
+					'status'         => Cart::STATUS_ACTIVE,
+					'expires_at'     => $expiresAt,
+					'created_at'     => $now,
+					'updated_at'     => $now,
+				)
+			);
 
 			// Lock the newly created cart.
 			$cart = $this->findForUpdate( $id );
