@@ -28,6 +28,12 @@ class InventorySyncService {
 	private const DEBOUNCE_DELAY            = 5;
 	private const DEBOUNCE_TRANSIENT_PREFIX = 'wch_stock_sync_debounce_';
 
+	/**
+	 * Constructor.
+	 *
+	 * @param SettingsManager $settings Plugin settings.
+	 * @param Logger          $logger   Logger service.
+	 */
 	public function __construct(
 		private readonly SettingsManager $settings,
 		private readonly Logger $logger

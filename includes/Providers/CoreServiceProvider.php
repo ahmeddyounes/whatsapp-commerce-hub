@@ -8,6 +8,8 @@
  * @since 2.0.0
  */
 
+// phpcs:disable Squiz.Commenting.FunctionComment.Missing -- Service provider closures don't need docblocks.
+
 namespace WhatsAppCommerceHub\Providers;
 
 use WhatsAppCommerceHub\Container\ContainerInterface;
