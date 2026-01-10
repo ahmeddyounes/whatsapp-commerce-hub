@@ -98,12 +98,20 @@ class SettingsManager {
 			if ( false === $decrypted ) {
 				// Decryption failed - likely key rotation or data corruption.
 				// Return false instead of ciphertext to prevent using encrypted data as credentials.
-				error_log(
-					sprintf(
-						'SettingsManager: Failed to decrypt field %s - possible key rotation or data corruption',
-						$key
-					)
-				);
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Critical security logging when Logger unavailable.
+				if ( class_exists( 'WCH_Logger' ) ) {
+					\WCH_Logger::error(
+						sprintf( 'Failed to decrypt field %s - possible key rotation or data corruption', $key ),
+						[ 'component' => 'SettingsManager' ]
+					);
+				} else {
+					error_log(
+						sprintf(
+							'SettingsManager: Failed to decrypt field %s - possible key rotation or data corruption',
+							$key
+						)
+					);
+				}
 				return false;
 			}
 			return $decrypted;
@@ -146,12 +154,20 @@ class SettingsManager {
 			$encrypted = $this->encryption->encrypt( $value );
 			if ( false === $encrypted ) {
 				// Encryption failed - reject the write to prevent storing plaintext credentials.
-				error_log(
-					sprintf(
-						'SettingsManager: CRITICAL - Failed to encrypt sensitive field %s, rejecting write',
-						$key
-					)
-				);
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Critical security logging when Logger unavailable.
+				if ( class_exists( 'WCH_Logger' ) ) {
+					\WCH_Logger::error(
+						sprintf( 'CRITICAL - Failed to encrypt sensitive field %s, rejecting write', $key ),
+						[ 'component' => 'SettingsManager' ]
+					);
+				} else {
+					error_log(
+						sprintf(
+							'SettingsManager: CRITICAL - Failed to encrypt sensitive field %s, rejecting write',
+							$key
+						)
+					);
+				}
 				return false;
 			}
 			$value = $encrypted;
@@ -167,12 +183,20 @@ class SettingsManager {
 		$result = update_option( self::OPTION_NAME, $settings );
 
 		if ( ! $result ) {
-			error_log(
-				sprintf(
-					'SettingsManager: Failed to update setting %s - check database permissions',
-					$key
-				)
-			);
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Critical database logging when Logger unavailable.
+			if ( class_exists( 'WCH_Logger' ) ) {
+				\WCH_Logger::warning(
+					sprintf( 'Failed to update setting %s - check database permissions', $key ),
+					[ 'component' => 'SettingsManager' ]
+				);
+			} else {
+				error_log(
+					sprintf(
+						'SettingsManager: Failed to update setting %s - check database permissions',
+						$key
+					)
+				);
+			}
 		}
 
 		return $result;
