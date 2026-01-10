@@ -262,7 +262,7 @@ class Logger implements LoggerInterface {
 		$realPath   = realpath( $filepath );
 		$realLogDir = realpath( $this->getLogDirectory() );
 
-		if ( ! $realPath || ! $realLogDir || 0 !== strpos( $realPath, $realLogDir ) ) {
+		if ( ! $realPath || ! $realLogDir || ! str_starts_with( $realPath, $realLogDir ) ) {
 			return '';
 		}
 
@@ -304,7 +304,7 @@ class Logger implements LoggerInterface {
 		$realPath   = realpath( $filepath );
 		$realLogDir = realpath( $this->getLogDirectory() );
 
-		if ( ! $realPath || ! $realLogDir || 0 !== strpos( $realPath, $realLogDir ) ) {
+		if ( ! $realPath || ! $realLogDir || ! str_starts_with( $realPath, $realLogDir ) ) {
 			return false;
 		}
 
@@ -330,7 +330,7 @@ class Logger implements LoggerInterface {
 		$realPath   = realpath( $filepath );
 		$realLogDir = realpath( $this->getLogDirectory() );
 
-		if ( ! $realPath || ! $realLogDir || 0 !== strpos( $realPath, $realLogDir ) ) {
+		if ( ! $realPath || ! $realLogDir || ! str_starts_with( $realPath, $realLogDir ) ) {
 			return false;
 		}
 

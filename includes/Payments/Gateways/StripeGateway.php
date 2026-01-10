@@ -423,7 +423,7 @@ class StripeGateway extends AbstractGateway {
 	 */
 	public function getPaymentStatus( string $transactionId ): PaymentStatus {
 		// Try to get session first.
-		if ( strpos( $transactionId, 'cs_' ) === 0 ) {
+		if ( str_starts_with( $transactionId, 'cs_' ) ) {
 			$session = $this->stripeRequest( "checkout/sessions/{$transactionId}", array(), 'GET' );
 
 			if ( $session ) {
@@ -444,7 +444,7 @@ class StripeGateway extends AbstractGateway {
 		}
 
 		// Try payment intent.
-		if ( strpos( $transactionId, 'pi_' ) === 0 ) {
+		if ( str_starts_with( $transactionId, 'pi_' ) ) {
 			$paymentIntent = $this->stripeRequest( "payment_intents/{$transactionId}", array(), 'GET' );
 
 			if ( $paymentIntent ) {
@@ -486,7 +486,7 @@ class StripeGateway extends AbstractGateway {
 
 		// Get payment intent from transaction ID.
 		$paymentIntentId = $transactionId;
-		if ( strpos( $transactionId, 'cs_' ) === 0 ) {
+		if ( str_starts_with( $transactionId, 'cs_' ) ) {
 			$session         = $this->stripeRequest( "checkout/sessions/{$transactionId}", array(), 'GET' );
 			$paymentIntentId = $session['payment_intent'] ?? '';
 		}
