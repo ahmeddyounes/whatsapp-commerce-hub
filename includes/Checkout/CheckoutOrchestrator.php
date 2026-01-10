@@ -43,48 +43,6 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 	private array $steps = array();
 
 	/**
-	 * Cart service.
-	 *
-	 * @var CartServiceInterface
-	 */
-	private CartServiceInterface $cart_service;
-
-	/**
-	 * Customer service.
-	 *
-	 * @var CustomerServiceInterface
-	 */
-	private CustomerServiceInterface $customer_service;
-
-	/**
-	 * Message builder factory.
-	 *
-	 * @var MessageBuilderFactory
-	 */
-	private MessageBuilderFactory $message_builder;
-
-	/**
-	 * Address service.
-	 *
-	 * @var AddressServiceInterface
-	 */
-	private AddressServiceInterface $address_service;
-
-	/**
-	 * Cart repository.
-	 *
-	 * @var mixed
-	 */
-	private $cart_repository;
-
-	/**
-	 * Order sync service (optional).
-	 *
-	 * @var mixed
-	 */
-	private $order_sync_service;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param CartServiceInterface     $cart_service       Cart service.
@@ -95,19 +53,13 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 	 * @param mixed                    $order_sync_service Order sync service (optional).
 	 */
 	public function __construct(
-		CartServiceInterface $cart_service,
-		CustomerServiceInterface $customer_service,
-		MessageBuilderFactory $message_builder,
-		AddressServiceInterface $address_service,
-		$cart_repository = null,
-		$order_sync_service = null
+		private CartServiceInterface $cart_service,
+		private CustomerServiceInterface $customer_service,
+		private MessageBuilderFactory $message_builder,
+		private AddressServiceInterface $address_service,
+		private mixed $cart_repository = null,
+		private mixed $order_sync_service = null
 	) {
-		$this->cart_service       = $cart_service;
-		$this->customer_service   = $customer_service;
-		$this->message_builder    = $message_builder;
-		$this->address_service    = $address_service;
-		$this->cart_repository    = $cart_repository;
-		$this->order_sync_service = $order_sync_service;
 
 		$this->initializeSteps();
 	}
