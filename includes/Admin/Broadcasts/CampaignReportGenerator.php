@@ -147,10 +147,10 @@ class CampaignReportGenerator {
 	/**
 	 * Render a funnel item.
 	 *
-	 * @param int         $count      Count value.
-	 * @param string      $label      Label text.
-	 * @param float       $barWidth   Bar width percentage.
-	 * @param float|null  $percentage Optional percentage to display.
+	 * @param int        $count      Count value.
+	 * @param string     $label      Label text.
+	 * @param float      $barWidth   Bar width percentage.
+	 * @param float|null $percentage Optional percentage to display.
 	 * @return void
 	 */
 	protected function renderFunnelItem( int $count, string $label, float $barWidth, ?float $percentage = null ): void {
@@ -240,21 +240,21 @@ class CampaignReportGenerator {
 		$stats = $campaign['stats'] ?? $this->getDefaultStats();
 
 		return array(
-			'campaign'   => array(
+			'campaign'    => array(
 				'id'       => $campaign['id'],
 				'name'     => $campaign['name'],
 				'template' => $campaign['template_name'],
 				'status'   => $campaign['status'],
 				'sent_at'  => $campaign['sent_at'] ?? null,
 			),
-			'statistics' => array(
+			'statistics'  => array(
 				'total'     => $stats['total'] ?? 0,
 				'sent'      => $stats['sent'] ?? 0,
 				'delivered' => $stats['delivered'] ?? 0,
 				'read'      => $stats['read'] ?? 0,
 				'failed'    => $stats['failed'] ?? 0,
 			),
-			'rates'      => array(
+			'rates'       => array(
 				'delivery_rate' => $stats['sent'] > 0
 					? round( ( $stats['delivered'] / $stats['sent'] ) * 100, 2 )
 					: 0,
@@ -262,7 +262,7 @@ class CampaignReportGenerator {
 					? round( ( $stats['read'] / $stats['delivered'] ) * 100, 2 )
 					: 0,
 			),
-			'errors'     => $stats['errors'] ?? array(),
+			'errors'      => $stats['errors'] ?? array(),
 			'exported_at' => gmdate( 'Y-m-d H:i:s' ),
 		);
 	}

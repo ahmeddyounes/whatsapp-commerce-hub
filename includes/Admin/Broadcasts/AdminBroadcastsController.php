@@ -205,7 +205,7 @@ class AdminBroadcastsController {
 		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$action     = isset( $_GET['action'] ) ? sanitize_text_field( $_GET['action'] ) : 'list';
+		$action = isset( $_GET['action'] ) ? sanitize_text_field( $_GET['action'] ) : 'list';
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$campaignId = isset( $_GET['campaign_id'] ) ? absint( $_GET['campaign_id'] ) : 0;
 

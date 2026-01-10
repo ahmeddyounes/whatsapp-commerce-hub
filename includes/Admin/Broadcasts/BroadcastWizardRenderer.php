@@ -273,22 +273,22 @@ class BroadcastWizardRenderer {
 	 * @return void
 	 */
 	protected function renderScheduleDatetime(): void {
-		$tzstring    = get_option( 'timezone_string' );
-		$selectedTz  = $tzstring ? $tzstring : 'UTC';
+		$tzstring   = get_option( 'timezone_string' );
+		$selectedTz = $tzstring ? $tzstring : 'UTC';
 
 		$timezones = array(
-			'UTC'                => 'UTC',
-			'America/New_York'   => 'Eastern Time',
-			'America/Chicago'    => 'Central Time',
-			'America/Denver'     => 'Mountain Time',
+			'UTC'                 => 'UTC',
+			'America/New_York'    => 'Eastern Time',
+			'America/Chicago'     => 'Central Time',
+			'America/Denver'      => 'Mountain Time',
 			'America/Los_Angeles' => 'Pacific Time',
-			'Europe/London'      => 'London',
-			'Europe/Paris'       => 'Paris',
-			'Asia/Dubai'         => 'Dubai',
-			'Asia/Kolkata'       => 'India',
-			'Asia/Singapore'     => 'Singapore',
-			'Asia/Tokyo'         => 'Tokyo',
-			'Australia/Sydney'   => 'Sydney',
+			'Europe/London'       => 'London',
+			'Europe/Paris'        => 'Paris',
+			'Asia/Dubai'          => 'Dubai',
+			'Asia/Kolkata'        => 'India',
+			'Asia/Singapore'      => 'Singapore',
+			'Asia/Tokyo'          => 'Tokyo',
+			'Australia/Sydney'    => 'Sydney',
 		);
 		?>
 		<div class="wch-schedule-datetime" style="margin-left: 30px; display: none;">

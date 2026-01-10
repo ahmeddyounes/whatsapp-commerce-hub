@@ -122,15 +122,15 @@ class SettingsImportExporter implements SettingsImportExporterInterface {
 			);
 		}
 
-		$whitelist      = $this->sanitizer->getImportableWhitelist();
-		$importedCount  = 0;
-		$skippedCount   = 0;
-		$errors         = array();
+		$whitelist     = $this->sanitizer->getImportableWhitelist();
+		$importedCount = 0;
+		$skippedCount  = 0;
+		$errors        = array();
 
 		foreach ( $importData as $section => $values ) {
 			// Reject unknown sections.
 			if ( ! isset( $whitelist[ $section ] ) ) {
-				$skippedCount++;
+				++$skippedCount;
 				$errors[] = sprintf(
 					/* translators: %s: section name */
 					__( 'Section "%s" is not allowed for import', 'whatsapp-commerce-hub' ),
@@ -140,7 +140,7 @@ class SettingsImportExporter implements SettingsImportExporterInterface {
 			}
 
 			if ( ! is_array( $values ) ) {
-				$skippedCount++;
+				++$skippedCount;
 				continue;
 			}
 
@@ -149,7 +149,7 @@ class SettingsImportExporter implements SettingsImportExporterInterface {
 			foreach ( $values as $key => $value ) {
 				// Reject keys not in whitelist for this section.
 				if ( ! in_array( $key, $allowedKeys, true ) ) {
-					$skippedCount++;
+					++$skippedCount;
 					continue;
 				}
 
@@ -158,9 +158,9 @@ class SettingsImportExporter implements SettingsImportExporterInterface {
 
 				if ( null !== $sanitizedValue ) {
 					$this->settings->set( $section . '.' . $key, $sanitizedValue );
-					$importedCount++;
+					++$importedCount;
 				} else {
-					$skippedCount++;
+					++$skippedCount;
 				}
 			}
 		}
@@ -300,10 +300,10 @@ class SettingsImportExporter implements SettingsImportExporterInterface {
 			);
 		}
 
-		$whitelist      = $this->sanitizer->getImportableWhitelist();
-		$sections       = array();
-		$totalSettings  = 0;
-		$warnings       = array();
+		$whitelist     = $this->sanitizer->getImportableWhitelist();
+		$sections      = array();
+		$totalSettings = 0;
+		$warnings      = array();
 
 		foreach ( $importData as $section => $values ) {
 			if ( ! isset( $whitelist[ $section ] ) ) {
@@ -329,7 +329,7 @@ class SettingsImportExporter implements SettingsImportExporterInterface {
 			foreach ( $values as $key => $value ) {
 				if ( in_array( $key, $allowedKeys, true ) ) {
 					$sectionDetails['settings'][] = $key;
-					$totalSettings++;
+					++$totalSettings;
 				} else {
 					$sectionDetails['skipped'][] = $key;
 				}
