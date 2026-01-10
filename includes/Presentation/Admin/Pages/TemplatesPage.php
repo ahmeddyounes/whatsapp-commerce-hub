@@ -174,7 +174,7 @@ class TemplatesPage {
 		$lastSync        = $templateManager->get_last_sync_time();
 		$usageStats      = $templateManager->get_all_usage_stats();
 
-		$statsByName = $this->buildStatsIndex( $usageStats );
+		$statsByName         = $this->buildStatsIndex( $usageStats );
 		$templatesByCategory = $this->groupTemplatesByCategory( $templates );
 
 		$this->renderPageHtml( $templates, $templatesByCategory, $lastSync, $statsByName );

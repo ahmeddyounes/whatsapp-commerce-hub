@@ -919,8 +919,8 @@ class CatalogSyncPage {
 			'fields'         => 'ids',
 		);
 
-		$query       = new \WP_Query( $args );
-		$productIds  = $query->posts;
+		$query        = new \WP_Query( $args );
+		$productIds   = $query->posts;
 		$productsInfo = array();
 
 		foreach ( $productIds as $productId ) {
@@ -1126,7 +1126,7 @@ class CatalogSyncPage {
 			return sprintf( _n( '%d second', '%d seconds', $seconds, 'whatsapp-commerce-hub' ), $seconds );
 		}
 
-		$minutes           = floor( $seconds / 60 );
+		$minutes          = floor( $seconds / 60 );
 		$remainingSeconds = $seconds % 60;
 
 		if ( $minutes < 60 ) {
