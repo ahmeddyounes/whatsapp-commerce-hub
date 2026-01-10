@@ -48,7 +48,7 @@ class CheckoutServiceProvider extends AbstractServiceProvider {
 	 *
 	 * @return void
 	 */
-	public function register(): void {
+	protected function doRegister(): void {
 		// Register State Manager (no dependencies on other checkout services).
 		$this->container->singleton(
 			CheckoutStateManagerInterface::class,
@@ -146,7 +146,7 @@ class CheckoutServiceProvider extends AbstractServiceProvider {
 	 *
 	 * @return void
 	 */
-	public function boot(): void {
+	protected function doBoot(): void {
 		// Register checkout-related hooks.
 		add_action( 'wch_checkout_started', array( $this, 'onCheckoutStarted' ) );
 		add_action( 'wch_checkout_cancelled', array( $this, 'onCheckoutCancelled' ) );

@@ -79,7 +79,7 @@ class SecurityServiceProvider implements ServiceProviderInterface {
 		$container->singleton(
 			'wch.security.logger',
 			static function ( ContainerInterface $c ) {
-				$wpdb = $c->get( \wpdb::class );
+				$wpdb   = $c->get( \wpdb::class );
 				$logger = $c->get( 'wch.logger' );
 
 				return new class( $wpdb, $logger ) {
@@ -88,9 +88,9 @@ class SecurityServiceProvider implements ServiceProviderInterface {
 					private string $table;
 
 					public function __construct( \wpdb $wpdb, object $logger ) {
-						$this->wpdb = $wpdb;
+						$this->wpdb   = $wpdb;
 						$this->logger = $logger;
-						$this->table = $wpdb->prefix . 'wch_security_log';
+						$this->table  = $wpdb->prefix . 'wch_security_log';
 					}
 
 					/**
@@ -131,27 +131,27 @@ class SecurityServiceProvider implements ServiceProviderInterface {
 					 * @return array Security events.
 					 */
 					public function getEvents( array $filters = array(), int $limit = 50, int $offset = 0 ): array {
-						$where = array( '1=1' );
+						$where  = array( '1=1' );
 						$params = array();
 
 						if ( isset( $filters['event'] ) ) {
-							$where[] = 'event = %s';
+							$where[]  = 'event = %s';
 							$params[] = $filters['event'];
 						}
 
 						if ( isset( $filters['level'] ) ) {
-							$where[] = 'level = %s';
+							$where[]  = 'level = %s';
 							$params[] = $filters['level'];
 						}
 
 						if ( isset( $filters['since'] ) ) {
-							$where[] = 'created_at >= %s';
+							$where[]  = 'created_at >= %s';
 							$params[] = $filters['since'];
 						}
 
 						$where_clause = implode( ' AND ', $where );
-						$params[] = $limit;
-						$params[] = $offset;
+						$params[]     = $limit;
+						$params[]     = $offset;
 
 						// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 						return $this->wpdb->get_results(
@@ -229,30 +229,41 @@ class SecurityServiceProvider implements ServiceProviderInterface {
 	 */
 	public function boot( ContainerInterface $container ): void {
 		// Register security log action.
-		add_action( 'wch_security_log', function ( string $event, array $context = array() ) use ( $container ) {
-			$logger = $container->get( 'wch.security.logger' );
-			$logger->log( $event, $context, 'info' );
-		}, 10, 2 );
+		add_action(
+			'wch_security_log',
+			function ( string $event, array $context = array() ) use ( $container ) {
+				$logger = $container->get( 'wch.security.logger' );
+				$logger->log( $event, $context, 'info' );
+			},
+			10,
+			2
+		);
 
 		// Schedule rate limit cleanup.
 		if ( ! wp_next_scheduled( 'wch_rate_limit_cleanup' ) ) {
 			wp_schedule_event( time(), 'hourly', 'wch_rate_limit_cleanup' );
 		}
 
-		add_action( 'wch_rate_limit_cleanup', function () use ( $container ) {
-			$rate_limiter = $container->get( RateLimiter::class );
-			$rate_limiter->cleanup();
-		} );
+		add_action(
+			'wch_rate_limit_cleanup',
+			function () use ( $container ) {
+				$rate_limiter = $container->get( RateLimiter::class );
+				$rate_limiter->cleanup();
+			}
+		);
 
 		// Schedule security log cleanup.
 		if ( ! wp_next_scheduled( 'wch_security_log_cleanup' ) ) {
 			wp_schedule_event( time(), 'daily', 'wch_security_log_cleanup' );
 		}
 
-		add_action( 'wch_security_log_cleanup', function () use ( $container ) {
-			$logger = $container->get( 'wch.security.logger' );
-			$logger->cleanup( 90 );
-		} );
+		add_action(
+			'wch_security_log_cleanup',
+			function () use ( $container ) {
+				$logger = $container->get( 'wch.security.logger' );
+				$logger->cleanup( 90 );
+			}
+		);
 	}
 
 	/**

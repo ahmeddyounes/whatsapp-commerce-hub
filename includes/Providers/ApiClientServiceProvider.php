@@ -77,15 +77,15 @@ class ApiClientServiceProvider implements ServiceProviderInterface {
 		$container->singleton(
 			WhatsAppClientInterface::class,
 			static function ( ContainerInterface $c ) {
-				$settings = $c->get( 'wch.settings' );
+				$settings        = $c->get( 'wch.settings' );
 				$phone_number_id = $settings['phone_number_id'] ?? '';
-				$access_token = $settings['access_token'] ?? '';
+				$access_token    = $settings['access_token'] ?? '';
 
 				if ( empty( $phone_number_id ) || empty( $access_token ) ) {
 					throw new \RuntimeException( 'WhatsApp API credentials not configured' );
 				}
 
-				$registry = $c->get( CircuitBreakerRegistry::class );
+				$registry        = $c->get( CircuitBreakerRegistry::class );
 				$circuit_breaker = $registry->get( 'whatsapp' );
 
 				return new WhatsAppApiClient(
@@ -107,13 +107,13 @@ class ApiClientServiceProvider implements ServiceProviderInterface {
 			OpenAIClientInterface::class,
 			static function ( ContainerInterface $c ) {
 				$settings = $c->get( 'wch.settings' );
-				$api_key = $settings['openai_api_key'] ?? '';
+				$api_key  = $settings['openai_api_key'] ?? '';
 
 				if ( empty( $api_key ) ) {
 					throw new \RuntimeException( 'OpenAI API key not configured' );
 				}
 
-				$registry = $c->get( CircuitBreakerRegistry::class );
+				$registry        = $c->get( CircuitBreakerRegistry::class );
 				$circuit_breaker = $registry->get( 'openai' );
 
 				return new OpenAIClient(
@@ -366,10 +366,13 @@ class ApiClientServiceProvider implements ServiceProviderInterface {
 						);
 
 						if ( ! $response['success'] ) {
-							$this->logger->error( 'WhatsApp send failed', array(
-								'to'    => $to,
-								'error' => $response['error'],
-							) );
+							$this->logger->error(
+								'WhatsApp send failed',
+								array(
+									'to'    => $to,
+									'error' => $response['error'],
+								)
+							);
 
 							return array(
 								'success'    => false,
@@ -380,10 +383,13 @@ class ApiClientServiceProvider implements ServiceProviderInterface {
 
 						$message_id = $response['data']['messages'][0]['id'] ?? null;
 
-						$this->logger->debug( 'WhatsApp message sent', array(
-							'to'         => $to,
-							'message_id' => $message_id,
-						) );
+						$this->logger->debug(
+							'WhatsApp message sent',
+							array(
+								'to'         => $to,
+								'message_id' => $message_id,
+							)
+						);
 
 						return array(
 							'success'    => true,

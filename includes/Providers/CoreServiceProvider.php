@@ -131,7 +131,7 @@ class CoreServiceProvider implements ServiceProviderInterface {
 					}
 
 					private function log( string $level, string $message, array $context ): void {
-						$timestamp = gmdate( 'Y-m-d H:i:s' );
+						$timestamp   = gmdate( 'Y-m-d H:i:s' );
 						$context_str = ! empty( $context ) ? ' ' . wp_json_encode( $context ) : '';
 
 						$log_line = "[{$timestamp}] [{$level}] {$message}{$context_str}\n";
@@ -283,9 +283,9 @@ class CoreServiceProvider implements ServiceProviderInterface {
 		$container->singleton(
 			Logger::class,
 			static function ( ContainerInterface $c ) {
-				$settings = $c->has( 'wch.settings' ) ? $c->get( 'wch.settings' ) : array();
+				$settings     = $c->has( 'wch.settings' ) ? $c->get( 'wch.settings' ) : array();
 				$debugEnabled = (bool) ( $settings['enable_debug_logging'] ?? false );
-				$minLevel = $debugEnabled ? Logger::LEVEL_DEBUG : Logger::LEVEL_INFO;
+				$minLevel     = $debugEnabled ? Logger::LEVEL_DEBUG : Logger::LEVEL_INFO;
 				return new Logger( $minLevel );
 			}
 		);

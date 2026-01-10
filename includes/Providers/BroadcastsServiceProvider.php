@@ -41,7 +41,7 @@ class BroadcastsServiceProvider extends AbstractServiceProvider {
 	 *
 	 * @return void
 	 */
-	public function register(): void {
+	protected function doRegister(): void {
 		// Register Campaign Repository.
 		$this->container->singleton(
 			CampaignRepositoryInterface::class,
@@ -131,7 +131,7 @@ class BroadcastsServiceProvider extends AbstractServiceProvider {
 	 *
 	 * @return void
 	 */
-	public function boot(): void {
+	protected function doBoot(): void {
 		// Only initialize in admin context.
 		if ( is_admin() ) {
 			$controller = $this->container->get( AdminBroadcastsController::class );
@@ -167,7 +167,7 @@ class BroadcastsServiceProvider extends AbstractServiceProvider {
 		}
 
 		// Return a minimal settings implementation.
-		return new class implements SettingsInterface {
+		return new class() implements SettingsInterface {
 			public function get( string $key, $default = null ) {
 				return get_option( 'wch_' . str_replace( '.', '_', $key ), $default );
 			}

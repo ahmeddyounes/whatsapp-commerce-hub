@@ -218,21 +218,27 @@ class BusinessServiceProvider implements ServiceProviderInterface {
 			wp_schedule_event( time(), 'hourly', 'wch_cleanup_expired_carts' );
 		}
 
-		add_action( 'wch_cleanup_expired_carts', function () use ( $container ) {
-			try {
-				$cart_service = $container->get( CartServiceInterface::class );
-				$count = $cart_service->cleanupExpiredCarts();
+		add_action(
+			'wch_cleanup_expired_carts',
+			function () use ( $container ) {
+				try {
+					$cart_service = $container->get( CartServiceInterface::class );
+					$count        = $cart_service->cleanupExpiredCarts();
 
-				if ( $count > 0 ) {
-					do_action( 'wch_log_info', sprintf(
-						'Cleaned up %d expired carts',
-						$count
-					) );
+					if ( $count > 0 ) {
+						do_action(
+							'wch_log_info',
+							sprintf(
+								'Cleaned up %d expired carts',
+								$count
+							)
+						);
+					}
+				} catch ( \Throwable $e ) {
+					do_action( 'wch_log_error', 'Failed to cleanup carts: ' . $e->getMessage() );
 				}
-			} catch ( \Throwable $e ) {
-				do_action( 'wch_log_error', 'Failed to cleanup carts: ' . $e->getMessage() );
 			}
-		} );
+		);
 	}
 
 	/**

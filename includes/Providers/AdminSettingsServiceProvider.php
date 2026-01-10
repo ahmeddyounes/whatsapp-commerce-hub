@@ -40,7 +40,7 @@ class AdminSettingsServiceProvider extends AbstractServiceProvider {
 	 *
 	 * @return void
 	 */
-	public function register(): void {
+	protected function doRegister(): void {
 		// Register Settings Tab Renderer.
 		$this->container->singleton(
 			SettingsTabRendererInterface::class,
@@ -115,7 +115,7 @@ class AdminSettingsServiceProvider extends AbstractServiceProvider {
 	 *
 	 * @return void
 	 */
-	public function boot(): void {
+	protected function doBoot(): void {
 		// Only initialize in admin context.
 		if ( is_admin() ) {
 			$controller = $this->container->get( AdminSettingsController::class );
@@ -149,7 +149,7 @@ class AdminSettingsServiceProvider extends AbstractServiceProvider {
 		}
 
 		// Return a minimal settings implementation.
-		return new class implements SettingsInterface {
+		return new class() implements SettingsInterface {
 			public function get( string $key, $default = null ) {
 				return get_option( 'wch_' . str_replace( '.', '_', $key ), $default );
 			}

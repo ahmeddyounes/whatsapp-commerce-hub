@@ -278,8 +278,8 @@ class PaymentServiceProvider implements ServiceProviderInterface {
 			return;
 		}
 
-		$gateways    = $container->get( 'payment.gateways' );
-		$gatewayIds  = array_keys( $gateways );
+		$gateways           = $container->get( 'payment.gateways' );
+		$gatewayIds         = array_keys( $gateways );
 		$configuredGateways = array();
 
 		foreach ( $gateways as $id => $gateway ) {

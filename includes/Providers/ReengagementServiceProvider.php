@@ -47,7 +47,7 @@ class ReengagementServiceProvider extends AbstractServiceProvider {
 	 *
 	 * @return void
 	 */
-	public function register(): void {
+	protected function doRegister(): void {
 		// Register Frequency Cap Manager (no dependencies on other reengagement services).
 		$this->container->singleton(
 			FrequencyCapManagerInterface::class,
@@ -163,7 +163,7 @@ class ReengagementServiceProvider extends AbstractServiceProvider {
 	 *
 	 * @return void
 	 */
-	public function boot(): void {
+	protected function doBoot(): void {
 		// Initialize orchestrator to schedule tasks.
 		$orchestrator = $this->container->get( ReengagementOrchestratorInterface::class );
 		$orchestrator->init();
@@ -234,7 +234,7 @@ class ReengagementServiceProvider extends AbstractServiceProvider {
 		}
 
 		// Return a minimal settings implementation.
-		return new class implements SettingsInterface {
+		return new class() implements SettingsInterface {
 			public function get( string $key, $default = null ) {
 				return get_option( 'wch_' . str_replace( '.', '_', $key ), $default );
 			}

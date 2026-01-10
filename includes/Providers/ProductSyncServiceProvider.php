@@ -43,7 +43,7 @@ class ProductSyncServiceProvider extends AbstractServiceProvider {
 	 *
 	 * @return void
 	 */
-	public function register(): void {
+	protected function doRegister(): void {
 		// Register Product Validator.
 		$this->container->singleton(
 			ProductValidatorInterface::class,
@@ -139,7 +139,7 @@ class ProductSyncServiceProvider extends AbstractServiceProvider {
 	 *
 	 * @return void
 	 */
-	public function boot(): void {
+	protected function doBoot(): void {
 		// Initialize admin UI hooks.
 		if ( is_admin() ) {
 			$adminUI = $this->container->get( ProductSyncAdminUI::class );

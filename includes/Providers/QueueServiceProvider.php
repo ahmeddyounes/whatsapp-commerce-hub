@@ -75,7 +75,7 @@ class QueueServiceProvider implements ServiceProviderInterface {
 			JobMonitor::class,
 			static function ( ContainerInterface $c ): JobMonitor {
 				$priority_queue = $c->get( PriorityQueue::class );
-				$dlq = $c->get( DeadLetterQueue::class );
+				$dlq            = $c->get( DeadLetterQueue::class );
 				return new JobMonitor( $priority_queue, $dlq );
 			}
 		);
@@ -188,18 +188,24 @@ class QueueServiceProvider implements ServiceProviderInterface {
 	 */
 	public function boot( ContainerInterface $container ): void {
 		// Register queue action hooks.
-		add_action( 'action_scheduler_failed_action', function ( int $action_id ) use ( $container ) {
-			$this->handleFailedAction( $container, $action_id );
-		} );
+		add_action(
+			'action_scheduler_failed_action',
+			function ( int $action_id ) use ( $container ) {
+				$this->handleFailedAction( $container, $action_id );
+			}
+		);
 
 		// Schedule periodic cleanup of dead letter queue.
-		add_action( 'wch_cleanup_dead_letter_queue', function () use ( $container ) {
-			$dlq = $container->get( DeadLetterQueue::class );
-			$deleted = $dlq->cleanup( 30 );
-			if ( $deleted > 0 ) {
-				do_action( 'wch_log_info', "Cleaned up {$deleted} old dead letter entries" );
+		add_action(
+			'wch_cleanup_dead_letter_queue',
+			function () use ( $container ) {
+				$dlq     = $container->get( DeadLetterQueue::class );
+				$deleted = $dlq->cleanup( 30 );
+				if ( $deleted > 0 ) {
+					do_action( 'wch_log_info', "Cleaned up {$deleted} old dead letter entries" );
+				}
 			}
-		} );
+		);
 
 		// Schedule the cleanup if not already scheduled.
 		if ( function_exists( 'as_next_scheduled_action' ) && ! as_next_scheduled_action( 'wch_cleanup_dead_letter_queue' ) ) {
@@ -215,13 +221,16 @@ class QueueServiceProvider implements ServiceProviderInterface {
 		}
 
 		// Schedule periodic cleanup of idempotency keys.
-		add_action( 'wch_cleanup_idempotency_keys', function () use ( $container ) {
-			$idempotency = $container->get( IdempotencyService::class );
-			$deleted = $idempotency->cleanup();
-			if ( $deleted > 0 ) {
-				do_action( 'wch_log_info', "Cleaned up {$deleted} expired idempotency keys" );
+		add_action(
+			'wch_cleanup_idempotency_keys',
+			function () use ( $container ) {
+				$idempotency = $container->get( IdempotencyService::class );
+				$deleted     = $idempotency->cleanup();
+				if ( $deleted > 0 ) {
+					do_action( 'wch_log_info', "Cleaned up {$deleted} expired idempotency keys" );
+				}
 			}
-		} );
+		);
 
 		// Schedule idempotency cleanup if not already scheduled.
 		if ( function_exists( 'as_next_scheduled_action' ) && ! as_next_scheduled_action( 'wch_cleanup_idempotency_keys' ) ) {
@@ -248,48 +257,68 @@ class QueueServiceProvider implements ServiceProviderInterface {
 	 */
 	private function registerProcessorHooks( ContainerInterface $container ): void {
 		// WebhookMessageProcessor hook.
-		add_action( 'wch_process_webhook_messages', function ( array $args ) use ( $container ) {
-			try {
-				$processor = $container->get( WebhookMessageProcessor::class );
-				$processor->execute( $args );
-			} catch ( \Throwable $e ) {
-				do_action( 'wch_log_error', 'WebhookMessageProcessor failed: ' . $e->getMessage() );
-				throw $e;
-			}
-		}, 10, 1 );
+		add_action(
+			'wch_process_webhook_messages',
+			function ( array $args ) use ( $container ) {
+				try {
+					$processor = $container->get( WebhookMessageProcessor::class );
+					$processor->execute( $args );
+				} catch ( \Throwable $e ) {
+					do_action( 'wch_log_error', 'WebhookMessageProcessor failed: ' . $e->getMessage() );
+					throw $e;
+				}
+			},
+			10,
+			1
+		);
 
 		// WebhookStatusProcessor hook.
-		add_action( 'wch_process_webhook_statuses', function ( array $args ) use ( $container ) {
-			try {
-				$processor = $container->get( WebhookStatusProcessor::class );
-				$processor->execute( $args );
-			} catch ( \Throwable $e ) {
-				do_action( 'wch_log_error', 'WebhookStatusProcessor failed: ' . $e->getMessage() );
-				throw $e;
-			}
-		}, 10, 1 );
+		add_action(
+			'wch_process_webhook_statuses',
+			function ( array $args ) use ( $container ) {
+				try {
+					$processor = $container->get( WebhookStatusProcessor::class );
+					$processor->execute( $args );
+				} catch ( \Throwable $e ) {
+					do_action( 'wch_log_error', 'WebhookStatusProcessor failed: ' . $e->getMessage() );
+					throw $e;
+				}
+			},
+			10,
+			1
+		);
 
 		// WebhookErrorProcessor hook.
-		add_action( 'wch_process_webhook_errors', function ( array $args ) use ( $container ) {
-			try {
-				$processor = $container->get( WebhookErrorProcessor::class );
-				$processor->execute( $args );
-			} catch ( \Throwable $e ) {
-				do_action( 'wch_log_error', 'WebhookErrorProcessor failed: ' . $e->getMessage() );
-				throw $e;
-			}
-		}, 10, 1 );
+		add_action(
+			'wch_process_webhook_errors',
+			function ( array $args ) use ( $container ) {
+				try {
+					$processor = $container->get( WebhookErrorProcessor::class );
+					$processor->execute( $args );
+				} catch ( \Throwable $e ) {
+					do_action( 'wch_log_error', 'WebhookErrorProcessor failed: ' . $e->getMessage() );
+					throw $e;
+				}
+			},
+			10,
+			1
+		);
 
 		// OrderNotificationProcessor hook.
-		add_action( 'wch_send_order_notification', function ( array $args ) use ( $container ) {
-			try {
-				$processor = $container->get( OrderNotificationProcessor::class );
-				$processor->execute( $args );
-			} catch ( \Throwable $e ) {
-				do_action( 'wch_log_error', 'OrderNotificationProcessor failed: ' . $e->getMessage() );
-				throw $e;
-			}
-		}, 10, 1 );
+		add_action(
+			'wch_send_order_notification',
+			function ( array $args ) use ( $container ) {
+				try {
+					$processor = $container->get( OrderNotificationProcessor::class );
+					$processor->execute( $args );
+				} catch ( \Throwable $e ) {
+					do_action( 'wch_log_error', 'OrderNotificationProcessor failed: ' . $e->getMessage() );
+					throw $e;
+				}
+			},
+			10,
+			1
+		);
 	}
 
 	/**

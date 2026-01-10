@@ -57,7 +57,7 @@ class ActionServiceProvider extends AbstractServiceProvider {
 	 *
 	 * @return void
 	 */
-	public function register(): void {
+	protected function doRegister(): void {
 		// Register ActionRegistry as singleton.
 		$this->container->singleton(
 			ActionRegistry::class,
@@ -92,7 +92,7 @@ class ActionServiceProvider extends AbstractServiceProvider {
 	 *
 	 * @return void
 	 */
-	public function boot(): void {
+	protected function doBoot(): void {
 		$registry = $this->container->get( ActionRegistry::class );
 
 		// Register all action handlers with the registry.

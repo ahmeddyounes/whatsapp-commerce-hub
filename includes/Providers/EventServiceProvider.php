@@ -43,16 +43,16 @@ class EventServiceProvider implements ServiceProviderInterface {
 		'wch.message.received' => array(
 			MessageReceivedHandler::class,
 		),
-		'wch.message.sent' => array(
+		'wch.message.sent'     => array(
 			MessageSentHandler::class,
 		),
-		'wch.order.created' => array(
+		'wch.order.created'    => array(
 			OrderCreatedHandler::class,
 		),
-		'wch.cart.abandoned' => array(
+		'wch.cart.abandoned'   => array(
 			CartAbandonedHandler::class,
 		),
-		'wch.cart.recovered' => array(
+		'wch.cart.recovered'   => array(
 			CartRecoveredHandler::class,
 		),
 	);
@@ -80,7 +80,7 @@ class EventServiceProvider implements ServiceProviderInterface {
 				// Create a logger adapter that wraps WCH_Logger static methods.
 				$logger = null;
 				if ( class_exists( 'WCH_Logger' ) ) {
-					$logger = new class {
+					$logger = new class() {
 						public function info( string $message, array $context = array() ): void {
 							\WCH_Logger::info( $message, array_merge( array( 'category' => 'events' ), $context ) );
 						}
@@ -162,10 +162,14 @@ class EventServiceProvider implements ServiceProviderInterface {
 			// Use EventBus's native async event processor which handles array data.
 			$event_bus->processAsyncEvent( $event_name, $event_data );
 		} catch ( \Throwable $e ) {
-			do_action( 'wch_log_error', 'Failed to process async event: ' . $e->getMessage(), array(
-				'event_name' => $event_name,
-				'event_id'   => $event_data['id'] ?? 'unknown',
-			) );
+			do_action(
+				'wch_log_error',
+				'Failed to process async event: ' . $e->getMessage(),
+				array(
+					'event_name' => $event_name,
+					'event_id'   => $event_data['id'] ?? 'unknown',
+				)
+			);
 		}
 	}
 
