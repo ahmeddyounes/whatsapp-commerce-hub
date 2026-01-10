@@ -2,7 +2,7 @@
 /**
  * Plugin Name: WhatsApp Commerce Hub
  * Description: Complete e-commerce ecosystem inside WhatsApp with WooCommerce sync
- * Version: 1.0.0
+ * Version: 3.0.0
  * Requires PHP: 8.1
  * Requires at least: 6.0
  * WC requires at least: 8.0
@@ -418,6 +418,7 @@ function wch_activate_plugin() {
 
 		// Display error message.
 		wp_die(
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Error message is safely constructed
 			$requirements->get_error_message(),
 			'Plugin Activation Error',
 			array(

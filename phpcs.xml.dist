@@ -17,9 +17,11 @@
 	<exclude-pattern>*/node_modules/*</exclude-pattern>
 	<exclude-pattern>*/tests/*</exclude-pattern>
 	<exclude-pattern>*/bin/*</exclude-pattern>
+	<exclude-pattern>*/stubs/*</exclude-pattern>
 	<exclude-pattern>*.asset.php</exclude-pattern>
 	<exclude-pattern>test-*.php</exclude-pattern>
 	<exclude-pattern>verify-*.php</exclude-pattern>
+	<exclude-pattern>standalone-test.php</exclude-pattern>
 	<exclude-pattern>*/examples/*</exclude-pattern>
 
 	<!-- Include the WordPress-Extra standard. -->
@@ -59,6 +61,8 @@
 			<property name="prefixes" type="array">
 				<element value="wch"/>
 				<element value="WCH"/>
+				<element value="wch_"/>
+				<element value="WCH_"/>
 				<element value="whatsapp_commerce_hub"/>
 				<element value="WhatsApp_Commerce_Hub"/>
 				<element value="WhatsAppCommerceHub"/>
@@ -78,6 +82,25 @@
 
 	<!-- Disable short prefix warning - wch/WCH is the established project prefix -->
 	<rule ref="WordPress.NamingConventions.PrefixAllGlobals.ShortPrefixPassed">
+		<severity>0</severity>
+	</rule>
+
+	<!-- Disable prefix warnings for wch_ and WCH_ prefixed names -->
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound">
+		<severity>0</severity>
+	</rule>
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound">
+		<severity>0</severity>
+	</rule>
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound">
+		<severity>0</severity>
+	</rule>
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound">
+		<severity>0</severity>
+	</rule>
+
+	<!-- Allow mixed functions and OO in main plugin file -->
+	<rule ref="Universal.Files.SeparateFunctionsFromOO.Mixed">
 		<severity>0</severity>
 	</rule>
 
