@@ -54,11 +54,11 @@ class WCH_Webhook_Integration_Test extends WCH_Integration_Test_Case {
 		$challenge = 'test_challenge_' . wp_generate_uuid4();
 		$request   = new WP_REST_Request( 'GET', '/wch/v1/webhook' );
 		$request->set_query_params(
-			array(
+			[
 				'hub.mode'         => 'subscribe',
 				'hub.verify_token' => $this->verify_token,
 				'hub.challenge'    => $challenge,
-			)
+			]
 		);
 
 		// Act.
@@ -77,11 +77,11 @@ class WCH_Webhook_Integration_Test extends WCH_Integration_Test_Case {
 		$challenge = 'test_challenge_' . wp_generate_uuid4();
 		$request   = new WP_REST_Request( 'GET', '/wch/v1/webhook' );
 		$request->set_query_params(
-			array(
+			[
 				'hub.mode'         => 'subscribe',
 				'hub.verify_token' => 'invalid_token',
 				'hub.challenge'    => $challenge,
-			)
+			]
 		);
 
 		// Act.
@@ -98,7 +98,7 @@ class WCH_Webhook_Integration_Test extends WCH_Integration_Test_Case {
 	 */
 	public function test_webhook_signature_validation_success() {
 		// Arrange.
-		$payload   = wp_json_encode( array( 'test' => 'data' ) );
+		$payload   = wp_json_encode( [ 'test' => 'data' ] );
 		$secret    = 'webhook_secret_123';
 		$signature = hash_hmac( 'sha256', $payload, $secret );
 
@@ -110,7 +110,7 @@ class WCH_Webhook_Integration_Test extends WCH_Integration_Test_Case {
 		$request->set_body( $payload );
 
 		// Create minimal valid webhook payload.
-		$webhook_payload = array(
+		$webhook_payload = [
 			'object' => 'whatsapp_business_account',
 			'entry'  => array(
 				array(
@@ -131,7 +131,7 @@ class WCH_Webhook_Integration_Test extends WCH_Integration_Test_Case {
 					),
 				),
 			),
-		);
+		];
 
 		$payload = wp_json_encode( $webhook_payload );
 		$signature = hash_hmac( 'sha256', $payload, $secret );
@@ -151,7 +151,7 @@ class WCH_Webhook_Integration_Test extends WCH_Integration_Test_Case {
 	 */
 	public function test_webhook_signature_validation_failure() {
 		// Arrange.
-		$payload   = wp_json_encode( array( 'test' => 'data' ) );
+		$payload   = wp_json_encode( [ 'test' => 'data' ] );
 		$secret    = 'webhook_secret_123';
 		$signature = 'invalid_signature';
 
@@ -194,10 +194,10 @@ class WCH_Webhook_Integration_Test extends WCH_Integration_Test_Case {
 		// Verify message was stored in database.
 		$this->assertDatabaseHas(
 			'wch_messages',
-			array(
+			[
 				'message_type' => 'text',
 				'direction'    => 'incoming',
-			)
+			]
 		);
 	}
 
@@ -224,10 +224,10 @@ class WCH_Webhook_Integration_Test extends WCH_Integration_Test_Case {
 		// Verify message was stored in database.
 		$this->assertDatabaseHas(
 			'wch_messages',
-			array(
+			[
 				'message_type' => 'interactive',
 				'direction'    => 'incoming',
-			)
+			]
 		);
 	}
 
@@ -241,7 +241,7 @@ class WCH_Webhook_Integration_Test extends WCH_Integration_Test_Case {
 
 		$wpdb->insert(
 			$wpdb->prefix . 'wch_messages',
-			array(
+			[
 				'conversation_id' => 1,
 				'message_id'      => $message_id,
 				'phone_number'    => '+1234567890',
@@ -250,8 +250,8 @@ class WCH_Webhook_Integration_Test extends WCH_Integration_Test_Case {
 				'status'          => 'sent',
 				'content'         => wp_json_encode( array( 'text' => 'Test' ) ),
 				'created_at'      => current_time( 'mysql' ),
-			),
-			array( '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s' )
+			],
+			[ '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s' ]
 		);
 
 		$payload = $this->get_fixture( 'webhook_status_update.json' );
@@ -281,7 +281,7 @@ class WCH_Webhook_Integration_Test extends WCH_Integration_Test_Case {
 		);
 
 		$this->assertNotNull( $updated_message );
-		$this->assertContains( $updated_message->status, array( 'delivered', 'read' ) );
+		$this->assertContains( $updated_message->status, [ 'delivered', 'read' ] );
 	}
 
 	/**
@@ -343,7 +343,7 @@ class WCH_Webhook_Integration_Test extends WCH_Integration_Test_Case {
 	 * @return array Fallback payload.
 	 */
 	private function get_fallback_payload( string $filename ): array {
-		$base_payload = array(
+		$base_payload = [
 			'object' => 'whatsapp_business_account',
 			'entry'  => array(
 				array(
@@ -370,10 +370,10 @@ class WCH_Webhook_Integration_Test extends WCH_Integration_Test_Case {
 					),
 				),
 			),
-		);
+		];
 
 		if ( 'webhook_text_message.json' === $filename ) {
-			$base_payload['entry'][0]['changes'][0]['value']['messages'] = array(
+			$base_payload['entry'][0]['changes'][0]['value']['messages'] = [
 				array(
 					'from'      => '1234567890',
 					'id'        => 'wamid.test_' . wp_generate_uuid4(),
@@ -383,9 +383,9 @@ class WCH_Webhook_Integration_Test extends WCH_Integration_Test_Case {
 						'body' => 'Hello, I want to browse products',
 					),
 				),
-			);
+			];
 		} elseif ( 'webhook_button_reply.json' === $filename ) {
-			$base_payload['entry'][0]['changes'][0]['value']['messages'] = array(
+			$base_payload['entry'][0]['changes'][0]['value']['messages'] = [
 				array(
 					'from'        => '1234567890',
 					'id'          => 'wamid.test_' . wp_generate_uuid4(),
@@ -399,16 +399,16 @@ class WCH_Webhook_Integration_Test extends WCH_Integration_Test_Case {
 						),
 					),
 				),
-			);
+			];
 		} elseif ( 'webhook_status_update.json' === $filename ) {
-			$base_payload['entry'][0]['changes'][0]['value']['statuses'] = array(
+			$base_payload['entry'][0]['changes'][0]['value']['statuses'] = [
 				array(
 					'id'        => 'wamid.test_' . wp_generate_uuid4(),
 					'status'    => 'delivered',
 					'timestamp' => (string) time(),
 					'recipient_id' => '1234567890',
 				),
-			);
+			];
 			unset( $base_payload['entry'][0]['changes'][0]['value']['messages'] );
 		}
 

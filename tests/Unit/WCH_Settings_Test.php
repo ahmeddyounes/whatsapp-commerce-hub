@@ -121,7 +121,7 @@ class WCH_Settings_Test extends WCH_Unit_Test_Case {
 	 * Test bulk update.
 	 */
 	public function test_bulk_update() {
-		$updates = array(
+		$updates = [
 			'api' => array(
 				'phone_number_id' => '123456789',
 				'business_account_id' => '987654321',
@@ -129,7 +129,7 @@ class WCH_Settings_Test extends WCH_Unit_Test_Case {
 			'cart' => array(
 				'session_timeout' => '7200',
 			),
-		);
+		];
 
 		$this->settings->update( $updates );
 

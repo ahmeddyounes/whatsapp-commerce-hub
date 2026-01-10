@@ -41,10 +41,10 @@ class WCH_Customer_Service_Test extends WCH_Unit_Test_Case {
 	 * Test creating customer profile.
 	 */
 	public function test_create_customer_profile() {
-		$profile_id = $this->customer_service->create_profile( array(
+		$profile_id = $this->customer_service->create_profile( [
 			'phone' => $this->customer_phone,
 			'name' => 'John Doe',
-		) );
+		] );
 
 		$this->assertIsInt( $profile_id );
 		$this->assertGreaterThan( 0, $profile_id );
@@ -54,10 +54,10 @@ class WCH_Customer_Service_Test extends WCH_Unit_Test_Case {
 	 * Test getting customer profile.
 	 */
 	public function test_get_customer_profile() {
-		$this->customer_service->create_profile( array(
+		$this->customer_service->create_profile( [
 			'phone' => $this->customer_phone,
 			'name' => 'John Doe',
-		) );
+		] );
 
 		$profile = $this->customer_service->get_profile( $this->customer_phone );
 
@@ -70,15 +70,15 @@ class WCH_Customer_Service_Test extends WCH_Unit_Test_Case {
 	 * Test updating customer profile.
 	 */
 	public function test_update_customer_profile() {
-		$this->customer_service->create_profile( array(
+		$this->customer_service->create_profile( [
 			'phone' => $this->customer_phone,
 			'name' => 'John Doe',
-		) );
+		] );
 
-		$result = $this->customer_service->update_profile( $this->customer_phone, array(
+		$result = $this->customer_service->update_profile( $this->customer_phone, [
 			'name' => 'Jane Doe',
 			'email' => 'jane@example.com',
-		) );
+		] );
 
 		$this->assertTrue( $result );
 
@@ -91,10 +91,10 @@ class WCH_Customer_Service_Test extends WCH_Unit_Test_Case {
 	 * Test storing customer preferences.
 	 */
 	public function test_store_customer_preferences() {
-		$this->customer_service->create_profile( array(
+		$this->customer_service->create_profile( [
 			'phone' => $this->customer_phone,
 			'name' => 'John Doe',
-		) );
+		] );
 
 		$this->customer_service->set_preference( $this->customer_phone, 'language', 'en' );
 		$this->customer_service->set_preference( $this->customer_phone, 'notifications', true );
@@ -110,14 +110,14 @@ class WCH_Customer_Service_Test extends WCH_Unit_Test_Case {
 	 * Test getting customer order history.
 	 */
 	public function test_get_customer_order_history() {
-		$this->customer_service->create_profile( array(
+		$this->customer_service->create_profile( [
 			'phone' => $this->customer_phone,
 			'name' => 'John Doe',
-		) );
+		] );
 
 		// Create test orders.
-		$order1 = $this->create_test_order( array( 'billing_phone' => $this->customer_phone ) );
-		$order2 = $this->create_test_order( array( 'billing_phone' => $this->customer_phone ) );
+		$order1 = $this->create_test_order( [ 'billing_phone' => $this->customer_phone ] );
+		$order2 = $this->create_test_order( [ 'billing_phone' => $this->customer_phone ] );
 
 		$orders = $this->customer_service->get_order_history( $this->customer_phone );
 
@@ -129,18 +129,18 @@ class WCH_Customer_Service_Test extends WCH_Unit_Test_Case {
 	 * Test tracking customer lifetime value.
 	 */
 	public function test_calculate_lifetime_value() {
-		$this->customer_service->create_profile( array(
+		$this->customer_service->create_profile( [
 			'phone' => $this->customer_phone,
 			'name' => 'John Doe',
-		) );
+		] );
 
-		$product = $this->create_test_product( array( 'regular_price' => '50.00' ) );
+		$product = $this->create_test_product( [ 'regular_price' => '50.00' ] );
 
-		$order1 = $this->create_test_order( array(
+		$order1 = $this->create_test_order( [
 			'billing_phone' => $this->customer_phone,
 			'product' => $product,
 			'quantity' => 2,
-		) );
+		] );
 		$order1->set_status( 'completed' );
 		$order1->save();
 
@@ -153,26 +153,26 @@ class WCH_Customer_Service_Test extends WCH_Unit_Test_Case {
 	 * Test getting customer segments.
 	 */
 	public function test_get_customer_segment() {
-		$this->customer_service->create_profile( array(
+		$this->customer_service->create_profile( [
 			'phone' => $this->customer_phone,
 			'name' => 'John Doe',
-		) );
+		] );
 
 		// Create completed orders to qualify as VIP.
-		$product = $this->create_test_product( array( 'regular_price' => '100.00' ) );
+		$product = $this->create_test_product( [ 'regular_price' => '100.00' ] );
 
 		for ( $i = 0; $i < 5; $i++ ) {
-			$order = $this->create_test_order( array(
+			$order = $this->create_test_order( [
 				'billing_phone' => $this->customer_phone,
 				'product' => $product,
-			) );
+			] );
 			$order->set_status( 'completed' );
 			$order->save();
 		}
 
 		$segment = $this->customer_service->get_segment( $this->customer_phone );
 
-		$this->assertContains( $segment, array( 'new', 'regular', 'vip' ) );
+		$this->assertContains( $segment, [ 'new', 'regular', 'vip' ] );
 	}
 
 	/**
@@ -181,11 +181,11 @@ class WCH_Customer_Service_Test extends WCH_Unit_Test_Case {
 	public function test_find_by_wc_customer_id() {
 		$wc_customer_id = 123;
 
-		$this->customer_service->create_profile( array(
+		$this->customer_service->create_profile( [
 			'phone' => $this->customer_phone,
 			'name' => 'John Doe',
 			'wc_customer_id' => $wc_customer_id,
-		) );
+		] );
 
 		$profile = $this->customer_service->find_by_wc_customer( $wc_customer_id );
 
@@ -197,10 +197,10 @@ class WCH_Customer_Service_Test extends WCH_Unit_Test_Case {
 	 * Test deleting customer profile.
 	 */
 	public function test_delete_customer_profile() {
-		$this->customer_service->create_profile( array(
+		$this->customer_service->create_profile( [
 			'phone' => $this->customer_phone,
 			'name' => 'John Doe',
-		) );
+		] );
 
 		$result = $this->customer_service->delete_profile( $this->customer_phone );
 
@@ -214,10 +214,10 @@ class WCH_Customer_Service_Test extends WCH_Unit_Test_Case {
 	 * Test opt-in for marketing.
 	 */
 	public function test_opt_in_marketing() {
-		$this->customer_service->create_profile( array(
+		$this->customer_service->create_profile( [
 			'phone' => $this->customer_phone,
 			'name' => 'John Doe',
-		) );
+		] );
 
 		$this->customer_service->opt_in_marketing( $this->customer_phone );
 
@@ -229,10 +229,10 @@ class WCH_Customer_Service_Test extends WCH_Unit_Test_Case {
 	 * Test opt-out from marketing.
 	 */
 	public function test_opt_out_marketing() {
-		$this->customer_service->create_profile( array(
+		$this->customer_service->create_profile( [
 			'phone' => $this->customer_phone,
 			'name' => 'John Doe',
-		) );
+		] );
 
 		$this->customer_service->opt_in_marketing( $this->customer_phone );
 		$this->customer_service->opt_out_marketing( $this->customer_phone );

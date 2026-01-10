@@ -33,11 +33,11 @@ class WCH_Product_Sync_Test extends WCH_Integration_Test_Case {
 	 * Test syncing single product to catalog.
 	 */
 	public function test_sync_single_product() {
-		$product = $this->create_test_product( array(
+		$product = $this->create_test_product( [
 			'name' => 'Test iPhone',
 			'regular_price' => '999.99',
 			'sku' => 'IPHONE-001',
-		) );
+		] );
 
 		$result = $this->sync_service->sync_product( $product->get_id() );
 
@@ -52,9 +52,9 @@ class WCH_Product_Sync_Test extends WCH_Integration_Test_Case {
 	 * Test syncing multiple products.
 	 */
 	public function test_sync_multiple_products() {
-		$product1 = $this->create_test_product( array( 'name' => 'Product 1' ) );
-		$product2 = $this->create_test_product( array( 'name' => 'Product 2' ) );
-		$product3 = $this->create_test_product( array( 'name' => 'Product 3' ) );
+		$product1 = $this->create_test_product( [ 'name' => 'Product 1' ] );
+		$product2 = $this->create_test_product( [ 'name' => 'Product 2' ] );
+		$product3 = $this->create_test_product( [ 'name' => 'Product 3' ] );
 
 		$result = $this->sync_service->sync_all_products();
 
@@ -100,10 +100,10 @@ class WCH_Product_Sync_Test extends WCH_Integration_Test_Case {
 	 * Test updating synced product.
 	 */
 	public function test_update_synced_product() {
-		$product = $this->create_test_product( array(
+		$product = $this->create_test_product( [
 			'name' => 'Original Name',
 			'regular_price' => '99.99',
-		) );
+		] );
 
 		// Initial sync.
 		$this->sync_service->sync_product( $product->get_id() );
@@ -137,10 +137,10 @@ class WCH_Product_Sync_Test extends WCH_Integration_Test_Case {
 	public function test_bulk_sync_batch_processing() {
 		// Create 50 products.
 		for ( $i = 1; $i <= 50; $i++ ) {
-			$this->create_test_product( array(
+			$this->create_test_product( [
 				'name' => "Product $i",
 				'sku' => "SKU-$i",
-			) );
+			] );
 		}
 
 		$result = $this->sync_service->sync_all_products();
@@ -152,8 +152,8 @@ class WCH_Product_Sync_Test extends WCH_Integration_Test_Case {
 	 * Test syncing only published products.
 	 */
 	public function test_syncs_only_published_products() {
-		$published = $this->create_test_product( array( 'status' => 'publish' ) );
-		$draft = $this->create_test_product( array( 'status' => 'draft' ) );
+		$published = $this->create_test_product( [ 'status' => 'publish' ] );
+		$draft = $this->create_test_product( [ 'status' => 'draft' ] );
 
 		$this->sync_service->sync_all_products();
 

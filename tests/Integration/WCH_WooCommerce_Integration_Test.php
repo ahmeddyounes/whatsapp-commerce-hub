@@ -79,12 +79,12 @@ class WCH_WooCommerce_Integration_Test extends WCH_Integration_Test_Case {
 	public function test_product_sync_creates_catalog_item() {
 		// Arrange - Create WooCommerce product.
 		$product = $this->create_test_product(
-			array(
+			[
 				'name'          => 'Test Product for Sync',
 				'regular_price' => '29.99',
 				'description'   => 'Test product description',
 				'stock_status'  => 'instock',
-			)
+			]
 		);
 
 		// Mock WhatsApp catalog API response.
@@ -115,19 +115,19 @@ class WCH_WooCommerce_Integration_Test extends WCH_Integration_Test_Case {
 	public function test_order_creation_from_cart() {
 		// Arrange - Create test products.
 		$product1 = $this->create_test_product(
-			array(
+			[
 				'name'          => 'Test Product 1',
 				'regular_price' => '19.99',
 				'stock_status'  => 'instock',
-			)
+			]
 		);
 
 		$product2 = $this->create_test_product(
-			array(
+			[
 				'name'          => 'Test Product 2',
 				'regular_price' => '29.99',
 				'stock_status'  => 'instock',
-			)
+			]
 		);
 
 		// Create cart.
@@ -138,14 +138,14 @@ class WCH_WooCommerce_Integration_Test extends WCH_Integration_Test_Case {
 			$cart_id,
 			$product1->get_id(),
 			2,
-			array()
+			[]
 		);
 
 		$this->cart_manager->add_item(
 			$cart_id,
 			$product2->get_id(),
 			1,
-			array()
+			[]
 		);
 
 		// Mock WhatsApp API for notification.
@@ -155,7 +155,7 @@ class WCH_WooCommerce_Integration_Test extends WCH_Integration_Test_Case {
 		);
 
 		// Act - Create order from cart.
-		$cart_data = array(
+		$cart_data = [
 			'items'          => $this->cart_manager->get_items( $cart_id ),
 			'customer_phone' => $customer_phone,
 			'billing'        => array(
@@ -174,7 +174,7 @@ class WCH_WooCommerce_Integration_Test extends WCH_Integration_Test_Case {
 				'country'    => 'US',
 			),
 			'payment_method' => 'cod',
-		);
+		];
 
 		$order_id = $this->order_sync_service->create_order_from_cart( $cart_data, $customer_phone );
 
@@ -200,13 +200,13 @@ class WCH_WooCommerce_Integration_Test extends WCH_Integration_Test_Case {
 	public function test_inventory_sync_on_stock_change() {
 		// Arrange - Create product with catalog sync.
 		$product = $this->create_test_product(
-			array(
+			[
 				'name'          => 'Test Product Stock Sync',
 				'regular_price' => '39.99',
 				'stock_status'  => 'instock',
 				'manage_stock'  => true,
 				'stock_quantity' => 10,
-			)
+			]
 		);
 
 		// Set catalog ID to simulate synced product.
@@ -217,7 +217,7 @@ class WCH_WooCommerce_Integration_Test extends WCH_Integration_Test_Case {
 		// Mock WhatsApp catalog update API response.
 		WCH_API_Mock_Server::add_mock(
 			'/graph\.facebook\.com.*\/products/',
-			array(
+			[
 				'response' => array(
 					'code'    => 200,
 					'message' => 'OK',
@@ -227,7 +227,7 @@ class WCH_WooCommerce_Integration_Test extends WCH_Integration_Test_Case {
 						'success' => true,
 					)
 				),
-			)
+			]
 		);
 
 		// Act - Update stock quantity.
@@ -239,7 +239,7 @@ class WCH_WooCommerce_Integration_Test extends WCH_Integration_Test_Case {
 
 		// Assert - Verify product sync hash changed (indicates sync was triggered).
 		$old_hash = get_post_meta( $product->get_id(), '_wch_sync_hash', true );
-		$new_hash = md5( wp_json_encode( array( 'stock' => 5, 'availability' => 'in stock' ) ) );
+		$new_hash = md5( wp_json_encode( [ 'stock' => 5, 'availability' => 'in stock' ] ) );
 
 		// In real implementation, the hook should update the hash.
 		// This test verifies the mechanism is in place.
@@ -252,18 +252,18 @@ class WCH_WooCommerce_Integration_Test extends WCH_Integration_Test_Case {
 	public function test_order_status_triggers_notification() {
 		// Arrange - Create order.
 		$product = $this->create_test_product(
-			array(
+			[
 				'name'          => 'Test Product Order Status',
 				'regular_price' => '49.99',
-			)
+			]
 		);
 
 		$customer_phone = '+1234567890';
 		$order          = $this->create_test_order(
-			array(
+			[
 				'customer_phone' => $customer_phone,
 				'status'         => 'pending',
-			)
+			]
 		);
 
 		// Add product to order.
@@ -307,7 +307,7 @@ class WCH_WooCommerce_Integration_Test extends WCH_Integration_Test_Case {
 		$settings        = WCH_Settings::getInstance();
 		$settings->set( 'webhook.app_secret', '' ); // Disable signature validation.
 
-		$payload = array(
+		$payload = [
 			'object' => 'whatsapp_business_account',
 			'entry'  => array(
 				array(
@@ -340,7 +340,7 @@ class WCH_WooCommerce_Integration_Test extends WCH_Integration_Test_Case {
 					),
 				),
 			),
-		);
+		];
 
 		$request = new WP_REST_Request( 'POST', '/wch/v1/webhook' );
 		$request->set_body( wp_json_encode( $payload ) );
@@ -362,15 +362,15 @@ class WCH_WooCommerce_Integration_Test extends WCH_Integration_Test_Case {
 	 */
 	public function test_bulk_product_sync_handles_1000_products() {
 		// Arrange - Create multiple test products (using smaller number for test speed).
-		$product_ids  = array();
+		$product_ids  = [];
 		$product_count = 20; // Use 20 for test speed, mechanism should scale to 1000.
 
 		for ( $i = 0; $i < $product_count; $i++ ) {
 			$product       = $this->create_test_product(
-				array(
+				[
 					'name'          => 'Bulk Test Product ' . $i,
 					'regular_price' => '10.00',
-				)
+				]
 			);
 			$product_ids[] = $product->get_id();
 		}
@@ -409,14 +409,14 @@ class WCH_WooCommerce_Integration_Test extends WCH_Integration_Test_Case {
 	public function test_concurrent_conversations_handled() {
 		// Arrange - Create multiple concurrent conversations.
 		$conversation_count = 10;
-		$conversation_ids   = array();
+		$conversation_ids   = [];
 
 		for ( $i = 0; $i < $conversation_count; $i++ ) {
 			$conversation    = $this->create_test_conversation(
-				array(
+				[
 					'customer_phone' => '+123456789' . $i,
 					'status'         => 'active',
-				)
+				]
 			);
 			$conversation_ids[] = $conversation['id'];
 		}
@@ -428,11 +428,11 @@ class WCH_WooCommerce_Integration_Test extends WCH_Integration_Test_Case {
 			// Simulate message processing.
 			$context = $this->create_test_context(
 				$conv_id,
-				array(
+				[
 					'state'      => 'browsing',
 					'cart_id'    => null,
 					'last_interaction' => current_time( 'mysql' ),
-				)
+				]
 			);
 
 			$this->assertNotEmpty( $context, 'Context should be created' );

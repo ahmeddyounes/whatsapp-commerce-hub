@@ -23,7 +23,7 @@ class CustomerFactory {
 	 *
 	 * @var array
 	 */
-	private static array $defaults = array(
+	private static array $defaults = [
 		'id'              => null,
 		'phone_number'    => '+1234567890',
 		'name'            => 'John Doe',
@@ -35,7 +35,7 @@ class CustomerFactory {
 		'metadata'        => array(),
 		'created_at'      => null,
 		'updated_at'      => null,
-	);
+	];
 
 	/**
 	 * Sequence counter for unique IDs.
@@ -50,7 +50,7 @@ class CustomerFactory {
 	 * @param array $attributes Override attributes.
 	 * @return Customer
 	 */
-	public static function create( array $attributes = array() ): Customer {
+	public static function create( array $attributes = [] ): Customer {
 		self::$sequence++;
 
 		$data = array_merge( self::$defaults, $attributes );
@@ -106,7 +106,7 @@ class CustomerFactory {
 	 * @param array $attributes Override attributes.
 	 * @return Customer
 	 */
-	public static function createWithWooCommerce( int $wc_customer_id, array $attributes = array() ): Customer {
+	public static function createWithWooCommerce( int $wc_customer_id, array $attributes = [] ): Customer {
 		$attributes['wc_customer_id'] = $wc_customer_id;
 		return self::create( $attributes );
 	}
@@ -118,13 +118,13 @@ class CustomerFactory {
 	 * @param array $attributes Override attributes.
 	 * @return Customer
 	 */
-	public static function createWithPreferences( array $preferences = array(), array $attributes = array() ): Customer {
-		$default_prefs = array(
+	public static function createWithPreferences( array $preferences = [], array $attributes = [] ): Customer {
+		$default_prefs = [
 			'notifications_enabled' => true,
 			'marketing_opt_in'      => false,
 			'preferred_currency'    => 'USD',
 			'order_updates'         => true,
-		);
+		];
 
 		$attributes['preferences'] = array_merge( $default_prefs, $preferences );
 		return self::create( $attributes );
@@ -136,17 +136,17 @@ class CustomerFactory {
 	 * @param array $attributes Override attributes.
 	 * @return Customer
 	 */
-	public static function createReturning( array $attributes = array() ): Customer {
+	public static function createReturning( array $attributes = [] ): Customer {
 		// Use sequence-based values for reproducibility.
 		$seq      = self::$sequence + 1;
-		$metadata = array(
+		$metadata = [
 			'total_orders'     => 2 + ( $seq % 9 ),  // 2-10 based on sequence.
 			'total_spent'      => 100.00 + ( $seq * 50.00 ),  // Predictable spend.
 			'last_order_date'  => ( new \DateTimeImmutable() )->modify( '-' . ( 1 + ( $seq % 30 ) ) . ' days' )->format( 'Y-m-d' ),
 			'customer_segment' => 'returning',
-		);
+		];
 
-		$attributes['metadata'] = array_merge( $metadata, $attributes['metadata'] ?? array() );
+		$attributes['metadata'] = array_merge( $metadata, $attributes['metadata'] ?? [] );
 		$attributes['wc_customer_id'] = $attributes['wc_customer_id'] ?? ( 1000 + $seq );
 
 		return self::create( $attributes );
@@ -158,24 +158,24 @@ class CustomerFactory {
 	 * @param array $attributes Override attributes.
 	 * @return Customer
 	 */
-	public static function createVIP( array $attributes = array() ): Customer {
+	public static function createVIP( array $attributes = [] ): Customer {
 		// Use sequence-based values for reproducibility.
 		$seq      = self::$sequence + 1;
-		$metadata = array(
+		$metadata = [
 			'total_orders'     => 20 + ( $seq * 5 ),  // 25, 30, 35, etc.
 			'total_spent'      => 5000 + ( $seq * 1000 ),  // Predictable VIP spend.
 			'customer_segment' => 'vip',
 			'vip_since'        => ( new \DateTimeImmutable() )->modify( '-' . ( 180 + ( $seq % 186 ) ) . ' days' )->format( 'Y-m-d' ),
-		);
+		];
 
-		$preferences = array(
+		$preferences = [
 			'notifications_enabled' => true,
 			'marketing_opt_in'      => true,
 			'vip_priority'          => true,
-		);
+		];
 
-		$attributes['metadata']    = array_merge( $metadata, $attributes['metadata'] ?? array() );
-		$attributes['preferences'] = array_merge( $preferences, $attributes['preferences'] ?? array() );
+		$attributes['metadata']    = array_merge( $metadata, $attributes['metadata'] ?? [] );
+		$attributes['preferences'] = array_merge( $preferences, $attributes['preferences'] ?? [] );
 		$attributes['wc_customer_id'] = $attributes['wc_customer_id'] ?? ( 2000 + $seq );
 
 		return self::create( $attributes );
@@ -187,9 +187,9 @@ class CustomerFactory {
 	 * @param array $attributes Override attributes.
 	 * @return Customer
 	 */
-	public static function createGuest( array $attributes = array() ): Customer {
+	public static function createGuest( array $attributes = [] ): Customer {
 		$attributes = array_merge(
-			array(
+			[
 				'wc_customer_id' => null,
 				'email'          => null,
 				'name'           => 'Guest',
@@ -197,7 +197,7 @@ class CustomerFactory {
 					'customer_segment' => 'new',
 					'source'           => 'whatsapp',
 				),
-			),
+			],
 			$attributes
 		);
 		return self::create( $attributes );
@@ -210,12 +210,12 @@ class CustomerFactory {
 	 * @param array $attributes Override attributes applied to all.
 	 * @return array<Customer>
 	 */
-	public static function createMultiLanguage( array $languages = array( 'en', 'es', 'ar', 'pt' ), array $attributes = array() ): array {
-		$customers = array();
+	public static function createMultiLanguage( array $languages = [ 'en', 'es', 'ar', 'pt' ], array $attributes = [] ): array {
+		$customers = [];
 		foreach ( $languages as $lang ) {
 			$customers[] = self::create( array_merge(
 				$attributes,
-				array( 'language' => $lang )
+				[ 'language' => $lang ]
 			) );
 		}
 		return $customers;
@@ -228,8 +228,8 @@ class CustomerFactory {
 	 * @param array $attributes Override attributes applied to all.
 	 * @return array<Customer>
 	 */
-	public static function createMany( int $count, array $attributes = array() ): array {
-		$customers = array();
+	public static function createMany( int $count, array $attributes = [] ): array {
+		$customers = [];
 		for ( $i = 0; $i < $count; $i++ ) {
 			$customers[] = self::create( $attributes );
 		}

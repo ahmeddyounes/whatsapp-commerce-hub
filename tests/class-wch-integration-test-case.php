@@ -15,7 +15,7 @@ abstract class WCH_Integration_Test_Case extends WCH_Unit_Test_Case {
 	 *
 	 * @var array
 	 */
-	protected $http_mocks = array();
+	protected $http_mocks = [];
 
 	/**
 	 * Setup before each test.
@@ -35,7 +35,7 @@ abstract class WCH_Integration_Test_Case extends WCH_Unit_Test_Case {
 	 */
 	protected function tearDown(): void {
 		// Clear HTTP mocks.
-		$this->http_mocks = array();
+		$this->http_mocks = [];
 		remove_all_filters( 'pre_http_request' );
 
 		// Clean up database.
@@ -57,7 +57,7 @@ abstract class WCH_Integration_Test_Case extends WCH_Unit_Test_Case {
 	 */
 	protected function setup_http_mocking(): void {
 		// Add filter to intercept HTTP requests.
-		add_filter( 'pre_http_request', array( $this, 'mock_http_request' ), 10, 3 );
+		add_filter( 'pre_http_request', [ $this, 'mock_http_request' ], 10, 3 );
 	}
 
 	/**
@@ -78,7 +78,7 @@ abstract class WCH_Integration_Test_Case extends WCH_Unit_Test_Case {
 
 		// Return default success for WhatsApp API calls if not mocked.
 		if ( strpos( $url, 'graph.facebook.com' ) !== false ) {
-			return array(
+			return [
 				'response' => array(
 					'code' => 200,
 					'message' => 'OK',
@@ -89,7 +89,7 @@ abstract class WCH_Integration_Test_Case extends WCH_Unit_Test_Case {
 						array( 'id' => 'wamid.test_' . wp_generate_uuid4() ),
 					),
 				) ),
-			);
+			];
 		}
 
 		return $preempt;
@@ -117,7 +117,7 @@ abstract class WCH_Integration_Test_Case extends WCH_Unit_Test_Case {
 
 		$this->add_http_mock(
 			'/graph\.facebook\.com/',
-			array(
+			[
 				'response' => array(
 					'code' => 200,
 					'message' => 'OK',
@@ -127,7 +127,7 @@ abstract class WCH_Integration_Test_Case extends WCH_Unit_Test_Case {
 						array( 'id' => $message_id ),
 					),
 				) ),
-			)
+			]
 		);
 	}
 
@@ -140,7 +140,7 @@ abstract class WCH_Integration_Test_Case extends WCH_Unit_Test_Case {
 	protected function mock_whatsapp_error( string $error_message = 'API Error', int $error_code = 400 ): void {
 		$this->add_http_mock(
 			'/graph\.facebook\.com/',
-			array(
+			[
 				'response' => array(
 					'code' => $error_code,
 					'message' => 'Bad Request',
@@ -151,7 +151,7 @@ abstract class WCH_Integration_Test_Case extends WCH_Unit_Test_Case {
 						'code' => $error_code,
 					),
 				) ),
-			)
+			]
 		);
 	}
 
@@ -162,7 +162,7 @@ abstract class WCH_Integration_Test_Case extends WCH_Unit_Test_Case {
 		global $wpdb;
 
 		// Clean up our custom tables.
-		$tables = array(
+		$tables = [
 			'wch_conversations',
 			'wch_conversation_context',
 			'wch_messages',
@@ -171,7 +171,7 @@ abstract class WCH_Integration_Test_Case extends WCH_Unit_Test_Case {
 			'wch_broadcast_campaigns',
 			'wch_broadcast_recipients',
 			'wch_analytics_events',
-		);
+		];
 
 		foreach ( $tables as $table ) {
 			$wpdb->query( "TRUNCATE TABLE {$wpdb->prefix}{$table}" );
@@ -188,21 +188,21 @@ abstract class WCH_Integration_Test_Case extends WCH_Unit_Test_Case {
 		global $wpdb;
 
 		// Delete all products.
-		$products = get_posts( array(
+		$products = get_posts( [
 			'post_type' => 'product',
 			'numberposts' => -1,
 			'post_status' => 'any',
-		) );
+		] );
 
 		foreach ( $products as $product ) {
 			wp_delete_post( $product->ID, true );
 		}
 
 		// Delete all orders.
-		$orders = wc_get_orders( array(
+		$orders = wc_get_orders( [
 			'limit' => -1,
 			'status' => 'any',
-		) );
+		] );
 
 		foreach ( $orders as $order ) {
 			$order->delete( true );
@@ -223,8 +223,8 @@ abstract class WCH_Integration_Test_Case extends WCH_Unit_Test_Case {
 		global $wpdb;
 
 		$table_name = $wpdb->prefix . $table;
-		$where = array();
-		$values = array();
+		$where = [];
+		$values = [];
 
 		foreach ( $conditions as $column => $value ) {
 			$where[] = "$column = %s";
@@ -252,8 +252,8 @@ abstract class WCH_Integration_Test_Case extends WCH_Unit_Test_Case {
 		global $wpdb;
 
 		$table_name = $wpdb->prefix . $table;
-		$where = array();
-		$values = array();
+		$where = [];
+		$values = [];
 
 		foreach ( $conditions as $column => $value ) {
 			$where[] = "$column = %s";

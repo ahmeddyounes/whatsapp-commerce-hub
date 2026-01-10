@@ -57,17 +57,17 @@ abstract class WCH_Unit_Test_Case extends WP_UnitTestCase {
 
 		// Default mock behaviors.
 		$mock->shouldReceive( 'send_message' )
-			->andReturn( array(
+			->andReturn( [
 				'success' => true,
 				'message_id' => 'wamid.test_' . wp_generate_uuid4(),
-			) )
+			] )
 			->byDefault();
 
 		$mock->shouldReceive( 'send_template' )
-			->andReturn( array(
+			->andReturn( [
 				'success' => true,
 				'message_id' => 'wamid.test_' . wp_generate_uuid4(),
-			) )
+			] )
 			->byDefault();
 
 		return $mock;
@@ -79,15 +79,15 @@ abstract class WCH_Unit_Test_Case extends WP_UnitTestCase {
 	 * @param array $args Product arguments.
 	 * @return WC_Product
 	 */
-	protected function create_test_product( array $args = array() ): WC_Product {
-		$defaults = array(
+	protected function create_test_product( array $args = [] ): WC_Product {
+		$defaults = [
 			'name' => 'Test Product',
 			'regular_price' => '29.99',
 			'sku' => 'TEST-SKU-' . wp_rand( 1000, 9999 ),
 			'manage_stock' => true,
 			'stock_quantity' => 10,
 			'status' => 'publish',
-		);
+		];
 
 		$args = wp_parse_args( $args, $defaults );
 
@@ -113,15 +113,15 @@ abstract class WCH_Unit_Test_Case extends WP_UnitTestCase {
 	 * @param array $args Order arguments.
 	 * @return WC_Order
 	 */
-	protected function create_test_order( array $args = array() ): WC_Order {
-		$defaults = array(
+	protected function create_test_order( array $args = [] ): WC_Order {
+		$defaults = [
 			'status' => 'pending',
 			'customer_id' => 1,
 			'billing_phone' => '+1234567890',
 			'billing_email' => 'test@example.com',
 			'billing_first_name' => 'John',
 			'billing_last_name' => 'Doe',
-		);
+		];
 
 		$args = wp_parse_args( $args, $defaults );
 
@@ -150,16 +150,16 @@ abstract class WCH_Unit_Test_Case extends WP_UnitTestCase {
 	 * @param array $args Conversation arguments.
 	 * @return int Conversation ID.
 	 */
-	protected function create_test_conversation( array $args = array() ): int {
+	protected function create_test_conversation( array $args = [] ): int {
 		global $wpdb;
 
-		$defaults = array(
+		$defaults = [
 			'customer_phone' => '+1234567890',
 			'customer_name' => 'Test Customer',
 			'state' => 'BROWSING',
 			'last_message_at' => current_time( 'mysql' ),
 			'created_at' => current_time( 'mysql' ),
-		);
+		];
 
 		$args = wp_parse_args( $args, $defaults );
 
@@ -167,14 +167,14 @@ abstract class WCH_Unit_Test_Case extends WP_UnitTestCase {
 
 		$wpdb->insert(
 			$table_name,
-			array(
+			[
 				'customer_phone' => $args['customer_phone'],
 				'customer_name' => $args['customer_name'],
 				'state' => $args['state'],
 				'last_message_at' => $args['last_message_at'],
 				'created_at' => $args['created_at'],
-			),
-			array( '%s', '%s', '%s', '%s', '%s' )
+			],
+			[ '%s', '%s', '%s', '%s', '%s' ]
 		);
 
 		return (int) $wpdb->insert_id;
@@ -187,15 +187,15 @@ abstract class WCH_Unit_Test_Case extends WP_UnitTestCase {
 	 * @param array $data Context data.
 	 * @return bool
 	 */
-	protected function create_test_context( int $conversation_id, array $data = array() ): bool {
+	protected function create_test_context( int $conversation_id, array $data = [] ): bool {
 		global $wpdb;
 
-		$defaults = array(
+		$defaults = [
 			'current_category' => null,
 			'current_product' => null,
 			'cart_items' => array(),
 			'shipping_address' => null,
-		);
+		];
 
 		$data = wp_parse_args( $data, $defaults );
 
@@ -203,13 +203,13 @@ abstract class WCH_Unit_Test_Case extends WP_UnitTestCase {
 
 		return $wpdb->insert(
 			$table_name,
-			array(
+			[
 				'conversation_id' => $conversation_id,
 				'context_data' => wp_json_encode( $data ),
 				'created_at' => current_time( 'mysql' ),
 				'updated_at' => current_time( 'mysql' ),
-			),
-			array( '%d', '%s', '%s', '%s' )
+			],
+			[ '%d', '%s', '%s', '%s' ]
 		) !== false;
 	}
 
@@ -230,9 +230,9 @@ abstract class WCH_Unit_Test_Case extends WP_UnitTestCase {
 	 * Clean up global scope.
 	 */
 	protected function clean_up_global_scope(): void {
-		$_GET = array();
-		$_POST = array();
-		$_REQUEST = array();
+		$_GET = [];
+		$_POST = [];
+		$_REQUEST = [];
 		$_SERVER['REQUEST_METHOD'] = 'GET';
 	}
 }

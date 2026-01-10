@@ -35,10 +35,10 @@ class WCH_Conversation_FSM_Test extends WCH_Unit_Test_Case {
 		$db_manager->install();
 
 		// Create test conversation.
-		$this->conversation_id = $this->create_test_conversation( array(
+		$this->conversation_id = $this->create_test_conversation( [
 			'customer_phone' => '+1234567890',
 			'state' => 'IDLE',
-		) );
+		] );
 
 		$this->fsm = new WCH_Conversation_FSM( $this->conversation_id );
 	}
