@@ -86,7 +86,7 @@ if ( ! function_exists( 'wp_json_encode' ) ) {
 if ( ! function_exists( 'wp_cache_get' ) ) {
 	global $wp_object_cache;
 	if ( ! isset( $wp_object_cache ) ) {
-		$wp_object_cache = array();
+		$wp_object_cache = [];
 	}
 	function wp_cache_get( $key, $group = '' ) {
 		global $wp_object_cache;
@@ -119,14 +119,14 @@ if ( ! function_exists( 'wp_upload_dir' ) ) {
 		if ( $create_dir && ! is_dir( $upload_dir ) ) {
 			mkdir( $upload_dir, 0777, true );
 		}
-		return array(
+		return [
 			'path'    => $upload_dir,
 			'url'     => 'http://example.com/wp-content/uploads',
 			'subdir'  => '',
 			'basedir' => $upload_dir,
 			'baseurl' => 'http://example.com/wp-content/uploads',
 			'error'   => false,
-		);
+		];
 	}
 }
 
@@ -149,7 +149,7 @@ if ( ! function_exists( 'wp_doing_ajax' ) ) {
 }
 
 if ( ! function_exists( 'wp_die' ) ) {
-	function wp_die( $message, $title = '', $args = array() ) {
+	function wp_die( $message, $title = '', $args = [] ) {
 		echo $message . "\n";
 		exit( 1 );
 	}
@@ -158,24 +158,24 @@ if ( ! function_exists( 'wp_die' ) ) {
 // Mock WCH_Logger to prevent logging issues during tests.
 if ( ! class_exists( 'WCH_Logger' ) ) {
 	class WCH_Logger {
-		public static function log( $message, $context = array(), $level = 'info' ) {
+		public static function log( $message, $context = [], $level = 'info' ) {
 			// Silent logging for tests.
 			return true;
 		}
 
-		public static function info( $message, $context = array() ) {
+		public static function info( $message, $context = [] ) {
 			return true;
 		}
 
-		public static function error( $message, $context = array() ) {
+		public static function error( $message, $context = [] ) {
 			return true;
 		}
 
-		public static function warning( $message, $context = array() ) {
+		public static function warning( $message, $context = [] ) {
 			return true;
 		}
 
-		public static function critical( $message, $context = array() ) {
+		public static function critical( $message, $context = [] ) {
 			return true;
 		}
 	}
@@ -245,15 +245,15 @@ if ( ! class_exists( 'wpdb' ) ) {
 		}
 
 		public function update( $table, $data, $where, $format = null, $where_format = null ) {
-			$set_clauses = array();
-			$values = array();
+			$set_clauses = [];
+			$values = [];
 
 			foreach ( $data as $column => $value ) {
 				$set_clauses[] = "$column = ?";
 				$values[] = $value;
 			}
 
-			$where_clauses = array();
+			$where_clauses = [];
 			foreach ( $where as $column => $value ) {
 				$where_clauses[] = "$column = ?";
 				$values[] = $value;
@@ -292,7 +292,7 @@ if ( ! class_exists( 'wpdb' ) ) {
 				return $stmt->fetchAll( PDO::FETCH_COLUMN );
 			} catch ( PDOException $e ) {
 				$this->last_error = $e->getMessage();
-				return array();
+				return [];
 			}
 		}
 
@@ -307,8 +307,8 @@ if ( ! class_exists( 'wpdb' ) ) {
 		}
 
 		public function delete( $table, $where, $where_format = null ) {
-			$where_clauses = array();
-			$values = array();
+			$where_clauses = [];
+			$values = [];
 
 			foreach ( $where as $column => $value ) {
 				$where_clauses[] = "$column = ?";
@@ -361,10 +361,10 @@ function test_conversation_context() {
 	// Test 1: Create new context with new properties.
 	echo "\n1. Testing context creation with new properties...\n";
 	$context = new WCH_Conversation_Context(
-		array(
+		[
 			'customer_phone' => '+1234567890',
 			'current_state'  => WCH_Conversation_FSM::STATE_BROWSING,
-		)
+		]
 	);
 
 	assert( $context->customer_phone === '+1234567890', 'Customer phone should be set' );
@@ -377,11 +377,11 @@ function test_conversation_context() {
 	echo "\n2. Testing slot management...\n";
 	$context->set_slot( 'product_name', 'Blue T-Shirt' );
 	$context->set_slot( 'quantity', 2 );
-	$context->set_slot( 'address', array(
+	$context->set_slot( 'address', [
 		'street'  => '123 Main St',
 		'city'    => 'New York',
 		'zip'     => '10001',
-	) );
+	] );
 
 	assert( $context->get_slot( 'product_name' ) === 'Blue T-Shirt', 'Product name slot should be set' );
 	assert( $context->get_slot( 'quantity' ) === 2, 'Quantity slot should be set' );
@@ -470,7 +470,7 @@ function test_context_manager() {
 	$table_name = $wpdb->prefix . 'wch_conversations';
 	$wpdb->insert(
 		$table_name,
-		array(
+		[
 			'customer_phone'    => '+9876543210',
 			'wa_conversation_id' => 'test_conv_' . time(),
 			'status'            => 'active',
@@ -478,8 +478,8 @@ function test_context_manager() {
 			'last_message_at'   => current_time( 'mysql' ),
 			'created_at'        => current_time( 'mysql' ),
 			'updated_at'        => current_time( 'mysql' ),
-		),
-		array( '%s', '%s', '%s', '%s', '%s', '%s', '%s' )
+		],
+		[ '%s', '%s', '%s', '%s', '%s', '%s', '%s' ]
 	);
 	$conversation_id = $wpdb->insert_id;
 	assert( $conversation_id > 0, 'Test conversation should be created' );
@@ -533,21 +533,21 @@ function test_context_manager() {
 	// Test 7: Merge contexts.
 	echo "\n7. Testing merge_contexts()...\n";
 	$old_context = new WCH_Conversation_Context(
-		array(
+		[
 			'customer_phone' => '+9876543210',
 			'slots'          => array(
 				'address'          => '123 Old St',
 				'payment_method'   => 'card',
 				'old_preference'   => 'value',
 			),
-		)
+		]
 	);
-	$new_data = array(
+	$new_data = [
 		'current_state' => WCH_Conversation_FSM::STATE_BROWSING,
 		'slots'         => array(
 			'product_name' => 'New Product',
 		),
-	);
+	];
 	$merged_context = $manager->merge_contexts( $old_context, $new_data );
 	assert( $merged_context->get_slot( 'address' ) === '123 Old St', 'Preserved slot should remain' );
 	assert( $merged_context->get_slot( 'payment_method' ) === 'card', 'Preserved slot should remain' );
@@ -560,7 +560,7 @@ function test_context_manager() {
 	// Create an old conversation.
 	$wpdb->insert(
 		$table_name,
-		array(
+		[
 			'customer_phone'     => '+1111111111',
 			'wa_conversation_id' => 'old_conv_' . time(),
 			'status'             => 'active',
@@ -568,8 +568,8 @@ function test_context_manager() {
 			'last_message_at'    => gmdate( 'Y-m-d H:i:s', current_time( 'timestamp' ) - ( 25 * 3600 ) ), // 25 hours ago.
 			'created_at'         => current_time( 'mysql' ),
 			'updated_at'         => current_time( 'mysql' ),
-		),
-		array( '%s', '%s', '%s', '%s', '%s', '%s', '%s' )
+		],
+		[ '%s', '%s', '%s', '%s', '%s', '%s', '%s' ]
 	);
 	$old_conversation_id = $wpdb->insert_id;
 
@@ -596,8 +596,8 @@ function test_context_manager() {
 
 	// Cleanup.
 	echo "\n9. Cleaning up test data...\n";
-	$wpdb->delete( $table_name, array( 'id' => $conversation_id ), array( '%d' ) );
-	$wpdb->delete( $table_name, array( 'id' => $old_conversation_id ), array( '%d' ) );
+	$wpdb->delete( $table_name, [ 'id' => $conversation_id ], [ '%d' ] );
+	$wpdb->delete( $table_name, [ 'id' => $old_conversation_id ], [ '%d' ] );
 	echo "✓ Test data cleaned up\n";
 
 	return true;

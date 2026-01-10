@@ -170,11 +170,11 @@ class ConversationsController extends AbstractController {
 					'callback'            => [ $this, 'getConversation' ],
 					'permission_callback' => [ $this, 'checkAdminPermission' ],
 					'args'                => [
-						'id' => array(
+						'id' => [
 							'required'          => true,
 							'type'              => 'integer',
 							'sanitize_callback' => 'absint',
-						),
+						],
 					],
 				],
 				[
@@ -230,11 +230,11 @@ class ConversationsController extends AbstractController {
 					'callback'            => [ $this, 'suggestReply' ],
 					'permission_callback' => [ $this, 'checkAdminPermission' ],
 					'args'                => [
-						'conversation_id' => array(
+						'conversation_id' => [
 							'required'          => true,
 							'type'              => 'integer',
 							'sanitize_callback' => 'absint',
-						),
+						],
 					],
 				],
 			]
@@ -1141,30 +1141,30 @@ class ConversationsController extends AbstractController {
 				'id'              => [
 					'description' => __( 'Conversation ID', 'whatsapp-commerce-hub' ),
 					'type'        => 'integer',
-					'context'     => array( 'view' ),
+					'context'     => [ 'view' ],
 					'readonly'    => true,
 				],
 				'customer_phone'  => [
 					'description' => __( 'Customer phone number', 'whatsapp-commerce-hub' ),
 					'type'        => 'string',
-					'context'     => array( 'view' ),
+					'context'     => [ 'view' ],
 				],
 				'last_message'    => [
 					'description' => __( 'Last message content', 'whatsapp-commerce-hub' ),
 					'type'        => 'string',
-					'context'     => array( 'view' ),
+					'context'     => [ 'view' ],
 				],
 				'last_message_at' => [
 					'description' => __( 'Last message timestamp', 'whatsapp-commerce-hub' ),
 					'type'        => 'string',
 					'format'      => 'date-time',
-					'context'     => array( 'view' ),
+					'context'     => [ 'view' ],
 				],
 				'status'          => [
 					'description' => __( 'Conversation status', 'whatsapp-commerce-hub' ),
 					'type'        => 'string',
 					'enum'        => self::VALID_STATUSES,
-					'context'     => array( 'view', 'edit' ),
+					'context'     => [ 'view', 'edit' ],
 				],
 			],
 		];

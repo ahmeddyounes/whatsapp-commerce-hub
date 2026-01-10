@@ -36,7 +36,7 @@ try {
 
 // Test 3: Check if required methods exist.
 echo "3. Checking required methods exist...\n";
-$required_methods = array(
+$required_methods = [
 	'create_order_from_cart',
 	'sync_order_status_to_whatsapp',
 	'add_tracking_info',
@@ -45,7 +45,7 @@ $required_methods = array(
 	'render_whatsapp_column',
 	'add_whatsapp_filter_dropdown',
 	'filter_orders_by_whatsapp',
-);
+];
 
 $all_methods_exist = true;
 foreach ( $required_methods as $method ) {
@@ -75,7 +75,7 @@ $product->set_manage_stock( true );
 $product->set_stock_quantity( 100 );
 $product->save();
 
-$cart_data = array(
+$cart_data = [
 	'items' => array(
 		array(
 			'product_id' => $product->get_id(),
@@ -93,7 +93,7 @@ $cart_data = array(
 	),
 	'payment_method' => 'cod',
 	'conversation_id' => 'test_conversation_123',
-);
+];
 
 try {
 	$order_id = $service->create_order_from_cart( $cart_data, '+1234567890' );
@@ -202,7 +202,7 @@ if ( in_array( 'wch_send_order_notification', $registered_hooks, true ) ) {
 // Test 7: Check WordPress hooks.
 echo "7. Checking WordPress hooks...\n";
 
-$hooks_to_check = array(
+$hooks_to_check = [
 	'woocommerce_order_status_changed',
 	'add_meta_boxes',
 	'admin_enqueue_scripts',
@@ -212,7 +212,7 @@ $hooks_to_check = array(
 	'restrict_manage_posts',
 	'wp_ajax_wch_send_quick_message',
 	'wp_ajax_wch_save_tracking_info',
-);
+];
 
 foreach ( $hooks_to_check as $hook ) {
 	if ( has_action( $hook ) || has_filter( $hook ) ) {

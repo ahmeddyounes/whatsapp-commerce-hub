@@ -233,7 +233,7 @@ run_test( 'add_item method has correct signature', function() {
 	$param_names = array_map( function( $p ) {
 		return $p->getName();
 	}, $params );
-	$expected = array( 'phone', 'product_id', 'variation_id', 'quantity' );
+	$expected = [ 'phone', 'product_id', 'variation_id', 'quantity' ];
 	if ( $param_names !== $expected ) {
 		throw new Exception( 'add_item parameters do not match expected: ' . implode( ', ', $param_names ) );
 	}

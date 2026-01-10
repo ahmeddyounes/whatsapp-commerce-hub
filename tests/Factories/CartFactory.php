@@ -27,7 +27,7 @@ class CartFactory {
 	private static array $defaults = [
 		'id'             => null,
 		'phone_number'   => '+1234567890',
-		'items'          => array(),
+		'items'          => [],
 		'currency'       => 'USD',
 		'status'         => 'active',
 		'created_at'     => null,
@@ -178,7 +178,7 @@ class CartItemFactory {
 		'price'        => 29.99,
 		'quantity'     => 1,
 		'image_url'    => 'https://example.com/image.jpg',
-		'attributes'   => array(),
+		'attributes'   => [],
 	];
 
 	/**
@@ -227,10 +227,10 @@ class CartItemFactory {
 		$attributes = array_merge(
 			[
 				'variation_id' => 1000 + $seq,  // Predictable variation ID.
-				'attributes'   => array(
+				'attributes'   => [
 					'size'  => 'Large',
 					'color' => 'Blue',
-				),
+				],
 			],
 			$attributes
 		);

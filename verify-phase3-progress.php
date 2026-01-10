@@ -45,16 +45,16 @@ echo blue( "╔═════════════════════�
 echo blue( "║           PHASE 3 DOMAIN LAYER - COMPREHENSIVE VERIFICATION                 ║\n" );
 echo blue( "╚══════════════════════════════════════════════════════════════════════════════╝\n\n" );
 
-$results = array();
+$results = [];
 
 // Cart Domain
 echo yellow( "=== CART DOMAIN ===\n" );
 
-$cartClasses = array(
+$cartClasses = [
 	'Cart'          => 'WhatsAppCommerceHub\Domain\Cart\Cart',
 	'CartException' => 'WhatsAppCommerceHub\Domain\Cart\CartException',
 	'CartService'   => 'WhatsAppCommerceHub\Domain\Cart\CartService',
-);
+];
 
 foreach ( $cartClasses as $name => $class ) {
 	echo "Testing $name... ";
@@ -78,10 +78,10 @@ foreach ( $cartClasses as $name => $class ) {
 // Catalog Domain
 echo "\n" . yellow( "=== CATALOG DOMAIN ===\n" );
 
-$catalogClasses = array(
+$catalogClasses = [
 	'ProductSyncService' => 'WhatsAppCommerceHub\Application\Services\ProductSyncService',
 	'CatalogBrowser'     => 'WhatsAppCommerceHub\Domain\Catalog\CatalogBrowser',
-);
+];
 
 foreach ( $catalogClasses as $name => $class ) {
 	echo "Testing $name... ";
@@ -105,9 +105,9 @@ foreach ( $catalogClasses as $name => $class ) {
 // Order Domain
 echo "\n" . yellow( "=== ORDER DOMAIN ===\n" );
 
-$orderClasses = array(
+$orderClasses = [
 	'OrderSyncService' => 'WhatsAppCommerceHub\Application\Services\OrderSyncService',
-);
+];
 
 foreach ( $orderClasses as $name => $class ) {
 	echo "Testing $name... ";
@@ -131,10 +131,10 @@ foreach ( $orderClasses as $name => $class ) {
 // Customer Domain
 echo "\n" . yellow( "=== CUSTOMER DOMAIN ===\n" );
 
-$customerClasses = array(
+$customerClasses = [
 	'Customer'        => 'WhatsAppCommerceHub\Domain\Customer\Customer',
 	'CustomerService' => 'WhatsAppCommerceHub\Domain\Customer\CustomerService',
-);
+];
 
 foreach ( $customerClasses as $name => $class ) {
 	echo "Testing $name... ";
@@ -163,7 +163,7 @@ try {
 	$mapper  = 'WhatsAppCommerceHub\Core\LegacyClassMapper';
 	$mapping = $mapper::getMapping();
 
-	$expectedMappings = array(
+	$expectedMappings = [
 		'WCH_Cart_Manager'         => 'WhatsAppCommerceHub\Domain\Cart\CartService',
 		'WCH_Cart_Exception'       => 'WhatsAppCommerceHub\Domain\Cart\CartException',
 		'WCH_Product_Sync_Service' => 'WhatsAppCommerceHub\Application\Services\ProductSyncService',
@@ -171,7 +171,7 @@ try {
 		'WCH_Order_Sync_Service'   => 'WhatsAppCommerceHub\Application\Services\OrderSyncService',
 		'WCH_Customer_Service'     => 'WhatsAppCommerceHub\Domain\Customer\CustomerService',
 		'WCH_Customer_Profile'     => 'WhatsAppCommerceHub\Domain\Customer\CustomerProfile',
-	);
+	];
 
 	foreach ( $expectedMappings as $legacy => $modern ) {
 		if ( ! isset( $mapping[ $legacy ] ) || $mapping[ $legacy ] !== $modern ) {
@@ -194,12 +194,12 @@ echo blue( "╚═════════════════════�
 $passed = count( array_filter( $results ) );
 $total  = count( $results );
 
-$domains = array(
+$domains = [
 	'Cart'     => 3,
 	'Catalog'  => 2,
 	'Order'    => 1,
 	'Customer' => 2,
-);
+];
 
 echo "Domain Classes Migrated:\n";
 foreach ( $domains as $domain => $count ) {

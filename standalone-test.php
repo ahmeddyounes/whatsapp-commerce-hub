@@ -13,11 +13,11 @@ $all_pass = true;
 
 // Test 1: Check files exist.
 echo "1. Checking files exist:\n";
-$files = array(
+$files = [
 	'includes/class-wch-encryption.php',
 	'includes/class-wch-settings.php',
 	'includes/class-wch-settings-test.php',
-);
+];
 
 foreach ( $files as $file ) {
 	if ( file_exists( $file ) ) {
@@ -31,7 +31,7 @@ foreach ( $files as $file ) {
 // Test 2: Check PHP syntax.
 echo "\n2. Checking PHP syntax:\n";
 foreach ( $files as $file ) {
-	$output = array();
+	$output = [];
 	$return = 0;
 	exec( "php -l $file 2>&1", $output, $return );
 	if ( 0 === $return ) {
@@ -63,10 +63,10 @@ if ( strpos( $settings_content, 'class WCH_Settings' ) !== false ) {
 
 // Test 4: Check required methods exist.
 echo "\n4. Checking required methods:\n";
-$required_methods = array(
+$required_methods = [
 	'WCH_Settings'   => array( 'get', 'set', 'get_all', 'delete', 'get_section' ),
 	'WCH_Encryption' => array( 'encrypt', 'decrypt' ),
-);
+];
 
 foreach ( $required_methods as $class => $methods ) {
 	foreach ( $methods as $method ) {
@@ -107,7 +107,7 @@ if ( strpos( $settings_content, 'wch_settings' ) !== false ) {
 
 // Test 7: Check encrypted fields.
 echo "\n7. Checking encrypted fields:\n";
-$encrypted_fields = array( 'api.access_token', 'ai.openai_api_key' );
+$encrypted_fields = [ 'api.access_token', 'ai.openai_api_key' ];
 foreach ( $encrypted_fields as $field ) {
 	if ( strpos( $settings_content, $field ) !== false ) {
 		echo "   ✓ $field marked for encryption\n";
@@ -138,7 +138,7 @@ if ( strpos( $settings_content, 'getInstance()' ) !== false &&
 
 // Test 10: Check all sections exist.
 echo "\n10. Checking all required sections:\n";
-$required_sections = array( 'api', 'general', 'catalog', 'checkout', 'notifications', 'ai' );
+$required_sections = [ 'api', 'general', 'catalog', 'checkout', 'notifications', 'ai' ];
 foreach ( $required_sections as $section ) {
 	if ( preg_match( "/'" . preg_quote( $section, '/' ) . "'\s*=>/", $settings_content ) ) {
 		echo "   ✓ Section '$section' defined\n";

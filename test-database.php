@@ -21,7 +21,7 @@ $db_manager = new WCH_Database_Manager();
 
 // Test get_table_name method.
 echo "Testing get_table_name() method:\n";
-$tables = array( 'conversations', 'messages', 'carts', 'customer_profiles', 'broadcast_campaigns', 'sync_queue' );
+$tables = [ 'conversations', 'messages', 'carts', 'customer_profiles', 'broadcast_campaigns', 'sync_queue' ];
 foreach ( $tables as $table ) {
 	$full_name = $db_manager->get_table_name( $table );
 	echo "  - {$table} => {$full_name}\n";

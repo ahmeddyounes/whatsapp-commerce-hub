@@ -16,7 +16,7 @@ function get_bloginfo( $key ) {
 }
 
 function get_option( $key, $default = null ) {
-	$options = array(
+	$options = [
 		'wch_settings' => array(
 			'ai' => array(
 				'enable_ai'          => true,
@@ -31,7 +31,7 @@ function get_option( $key, $default = null ) {
 				'business_name' => 'Test Store',
 			),
 		),
-	);
+	];
 	return $options[ $key ] ?? $default;
 }
 
@@ -92,7 +92,7 @@ class WCH_Settings {
 
 	public function get( $key, $default = null ) {
 		$parts = explode( '.', $key );
-		$settings = get_option( 'wch_settings', array() );
+		$settings = get_option( 'wch_settings', [] );
 
 		if ( count( $parts ) === 2 ) {
 			list( $section, $setting_key ) = $parts;
@@ -104,33 +104,33 @@ class WCH_Settings {
 }
 
 class WCH_Logger {
-	public static function info( $message, $context = array() ) {
+	public static function info( $message, $context = [] ) {
 		echo "[INFO] $message\n";
 	}
 
-	public static function error( $message, $context = array() ) {
+	public static function error( $message, $context = [] ) {
 		echo "[ERROR] $message\n";
 	}
 
-	public static function warning( $message, $context = array() ) {
+	public static function warning( $message, $context = [] ) {
 		echo "[WARNING] $message\n";
 	}
 
-	public static function critical( $message, $context = array() ) {
+	public static function critical( $message, $context = [] ) {
 		echo "[CRITICAL] $message\n";
 	}
 }
 
 function get_terms( $args ) {
-	return array();
+	return [];
 }
 
 function wc_get_product_ids_on_sale() {
-	return array( 1, 2, 3 );
+	return [ 1, 2, 3 ];
 }
 
 function wc_get_products( $args ) {
-	return array();
+	return [];
 }
 
 function wc_get_product( $id ) {
@@ -179,13 +179,13 @@ echo "✓ Class instantiated successfully\n\n";
 // Test 2: Configuration.
 echo "Test 2: Configuration\n";
 $ai_custom = new WCH_AI_Assistant(
-	array(
+	[
 		'api_key'      => 'custom-key',
 		'model'        => 'gpt-3.5-turbo',
 		'temperature'  => 0.5,
 		'max_tokens'   => 300,
 		'system_prompt' => 'Custom prompt',
-	)
+	]
 );
 echo "✓ Custom configuration accepted\n\n";
 
@@ -193,10 +193,10 @@ echo "✓ Custom configuration accepted\n\n";
 echo "Test 3: Rate limit check (no actual API call)\n";
 $response = $ai->generate_response(
 	'Hello, I need help finding a product',
-	array(
+	[
 		'conversation_id' => 123,
 		'current_state'   => 'BROWSING',
-	)
+	]
 );
 echo "Response error (expected in test mode): " . ( $response['error'] ?? 'none' ) . "\n\n";
 
@@ -204,10 +204,10 @@ echo "Response error (expected in test mode): " . ( $response['error'] ?? 'none'
 echo "Test 4: Function call processing\n";
 $result = $ai->process_function_call(
 	'suggest_products',
-	array(
+	[
 		'query' => 'laptop',
 		'limit' => 5,
-	)
+	]
 );
 echo "Function result: " . ( $result['success'] ? 'Success' : 'Failed' ) . "\n";
 echo "Response text: " . ( $result['text'] ?? 'none' ) . "\n\n";
@@ -221,7 +221,7 @@ echo "Monthly usage: " . print_r( $usage, true ) . "\n";
 echo "Test 6: Get product details function\n";
 $result = $ai->process_function_call(
 	'get_product_details',
-	array( 'product_id' => 999 )
+	[ 'product_id' => 999 ]
 );
 echo "Function result: " . ( $result['success'] ? 'Success' : 'Failed' ) . "\n";
 echo "Error (expected): " . ( $result['error'] ?? 'none' ) . "\n\n";
@@ -230,11 +230,11 @@ echo "Error (expected): " . ( $result['error'] ?? 'none' ) . "\n\n";
 echo "Test 7: Add to cart function\n";
 $result = $ai->process_function_call(
 	'add_to_cart',
-	array(
+	[
 		'product_id' => 999,
 		'quantity'   => 2,
-	),
-	array( 'conversation_id' => 123 )
+	],
+	[ 'conversation_id' => 123 ]
 );
 echo "Function result: " . ( $result['success'] ? 'Success' : 'Failed' ) . "\n";
 echo "Action: " . ( $result['action'] ?? 'none' ) . "\n\n";
@@ -243,8 +243,8 @@ echo "Action: " . ( $result['action'] ?? 'none' ) . "\n\n";
 echo "Test 8: Escalate to human function\n";
 $result = $ai->process_function_call(
 	'escalate_to_human',
-	array( 'reason' => 'Customer request' ),
-	array( 'conversation_id' => 123 )
+	[ 'reason' => 'Customer request' ],
+	[ 'conversation_id' => 123 ]
 );
 echo "Function result: " . ( $result['success'] ? 'Success' : 'Failed' ) . "\n";
 echo "Action: " . ( $result['action'] ?? 'none' ) . "\n\n";

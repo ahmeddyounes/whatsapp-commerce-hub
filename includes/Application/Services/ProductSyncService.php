@@ -795,15 +795,15 @@ class ProductSyncService implements ProductSyncServiceInterface {
 			'meta_query'     => [
 				[
 					'relation' => 'OR',
-					array(
+					[
 						'key'     => '_wch_exclude_from_sync',
 						'compare' => 'NOT EXISTS',
-					),
-					array(
+					],
+					[
 						'key'     => '_wch_exclude_from_sync',
 						'value'   => '1',
 						'compare' => '!=',
-					),
+					],
 				],
 			],
 		];

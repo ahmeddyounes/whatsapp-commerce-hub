@@ -51,7 +51,7 @@ if ( ! function_exists( 'add_filter' ) ) {
 	function add_filter( $tag, $function, $priority = 10, $accepted_args = 1 ) {
 		global $_wp_filters;
 		if ( ! isset( $_wp_filters[ $tag ] ) ) {
-			$_wp_filters[ $tag ] = array();
+			$_wp_filters[ $tag ] = [];
 		}
 		$_wp_filters[ $tag ][] = $function;
 	}
@@ -60,7 +60,7 @@ if ( ! function_exists( 'add_filter' ) ) {
 if ( ! function_exists( 'wc_get_product' ) ) {
 	function wc_get_product( $product_id ) {
 		// Mock product object.
-		return (object) array( 'is_in_stock' => function() { return true; } );
+		return (object) [ 'is_in_stock' => function() { return true; } ];
 	}
 }
 
@@ -94,7 +94,7 @@ if ( ! function_exists( 'is_wp_error' ) ) {
 if ( ! class_exists( 'wpdb' ) ) {
 	class wpdb {
 		public $prefix = 'wp_';
-		private $data = array();
+		private $data = [];
 		public $insert_id = 0;
 
 		public function get_charset_collate() {
@@ -265,7 +265,7 @@ class FSM_Verification_Tests {
 
 		$this->wpdb->insert(
 			$table_name,
-			array(
+			[
 				'customer_phone'     => '+1234567890',
 				'wa_conversation_id' => 'test_conv_' . time(),
 				'status'             => 'active',
@@ -273,8 +273,8 @@ class FSM_Verification_Tests {
 				'last_message_at'    => current_time( 'mysql' ),
 				'created_at'         => current_time( 'mysql' ),
 				'updated_at'         => current_time( 'mysql' ),
-			),
-			array( '%s', '%s', '%s', '%s', '%s', '%s', '%s' )
+			],
+			[ '%s', '%s', '%s', '%s', '%s', '%s', '%s' ]
 		);
 
 		$this->test_conversation_id = $this->wpdb->insert_id;
@@ -285,7 +285,7 @@ class FSM_Verification_Tests {
 	 */
 	private function teardown() {
 		$table_name = $this->wpdb->prefix . 'wch_conversations';
-		$this->wpdb->delete( $table_name, array( 'id' => $this->test_conversation_id ), array( '%d' ) );
+		$this->wpdb->delete( $table_name, [ 'id' => $this->test_conversation_id ], [ '%d' ] );
 	}
 
 	/**
@@ -329,7 +329,7 @@ class FSM_Verification_Tests {
 		$this->assert( is_array( $context->conversation_history ), 'Context has conversation_history array' );
 
 		// Test update_state_data.
-		$context->update_state_data( array( 'test_key' => 'test_value' ) );
+		$context->update_state_data( [ 'test_key' => 'test_value' ] );
 		$this->assert( $context->get_state_data( 'test_key' ) === 'test_value', 'State data can be updated and retrieved' );
 
 		// Test to_array and from_json.
@@ -338,7 +338,7 @@ class FSM_Verification_Tests {
 		$this->assert( $new_context->get_state_data( 'test_key' ) === 'test_value', 'Context can be serialized and deserialized' );
 
 		// Test add_history_entry.
-		$context->add_history_entry( 'TEST_EVENT', 'STATE_A', 'STATE_B', array( 'key' => 'value' ) );
+		$context->add_history_entry( 'TEST_EVENT', 'STATE_A', 'STATE_B', [ 'key' => 'value' ] );
 		$last_entry = $context->get_last_history_entry();
 		$this->assert( $last_entry['event'] === 'TEST_EVENT', 'History entry can be added' );
 
@@ -376,7 +376,7 @@ class FSM_Verification_Tests {
 		$this->assert( $context['current_state'] === WCH_Conversation_FSM::STATE_BROWSING, 'State updated to BROWSING' );
 
 		// BROWSING -> VIEWING_PRODUCT.
-		$conversation = $this->fsm->transition( $conversation, WCH_Conversation_FSM::EVENT_VIEW_PRODUCT, array( 'product_id' => 123 ) );
+		$conversation = $this->fsm->transition( $conversation, WCH_Conversation_FSM::EVENT_VIEW_PRODUCT, [ 'product_id' => 123 ] );
 		$this->assert( ! is_wp_error( $conversation ), 'Transition from BROWSING to VIEWING_PRODUCT succeeds' );
 
 		$context = json_decode( $conversation['context'], true );
@@ -408,10 +408,10 @@ class FSM_Verification_Tests {
 		$table_name = $this->wpdb->prefix . 'wch_conversations';
 		$this->wpdb->update(
 			$table_name,
-			array( 'context' => $conversation['context'], 'updated_at' => current_time( 'mysql' ) ),
-			array( 'id' => $conversation['id'] ),
-			array( '%s', '%s' ),
-			array( '%d' )
+			[ 'context' => $conversation['context'], 'updated_at' => current_time( 'mysql' ) ],
+			[ 'id' => $conversation['id'] ],
+			[ '%s', '%s' ],
+			[ '%d' ]
 		);
 	}
 
@@ -436,7 +436,7 @@ class FSM_Verification_Tests {
 		$conversation = $this->get_conversation();
 
 		// Try VIEW_PRODUCT with product_id (should pass guard).
-		$result = $this->fsm->transition( $conversation, WCH_Conversation_FSM::EVENT_VIEW_PRODUCT, array( 'product_id' => 123 ) );
+		$result = $this->fsm->transition( $conversation, WCH_Conversation_FSM::EVENT_VIEW_PRODUCT, [ 'product_id' => 123 ] );
 		$this->assert( ! is_wp_error( $result ), 'Guard condition passes when product_id provided' );
 	}
 
@@ -488,10 +488,10 @@ class FSM_Verification_Tests {
 		$table_name = $this->wpdb->prefix . 'wch_conversations';
 		$this->wpdb->update(
 			$table_name,
-			array( 'context' => $conversation['context'], 'updated_at' => $conversation['updated_at'] ),
-			array( 'id' => $conversation['id'] ),
-			array( '%s', '%s' ),
-			array( '%d' )
+			[ 'context' => $conversation['context'], 'updated_at' => $conversation['updated_at'] ],
+			[ 'id' => $conversation['id'] ],
+			[ '%s', '%s' ],
+			[ '%d' ]
 		);
 
 		$conversation = $this->get_conversation();
@@ -543,7 +543,7 @@ class FSM_Verification_Tests {
 		$conversation = $this->get_conversation();
 
 		// Transition and add data.
-		$conversation = $this->fsm->transition( $conversation, WCH_Conversation_FSM::EVENT_START, array( 'test_data' => 'test_value' ) );
+		$conversation = $this->fsm->transition( $conversation, WCH_Conversation_FSM::EVENT_START, [ 'test_data' => 'test_value' ] );
 
 		// Fetch conversation from database.
 		$conversation = $this->get_conversation();
@@ -565,7 +565,7 @@ class FSM_Verification_Tests {
 
 		// Make several transitions.
 		$conversation = $this->fsm->transition( $conversation, WCH_Conversation_FSM::EVENT_START );
-		$conversation = $this->fsm->transition( $conversation, WCH_Conversation_FSM::EVENT_VIEW_PRODUCT, array( 'product_id' => 123 ) );
+		$conversation = $this->fsm->transition( $conversation, WCH_Conversation_FSM::EVENT_VIEW_PRODUCT, [ 'product_id' => 123 ] );
 		$conversation = $this->fsm->transition( $conversation, WCH_Conversation_FSM::EVENT_SEARCH );
 
 		$context = json_decode( $conversation['context'], true );
@@ -593,13 +593,13 @@ class FSM_Verification_Tests {
 
 		// Test custom transition filter.
 		add_filter( 'wch_fsm_transitions', function( $transitions ) {
-			$transitions[] = array(
+			$transitions[] = [
 				'from_state'      => 'CUSTOM_STATE',
 				'event'           => 'CUSTOM_EVENT',
 				'to_state'        => 'ANOTHER_CUSTOM_STATE',
 				'guard_condition' => null,
 				'action'          => 'custom_action',
-			);
+			];
 			return $transitions;
 		} );
 
@@ -620,7 +620,7 @@ class FSM_Verification_Tests {
 		// Test custom action filter.
 		add_filter( 'wch_fsm_action_execute', function( $result, $action_name, $conversation, $payload ) {
 			if ( $action_name === 'custom_action' ) {
-				return array( 'custom_data' => 'custom_value' );
+				return [ 'custom_data' => 'custom_value' ];
 			}
 			return $result;
 		}, 10, 4 );

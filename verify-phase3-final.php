@@ -18,8 +18,8 @@ echo blue( "╔═════════════════════�
 echo blue( "║              PHASE 3 FINAL VERIFICATION - ALL 14 CLASSES                    ║\n" );
 echo blue( "╚══════════════════════════════════════════════════════════════════════════════╝\n\n" );
 
-$results = array();
-$classes = array(
+$results = [];
+$classes = [
 'Cart' => array(
 'Cart'          => 'WhatsAppCommerceHub\Domain\Cart\Cart',
 'CartException' => 'WhatsAppCommerceHub\Domain\Cart\CartException',
@@ -44,7 +44,7 @@ $classes = array(
 'StateMachine'     => 'WhatsAppCommerceHub\Domain\Conversation\StateMachine',
 'IntentClassifier' => 'WhatsAppCommerceHub\Support\AI\IntentClassifier',
 ),
-);
+];
 
 $totalClasses = 0;
 foreach ( $classes as $domain => $domainClasses ) {
@@ -74,9 +74,9 @@ echo "Testing mappings... ";
 try {
 $mapper = 'WhatsAppCommerceHub\Core\LegacyClassMapper';
 $mapping = $mapper::getMapping();
-$expected = array(
+$expected = [
 'WCH_Customer_Profile'   => 'WhatsAppCommerceHub\Domain\Customer\CustomerProfile',
-);
+];
 foreach ( $expected as $legacy => $modern ) {
 if ( ! isset( $mapping[ $legacy ] ) || $mapping[ $legacy ] !== $modern ) {
 throw new Exception( "Mapping error: $legacy" );

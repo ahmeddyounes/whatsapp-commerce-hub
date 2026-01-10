@@ -74,12 +74,12 @@ class AnalyticsController extends AbstractController {
 					'callback'            => [ $this, 'getSummary' ],
 					'permission_callback' => [ $this, 'checkAdminPermission' ],
 					'args'                => [
-						'period' => array(
+						'period' => [
 							'required'          => false,
 							'default'           => 'today',
 							'sanitize_callback' => 'sanitize_text_field',
 							'validate_callback' => array( $this, 'validatePeriod' ),
-						),
+						],
 					],
 				],
 			]
@@ -125,12 +125,12 @@ class AnalyticsController extends AbstractController {
 					'args'                => array_merge(
 						$this->getDaysArgs( 30 ),
 						[
-							'limit' => array(
+							'limit' => [
 								'required'          => false,
 								'default'           => 10,
 								'sanitize_callback' => 'absint',
 								'validate_callback' => array( $this, 'validateLimit' ),
-							),
+							],
 						]
 					),
 				],
@@ -205,11 +205,11 @@ class AnalyticsController extends AbstractController {
 					'args'                => array_merge(
 						$this->getDaysArgs( 30 ),
 						[
-							'type' => array(
+							'type' => [
 								'required'          => true,
 								'sanitize_callback' => 'sanitize_text_field',
 								'validate_callback' => array( $this, 'validateExportType' ),
-							),
+							],
 						]
 					),
 				],
@@ -710,19 +710,19 @@ class AnalyticsController extends AbstractController {
 				'total_conversations' => [
 					'description' => __( 'Total number of conversations', 'whatsapp-commerce-hub' ),
 					'type'        => 'integer',
-					'context'     => array( 'view' ),
+					'context'     => [ 'view' ],
 					'readonly'    => true,
 				],
 				'total_orders'        => [
 					'description' => __( 'Total number of orders', 'whatsapp-commerce-hub' ),
 					'type'        => 'integer',
-					'context'     => array( 'view' ),
+					'context'     => [ 'view' ],
 					'readonly'    => true,
 				],
 				'total_revenue'       => [
 					'description' => __( 'Total revenue', 'whatsapp-commerce-hub' ),
 					'type'        => 'number',
-					'context'     => array( 'view' ),
+					'context'     => [ 'view' ],
 					'readonly'    => true,
 				],
 			],

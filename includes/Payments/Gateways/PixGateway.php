@@ -273,9 +273,9 @@ class PixGateway extends AbstractGateway {
 			'items'             => $items,
 			'qr_codes'          => [
 				[
-					'amount' => array(
+					'amount' => [
 						'value' => intval( $order->get_total() * 100 ),
-					),
+					],
 				],
 			],
 			'notification_urls' => [

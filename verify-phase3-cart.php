@@ -43,7 +43,7 @@ function blue( $text ) {
 
 echo blue( "=== Phase 3: Cart Domain Verification ===\n\n" );
 
-$results = array();
+$results = [];
 
 // Test 1: Cart entity.
 echo "Testing Cart entity migration...\n";
@@ -165,10 +165,10 @@ try {
 
 	$mapping = $mapperClass::getMapping();
 
-	$expectedMappings = array(
+	$expectedMappings = [
 		'WCH_Cart_Manager'    => 'WhatsAppCommerceHub\Domain\Cart\CartService',
 		'WCH_Cart_Exception'  => 'WhatsAppCommerceHub\Domain\Cart\CartException',
-	);
+	];
 
 	foreach ( $expectedMappings as $legacy => $modern ) {
 		if ( ! isset( $mapping[ $legacy ] ) ) {

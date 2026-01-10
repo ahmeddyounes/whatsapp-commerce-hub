@@ -31,8 +31,8 @@ class CustomerFactory {
 		'whatsapp_id'     => null,
 		'wc_customer_id'  => null,
 		'language'        => 'en',
-		'preferences'     => array(),
-		'metadata'        => array(),
+		'preferences'     => [],
+		'metadata'        => [],
 		'created_at'      => null,
 		'updated_at'      => null,
 	];
@@ -193,10 +193,10 @@ class CustomerFactory {
 				'wc_customer_id' => null,
 				'email'          => null,
 				'name'           => 'Guest',
-				'metadata'       => array(
+				'metadata'       => [
 					'customer_segment' => 'new',
 					'source'           => 'whatsapp',
-				),
+				],
 			],
 			$attributes
 		);

@@ -88,7 +88,7 @@ class WCH_WhatsApp_API_Integration_Test extends WCH_Integration_Test_Case {
 		);
 
 		$sections = [
-			array(
+			[
 				'title' => 'Products',
 				'rows'  => array(
 					array(
@@ -102,7 +102,7 @@ class WCH_WhatsApp_API_Integration_Test extends WCH_Integration_Test_Case {
 						'description' => 'Description 2',
 					),
 				),
-			),
+			],
 		];
 
 		// Act.
@@ -133,7 +133,7 @@ class WCH_WhatsApp_API_Integration_Test extends WCH_Integration_Test_Case {
 		);
 
 		$components = [
-			array(
+			[
 				'type'       => 'body',
 				'parameters' => array(
 					array(
@@ -141,7 +141,7 @@ class WCH_WhatsApp_API_Integration_Test extends WCH_Integration_Test_Case {
 						'text' => 'John Doe',
 					),
 				),
-			),
+			],
 		];
 
 		// Act.

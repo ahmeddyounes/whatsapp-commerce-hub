@@ -433,10 +433,10 @@ run_test( 'Get abandoned carts', function() use ( $manager, $test_phone ) {
 
 	$wpdb->update(
 		$table_name,
-		array( 'updated_at' => date( 'Y-m-d H:i:s', strtotime( '-48 hours' ) ) ),
-		array( 'customer_phone' => $test_phone ),
-		array( '%s' ),
-		array( '%s' )
+		[ 'updated_at' => date( 'Y-m-d H:i:s', strtotime( '-48 hours' ) ) ],
+		[ 'customer_phone' => $test_phone ],
+		[ '%s' ],
+		[ '%s' ]
 	);
 
 	$abandoned = $manager->get_abandoned_carts( 24 );
@@ -457,7 +457,7 @@ run_test( 'Clean up expired carts', function() use ( $manager, $test_phone ) {
 	// Insert a cart that's expired.
 	$wpdb->insert(
 		$table_name,
-		array(
+		[
 			'customer_phone' => '+9999999999',
 			'items'          => wp_json_encode( array() ),
 			'total'          => 0.00,
@@ -465,8 +465,8 @@ run_test( 'Clean up expired carts', function() use ( $manager, $test_phone ) {
 			'expires_at'     => date( 'Y-m-d H:i:s', strtotime( '-1 day' ) ),
 			'created_at'     => current_time( 'mysql' ),
 			'updated_at'     => current_time( 'mysql' ),
-		),
-		array( '%s', '%s', '%f', '%s', '%s', '%s', '%s' )
+		],
+		[ '%s', '%s', '%f', '%s', '%s', '%s', '%s' ]
 	);
 
 	$cleaned = $manager->cleanup_expired_carts();

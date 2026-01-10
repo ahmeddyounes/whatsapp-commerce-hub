@@ -158,13 +158,13 @@ class WCH_WooCommerce_Integration_Test extends WCH_Integration_Test_Case {
 		$cart_data = [
 			'items'          => $this->cart_manager->get_items( $cart_id ),
 			'customer_phone' => $customer_phone,
-			'billing'        => array(
+			'billing'        => [
 				'first_name' => 'Test',
 				'last_name'  => 'User',
 				'phone'      => $customer_phone,
 				'email'      => 'test@example.com',
-			),
-			'shipping'       => array(
+			],
+			'shipping'       => [
 				'first_name' => 'Test',
 				'last_name'  => 'User',
 				'address_1'  => '123 Test St',
@@ -172,7 +172,7 @@ class WCH_WooCommerce_Integration_Test extends WCH_Integration_Test_Case {
 				'state'      => 'TS',
 				'postcode'   => '12345',
 				'country'    => 'US',
-			),
+			],
 			'payment_method' => 'cod',
 		];
 
@@ -218,14 +218,14 @@ class WCH_WooCommerce_Integration_Test extends WCH_Integration_Test_Case {
 		WCH_API_Mock_Server::add_mock(
 			'/graph\.facebook\.com.*\/products/',
 			[
-				'response' => array(
+				'response' => [
 					'code'    => 200,
 					'message' => 'OK',
-				),
+				],
 				'body'     => wp_json_encode(
-					array(
+					[
 						'success' => true,
-					)
+					]
 				),
 			]
 		);
@@ -309,7 +309,7 @@ class WCH_WooCommerce_Integration_Test extends WCH_Integration_Test_Case {
 
 		$payload = [
 			'object' => 'whatsapp_business_account',
-			'entry'  => array(
+			'entry'  => [
 				array(
 					'id'      => 'test_business_id',
 					'changes' => array(
@@ -339,7 +339,7 @@ class WCH_WooCommerce_Integration_Test extends WCH_Integration_Test_Case {
 						),
 					),
 				),
-			),
+			],
 		];
 
 		$request = new WP_REST_Request( 'POST', '/wch/v1/webhook' );

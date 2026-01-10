@@ -72,7 +72,7 @@ if ( ! $bool_fail && $bool_pass && ! $int_fail && $int_pass ) {
 
 // Check all required sections exist.
 echo "\n5. All required sections and keys exist:\n";
-$required_sections = array(
+$required_sections = [
 	'api' => array(
 		'whatsapp_phone_number_id',
 		'whatsapp_business_account_id',
@@ -118,7 +118,7 @@ $required_sections = array(
 		'ai_max_tokens',
 		'ai_system_prompt',
 	),
-);
+];
 
 $section_pass = true;
 foreach ( $required_sections as $section => $keys ) {
@@ -126,7 +126,7 @@ foreach ( $required_sections as $section => $keys ) {
 		$full_key = "$section.$key";
 		// Try to get default value.
 		$value = $settings->get( $full_key );
-		if ( null === $value && ! in_array( $full_key, array( 'api.whatsapp_phone_number_id', 'api.whatsapp_business_account_id', 'api.access_token', 'api.webhook_verify_token', 'ai.openai_api_key' ), true ) ) {
+		if ( null === $value && ! in_array( $full_key, [ 'api.whatsapp_phone_number_id', 'api.whatsapp_business_account_id', 'api.access_token', 'api.webhook_verify_token', 'ai.openai_api_key' ], true ) ) {
 			echo "   ✗ Missing default for: $full_key\n";
 			$section_pass = false;
 		}
@@ -178,7 +178,7 @@ if ( class_exists( 'WCH_Encryption' ) ) {
 
 // Check WCH_Settings methods exist.
 echo "\n8. WCH_Settings has all required methods: ";
-$required_methods = array( 'get', 'set', 'get_all', 'delete', 'get_section' );
+$required_methods = [ 'get', 'set', 'get_all', 'delete', 'get_section' ];
 $methods_exist = true;
 foreach ( $required_methods as $method ) {
 	if ( ! method_exists( 'WCH_Settings', $method ) ) {

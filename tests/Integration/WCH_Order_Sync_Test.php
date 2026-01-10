@@ -40,18 +40,18 @@ class WCH_Order_Sync_Test extends WCH_Integration_Test_Case {
 		$order_data = [
 			'customer_phone' => '+1234567890',
 			'customer_name' => 'John Doe',
-			'items' => array(
+			'items' => [
 				array(
 					'product_id' => $product->get_id(),
 					'quantity' => 2,
 				),
-			),
-			'shipping_address' => array(
+			],
+			'shipping_address' => [
 				'address_1' => '123 Main St',
 				'city' => 'New York',
 				'postcode' => '10001',
 				'country' => 'US',
-			),
+			],
 		];
 
 		$order_id = $this->sync_service->create_order( $order_data );
@@ -177,10 +177,10 @@ class WCH_Order_Sync_Test extends WCH_Integration_Test_Case {
 
 		$order_data = [
 			'customer_phone' => '+1234567890',
-			'items' => array(
+			'items' => [
 				array( 'product_id' => $product1->get_id(), 'quantity' => 2 ),
 				array( 'product_id' => $product2->get_id(), 'quantity' => 1 ),
-			),
+			],
 		];
 
 		$order_id = $this->sync_service->create_order( $order_data );

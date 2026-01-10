@@ -50,7 +50,7 @@ function example_view_product( $conversation, $product_id ) {
 	$conversation = $fsm->transition(
 		$conversation,
 		WCH_Conversation_FSM::EVENT_VIEW_PRODUCT,
-		array( 'product_id' => $product_id )
+		[ 'product_id' => $product_id ]
 	);
 
 	if ( is_wp_error( $conversation ) ) {
@@ -70,10 +70,10 @@ function example_add_to_cart( $conversation, $product_id, $quantity = 1 ) {
 	$conversation = $fsm->transition(
 		$conversation,
 		WCH_Conversation_FSM::EVENT_ADD_TO_CART,
-		array(
+		[
 			'product_id' => $product_id,
 			'quantity'   => $quantity,
-		)
+		]
 	);
 
 	if ( is_wp_error( $conversation ) ) {
@@ -128,7 +128,7 @@ function example_use_context( $conversation ) {
 	$product_id = $context->get_state_data( 'product_id' );
 
 	// Update state data.
-	$context->update_state_data( array( 'selected_category' => 'electronics' ) );
+	$context->update_state_data( [ 'selected_category' => 'electronics' ] );
 
 	// Get last history entry.
 	$last_entry = $context->get_last_history_entry();
@@ -150,13 +150,13 @@ function example_use_context( $conversation ) {
 function example_add_custom_transition() {
 	add_filter( 'wch_fsm_transitions', function( $transitions ) {
 		// Add a custom transition.
-		$transitions[] = array(
+		$transitions[] = [
 			'from_state'      => 'BROWSING',
 			'event'           => 'CUSTOM_EVENT',
 			'to_state'        => 'CUSTOM_STATE',
 			'guard_condition' => 'custom_guard',
 			'action'          => 'custom_action',
-		);
+		];
 
 		return $transitions;
 	} );
@@ -184,7 +184,7 @@ function example_add_custom_action() {
 		if ( $action_name === 'custom_action' ) {
 			// Implement your custom action logic.
 			// Return data to be merged into state_data.
-			return array( 'custom_result' => 'success' );
+			return [ 'custom_result' => 'success' ];
 		}
 
 		return $result;
@@ -211,14 +211,14 @@ function example_checkout_flow( $conversation ) {
 	$conversation = $fsm->transition(
 		$conversation,
 		WCH_Conversation_FSM::EVENT_ENTER_ADDRESS,
-		array(
+		[
 			'address' => array(
 				'street'  => '123 Main St',
 				'city'    => 'New York',
 				'zip'     => '10001',
 				'country' => 'US',
 			),
-		)
+		]
 	);
 
 	if ( is_wp_error( $conversation ) ) {
@@ -229,7 +229,7 @@ function example_checkout_flow( $conversation ) {
 	$conversation = $fsm->transition(
 		$conversation,
 		WCH_Conversation_FSM::EVENT_SELECT_PAYMENT,
-		array( 'payment_method' => 'cod' )
+		[ 'payment_method' => 'cod' ]
 	);
 
 	if ( is_wp_error( $conversation ) ) {

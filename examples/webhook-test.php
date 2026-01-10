@@ -48,11 +48,11 @@ echo "Set verify token: " . substr( $verify_token, 0, 10 ) . "...\n";
 // Simulate GET request to webhook endpoint.
 $verify_url = rest_url( 'wch/v1/webhook' );
 $verify_url = add_query_arg(
-	array(
+	[
 		'hub_mode'         => 'subscribe',
 		'hub_verify_token' => $verify_token,
 		'hub_challenge'    => $challenge,
-	),
+	],
 	$verify_url
 );
 
@@ -69,7 +69,7 @@ $settings->set( 'api.webhook_secret', $webhook_secret );
 echo "Set webhook secret: " . substr( $webhook_secret, 0, 10 ) . "...\n";
 
 // Create test payload.
-$test_payload = array(
+$test_payload = [
 	'object' => 'whatsapp_business_account',
 	'entry'  => array(
 		array(
@@ -99,7 +99,7 @@ $test_payload = array(
 			),
 		),
 	),
-);
+];
 
 $payload_json = wp_json_encode( $test_payload );
 $signature    = 'sha256=' . hash_hmac( 'sha256', $payload_json, $webhook_secret );
@@ -137,7 +137,7 @@ echo "\n";
 echo "Test 4: Status Event Processing\n";
 echo "--------------------------------\n";
 
-$status_payload = array(
+$status_payload = [
 	'object' => 'whatsapp_business_account',
 	'entry'  => array(
 		array(
@@ -164,7 +164,7 @@ $status_payload = array(
 			),
 		),
 	),
-);
+];
 
 $status_json      = wp_json_encode( $status_payload );
 $status_signature = 'sha256=' . hash_hmac( 'sha256', $status_json, $webhook_secret );
@@ -190,7 +190,7 @@ echo "\n";
 echo "Test 5: Error Event Processing\n";
 echo "-------------------------------\n";
 
-$error_payload = array(
+$error_payload = [
 	'object' => 'whatsapp_business_account',
 	'entry'  => array(
 		array(
@@ -210,7 +210,7 @@ $error_payload = array(
 			),
 		),
 	),
-);
+];
 
 $error_json      = wp_json_encode( $error_payload );
 $error_signature = 'sha256=' . hash_hmac( 'sha256', $error_json, $webhook_secret );

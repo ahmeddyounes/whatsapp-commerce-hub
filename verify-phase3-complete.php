@@ -34,8 +34,8 @@ echo blue( "╔═════════════════════�
 echo blue( "║           PHASE 3 DOMAIN LAYER - FINAL VERIFICATION                         ║\n" );
 echo blue( "╚══════════════════════════════════════════════════════════════════════════════╝\n\n" );
 
-$results = array();
-$domains = array(
+$results = [];
+$domains = [
 'Cart Domain' => array(
 'Cart'          => 'WhatsAppCommerceHub\Domain\Cart\Cart',
 'CartException' => 'WhatsAppCommerceHub\Domain\Cart\CartException',
@@ -59,7 +59,7 @@ $domains = array(
 'StateMachine'     => 'WhatsAppCommerceHub\Domain\Conversation\StateMachine',
 'IntentClassifier' => 'WhatsAppCommerceHub\Support\AI\IntentClassifier',
 ),
-);
+];
 
 foreach ( $domains as $domainName => $classes ) {
 echo yellow( "\n=== $domainName ===\n" );
@@ -92,7 +92,7 @@ try {
 $mapper  = 'WhatsAppCommerceHub\Core\LegacyClassMapper';
 $mapping = $mapper::getMapping();
 
-$expectedMappings = array(
+$expectedMappings = [
 'WCH_Cart_Manager'          => 'WhatsAppCommerceHub\Domain\Cart\CartService',
 'WCH_Cart_Exception'        => 'WhatsAppCommerceHub\Domain\Cart\CartException',
 'WCH_Product_Sync_Service'  => 'WhatsAppCommerceHub\Application\Services\ProductSyncService',
@@ -103,7 +103,7 @@ $expectedMappings = array(
 'WCH_Conversation_FSM'      => 'WhatsAppCommerceHub\Domain\Conversation\StateMachine',
 'WCH_Intent'                => 'WhatsAppCommerceHub\Domain\Conversation\Intent',
 'WCH_Intent_Classifier'     => 'WhatsAppCommerceHub\Support\AI\IntentClassifier',
-);
+];
 
 foreach ( $expectedMappings as $legacy => $modern ) {
 if ( ! isset( $mapping[ $legacy ] ) || $mapping[ $legacy ] !== $modern ) {
@@ -123,13 +123,13 @@ echo "\n" . blue( "╔═══════════════════�
 echo blue( "║                              SUMMARY                                         ║\n" );
 echo blue( "╚══════════════════════════════════════════════════════════════════════════════╝\n\n" );
 
-$domainCounts = array(
+$domainCounts = [
 'Cart'         => 3,
 'Catalog'      => 2,
 'Order'        => 1,
 'Customer'     => 2,
 'Conversation' => 5,
-);
+];
 
 echo "Domain Classes Migrated:\n";
 $totalClasses = 0;

@@ -19,7 +19,7 @@ if ( file_exists( $service_file ) ) {
 	$content = file_get_contents( $service_file );
 
 	// Check for required methods.
-	$required_methods = array(
+	$required_methods = [
 		'identify_inactive_customers' => 'Identify inactive customers',
 		'send_reengagement_message'   => 'Send re-engagement message',
 		'track_product_view'          => 'Track product view',
@@ -28,7 +28,7 @@ if ( file_exists( $service_file ) ) {
 		'get_analytics'               => 'Get analytics',
 		'check_back_in_stock'         => 'Check back-in-stock',
 		'check_price_drops'           => 'Check price drops',
-	);
+	];
 
 	foreach ( $required_methods as $method => $description ) {
 		if ( strpos( $content, "function {$method}" ) !== false ) {
@@ -43,13 +43,13 @@ if ( file_exists( $service_file ) ) {
 		echo "  ✓ CAMPAIGN_TYPES constant is defined\n";
 
 		// Check for specific campaign types.
-		$campaign_types = array(
+		$campaign_types = [
 			'we_miss_you',
 			'new_arrivals',
 			'back_in_stock',
 			'price_drop',
 			'loyalty_reward',
-		);
+		];
 
 		foreach ( $campaign_types as $type ) {
 			if ( strpos( $content, "'{$type}'" ) !== false ) {
@@ -82,10 +82,10 @@ if ( file_exists( $db_manager_file ) ) {
 	}
 
 	// Check for new tables.
-	$tables = array(
+	$tables = [
 		'product_views'      => 'Product views table',
 		'reengagement_log'   => 'Re-engagement log table',
-	);
+	];
 
 	foreach ( $tables as $table => $description ) {
 		if ( strpos( $content, "get_table_name( '{$table}' )" ) !== false ) {
@@ -108,12 +108,12 @@ if ( file_exists( $queue_file ) ) {
 	$content = file_get_contents( $queue_file );
 
 	// Check for registered hooks.
-	$hooks = array(
+	$hooks = [
 		'wch_process_reengagement_campaigns',
 		'wch_send_reengagement_message',
 		'wch_check_back_in_stock',
 		'wch_check_price_drops',
-	);
+	];
 
 	foreach ( $hooks as $hook ) {
 		if ( strpos( $content, "'{$hook}'" ) !== false ) {
@@ -169,7 +169,7 @@ if ( file_exists( $service_file ) ) {
 	echo "  ✓ Service class has {$lines} lines of code\n";
 
 	// Check for key features.
-	$features = array(
+	$features = [
 		'Inactivity threshold'    => 'get_inactivity_threshold',
 		'Frequency capping'       => 'check_frequency_cap',
 		'Back-in-stock tracking'  => 'notify_back_in_stock',
@@ -178,7 +178,7 @@ if ( file_exists( $service_file ) ) {
 		'Message building'        => 'build_campaign_message',
 		'Analytics tracking'      => 'get_analytics',
 		'Loyalty discount'        => 'generate_loyalty_discount',
-	);
+	];
 
 	foreach ( $features as $feature => $method ) {
 		if ( strpos( $content, "function {$method}" ) !== false ) {
@@ -193,7 +193,7 @@ echo "\n";
 // Test 6: Acceptance criteria verification.
 echo "Test 6: Acceptance Criteria Verification\n";
 
-$criteria = array(
+$criteria = [
 	'Inactive customers identified correctly' => array(
 		'file'   => $service_file,
 		'checks' => array(
@@ -242,7 +242,7 @@ $criteria = array(
 			'order_id',
 		),
 	),
-);
+];
 
 foreach ( $criteria as $criterion => $data ) {
 	if ( file_exists( $data['file'] ) ) {

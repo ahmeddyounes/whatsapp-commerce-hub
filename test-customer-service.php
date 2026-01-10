@@ -40,14 +40,14 @@ echo "\n";
 // Test 2: Save an address.
 echo "Test 2: Saving customer address\n";
 echo str_repeat( '-', 60 ) . "\n";
-$address_data = array(
+$address_data = [
 	'address_1' => '123 Main St',
 	'address_2' => 'Apt 4B',
 	'city'      => 'New York',
 	'state'     => 'NY',
 	'postcode'  => '10001',
 	'country'   => 'US',
-);
+];
 $result = $customer_service->save_address( $test_phone, $address_data, true );
 if ( $result ) {
 	echo "✓ Address saved successfully\n";
@@ -63,10 +63,10 @@ echo "\n";
 // Test 3: Update preferences.
 echo "Test 3: Updating customer preferences\n";
 echo str_repeat( '-', 60 ) . "\n";
-$preferences = array(
+$preferences = [
 	'language' => 'en',
 	'currency' => 'USD',
-);
+];
 $result = $customer_service->update_preferences( $test_phone, $preferences );
 if ( $result ) {
 	echo "✓ Preferences updated successfully\n";
@@ -122,12 +122,12 @@ echo "\n";
 // Test 7: Phone normalization variations.
 echo "Test 7: Testing phone normalization\n";
 echo str_repeat( '-', 60 ) . "\n";
-$phone_variations = array(
+$phone_variations = [
 	'1234567890',
 	'+1234567890',
 	'(123) 456-7890',
 	'123-456-7890',
-);
+];
 echo "Testing variations for same profile:\n";
 foreach ( $phone_variations as $variation ) {
 	$profile = $customer_service->get_or_create_profile( $variation );

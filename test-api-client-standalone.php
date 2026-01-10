@@ -28,10 +28,10 @@ require_once __DIR__ . '/includes/class-wch-api-exception.php';
 
 // Mock logger for testing.
 class WCH_Logger {
-	public static function debug( $message, $context = array() ) {
+	public static function debug( $message, $context = [] ) {
 		// Silent for tests.
 	}
-	public static function warning( $message, $context = array() ) {
+	public static function warning( $message, $context = [] ) {
 		echo "⚠ Warning: $message\n";
 	}
 }
@@ -44,11 +44,11 @@ echo "=== WhatsApp API Client Standalone Test ===\n\n";
 echo "Test 1: Instantiate WhatsApp API Client\n";
 echo "----------------------------------------\n";
 
-$config = array(
+$config = [
 	'phone_number_id' => 'TEST_PHONE_ID_123',
 	'access_token'    => 'TEST_ACCESS_TOKEN_XYZ',
 	'api_version'     => 'v18.0',
-);
+];
 
 try {
 	$client = new WCH_WhatsApp_API_Client( $config );
@@ -63,7 +63,7 @@ echo "\nTest 2: Test missing configuration validation\n";
 echo "-----------------------------------------------\n";
 
 try {
-	$bad_client = new WCH_WhatsApp_API_Client( array() );
+	$bad_client = new WCH_WhatsApp_API_Client( [] );
 	echo "✗ Should have thrown exception for missing phone_number_id\n";
 } catch ( WCH_Exception $e ) {
 	echo "✓ Correctly threw exception: " . $e->getMessage() . "\n";
@@ -71,7 +71,7 @@ try {
 }
 
 try {
-	$bad_client = new WCH_WhatsApp_API_Client( array( 'phone_number_id' => 'test' ) );
+	$bad_client = new WCH_WhatsApp_API_Client( [ 'phone_number_id' => 'test' ] );
 	echo "✗ Should have thrown exception for missing access_token\n";
 } catch ( WCH_Exception $e ) {
 	echo "✓ Correctly threw exception: " . $e->getMessage() . "\n";
@@ -82,7 +82,7 @@ try {
 echo "\nTest 3: Phone number validation\n";
 echo "--------------------------------\n";
 
-$test_phones = array(
+$test_phones = [
 	'+1234567890'          => true,  // Valid.
 	'+12345'               => true,  // Valid (minimum).
 	'+123456789012345'     => true,  // Valid (maximum 15 digits).
@@ -91,7 +91,7 @@ $test_phones = array(
 	'+12345678901234567'   => false, // Invalid (too long, 16 digits).
 	'+12 345 678 90'       => false, // Invalid (contains spaces).
 	'+1-234-567-890'       => false, // Invalid (contains dashes).
-);
+];
 
 $passed = 0;
 $failed = 0;
@@ -132,7 +132,7 @@ try {
 		'OAuthException',
 		190,
 		400,
-		array( 'test_context' => 'value' )
+		[ 'test_context' => 'value' ]
 	);
 } catch ( WCH_API_Exception $e ) {
 	echo "✓ API Exception caught\n";

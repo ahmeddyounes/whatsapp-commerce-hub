@@ -110,7 +110,7 @@ function wch_get_container(): \WhatsAppCommerceHub\Container\ContainerInterface 
 		// Register core service providers.
 		// IMPORTANT: Order matters! Dependencies must be registered before dependents.
 		// ResilienceServiceProvider must come before ApiClientServiceProvider (CircuitBreakerRegistry).
-		$providers = array(
+		$providers = [
 			// Foundation layer.
 			new \WhatsAppCommerceHub\Providers\CoreServiceProvider(),
 			new \WhatsAppCommerceHub\Providers\ResilienceServiceProvider(),
@@ -142,7 +142,7 @@ function wch_get_container(): \WhatsAppCommerceHub\Container\ContainerInterface 
 			// Controllers & Admin UI.
 			new \WhatsAppCommerceHub\Providers\ControllerServiceProvider(),
 			new \WhatsAppCommerceHub\Providers\AdminServiceProvider(),
-		);
+		];
 
 		foreach ( $providers as $provider ) {
 			$wch_container->register( $provider );
@@ -243,10 +243,10 @@ class WCH_Plugin {
 	 */
 	private function init() {
 		// Load text domain for translations.
-		add_action( 'init', array( $this, 'load_textdomain' ) );
+		add_action( 'init', [ $this, 'load_textdomain' ] );
 
 		// Check for database migrations on admin init.
-		add_action( 'admin_init', array( $this, 'check_database_migrations' ) );
+		add_action( 'admin_init', [ $this, 'check_database_migrations' ] );
 
 		// Initialize admin pages.
 		if ( is_admin() ) {
@@ -297,7 +297,7 @@ class WCH_Plugin {
 		$reengagement->init();
 
 		// Hook into WooCommerce order creation for conversion tracking.
-		add_action( 'woocommerce_checkout_order_created', array( $this, 'track_order_conversion' ), 10, 1 );
+		add_action( 'woocommerce_checkout_order_created', [ $this, 'track_order_conversion' ], 10, 1 );
 	}
 
 	/**
@@ -362,7 +362,7 @@ class WCH_Plugin {
  * @return bool|WP_Error True if all requirements met, WP_Error with error messages otherwise.
  */
 function wch_check_requirements() {
-	$errors = array();
+	$errors = [];
 
 	// Check PHP version.
 	if ( version_compare( PHP_VERSION, '8.1', '<' ) ) {
@@ -421,9 +421,9 @@ function wch_activate_plugin() {
 			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Error message is safely constructed
 			$requirements->get_error_message(),
 			'Plugin Activation Error',
-			array(
+			[
 				'back_link' => true,
-			)
+			]
 		);
 	}
 

@@ -120,8 +120,8 @@ class WCH_Message_Builder_Test extends WCH_Unit_Test_Case {
 		$message = $builder
 			->body( 'Browse our categories' )
 			->section( 'Categories', [
-				array( 'id' => 'cat1', 'title' => 'Electronics', 'description' => 'Phones, Laptops, etc.' ),
-				array( 'id' => 'cat2', 'title' => 'Fashion', 'description' => 'Clothing and Accessories' ),
+				[ 'id' => 'cat1', 'title' => 'Electronics', 'description' => 'Phones, Laptops, etc.' ],
+				[ 'id' => 'cat2', 'title' => 'Fashion', 'description' => 'Clothing and Accessories' ],
 			] )
 			->build();
 
@@ -138,10 +138,10 @@ class WCH_Message_Builder_Test extends WCH_Unit_Test_Case {
 		$message = $builder
 			->body( 'Browse products' )
 			->section( 'Featured', [
-				array( 'id' => 'p1', 'title' => 'Product 1' ),
+				[ 'id' => 'p1', 'title' => 'Product 1' ],
 			] )
 			->section( 'New Arrivals', [
-				array( 'id' => 'p2', 'title' => 'Product 2' ),
+				[ 'id' => 'p2', 'title' => 'Product 2' ],
 			] )
 			->build();
 

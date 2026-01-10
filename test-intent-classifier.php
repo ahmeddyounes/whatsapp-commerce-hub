@@ -22,11 +22,11 @@ if ( ! current_user_can( 'manage_options' ) ) {
  * @return array Test results.
  */
 function run_intent_classifier_tests() {
-	$results = array();
+	$results = [];
 	$classifier = new WCH_Intent_Classifier();
 
 	// Test 1: Greeting intent
-	$test_cases = array(
+	$test_cases = [
 		// Greetings
 		array(
 			'text'            => 'Hello!',
@@ -147,7 +147,7 @@ function run_intent_classifier_tests() {
 			'min_confidence'  => 0.85,
 			'description'     => 'Help - Human agent',
 		),
-	);
+	];
 
 	// Run all test cases
 	foreach ( $test_cases as $test ) {
@@ -180,18 +180,18 @@ function run_intent_classifier_tests() {
 			}
 		}
 
-		$results[] = array(
+		$results[] = [
 			'name'       => $test['description'],
 			'passed'     => $passed,
 			'error'      => $error_msg,
 			'intent'     => $intent->intent_name,
 			'confidence' => $intent->confidence,
 			'entities'   => $intent->entities,
-		);
+		];
 	}
 
 	// Test entity extraction
-	$entity_tests = array(
+	$entity_tests = [
 		array(
 			'text'            => 'I want 3 items',
 			'expected_entity' => array( 'type' => 'QUANTITY', 'value' => 3 ),
@@ -207,7 +207,7 @@ function run_intent_classifier_tests() {
 			'expected_entity' => array( 'type' => 'EMAIL', 'value' => 'test@example.com' ),
 			'description'     => 'Entity - Email extraction',
 		),
-	);
+	];
 
 	foreach ( $entity_tests as $test ) {
 		$intent = $classifier->classify( $test['text'] );
@@ -224,14 +224,14 @@ function run_intent_classifier_tests() {
 			$error_msg = "Expected '{$test['expected_entity']['value']}', got '{$entity['value']}'";
 		}
 
-		$results[] = array(
+		$results[] = [
 			'name'       => $test['description'],
 			'passed'     => $passed,
 			'error'      => $error_msg,
 			'intent'     => $intent->intent_name,
 			'confidence' => $intent->confidence,
 			'entities'   => $intent->entities,
-		);
+		];
 	}
 
 	return $results;

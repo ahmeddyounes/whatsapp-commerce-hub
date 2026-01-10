@@ -74,7 +74,7 @@ class WCH_Checkout_Test extends WCH_Integration_Test_Case {
 
 		// Process new address input.
 		$state_data = [
-			'checkout_data' => array(),
+			'checkout_data' => [],
 		];
 
 		$response = $this->checkout->processInput(
@@ -96,14 +96,14 @@ class WCH_Checkout_Test extends WCH_Integration_Test_Case {
 		$cart_service->addItem( $this->customer_phone, $product->get_id(), 1 );
 
 		$state_data = [
-			'checkout_data' => array(
+			'checkout_data' => [
 				'shipping_address' => array(
 					'address_1' => '123 Main St',
 					'city' => 'New York',
 					'postcode' => '10001',
 					'country' => 'US',
 				),
-			),
+			],
 		];
 
 		$response = $this->checkout->goBack( $this->customer_phone, 'shipping', $state_data );
@@ -156,14 +156,14 @@ class WCH_Checkout_Test extends WCH_Integration_Test_Case {
 		$cart_service->addItem( $this->customer_phone, $product->get_id(), 1 );
 
 		$state_data = [
-			'checkout_data' => array(
+			'checkout_data' => [
 				'shipping_address' => array(
 					'address_1' => '123 Main St',
 					'city' => 'New York',
 					'postcode' => '10001',
 					'country' => 'US',
 				),
-			),
+			],
 		];
 
 		$response = $this->checkout->goToStep( $this->customer_phone, 'payment', $state_data );
@@ -187,7 +187,7 @@ class WCH_Checkout_Test extends WCH_Integration_Test_Case {
 
 		// Build state data progressively.
 		$state_data = [
-			'checkout_data' => array(),
+			'checkout_data' => [],
 		];
 
 		// Step 2: Process address selection (use saved address).

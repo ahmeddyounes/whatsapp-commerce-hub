@@ -62,7 +62,7 @@ require_once __DIR__ . '/whatsapp-commerce-hub.php';
 
 // Test 1: Verify constants are defined.
 echo "Test 1: Checking if constants are defined...\n";
-$constants = array( 'WCH_VERSION', 'WCH_PLUGIN_DIR', 'WCH_PLUGIN_URL', 'WCH_PLUGIN_BASENAME' );
+$constants = [ 'WCH_VERSION', 'WCH_PLUGIN_DIR', 'WCH_PLUGIN_URL', 'WCH_PLUGIN_BASENAME' ];
 $constants_ok = true;
 
 foreach ( $constants as $constant ) {

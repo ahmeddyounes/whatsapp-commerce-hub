@@ -12,11 +12,11 @@
 require_once dirname( __FILE__ ) . '/test-plugin-bootstrap.php';
 
 // Example configuration.
-$config = array(
+$config = [
 	'phone_number_id' => 'YOUR_PHONE_NUMBER_ID',
 	'access_token'    => 'YOUR_ACCESS_TOKEN',
 	'api_version'     => 'v18.0',
-);
+];
 
 try {
 	// Initialize the API client.
@@ -58,14 +58,14 @@ try {
 	echo "Testing phone number validation:\n";
 	echo "---------------------------------\n";
 
-	$test_phones = array(
+	$test_phones = [
 		'+1234567890'    => true,  // Valid.
 		'+12345'         => true,  // Valid (minimum).
 		'+123456789012345' => true, // Valid (maximum).
 		'1234567890'     => false, // Invalid (missing +).
 		'+0123456789'    => false, // Invalid (starts with 0).
 		'+12345678901234567' => false, // Invalid (too long).
-	);
+	];
 
 	foreach ( $test_phones as $phone => $should_be_valid ) {
 		try {

@@ -79,16 +79,16 @@ abstract class WCH_Integration_Test_Case extends WCH_Unit_Test_Case {
 		// Return default success for WhatsApp API calls if not mocked.
 		if ( strpos( $url, 'graph.facebook.com' ) !== false ) {
 			return [
-				'response' => array(
+				'response' => [
 					'code' => 200,
 					'message' => 'OK',
-				),
-				'body' => wp_json_encode( array(
+				],
+				'body' => wp_json_encode( [
 					'success' => true,
 					'messages' => array(
 						array( 'id' => 'wamid.test_' . wp_generate_uuid4() ),
 					),
-				) ),
+				] ),
 			];
 		}
 
@@ -118,15 +118,15 @@ abstract class WCH_Integration_Test_Case extends WCH_Unit_Test_Case {
 		$this->add_http_mock(
 			'/graph\.facebook\.com/',
 			[
-				'response' => array(
+				'response' => [
 					'code' => 200,
 					'message' => 'OK',
-				),
-				'body' => wp_json_encode( array(
+				],
+				'body' => wp_json_encode( [
 					'messages' => array(
 						array( 'id' => $message_id ),
 					),
-				) ),
+				] ),
 			]
 		);
 	}
@@ -141,16 +141,16 @@ abstract class WCH_Integration_Test_Case extends WCH_Unit_Test_Case {
 		$this->add_http_mock(
 			'/graph\.facebook\.com/',
 			[
-				'response' => array(
+				'response' => [
 					'code' => $error_code,
 					'message' => 'Bad Request',
-				),
-				'body' => wp_json_encode( array(
+				],
+				'body' => wp_json_encode( [
 					'error' => array(
 						'message' => $error_message,
 						'code' => $error_code,
 					),
-				) ),
+				] ),
 			]
 		);
 	}

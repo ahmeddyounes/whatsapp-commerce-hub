@@ -83,11 +83,11 @@ class WCH_Payment_Test extends WCH_Integration_Test_Case {
 		$this->add_http_mock(
 			'/api\.stripe\.com/',
 			[
-				'response' => array( 'code' => 200 ),
-				'body' => wp_json_encode( array(
+				'response' => [ 'code' => 200 ],
+				'body' => wp_json_encode( [
 					'id' => 'pi_test123',
 					'status' => 'succeeded',
-				) ),
+				] ),
 			]
 		);
 
@@ -118,12 +118,12 @@ class WCH_Payment_Test extends WCH_Integration_Test_Case {
 		$this->add_http_mock(
 			'/api\.stripe\.com/',
 			[
-				'response' => array( 'code' => 402 ),
-				'body' => wp_json_encode( array(
+				'response' => [ 'code' => 402 ],
+				'body' => wp_json_encode( [
 					'error' => array(
 						'message' => 'Card declined',
 					),
-				) ),
+				] ),
 			]
 		);
 
@@ -178,7 +178,7 @@ class WCH_Payment_Test extends WCH_Integration_Test_Case {
 
 		$webhook_data = [
 			'type' => 'payment_intent.succeeded',
-			'data' => array(
+			'data' => [
 				'object' => array(
 					'id' => 'pi_test123',
 					'status' => 'succeeded',
@@ -186,7 +186,7 @@ class WCH_Payment_Test extends WCH_Integration_Test_Case {
 						'order_id' => $order->get_id(),
 					),
 				),
-			),
+			],
 		];
 
 		$handler = new WCH_Payment_Webhook_Handler();

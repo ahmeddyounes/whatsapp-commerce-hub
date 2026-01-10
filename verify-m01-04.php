@@ -48,16 +48,16 @@ if ( ! function_exists( 'add_action' ) ) {
 }
 
 if ( ! function_exists( 'add_filter' ) ) {
-	$GLOBALS['wch_filters'] = array();
+	$GLOBALS['wch_filters'] = [];
 	function add_filter( $hook, $function, $priority = 10, $accepted_args = 1 ) {
 		if ( ! isset( $GLOBALS['wch_filters'][ $hook ] ) ) {
-			$GLOBALS['wch_filters'][ $hook ] = array();
+			$GLOBALS['wch_filters'][ $hook ] = [];
 		}
-		$GLOBALS['wch_filters'][ $hook ][] = array(
+		$GLOBALS['wch_filters'][ $hook ][] = [
 			'function' => $function,
 			'priority' => $priority,
 			'accepted_args' => $accepted_args,
-		);
+		];
 	}
 }
 
@@ -84,9 +84,9 @@ $all_passed = true;
 // Acceptance Criterion 1: All WhatsApp message types parsed correctly.
 echo "✓ Criterion 1: All WhatsApp message types parsed correctly\n";
 $parser = new WCH_Response_Parser();
-$message_types = array( 'text', 'interactive', 'location', 'image', 'document', 'order' );
+$message_types = [ 'text', 'interactive', 'location', 'image', 'document', 'order' ];
 foreach ( $message_types as $type ) {
-	$test_data = array( 'type' => $type, 'content' => array() );
+	$test_data = [ 'type' => $type, 'content' => array() ];
 	$parsed = $parser->parse( $test_data );
 	if ( ! $parsed instanceof WCH_Parsed_Response ) {
 		echo "  ✗ Failed to parse message type: $type\n";
@@ -97,7 +97,7 @@ echo "  All message types parse successfully\n\n";
 
 // Acceptance Criterion 2: Intents detected accurately for common phrases.
 echo "✓ Criterion 2: Intents detected accurately for common phrases\n";
-$intent_tests = array(
+$intent_tests = [
 	array( 'text' => 'hi', 'expected' => WCH_Response_Parser::INTENT_GREETING ),
 	array( 'text' => 'hello', 'expected' => WCH_Response_Parser::INTENT_GREETING ),
 	array( 'text' => 'order', 'expected' => WCH_Response_Parser::INTENT_ORDER_STATUS ),
@@ -108,7 +108,7 @@ $intent_tests = array(
 	array( 'text' => 'basket', 'expected' => WCH_Response_Parser::INTENT_VIEW_CART ),
 	array( 'text' => 'checkout', 'expected' => WCH_Response_Parser::INTENT_CHECKOUT ),
 	array( 'text' => 'pay', 'expected' => WCH_Response_Parser::INTENT_CHECKOUT ),
-);
+];
 
 $intent_passed = true;
 foreach ( $intent_tests as $test ) {
@@ -127,12 +127,12 @@ echo "\n";
 
 // Acceptance Criterion 3: Unknown intents gracefully handled.
 echo "✓ Criterion 3: Unknown intents gracefully handled\n";
-$unknown_tests = array(
+$unknown_tests = [
 	'xyz123',
 	'random gibberish',
 	'',
 	null,
-);
+];
 
 foreach ( $unknown_tests as $test ) {
 	$detected = $parser->detect_intent( $test );
@@ -153,10 +153,10 @@ add_filter( 'wch_parse_response', function( $parsed, $data ) {
 	return $parsed;
 }, 10, 2 );
 
-$test_data = array(
+$test_data = [
 	'type' => 'text',
 	'content' => array( 'body' => 'test' ),
-);
+];
 $parsed = $parser->parse( $test_data );
 
 if ( ! isset( $parsed->get_parsed_data()['custom'] ) || $parsed->get_parsed_data()['custom'] !== 'test' ) {
@@ -166,7 +166,7 @@ if ( ! isset( $parsed->get_parsed_data()['custom'] ) || $parsed->get_parsed_data
 }
 
 // Test wch_detected_intent filter.
-$GLOBALS['wch_filters'] = array(); // Reset filters
+$GLOBALS['wch_filters'] = []; // Reset filters
 add_filter( 'wch_detected_intent', function( $intent, $text, $keyword ) {
 	// Override GREETING intent to HELP for testing
 	if ( $intent === WCH_Response_Parser::INTENT_GREETING ) {
@@ -225,7 +225,7 @@ if ( method_exists( 'WCH_Response_Parser', 'detect_intent' ) ) {
 }
 
 // Check all intent constants are defined.
-$expected_intents = array(
+$expected_intents = [
 	'INTENT_GREETING',
 	'INTENT_BROWSE_CATALOG',
 	'INTENT_VIEW_CATEGORY',
@@ -241,7 +241,7 @@ $expected_intents = array(
 	'INTENT_HELP',
 	'INTENT_TALK_TO_HUMAN',
 	'INTENT_UNKNOWN',
-);
+];
 
 $all_intents_defined = true;
 foreach ( $expected_intents as $intent_const ) {

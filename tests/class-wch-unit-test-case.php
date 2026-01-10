@@ -193,7 +193,7 @@ abstract class WCH_Unit_Test_Case extends WP_UnitTestCase {
 		$defaults = [
 			'current_category' => null,
 			'current_product' => null,
-			'cart_items' => array(),
+			'cart_items' => [],
 			'shipping_address' => null,
 		];
 

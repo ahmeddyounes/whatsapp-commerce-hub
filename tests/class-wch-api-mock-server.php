@@ -78,16 +78,16 @@ class WCH_API_Mock_Server {
 	 */
 	public static function mock_whatsapp_send_message_success( string $message_id = 'wamid.test123' ): array {
 		return [
-			'response' => array(
+			'response' => [
 				'code'    => 200,
 				'message' => 'OK',
-			),
+			],
 			'body'     => wp_json_encode(
-				array(
+				[
 					'messages' => array(
 						array( 'id' => $message_id ),
 					),
-				)
+				]
 			),
 		];
 	}
@@ -100,21 +100,21 @@ class WCH_API_Mock_Server {
 	 */
 	public static function mock_whatsapp_rate_limit( int $retry_after = 60 ): array {
 		return [
-			'response' => array(
+			'response' => [
 				'code'    => 429,
 				'message' => 'Too Many Requests',
-			),
-			'headers'  => array(
+			],
+			'headers'  => [
 				'Retry-After' => (string) $retry_after,
-			),
+			],
 			'body'     => wp_json_encode(
-				array(
+				[
 					'error' => array(
 						'message' => 'Rate limit exceeded',
 						'type'    => 'OAuthException',
 						'code'    => 4,
 					),
-				)
+				]
 			),
 		];
 	}
@@ -126,17 +126,17 @@ class WCH_API_Mock_Server {
 	 */
 	public static function mock_whatsapp_invalid_recipient(): array {
 		return [
-			'response' => array(
+			'response' => [
 				'code'    => 400,
 				'message' => 'Bad Request',
-			),
+			],
 			'body'     => wp_json_encode(
-				array(
+				[
 					'error' => array(
 						'code'    => 131026,
 						'message' => 'Recipient not valid',
 					),
-				)
+				]
 			),
 		];
 	}
@@ -149,14 +149,14 @@ class WCH_API_Mock_Server {
 	 */
 	public static function mock_whatsapp_media_upload_success( string $media_id = 'media_id_123' ): array {
 		return [
-			'response' => array(
+			'response' => [
 				'code'    => 200,
 				'message' => 'OK',
-			),
+			],
 			'body'     => wp_json_encode(
-				array(
+				[
 					'id' => $media_id,
-				)
+				]
 			),
 		];
 	}
@@ -169,13 +169,13 @@ class WCH_API_Mock_Server {
 	 */
 	public static function mock_whatsapp_media_download_success( string $binary_data = 'binary_image_data' ): array {
 		return [
-			'response' => array(
+			'response' => [
 				'code'    => 200,
 				'message' => 'OK',
-			),
-			'headers'  => array(
+			],
+			'headers'  => [
 				'Content-Type' => 'image/jpeg',
-			),
+			],
 			'body'     => $binary_data,
 		];
 	}
@@ -188,14 +188,14 @@ class WCH_API_Mock_Server {
 	 */
 	public static function mock_whatsapp_catalog_product_success( string $product_id = 'catalog_item_123' ): array {
 		return [
-			'response' => array(
+			'response' => [
 				'code'    => 200,
 				'message' => 'OK',
-			),
+			],
 			'body'     => wp_json_encode(
-				array(
+				[
 					'id' => $product_id,
-				)
+				]
 			),
 		];
 	}
@@ -209,7 +209,7 @@ class WCH_API_Mock_Server {
 	public static function mock_woocommerce_get_products_success( array $products = [] ): array {
 		if ( empty( $products ) ) {
 			$products = [
-				array(
+				[
 					'id'          => 1,
 					'name'        => 'Test Product',
 					'price'       => '10.00',
@@ -217,15 +217,15 @@ class WCH_API_Mock_Server {
 					'images'      => array(
 						array( 'src' => 'https://example.com/image.jpg' ),
 					),
-				),
+				],
 			];
 		}
 
 		return [
-			'response' => array(
+			'response' => [
 				'code'    => 200,
 				'message' => 'OK',
-			),
+			],
 			'body'     => wp_json_encode( $products ),
 		];
 	}
@@ -246,10 +246,10 @@ class WCH_API_Mock_Server {
 		}
 
 		return [
-			'response' => array(
+			'response' => [
 				'code'    => 201,
 				'message' => 'Created',
-			),
+			],
 			'body'     => wp_json_encode( $order_data ),
 		];
 	}

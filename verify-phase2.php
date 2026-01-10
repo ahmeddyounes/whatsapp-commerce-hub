@@ -92,7 +92,7 @@ function blue( $text ) {
 
 echo blue( "=== Phase 2 Core Infrastructure Verification ===\n\n" );
 
-$results = array();
+$results = [];
 
 // Test 1: Logger class exists and is properly namespaced.
 echo "Testing Logger migration...\n";
@@ -267,13 +267,13 @@ try {
 
 	$mapping = $mapperClass::getMapping();
 
-	$expectedMappings = array(
+	$expectedMappings = [
 		'WCH_Logger'           => 'WhatsAppCommerceHub\Core\Logger',
 		'WCH_Error_Handler'    => 'WhatsAppCommerceHub\Core\ErrorHandler',
 		'WCH_Encryption'       => 'WhatsAppCommerceHub\Infrastructure\Security\Encryption',
 		'WCH_Database_Manager' => 'WhatsAppCommerceHub\Infrastructure\Database\DatabaseManager',
 		'WCH_Settings'         => 'WhatsAppCommerceHub\Infrastructure\Configuration\SettingsManager',
-	);
+	];
 
 	foreach ( $expectedMappings as $legacy => $modern ) {
 		if ( ! isset( $mapping[ $legacy ] ) ) {

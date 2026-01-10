@@ -230,14 +230,14 @@ class IntentClassifierService implements IntentClassifierInterface {
 					[
 						'model'       => 'gpt-3.5-turbo',
 						'messages'    => [
-							array(
+							[
 								'role'    => 'system',
 								'content' => 'You are an intent classifier for a WhatsApp commerce chatbot. Respond only with valid JSON.',
-							),
-							array(
+							],
+							[
 								'role'    => 'user',
 								'content' => $prompt,
-							),
+							],
 						],
 						'temperature' => 0.3,
 						'max_tokens'  => 100,

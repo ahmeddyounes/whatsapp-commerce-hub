@@ -89,10 +89,10 @@ class PaymentWebhookController {
 					'callback'            => [ $this, 'handleGatewayWebhook' ],
 					'permission_callback' => [ $this, 'verifyWebhookPermission' ],
 					'args'                => [
-						'gateway' => array(
+						'gateway' => [
 							'required' => true,
 							'type'     => 'string',
-						),
+						],
 					],
 				],
 			]
@@ -661,17 +661,17 @@ class PaymentWebhookController {
 				'gateway'    => [
 					'description' => 'Payment gateway name',
 					'type'        => 'string',
-					'context'     => array( 'view' ),
+					'context'     => [ 'view' ],
 				],
 				'event_type' => [
 					'description' => 'Webhook event type',
 					'type'        => 'string',
-					'context'     => array( 'view' ),
+					'context'     => [ 'view' ],
 				],
 				'order_id'   => [
 					'description' => 'Order ID',
 					'type'        => 'integer',
-					'context'     => array( 'view' ),
+					'context'     => [ 'view' ],
 				],
 			],
 		];

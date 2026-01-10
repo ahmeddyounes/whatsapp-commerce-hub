@@ -27,7 +27,7 @@ define( 'WCH_PLUGIN_DIR', __DIR__ . '/' );
 // Mock WordPress functions for standalone testing.
 if ( ! function_exists( 'wp_upload_dir' ) ) {
 	function wp_upload_dir() {
-		return array( 'basedir' => __DIR__ . '/test-uploads' );
+		return [ 'basedir' => __DIR__ . '/test-uploads' ];
 	}
 }
 
@@ -78,11 +78,11 @@ echo "=== Testing WCH Logging & Error Handling System ===\n\n";
 echo "Test 1: Basic Logging\n";
 echo "----------------------\n";
 
-WCH_Logger::debug( 'This is a debug message', array( 'test' => 'debug' ) );
-WCH_Logger::info( 'This is an info message', array( 'test' => 'info' ) );
-WCH_Logger::warning( 'This is a warning message', array( 'test' => 'warning' ) );
-WCH_Logger::error( 'This is an error message', array( 'test' => 'error' ) );
-WCH_Logger::critical( 'This is a critical message', array( 'test' => 'critical' ) );
+WCH_Logger::debug( 'This is a debug message', [ 'test' => 'debug' ] );
+WCH_Logger::info( 'This is an info message', [ 'test' => 'info' ] );
+WCH_Logger::warning( 'This is a warning message', [ 'test' => 'warning' ] );
+WCH_Logger::error( 'This is an error message', [ 'test' => 'error' ] );
+WCH_Logger::critical( 'This is a critical message', [ 'test' => 'critical' ] );
 
 echo "✓ Logged 5 messages at different levels\n\n";
 
@@ -92,13 +92,13 @@ echo "------------------------------------\n";
 
 WCH_Logger::info(
 	'User authentication',
-	array(
+	[
 		'username'     => 'testuser',
 		'password'     => 'secret123',
 		'access_token' => 'abc123xyz',
 		'api_key'      => 'key_12345',
 		'email'        => 'test@example.com',
-	)
+	]
 );
 
 echo "✓ Logged message with sensitive data (should be redacted)\n\n";
@@ -109,11 +109,11 @@ echo "---------------------------\n";
 
 WCH_Logger::info(
 	'Order created from WhatsApp',
-	array(
+	[
 		'conversation_id' => 'conv_123',
 		'customer_phone'  => '+1234567890',
 		'order_id'        => 'WC-12345',
-	)
+	]
 );
 
 echo "✓ Logged message with conversation context\n\n";
@@ -127,10 +127,10 @@ try {
 		'Product not found',
 		'product_not_found',
 		404,
-		array(
+		[
 			'product_id' => 123,
 			'search_term' => 'laptop',
-		)
+		]
 	);
 } catch ( WCH_Exception $e ) {
 	echo "✓ Caught WCH_Exception\n";
@@ -198,10 +198,10 @@ $exception = new WCH_Exception(
 	'Payment failed',
 	'payment_failed',
 	402,
-	array(
+	[
 		'order_id' => 'WC-67890',
 		'amount'   => 99.99,
-	)
+	]
 );
 
 $array_data = $exception->to_array( false );

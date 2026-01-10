@@ -35,7 +35,7 @@ if ( class_exists( 'WCH_Order_Sync_Service' ) ) {
 
 // Test 2: Check if required methods exist.
 echo "2. Checking required methods exist...\n";
-$required_methods = array(
+$required_methods = [
 	'instance',
 	'create_order_from_cart',
 	'sync_order_status_to_whatsapp',
@@ -50,7 +50,7 @@ $required_methods = array(
 	'add_quick_reply_modal',
 	'ajax_send_quick_message',
 	'ajax_save_tracking_info',
-);
+];
 
 $all_methods_exist = true;
 foreach ( $required_methods as $method ) {

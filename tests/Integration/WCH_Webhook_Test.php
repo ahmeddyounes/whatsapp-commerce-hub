@@ -110,7 +110,7 @@ class WCH_Webhook_Test extends WCH_Integration_Test_Case {
 	public function test_create_conversation_from_new_contact() {
 		$payload = [
 			'object' => 'whatsapp_business_account',
-			'entry' => array(
+			'entry' => [
 				array(
 					'changes' => array(
 						array(
@@ -128,7 +128,7 @@ class WCH_Webhook_Test extends WCH_Integration_Test_Case {
 						),
 					),
 				),
-			),
+			],
 		];
 
 		$this->webhook_handler->process( $payload );
@@ -201,7 +201,7 @@ class WCH_Webhook_Test extends WCH_Integration_Test_Case {
 			// Return minimal valid payload.
 			return [
 				'object' => 'whatsapp_business_account',
-				'entry' => array(
+				'entry' => [
 					array(
 						'changes' => array(
 							array(
@@ -219,7 +219,7 @@ class WCH_Webhook_Test extends WCH_Integration_Test_Case {
 							),
 						),
 					),
-				),
+				],
 			];
 		}
 

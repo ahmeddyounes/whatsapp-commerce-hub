@@ -152,10 +152,10 @@ class WhatsAppPayGateway extends AbstractGateway {
 			'payment_settings' => [
 				[
 					'type'            => 'payment_gateway',
-					'payment_gateway' => array(
+					'payment_gateway' => [
 						'type'               => 'razorpay', // WhatsApp Pay uses underlying payment processors.
 						'configuration_name' => get_option( 'wch_whatsapppay_config_name', 'default' ),
-					),
+					],
 				],
 			],
 		];

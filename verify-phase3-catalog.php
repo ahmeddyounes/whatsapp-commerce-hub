@@ -39,7 +39,7 @@ function blue( $text ) {
 
 echo blue( "=== Phase 3: Catalog Domain Verification ===\n\n" );
 
-$results = array();
+$results = [];
 
 // Test 1: ProductSyncService.
 echo "Testing ProductSyncService migration...\n";
@@ -119,10 +119,10 @@ try {
 
 	$mapping = $mapperClass::getMapping();
 
-	$expectedMappings = array(
+	$expectedMappings = [
 		'WCH_Product_Sync_Service' => 'WhatsAppCommerceHub\Application\Services\ProductSyncService',
 		'WCH_Catalog_Browser'      => 'WhatsAppCommerceHub\Domain\Catalog\CatalogBrowser',
-	);
+	];
 
 	foreach ( $expectedMappings as $legacy => $modern ) {
 		if ( ! isset( $mapping[ $legacy ] ) ) {
