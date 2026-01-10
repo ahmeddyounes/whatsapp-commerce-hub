@@ -16,12 +16,14 @@ The domain layer contains:
 ```
 Domain/
 ├── Catalog/        # Product catalog management
-├── Cart/           # Shopping cart functionality
-├── Order/          # Order processing
-├── Customer/       # Customer management
-├── Payment/        # Payment domain logic
+├── Cart/           # Shopping cart aggregate
+├── Customer/       # Customer aggregate
 └── Conversation/   # WhatsApp conversation state
 ```
+
+**Note:** Order and Payment domains are handled differently:
+- **Orders** - Use WooCommerce native `WC_Order` (no duplication)
+- **Payments** - Feature-specific logic in `Features/Payments/`
 
 ## Namespace
 
