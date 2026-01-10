@@ -149,6 +149,7 @@ class AnalyticsPage {
 			wp_die( esc_html__( 'You do not have permission to access this page.', 'whatsapp-commerce-hub' ) );
 		}
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Tab navigation is read-only.
 		$activeTab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'overview';
 
 		$this->renderPageHtml( $activeTab );

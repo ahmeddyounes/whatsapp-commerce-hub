@@ -300,6 +300,7 @@ class JobsPage {
 	 * @return void
 	 */
 	private function renderNotices(): void {
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Read-only admin notices.
 		if ( isset( $_GET['job_retried'] ) && '1' === $_GET['job_retried'] ) {
 			?>
 			<div class="notice notice-success is-dismissible">
@@ -323,6 +324,7 @@ class JobsPage {
 			</div>
 			<?php
 		}
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 	}
 
 	/**

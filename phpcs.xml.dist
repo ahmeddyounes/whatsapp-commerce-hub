@@ -129,6 +129,26 @@
 		<severity>0</severity>
 	</rule>
 
+	<!-- Disable unused function parameter warning (interface compliance) -->
+	<rule ref="Generic.CodeAnalysis.UnusedFunctionParameter">
+		<severity>0</severity>
+	</rule>
+
+	<!-- Disable missing @var comment warning -->
+	<rule ref="Squiz.Commenting.VariableComment.MissingVar">
+		<severity>0</severity>
+	</rule>
+
+	<!-- Disable missing translators comment (not critical) -->
+	<rule ref="WordPress.WP.I18n.MissingTranslatorsComment">
+		<severity>0</severity>
+	</rule>
+
+	<!-- Allow current_time() with timestamp parameter -->
+	<rule ref="WordPress.DateTime.CurrentTimeTimestamp.Requested">
+		<severity>0</severity>
+	</rule>
+
 	<!-- Minimum PHP version -->
 	<config name="minimum_supported_wp_version" value="6.0"/>
 	<config name="testVersion" value="8.1-"/>

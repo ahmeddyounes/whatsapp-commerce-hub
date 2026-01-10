@@ -480,6 +480,7 @@ class TemplatesPage {
 	 * @return void
 	 */
 	private function renderNotices(): void {
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Read-only admin notices.
 		if ( isset( $_GET['synced'] ) ) {
 			$count = intval( $_GET['synced'] );
 			?>
@@ -512,5 +513,6 @@ class TemplatesPage {
 			</div>
 			<?php
 		}
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 	}
 }

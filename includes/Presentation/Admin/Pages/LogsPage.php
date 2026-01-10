@@ -115,12 +115,14 @@ class LogsPage {
 		}
 
 		$logFiles   = \WCH_Logger::get_log_files();
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only log file selection.
 		$currentLog = isset( $_GET['log'] ) ? sanitize_file_name( wp_unslash( $_GET['log'] ) ) : '';
 
 		if ( empty( $currentLog ) && ! empty( $logFiles ) ) {
 			$currentLog = $logFiles[0]['name'];
 		}
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only log level filter.
 		$logLevel   = isset( $_GET['level'] ) ? sanitize_text_field( wp_unslash( $_GET['level'] ) ) : '';
 		$logEntries = array();
 
