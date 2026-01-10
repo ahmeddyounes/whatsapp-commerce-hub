@@ -124,7 +124,7 @@ class Logger implements LoggerInterface {
 	 * @return void
 	 */
 	public static function logStatic( string $message, array $context = array(), string $level = self::LEVEL_INFO ): void {
-		$contextStr = isset( $context['category'] ) ? $context['category'] : 'general';
+		$contextStr = $context['category'] ?? 'general';
 		unset( $context['category'] );
 		self::instance()->log( $level, $message, $contextStr, $context );
 	}
