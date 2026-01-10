@@ -14,7 +14,6 @@ namespace WhatsAppCommerceHub\Clients;
 
 use WhatsAppCommerceHub\Contracts\Clients\WhatsAppClientInterface;
 use WhatsAppCommerceHub\Resilience\CircuitBreaker;
-use WhatsAppCommerceHub\Resilience\CircuitOpenException;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
