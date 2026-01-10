@@ -394,6 +394,15 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 			throw new \InvalidArgumentException( 'File not found: ' . $file_path );
 		}
 
+		// Security: validate file path is within allowed directories.
+		$real_path   = realpath( $file_path );
+		$upload_dir  = wp_upload_dir();
+		$allowed_dir = realpath( $upload_dir['basedir'] ?? '' );
+
+		if ( false === $real_path || false === $allowed_dir || ! str_starts_with( $real_path, $allowed_dir ) ) {
+			throw new \InvalidArgumentException( 'File must be within the WordPress uploads directory' );
+		}
+
 		$boundary = wp_generate_password( 24, false );
 		$body     = $this->buildMultipartBody( $file_path, $mime_type, $boundary );
 
