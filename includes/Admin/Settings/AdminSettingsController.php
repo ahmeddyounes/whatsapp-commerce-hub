@@ -39,34 +39,6 @@ class AdminSettingsController {
 	protected const CAPABILITY = 'manage_woocommerce';
 
 	/**
-	 * Settings service.
-	 *
-	 * @var SettingsInterface
-	 */
-	protected SettingsInterface $settings;
-
-	/**
-	 * Tab renderer.
-	 *
-	 * @var SettingsTabRendererInterface
-	 */
-	protected SettingsTabRendererInterface $tabRenderer;
-
-	/**
-	 * Settings sanitizer.
-	 *
-	 * @var SettingsSanitizerInterface
-	 */
-	protected SettingsSanitizerInterface $sanitizer;
-
-	/**
-	 * AJAX handler.
-	 *
-	 * @var SettingsAjaxHandler
-	 */
-	protected SettingsAjaxHandler $ajaxHandler;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param SettingsInterface            $settings    Settings service.
@@ -75,15 +47,11 @@ class AdminSettingsController {
 	 * @param SettingsAjaxHandler          $ajaxHandler AJAX handler.
 	 */
 	public function __construct(
-		SettingsInterface $settings,
-		SettingsTabRendererInterface $tabRenderer,
-		SettingsSanitizerInterface $sanitizer,
-		SettingsAjaxHandler $ajaxHandler
+		protected SettingsInterface $settings,
+		protected SettingsTabRendererInterface $tabRenderer,
+		protected SettingsSanitizerInterface $sanitizer,
+		protected SettingsAjaxHandler $ajaxHandler
 	) {
-		$this->settings    = $settings;
-		$this->tabRenderer = $tabRenderer;
-		$this->sanitizer   = $sanitizer;
-		$this->ajaxHandler = $ajaxHandler;
 	}
 
 	/**

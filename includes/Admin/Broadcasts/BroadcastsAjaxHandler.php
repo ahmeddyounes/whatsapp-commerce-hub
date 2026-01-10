@@ -34,34 +34,6 @@ class BroadcastsAjaxHandler {
 	protected const NONCE_ACTION = 'wch_broadcasts_nonce';
 
 	/**
-	 * Campaign repository.
-	 *
-	 * @var CampaignRepositoryInterface
-	 */
-	protected CampaignRepositoryInterface $repository;
-
-	/**
-	 * Audience calculator.
-	 *
-	 * @var AudienceCalculatorInterface
-	 */
-	protected AudienceCalculatorInterface $audienceCalculator;
-
-	/**
-	 * Campaign dispatcher.
-	 *
-	 * @var CampaignDispatcherInterface
-	 */
-	protected CampaignDispatcherInterface $dispatcher;
-
-	/**
-	 * Report generator.
-	 *
-	 * @var CampaignReportGenerator
-	 */
-	protected CampaignReportGenerator $reportGenerator;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param CampaignRepositoryInterface $repository         Campaign repository.
@@ -70,15 +42,11 @@ class BroadcastsAjaxHandler {
 	 * @param CampaignReportGenerator     $reportGenerator    Report generator.
 	 */
 	public function __construct(
-		CampaignRepositoryInterface $repository,
-		AudienceCalculatorInterface $audienceCalculator,
-		CampaignDispatcherInterface $dispatcher,
-		CampaignReportGenerator $reportGenerator
+		protected CampaignRepositoryInterface $repository,
+		protected AudienceCalculatorInterface $audienceCalculator,
+		protected CampaignDispatcherInterface $dispatcher,
+		protected CampaignReportGenerator $reportGenerator
 	) {
-		$this->repository         = $repository;
-		$this->audienceCalculator = $audienceCalculator;
-		$this->dispatcher         = $dispatcher;
-		$this->reportGenerator    = $reportGenerator;
 	}
 
 	/**

@@ -27,19 +27,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 class CampaignReportGenerator {
 
 	/**
-	 * Campaign repository.
-	 *
-	 * @var CampaignRepositoryInterface
-	 */
-	protected CampaignRepositoryInterface $repository;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param CampaignRepositoryInterface $repository Campaign repository.
 	 */
-	public function __construct( CampaignRepositoryInterface $repository ) {
-		$this->repository = $repository;
+	public function __construct( protected CampaignRepositoryInterface $repository ) {
 	}
 
 	/**

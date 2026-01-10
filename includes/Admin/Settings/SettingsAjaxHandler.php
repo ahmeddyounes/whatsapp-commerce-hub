@@ -36,34 +36,6 @@ class SettingsAjaxHandler {
 	protected const NONCE_ACTION = 'wch_settings_nonce';
 
 	/**
-	 * Settings service.
-	 *
-	 * @var SettingsInterface
-	 */
-	protected SettingsInterface $settings;
-
-	/**
-	 * Settings sanitizer.
-	 *
-	 * @var SettingsSanitizerInterface
-	 */
-	protected SettingsSanitizerInterface $sanitizer;
-
-	/**
-	 * Settings import/exporter.
-	 *
-	 * @var SettingsImportExporterInterface
-	 */
-	protected SettingsImportExporterInterface $importExporter;
-
-	/**
-	 * Logger service.
-	 *
-	 * @var LoggerInterface|null
-	 */
-	protected ?LoggerInterface $logger;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param SettingsInterface               $settings       Settings service.
@@ -72,15 +44,11 @@ class SettingsAjaxHandler {
 	 * @param LoggerInterface|null            $logger         Logger service.
 	 */
 	public function __construct(
-		SettingsInterface $settings,
-		SettingsSanitizerInterface $sanitizer,
-		SettingsImportExporterInterface $importExporter,
-		?LoggerInterface $logger = null
+		protected SettingsInterface $settings,
+		protected SettingsSanitizerInterface $sanitizer,
+		protected SettingsImportExporterInterface $importExporter,
+		protected ?LoggerInterface $logger = null
 	) {
-		$this->settings       = $settings;
-		$this->sanitizer      = $sanitizer;
-		$this->importExporter = $importExporter;
-		$this->logger         = $logger;
 	}
 
 	/**

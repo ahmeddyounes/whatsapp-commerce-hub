@@ -37,34 +37,6 @@ class AdminBroadcastsController {
 	protected const CAPABILITY = 'manage_woocommerce';
 
 	/**
-	 * Campaign repository.
-	 *
-	 * @var CampaignRepositoryInterface
-	 */
-	protected CampaignRepositoryInterface $repository;
-
-	/**
-	 * Wizard renderer.
-	 *
-	 * @var BroadcastWizardRenderer
-	 */
-	protected BroadcastWizardRenderer $wizardRenderer;
-
-	/**
-	 * Report generator.
-	 *
-	 * @var CampaignReportGenerator
-	 */
-	protected CampaignReportGenerator $reportGenerator;
-
-	/**
-	 * AJAX handler.
-	 *
-	 * @var BroadcastsAjaxHandler
-	 */
-	protected BroadcastsAjaxHandler $ajaxHandler;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param CampaignRepositoryInterface $repository      Campaign repository.
@@ -73,15 +45,11 @@ class AdminBroadcastsController {
 	 * @param BroadcastsAjaxHandler       $ajaxHandler     AJAX handler.
 	 */
 	public function __construct(
-		CampaignRepositoryInterface $repository,
-		BroadcastWizardRenderer $wizardRenderer,
-		CampaignReportGenerator $reportGenerator,
-		BroadcastsAjaxHandler $ajaxHandler
+		protected CampaignRepositoryInterface $repository,
+		protected BroadcastWizardRenderer $wizardRenderer,
+		protected CampaignReportGenerator $reportGenerator,
+		protected BroadcastsAjaxHandler $ajaxHandler
 	) {
-		$this->repository      = $repository;
-		$this->wizardRenderer  = $wizardRenderer;
-		$this->reportGenerator = $reportGenerator;
-		$this->ajaxHandler     = $ajaxHandler;
 	}
 
 	/**
