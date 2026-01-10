@@ -10,7 +10,7 @@
 
 namespace WhatsAppCommerceHub\Contracts\Repositories;
 
-use WhatsAppCommerceHub\Entities\Conversation;
+use WhatsAppCommerceHub\Domain\Conversation\Conversation;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {

@@ -11,7 +11,7 @@
 namespace WhatsAppCommerceHub\Repositories;
 
 use WhatsAppCommerceHub\Contracts\Repositories\ConversationRepositoryInterface;
-use WhatsAppCommerceHub\Entities\Conversation;
+use WhatsAppCommerceHub\Domain\Conversation\Conversation;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
