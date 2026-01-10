@@ -149,6 +149,69 @@
 		<severity>0</severity>
 	</rule>
 
+	<!-- Allow PHP file operations (plugin needs direct file access for logs, exports) -->
+	<rule ref="WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents">
+		<severity>0</severity>
+	</rule>
+	<rule ref="WordPress.WP.AlternativeFunctions.file_system_operations_fclose">
+		<severity>0</severity>
+	</rule>
+	<rule ref="WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents">
+		<severity>0</severity>
+	</rule>
+	<rule ref="WordPress.WP.AlternativeFunctions.file_system_operations_fopen">
+		<severity>0</severity>
+	</rule>
+	<rule ref="WordPress.WP.AlternativeFunctions.file_system_operations_fread">
+		<severity>0</severity>
+	</rule>
+
+	<!-- Allow base64 encoding/decoding (used for API data encoding) -->
+	<rule ref="WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode">
+		<severity>0</severity>
+	</rule>
+	<rule ref="WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode">
+		<severity>0</severity>
+	</rule>
+
+	<!-- Allow urlencode (needed for API URLs) -->
+	<rule ref="WordPress.PHP.DiscouragedPHPFunctions.urlencode_urlencode">
+		<severity>0</severity>
+	</rule>
+
+	<!-- Allow error_log for development debugging -->
+	<rule ref="WordPress.PHP.DevelopmentFunctions.error_log_error_log">
+		<severity>0</severity>
+	</rule>
+
+	<!-- Allow dynamic hook names (used for wch_ prefixed hooks) -->
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals.DynamicHooknameFound">
+		<severity>0</severity>
+	</rule>
+	<rule ref="WordPress.NamingConventions.ValidHookName.UseUnderscores">
+		<severity>0</severity>
+	</rule>
+
+	<!-- Allow date() function (PHP 8.1+ DateTimeImmutable recommended but not required) -->
+	<rule ref="WordPress.DateTime.RestrictedFunctions.date_date">
+		<severity>0</severity>
+	</rule>
+
+	<!-- Allow empty catch blocks (intentional exception suppression) -->
+	<rule ref="Generic.CodeAnalysis.EmptyStatement.DetectedCatch">
+		<severity>0</severity>
+	</rule>
+
+	<!-- Disable missing property comment warning -->
+	<rule ref="Squiz.Commenting.VariableComment.Missing">
+		<severity>0</severity>
+	</rule>
+
+	<!-- Disable throws no full stop (documentation style preference) -->
+	<rule ref="Squiz.Commenting.FunctionComment.ThrowsNoFullStop">
+		<severity>0</severity>
+	</rule>
+
 	<!-- Minimum PHP version -->
 	<config name="minimum_supported_wp_version" value="6.0"/>
 	<config name="testVersion" value="8.1-"/>

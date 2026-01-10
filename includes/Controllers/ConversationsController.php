@@ -685,17 +685,20 @@ class ConversationsController extends AbstractController {
 					}
 				}
 
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery
+				// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+				// Placeholder count varies based on number of IDs. Table names from wpdb->prefix.
 				$updated = $wpdb->query(
 					$wpdb->prepare(
 						"UPDATE {$tableConversations} SET assigned_agent_id = %d, updated_at = %s WHERE id IN ({$placeholders})",
 						array_merge( array( $agentId, current_time( 'mysql' ) ), $ids )
 					)
 				);
+				// phpcs:enable
 				break;
 
 			case 'close':
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery
+				// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+				// Placeholder count varies based on number of IDs. Table names from wpdb->prefix.
 				$updated = $wpdb->query(
 					$wpdb->prepare(
 						"UPDATE {$tableConversations} SET status = 'closed', updated_at = %s WHERE id IN ({$placeholders})",
@@ -812,7 +815,8 @@ class ConversationsController extends AbstractController {
 
 		$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+		// Placeholder count varies based on number of IDs. Table names from wpdb->prefix.
 		$conversations = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT c.*, p.name as customer_name FROM {$tableConversations} c
@@ -822,6 +826,7 @@ class ConversationsController extends AbstractController {
 			),
 			ARRAY_A
 		);
+		// phpcs:enable
 
 		$csvData   = array();
 		$csvData[] = array( 'ID', 'Customer Phone', 'Customer Name', 'Status', 'Assigned Agent ID', 'Last Message At', 'Created At' );

@@ -53,11 +53,13 @@ class AudienceCalculator implements AudienceCalculatorInterface {
 
 		$whereSql = implode( ' AND ', $whereClauses );
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name from wpdb->prefix.
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+		// Table name from wpdb->prefix. WHERE clause contains dynamic placeholders.
 		$query = $wpdb->prepare(
 			"SELECT COUNT(DISTINCT phone) FROM {$tableName} WHERE {$whereSql}",
 			$whereValues
 		);
+		// phpcs:enable
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Query is prepared above.
 		$count = (int) $wpdb->get_var( $query );
@@ -94,13 +96,15 @@ class AudienceCalculator implements AudienceCalculatorInterface {
 		do {
 			$batchValues = array_merge( $whereValues, array( $perPage, $offset ) );
 
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names from wpdb->prefix.
+			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+			// Table names from wpdb->prefix. Placeholder count varies based on WHERE conditions.
 			$batch = $wpdb->get_col(
 				$wpdb->prepare(
 					"SELECT phone FROM {$tableName} WHERE {$whereSql} ORDER BY id ASC LIMIT %d OFFSET %d",
 					$batchValues
 				)
 			);
+			// phpcs:enable
 
 			if ( empty( $batch ) ) {
 				break;
