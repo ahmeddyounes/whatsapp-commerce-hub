@@ -21,7 +21,7 @@ use WhatsAppCommerceHub\Contracts\Checkout\CheckoutOrchestratorInterface;
 use WhatsAppCommerceHub\Contracts\Payments\PaymentGatewayRegistryInterface;
 use WhatsAppCommerceHub\Contracts\Repositories\CartRepositoryInterface;
 use WhatsAppCommerceHub\Contracts\Repositories\CustomerRepositoryInterface;
-use WhatsAppCommerceHub\Services\CartService;
+use WhatsAppCommerceHub\Domain\Cart\CartService;
 use WhatsAppCommerceHub\Services\CustomerService;
 use WhatsAppCommerceHub\Services\AddressService;
 use WhatsAppCommerceHub\Services\BroadcastService;

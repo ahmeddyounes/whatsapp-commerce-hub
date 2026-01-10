@@ -2,17 +2,18 @@
 /**
  * Cart Service
  *
- * Business logic for cart management operations.
+ * Domain service for cart business logic and operations.
  *
  * @package WhatsApp_Commerce_Hub
  * @since 2.0.0
  */
 
-namespace WhatsAppCommerceHub\Services;
+declare(strict_types=1);
+
+namespace WhatsAppCommerceHub\Domain\Cart;
 
 use WhatsAppCommerceHub\Contracts\Services\CartServiceInterface;
 use WhatsAppCommerceHub\Contracts\Repositories\CartRepositoryInterface;
-use WhatsAppCommerceHub\Domain\Cart\Cart;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {

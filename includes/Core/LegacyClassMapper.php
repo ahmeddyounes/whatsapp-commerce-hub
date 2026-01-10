@@ -44,9 +44,11 @@ class LegacyClassMapper {
 			'WCH_Database_Manager'      => 'WhatsAppCommerceHub\Infrastructure\Database\DatabaseManager',
 			'WCH_Settings'              => 'WhatsAppCommerceHub\Infrastructure\Configuration\SettingsManager',
 
-			// Phase 3: Domain Layer.
+			// Phase 3: Domain Layer - Cart Domain.
 			'WCH_Cart_Manager'          => 'WhatsAppCommerceHub\Domain\Cart\CartService',
 			'WCH_Cart_Exception'        => 'WhatsAppCommerceHub\Domain\Cart\CartException',
+			
+			// Phase 3: Domain Layer - Catalog/Product.
 			'WCH_Product_Sync_Service'  => 'WhatsAppCommerceHub\Application\Services\ProductSyncService',
 			'WCH_Catalog_Browser'       => 'WhatsAppCommerceHub\Domain\Catalog\CatalogBrowser',
 			'WCH_Order_Sync_Service'    => 'WhatsAppCommerceHub\Application\Services\OrderSyncService',

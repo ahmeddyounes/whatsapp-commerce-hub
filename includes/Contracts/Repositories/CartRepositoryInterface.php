@@ -10,7 +10,7 @@
 
 namespace WhatsAppCommerceHub\Contracts\Repositories;
 
-use WhatsAppCommerceHub\Entities\Cart;
+use WhatsAppCommerceHub\Domain\Cart\Cart;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
