@@ -80,7 +80,7 @@ class SagaServiceProvider implements ServiceProviderInterface {
 		}
 
 		// Register custom interval.
-		// phpcs:ignore WordPress.WP.CronInterval.CronSchedulesInterval -- 5 minutes is appropriate for saga cleanup.
+		// phpcs:disable WordPress.WP.CronInterval.CronSchedulesInterval -- 5 minutes is appropriate for saga cleanup.
 		add_filter(
 			'cron_schedules',
 			function ( array $schedules ) {
@@ -91,6 +91,7 @@ class SagaServiceProvider implements ServiceProviderInterface {
 				return $schedules;
 			}
 		);
+		// phpcs:enable WordPress.WP.CronInterval.CronSchedulesInterval
 
 		// Handle saga recovery.
 		add_action(
