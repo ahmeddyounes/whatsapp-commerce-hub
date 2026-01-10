@@ -28,11 +28,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 class SettingsService implements SettingsInterface {
 
 	/**
-	 * The legacy settings instance.
+	 * The settings manager instance.
 	 *
-	 * @var \WCH_Settings
+	 * @var \WhatsAppCommerceHub\Infrastructure\Configuration\SettingsManager|\WCH_Settings
 	 */
-	protected \WCH_Settings $legacySettings;
+	protected $settingsManager;
 
 	/**
 	 * Cached settings.
@@ -53,10 +53,10 @@ class SettingsService implements SettingsInterface {
 	/**
 	 * Constructor.
 	 *
-	 * @param \WCH_Settings $legacySettings The legacy settings instance.
+	 * @param \WhatsAppCommerceHub\Infrastructure\Configuration\SettingsManager|\WCH_Settings $settingsManager The settings manager instance.
 	 */
-	public function __construct( \WCH_Settings $legacySettings ) {
-		$this->legacySettings = $legacySettings;
+	public function __construct( $settingsManager ) {
+		$this->settingsManager = $settingsManager;
 
 		// Create and store callback closure to ensure exact reference for removal.
 		// This ensures cache coherence even if settings are modified via legacy code.
@@ -83,14 +83,14 @@ class SettingsService implements SettingsInterface {
 	 * {@inheritdoc}
 	 */
 	public function get( string $key, $default = null ) {
-		return $this->legacySettings->get( $key, $default );
+		return $this->settingsManager->get( $key, $default );
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
 	public function set( string $key, $value ): bool {
-		$result = $this->legacySettings->set( $key, $value );
+		$result = $this->settingsManager->set( $key, $value );
 
 		// Clear cache on update.
 		$this->cache = null;
@@ -103,7 +103,7 @@ class SettingsService implements SettingsInterface {
 	 * {@inheritdoc}
 	 */
 	public function delete( string $key ): bool {
-		$result = $this->legacySettings->delete( $key );
+		$result = $this->settingsManager->delete( $key );
 
 		// Clear cache on delete.
 		$this->cache = null;
@@ -130,12 +130,13 @@ class SettingsService implements SettingsInterface {
 	public function all(): array {
 		if ( null !== $this->cache ) {
 			// Return a copy to prevent external modification of internal cache.
-			// PHP arrays are copy-on-write, but nested array modifications
-			// can corrupt the original if the reference is held.
 			return $this->deepCopy( $this->cache );
 		}
 
-		$this->cache = $this->legacySettings->get_all();
+		// Use getAll() for SettingsManager, get_all() for legacy WCH_Settings.
+		$this->cache = method_exists( $this->settingsManager, 'getAll' )
+			? $this->settingsManager->getAll()
+			: $this->settingsManager->get_all();
 
 		return $this->deepCopy( $this->cache );
 	}
@@ -158,7 +159,10 @@ class SettingsService implements SettingsInterface {
 	 * {@inheritdoc}
 	 */
 	public function getGroup( string $group ): array {
-		return $this->legacySettings->get_section( $group );
+		// Use getSection() for SettingsManager, get_section() for legacy WCH_Settings.
+		return method_exists( $this->settingsManager, 'getSection' )
+			? $this->settingsManager->getSection( $group )
+			: $this->settingsManager->get_section( $group );
 	}
 
 	/**
@@ -190,12 +194,12 @@ class SettingsService implements SettingsInterface {
 	}
 
 	/**
-	 * Get the legacy settings instance.
+	 * Get the settings manager instance.
 	 *
-	 * @return \WCH_Settings
+	 * @return \WhatsAppCommerceHub\Infrastructure\Configuration\SettingsManager|\WCH_Settings
 	 */
-	public function getLegacyInstance(): \WCH_Settings {
-		return $this->legacySettings;
+	public function getLegacyInstance() {
+		return $this->settingsManager;
 	}
 
 	/**

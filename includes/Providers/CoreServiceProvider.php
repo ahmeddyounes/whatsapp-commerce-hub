@@ -13,6 +13,10 @@ namespace WhatsAppCommerceHub\Providers;
 use WhatsAppCommerceHub\Container\ContainerInterface;
 use WhatsAppCommerceHub\Container\ServiceProviderInterface;
 use WhatsAppCommerceHub\Core\Logger;
+use WhatsAppCommerceHub\Core\ErrorHandler;
+use WhatsAppCommerceHub\Infrastructure\Security\Encryption;
+use WhatsAppCommerceHub\Infrastructure\Database\DatabaseManager;
+use WhatsAppCommerceHub\Infrastructure\Configuration\SettingsManager;
 use WhatsAppCommerceHub\Services\LoggerService;
 use WhatsAppCommerceHub\Services\SettingsService;
 use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
@@ -271,6 +275,10 @@ class CoreServiceProvider implements ServiceProviderInterface {
 			static fn( ContainerInterface $c ) => $c->get( \WCH_Settings::class )
 		);
 
+		// ===================================================================
+		// Phase 2: Core Infrastructure - PSR-4 Modern Classes
+		// ===================================================================
+
 		// Register Core Logger (new PSR-4 location).
 		$container->singleton(
 			Logger::class,
@@ -294,19 +302,97 @@ class CoreServiceProvider implements ServiceProviderInterface {
 			static fn( ContainerInterface $c ) => $c->get( Logger::class )
 		);
 
-		// Register SettingsService (new namespaced service).
+		// Register ErrorHandler (new PSR-4 location).
 		$container->singleton(
-			SettingsService::class,
+			ErrorHandler::class,
 			static function ( ContainerInterface $c ) {
-				$legacySettings = $c->get( \WCH_Settings::class );
-				return new SettingsService( $legacySettings );
+				$logger = $c->get( Logger::class );
+				return new ErrorHandler( $logger );
 			}
 		);
 
-		// Alias SettingsInterface to SettingsService.
+		// BC alias: WCH_Error_Handler points to ErrorHandler.
+		$container->singleton(
+			\WCH_Error_Handler::class,
+			static fn( ContainerInterface $c ) => $c->get( ErrorHandler::class )
+		);
+
+		// Register Encryption (new PSR-4 location).
+		$container->singleton(
+			Encryption::class,
+			static function () {
+				return new Encryption();
+			}
+		);
+
+		// BC alias: WCH_Encryption points to Encryption.
+		$container->singleton(
+			\WCH_Encryption::class,
+			static fn( ContainerInterface $c ) => $c->get( Encryption::class )
+		);
+
+		// Convenience alias for encryption.
+		$container->singleton(
+			'wch.encryption',
+			static fn( ContainerInterface $c ) => $c->get( Encryption::class )
+		);
+
+		// Register DatabaseManager (new PSR-4 location).
+		$container->singleton(
+			DatabaseManager::class,
+			static function ( ContainerInterface $c ) {
+				global $wpdb;
+				return new DatabaseManager( $wpdb );
+			}
+		);
+
+		// BC alias: WCH_Database_Manager points to DatabaseManager.
+		$container->singleton(
+			\WCH_Database_Manager::class,
+			static fn( ContainerInterface $c ) => $c->get( DatabaseManager::class )
+		);
+
+		// Convenience alias for database manager.
+		$container->singleton(
+			'wch.database',
+			static fn( ContainerInterface $c ) => $c->get( DatabaseManager::class )
+		);
+
+		// Register SettingsManager (new PSR-4 location).
+		$container->singleton(
+			SettingsManager::class,
+			static function ( ContainerInterface $c ) {
+				$encryption = $c->get( Encryption::class );
+				return new SettingsManager( $encryption );
+			}
+		);
+
+		// BC alias: WCH_Settings points to SettingsManager.
+		$container->singleton(
+			\WCH_Settings::class,
+			static fn( ContainerInterface $c ) => $c->get( SettingsManager::class )
+		);
+
+		// Convenience alias for settings manager.
+		$container->singleton(
+			'wch.settings.manager',
+			static fn( ContainerInterface $c ) => $c->get( SettingsManager::class )
+		);
+
+		// Register SettingsService (BC wrapper - points to SettingsManager).
+		// Note: SettingsService wraps SettingsManager for interface compatibility.
+		$container->singleton(
+			SettingsService::class,
+			static function ( ContainerInterface $c ) {
+				$settingsManager = $c->get( SettingsManager::class );
+				return new SettingsService( $settingsManager );
+			}
+		);
+
+		// Alias SettingsInterface to SettingsManager directly.
 		$container->singleton(
 			SettingsInterface::class,
-			static fn( ContainerInterface $c ) => $c->get( SettingsService::class )
+			static fn( ContainerInterface $c ) => $c->get( SettingsManager::class )
 		);
 
 		// Register order sync service.
