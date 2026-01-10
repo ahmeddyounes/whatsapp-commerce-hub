@@ -398,7 +398,7 @@ class BroadcastService implements BroadcastServiceInterface {
 					)
 				);
 				// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
-				$count          = max( 0, $count - $excluded_count );
+				$count = max( 0, $count - $excluded_count );
 			}
 		}
 

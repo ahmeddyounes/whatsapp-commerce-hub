@@ -114,7 +114,7 @@ class LogsPage {
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'whatsapp-commerce-hub' ) );
 		}
 
-		$logFiles   = \WCH_Logger::get_log_files();
+		$logFiles = \WCH_Logger::get_log_files();
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only log file selection.
 		$currentLog = isset( $_GET['log'] ) ? sanitize_file_name( wp_unslash( $_GET['log'] ) ) : '';
 
