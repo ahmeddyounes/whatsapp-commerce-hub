@@ -35,19 +35,11 @@ class AddressHandler implements AddressHandlerInterface {
 	private const REQUIRED_FIELDS = array( 'address_1', 'city', 'country' );
 
 	/**
-	 * Customer repository.
-	 *
-	 * @var CustomerRepositoryInterface|null
-	 */
-	protected ?CustomerRepositoryInterface $customerRepository;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param CustomerRepositoryInterface|null $customerRepository Customer repository.
 	 */
-	public function __construct( ?CustomerRepositoryInterface $customerRepository = null ) {
-		$this->customerRepository = $customerRepository;
+	public function __construct( protected ?CustomerRepositoryInterface $customerRepository = null ) {
 	}
 
 	/**
