@@ -13,7 +13,6 @@ declare(strict_types=1);
 namespace WhatsAppCommerceHub\Controllers;
 
 use WhatsAppCommerceHub\Payments\Contracts\PaymentGatewayInterface;
-use WhatsAppCommerceHub\Payments\Contracts\WebhookResult;
 use WP_REST_Server;
 use WP_REST_Request;
 use WP_REST_Response;

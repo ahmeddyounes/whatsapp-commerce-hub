@@ -14,7 +14,6 @@ namespace WhatsAppCommerceHub\Actions;
 
 use WhatsAppCommerceHub\Actions\Contracts\ActionHandlerInterface;
 use WhatsAppCommerceHub\ValueObjects\ActionResult;
-use WhatsAppCommerceHub\ValueObjects\ConversationContext;
 use WhatsAppCommerceHub\Contracts\Services\CartServiceInterface;
 
 // Exit if accessed directly.
