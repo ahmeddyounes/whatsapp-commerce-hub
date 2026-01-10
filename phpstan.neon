@@ -9,6 +9,7 @@ parameters:
 		- whatsapp-commerce-hub.php
 
 	# Parallel processing - disable to reduce memory usage
+	# Note: Run with --memory-limit=1G if analysis fails
 	parallel:
 		maximumNumberOfProcesses: 1
 
