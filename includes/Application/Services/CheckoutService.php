@@ -55,34 +55,6 @@ class CheckoutService implements CheckoutServiceInterface {
 	);
 
 	/**
-	 * Cart service.
-	 *
-	 * @var CartServiceInterface|null
-	 */
-	private ?CartServiceInterface $cart_service;
-
-	/**
-	 * Order sync service.
-	 *
-	 * @var OrderSyncServiceInterface|null
-	 */
-	private ?OrderSyncServiceInterface $order_sync_service;
-
-	/**
-	 * Customer repository.
-	 *
-	 * @var CustomerRepositoryInterface|null
-	 */
-	private ?CustomerRepositoryInterface $customer_repository;
-
-	/**
-	 * Checkout saga.
-	 *
-	 * @var CheckoutSaga|null
-	 */
-	private ?CheckoutSaga $checkout_saga;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param CartServiceInterface|null        $cart_service        Cart service.
@@ -91,15 +63,11 @@ class CheckoutService implements CheckoutServiceInterface {
 	 * @param CheckoutSaga|null                $checkout_saga       Checkout saga.
 	 */
 	public function __construct(
-		?CartServiceInterface $cart_service = null,
-		?OrderSyncServiceInterface $order_sync_service = null,
-		?CustomerRepositoryInterface $customer_repository = null,
-		?CheckoutSaga $checkout_saga = null
+		private ?CartServiceInterface $cart_service = null,
+		private ?OrderSyncServiceInterface $order_sync_service = null,
+		private ?CustomerRepositoryInterface $customer_repository = null,
+		private ?CheckoutSaga $checkout_saga = null
 	) {
-		$this->cart_service        = $cart_service;
-		$this->order_sync_service  = $order_sync_service;
-		$this->customer_repository = $customer_repository;
-		$this->checkout_saga       = $checkout_saga;
 	}
 
 	/**
