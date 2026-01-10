@@ -39,20 +39,6 @@ abstract class AbstractController extends WP_REST_Controller {
 	protected string $apiNamespace = 'wch/v1';
 
 	/**
-	 * Settings service.
-	 *
-	 * @var SettingsService|null
-	 */
-	protected ?SettingsService $settings = null;
-
-	/**
-	 * Rate limiter service.
-	 *
-	 * @var RateLimiter|null
-	 */
-	protected ?RateLimiter $rateLimiter = null;
-
-	/**
 	 * Rate limit defaults per endpoint type.
 	 *
 	 * @var array<string, int>
@@ -69,9 +55,10 @@ abstract class AbstractController extends WP_REST_Controller {
 	 * @param SettingsService|null $settings    Settings service.
 	 * @param RateLimiter|null     $rateLimiter Rate limiter service.
 	 */
-	public function __construct( ?SettingsService $settings = null, ?RateLimiter $rateLimiter = null ) {
-		$this->settings    = $settings;
-		$this->rateLimiter = $rateLimiter;
+	public function __construct(
+		protected ?SettingsService $settings = null,
+		protected ?RateLimiter $rateLimiter = null
+	) {
 	}
 
 	/**

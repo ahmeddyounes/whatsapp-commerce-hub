@@ -45,19 +45,11 @@ class PaymentWebhookController {
 	private const EVENTS_TABLE = 'wch_webhook_events';
 
 	/**
-	 * Registered payment gateways.
-	 *
-	 * @var array<string, PaymentGatewayInterface>
-	 */
-	private array $gateways = array();
-
-	/**
 	 * Constructor.
 	 *
 	 * @param array<string, PaymentGatewayInterface> $gateways Payment gateways.
 	 */
-	public function __construct( array $gateways = array() ) {
-		$this->gateways = $gateways;
+	public function __construct( private array $gateways = array() ) {
 	}
 
 	/**
