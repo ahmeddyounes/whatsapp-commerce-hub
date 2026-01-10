@@ -63,7 +63,7 @@ class SettingsTabRenderer implements SettingsTabRendererInterface {
 		<nav class="nav-tab-wrapper wch-nav-tab-wrapper">
 			<?php foreach ( $this->tabs as $tabId => $label ) : ?>
 				<a href="?page=wch-settings&tab=<?php echo esc_attr( $tabId ); ?>"
-					class="nav-tab <?php echo $tabId === $activeTab ? 'nav-tab-active' : ''; ?>">
+					class="nav-tab <?php echo esc_attr( $tabId === $activeTab ? 'nav-tab-active' : '' ); ?>">
 					<?php echo esc_html( $label ); ?>
 				</a>
 			<?php endforeach; ?>
