@@ -16,7 +16,7 @@ use WhatsAppCommerceHub\Container\ContainerInterface;
 use WhatsAppCommerceHub\Container\ServiceProviderInterface;
 use WhatsAppCommerceHub\Controllers\AnalyticsController;
 use WhatsAppCommerceHub\Controllers\ConversationsController;
-use WhatsAppCommerceHub\Services\SettingsService;
+use WhatsAppCommerceHub\Application\Services\SettingsService;
 use WhatsAppCommerceHub\Security\RateLimiter;
 
 // Exit if accessed directly.

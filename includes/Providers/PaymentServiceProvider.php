@@ -21,8 +21,8 @@ use WhatsAppCommerceHub\Payments\Gateways\RazorpayGateway;
 use WhatsAppCommerceHub\Payments\Gateways\PixGateway;
 use WhatsAppCommerceHub\Payments\Gateways\WhatsAppPayGateway;
 use WhatsAppCommerceHub\Controllers\PaymentWebhookController;
-use WhatsAppCommerceHub\Services\RefundService;
-use WhatsAppCommerceHub\Services\NotificationService;
+use WhatsAppCommerceHub\Application\Services\RefundService;
+use WhatsAppCommerceHub\Application\Services\NotificationService;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {

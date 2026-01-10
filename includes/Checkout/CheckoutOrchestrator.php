@@ -15,7 +15,7 @@ use WhatsAppCommerceHub\Contracts\Checkout\StepInterface;
 use WhatsAppCommerceHub\Contracts\Services\AddressServiceInterface;
 use WhatsAppCommerceHub\Contracts\Services\CartServiceInterface;
 use WhatsAppCommerceHub\Contracts\Services\CustomerServiceInterface;
-use WhatsAppCommerceHub\Services\MessageBuilderFactory;
+use WhatsAppCommerceHub\Application\Services\MessageBuilderFactory;
 use WhatsAppCommerceHub\ValueObjects\CheckoutResponse;
 use WhatsAppCommerceHub\Checkout\Steps\AddressStep;
 use WhatsAppCommerceHub\Checkout\Steps\ShippingStep;

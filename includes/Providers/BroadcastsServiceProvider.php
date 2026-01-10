@@ -16,9 +16,9 @@ use WhatsAppCommerceHub\Contracts\Services\Broadcasts\CampaignRepositoryInterfac
 use WhatsAppCommerceHub\Contracts\Services\Broadcasts\AudienceCalculatorInterface;
 use WhatsAppCommerceHub\Contracts\Services\Broadcasts\CampaignDispatcherInterface;
 use WhatsAppCommerceHub\Contracts\Services\SettingsInterface;
-use WhatsAppCommerceHub\Services\Broadcasts\CampaignRepository;
-use WhatsAppCommerceHub\Services\Broadcasts\AudienceCalculator;
-use WhatsAppCommerceHub\Services\Broadcasts\CampaignDispatcher;
+use WhatsAppCommerceHub\Application\Services\Broadcasts\CampaignRepository;
+use WhatsAppCommerceHub\Application\Services\Broadcasts\AudienceCalculator;
+use WhatsAppCommerceHub\Application\Services\Broadcasts\CampaignDispatcher;
 use WhatsAppCommerceHub\Admin\Broadcasts\BroadcastWizardRenderer;
 use WhatsAppCommerceHub\Admin\Broadcasts\CampaignReportGenerator;
 use WhatsAppCommerceHub\Admin\Broadcasts\BroadcastsAjaxHandler;

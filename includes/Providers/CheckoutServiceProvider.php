@@ -22,13 +22,13 @@ use WhatsAppCommerceHub\Contracts\Services\Checkout\PaymentHandlerInterface;
 use WhatsAppCommerceHub\Contracts\Services\Checkout\CheckoutTotalsCalculatorInterface;
 use WhatsAppCommerceHub\Contracts\Services\Checkout\CouponHandlerInterface;
 use WhatsAppCommerceHub\Contracts\Services\Checkout\CheckoutOrchestratorInterface;
-use WhatsAppCommerceHub\Services\Checkout\CheckoutStateManager;
-use WhatsAppCommerceHub\Services\Checkout\AddressHandler;
-use WhatsAppCommerceHub\Services\Checkout\ShippingCalculator;
-use WhatsAppCommerceHub\Services\Checkout\PaymentHandler;
-use WhatsAppCommerceHub\Services\Checkout\CheckoutTotalsCalculator;
-use WhatsAppCommerceHub\Services\Checkout\CouponHandler;
-use WhatsAppCommerceHub\Services\Checkout\CheckoutOrchestrator;
+use WhatsAppCommerceHub\Application\Services\Checkout\CheckoutStateManager;
+use WhatsAppCommerceHub\Application\Services\Checkout\AddressHandler;
+use WhatsAppCommerceHub\Application\Services\Checkout\ShippingCalculator;
+use WhatsAppCommerceHub\Application\Services\Checkout\PaymentHandler;
+use WhatsAppCommerceHub\Application\Services\Checkout\CheckoutTotalsCalculator;
+use WhatsAppCommerceHub\Application\Services\Checkout\CouponHandler;
+use WhatsAppCommerceHub\Application\Services\Checkout\CheckoutOrchestrator;
 use WhatsAppCommerceHub\Sagas\CheckoutSaga;
 
 // Exit if accessed directly.

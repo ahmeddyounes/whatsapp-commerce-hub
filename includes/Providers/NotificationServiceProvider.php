@@ -14,7 +14,7 @@ namespace WhatsAppCommerceHub\Providers;
 
 use WhatsAppCommerceHub\Container\ContainerInterface;
 use WhatsAppCommerceHub\Container\ServiceProviderInterface;
-use WhatsAppCommerceHub\Services\NotificationService;
+use WhatsAppCommerceHub\Application\Services\NotificationService;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {

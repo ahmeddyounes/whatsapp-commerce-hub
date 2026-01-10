@@ -21,14 +21,14 @@ use WhatsAppCommerceHub\Contracts\Services\Reengagement\LoyaltyCouponGeneratorIn
 use WhatsAppCommerceHub\Contracts\Services\Reengagement\FrequencyCapManagerInterface;
 use WhatsAppCommerceHub\Contracts\Services\Reengagement\ReengagementAnalyticsInterface;
 use WhatsAppCommerceHub\Contracts\Services\Reengagement\ReengagementOrchestratorInterface;
-use WhatsAppCommerceHub\Services\Reengagement\InactiveCustomerIdentifier;
-use WhatsAppCommerceHub\Services\Reengagement\CampaignTypeResolver;
-use WhatsAppCommerceHub\Services\Reengagement\ProductTrackingService;
-use WhatsAppCommerceHub\Services\Reengagement\ReengagementMessageBuilder;
-use WhatsAppCommerceHub\Services\Reengagement\LoyaltyCouponGenerator;
-use WhatsAppCommerceHub\Services\Reengagement\FrequencyCapManager;
-use WhatsAppCommerceHub\Services\Reengagement\ReengagementAnalytics;
-use WhatsAppCommerceHub\Services\Reengagement\ReengagementOrchestrator;
+use WhatsAppCommerceHub\Application\Services\Reengagement\InactiveCustomerIdentifier;
+use WhatsAppCommerceHub\Application\Services\Reengagement\CampaignTypeResolver;
+use WhatsAppCommerceHub\Application\Services\Reengagement\ProductTrackingService;
+use WhatsAppCommerceHub\Application\Services\Reengagement\ReengagementMessageBuilder;
+use WhatsAppCommerceHub\Application\Services\Reengagement\LoyaltyCouponGenerator;
+use WhatsAppCommerceHub\Application\Services\Reengagement\FrequencyCapManager;
+use WhatsAppCommerceHub\Application\Services\Reengagement\ReengagementAnalytics;
+use WhatsAppCommerceHub\Application\Services\Reengagement\ReengagementOrchestrator;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {

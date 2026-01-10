@@ -23,10 +23,10 @@ use WhatsAppCommerceHub\Contracts\Repositories\CartRepositoryInterface;
 use WhatsAppCommerceHub\Contracts\Repositories\CustomerRepositoryInterface;
 use WhatsAppCommerceHub\Domain\Cart\CartService;
 use WhatsAppCommerceHub\Domain\Customer\CustomerService;
-use WhatsAppCommerceHub\Services\AddressService;
-use WhatsAppCommerceHub\Services\BroadcastService;
-use WhatsAppCommerceHub\Services\CatalogSyncService;
-use WhatsAppCommerceHub\Services\MessageBuilderFactory;
+use WhatsAppCommerceHub\Application\Services\AddressService;
+use WhatsAppCommerceHub\Application\Services\BroadcastService;
+use WhatsAppCommerceHub\Application\Services\CatalogSyncService;
+use WhatsAppCommerceHub\Application\Services\MessageBuilderFactory;
 use WhatsAppCommerceHub\Payments\PaymentGatewayRegistry;
 use WhatsAppCommerceHub\Checkout\CheckoutOrchestrator;
 

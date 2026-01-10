@@ -17,8 +17,8 @@ use WhatsAppCommerceHub\Core\ErrorHandler;
 use WhatsAppCommerceHub\Infrastructure\Security\Encryption;
 use WhatsAppCommerceHub\Infrastructure\Database\DatabaseManager;
 use WhatsAppCommerceHub\Infrastructure\Configuration\SettingsManager;
-use WhatsAppCommerceHub\Services\LoggerService;
-use WhatsAppCommerceHub\Services\SettingsService;
+use WhatsAppCommerceHub\Application\Services\LoggerService;
+use WhatsAppCommerceHub\Application\Services\SettingsService;
 use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
 use WhatsAppCommerceHub\Contracts\Services\SettingsInterface;
 

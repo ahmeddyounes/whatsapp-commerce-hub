@@ -17,7 +17,7 @@ use WP_REST_Request;
 use WP_REST_Response;
 use WP_Error;
 use WhatsAppCommerceHub\Security\RateLimiter;
-use WhatsAppCommerceHub\Services\SettingsService;
+use WhatsAppCommerceHub\Application\Services\SettingsService;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {

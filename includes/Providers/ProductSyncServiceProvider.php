@@ -19,12 +19,12 @@ use WhatsAppCommerceHub\Contracts\Services\ProductSync\SyncProgressTrackerInterf
 use WhatsAppCommerceHub\Contracts\Services\ProductSync\ProductSyncOrchestratorInterface;
 use WhatsAppCommerceHub\Contracts\Services\SettingsInterface;
 use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
-use WhatsAppCommerceHub\Services\ProductSync\ProductValidatorService;
-use WhatsAppCommerceHub\Services\ProductSync\CatalogTransformerService;
-use WhatsAppCommerceHub\Services\ProductSync\CatalogApiService;
-use WhatsAppCommerceHub\Services\ProductSync\SyncProgressTracker;
-use WhatsAppCommerceHub\Services\ProductSync\ProductSyncOrchestrator;
-use WhatsAppCommerceHub\Services\ProductSync\ProductSyncAdminUI;
+use WhatsAppCommerceHub\Application\Services\ProductSync\ProductValidatorService;
+use WhatsAppCommerceHub\Application\Services\ProductSync\CatalogTransformerService;
+use WhatsAppCommerceHub\Application\Services\ProductSync\CatalogApiService;
+use WhatsAppCommerceHub\Application\Services\ProductSync\SyncProgressTracker;
+use WhatsAppCommerceHub\Application\Services\ProductSync\ProductSyncOrchestrator;
+use WhatsAppCommerceHub\Application\Services\ProductSync\ProductSyncAdminUI;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
