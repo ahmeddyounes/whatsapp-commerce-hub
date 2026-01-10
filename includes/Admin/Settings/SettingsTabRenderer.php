@@ -63,7 +63,7 @@ class SettingsTabRenderer implements SettingsTabRendererInterface {
 		<nav class="nav-tab-wrapper wch-nav-tab-wrapper">
 			<?php foreach ( $this->tabs as $tabId => $label ) : ?>
 				<a href="?page=wch-settings&tab=<?php echo esc_attr( $tabId ); ?>"
-				   class="nav-tab <?php echo $tabId === $activeTab ? 'nav-tab-active' : ''; ?>">
+					class="nav-tab <?php echo $tabId === $activeTab ? 'nav-tab-active' : ''; ?>">
 					<?php echo esc_html( $label ); ?>
 				</a>
 			<?php endforeach; ?>
@@ -118,7 +118,7 @@ class SettingsTabRenderer implements SettingsTabRendererInterface {
 					</th>
 					<td>
 						<input type="text" name="api[phone_number_id]" id="phone_number_id"
-							   value="<?php echo esc_attr( $phoneNumberId ); ?>" class="regular-text">
+								value="<?php echo esc_attr( $phoneNumberId ); ?>" class="regular-text">
 						<p class="description"><?php esc_html_e( 'Your WhatsApp Business Account Phone Number ID', 'whatsapp-commerce-hub' ); ?></p>
 					</td>
 				</tr>
@@ -128,7 +128,7 @@ class SettingsTabRenderer implements SettingsTabRendererInterface {
 					</th>
 					<td>
 						<input type="text" name="api[business_account_id]" id="business_account_id"
-							   value="<?php echo esc_attr( $businessId ); ?>" class="regular-text">
+								value="<?php echo esc_attr( $businessId ); ?>" class="regular-text">
 						<p class="description"><?php esc_html_e( 'Your WhatsApp Business Account ID', 'whatsapp-commerce-hub' ); ?></p>
 					</td>
 				</tr>
@@ -138,8 +138,11 @@ class SettingsTabRenderer implements SettingsTabRendererInterface {
 					</th>
 					<td>
 						<input type="password" name="api[access_token]" id="access_token"
-							   value="<?php echo esc_attr( $accessToken ); ?>" class="regular-text" autocomplete="off">
-						<p class="description"><?php esc_html_e( 'Your WhatsApp Business Platform Access Token (stored encrypted)', 'whatsapp-commerce-hub' ); ?></p>
+								value="<?php echo esc_attr( $accessToken ); ?>"
+								class="regular-text" autocomplete="off">
+						<p class="description">
+							<?php esc_html_e( 'Your WhatsApp Business Platform Access Token (stored encrypted)', 'whatsapp-commerce-hub' ); ?>
+						</p>
 					</td>
 				</tr>
 				<tr>
@@ -147,11 +150,20 @@ class SettingsTabRenderer implements SettingsTabRendererInterface {
 						<label for="verify_token"><?php esc_html_e( 'Webhook Verify Token', 'whatsapp-commerce-hub' ); ?></label>
 					</th>
 					<td>
-						<input type="text" id="verify_token" value="<?php echo esc_attr( $verifyToken ); ?>" class="regular-text" readonly>
+						<input type="text" id="verify_token"
+							value="<?php echo esc_attr( $verifyToken ); ?>"
+							class="regular-text" readonly>
 						<button type="button" class="button" id="regenerate-verify-token">
 							<?php esc_html_e( 'Regenerate', 'whatsapp-commerce-hub' ); ?>
 						</button>
-						<p class="description"><?php esc_html_e( 'Use this token when configuring webhooks in your WhatsApp Business Account', 'whatsapp-commerce-hub' ); ?></p>
+						<p class="description">
+							<?php
+							esc_html_e(
+								'Use this token when configuring webhooks in your WhatsApp Business Account',
+								'whatsapp-commerce-hub'
+							);
+							?>
+						</p>
 					</td>
 				</tr>
 				<tr>
@@ -159,11 +171,15 @@ class SettingsTabRenderer implements SettingsTabRendererInterface {
 						<label for="webhook_url"><?php esc_html_e( 'Webhook URL', 'whatsapp-commerce-hub' ); ?></label>
 					</th>
 					<td>
-						<input type="text" id="webhook_url" value="<?php echo esc_url( $webhookUrl ); ?>" class="regular-text" readonly>
+						<input type="text" id="webhook_url"
+							value="<?php echo esc_url( $webhookUrl ); ?>"
+							class="regular-text" readonly>
 						<button type="button" class="button" id="copy-webhook-url">
 							<?php esc_html_e( 'Copy', 'whatsapp-commerce-hub' ); ?>
 						</button>
-						<p class="description"><?php esc_html_e( 'Configure this URL in your WhatsApp Business Account webhook settings', 'whatsapp-commerce-hub' ); ?></p>
+						<p class="description">
+							<?php esc_html_e( 'Configure this URL in your WhatsApp Business Account webhook settings', 'whatsapp-commerce-hub' ); ?>
+						</p>
 					</td>
 				</tr>
 				<tr>
@@ -315,12 +331,14 @@ class SettingsTabRenderer implements SettingsTabRendererInterface {
 						<?php foreach ( $availableGateways as $gatewayId => $gatewayTitle ) : ?>
 							<label>
 								<input type="checkbox" name="checkout[enabled_payment_methods][]"
-									   value="<?php echo esc_attr( $gatewayId ); ?>"
-									   <?php checked( in_array( $gatewayId, (array) $enabledMethods, true ) ); ?>>
+										value="<?php echo esc_attr( $gatewayId ); ?>"
+										<?php checked( in_array( $gatewayId, (array) $enabledMethods, true ) ); ?>>
 								<?php echo esc_html( $gatewayTitle ); ?>
 							</label><br>
 						<?php endforeach; ?>
-						<p class="description"><?php esc_html_e( 'Select which payment methods are available for WhatsApp checkout', 'whatsapp-commerce-hub' ); ?></p>
+						<p class="description">
+							<?php esc_html_e( 'Select which payment methods are available for WhatsApp checkout', 'whatsapp-commerce-hub' ); ?>
+						</p>
 					</td>
 				</tr>
 				<tr>
@@ -329,20 +347,26 @@ class SettingsTabRenderer implements SettingsTabRendererInterface {
 					</th>
 					<td>
 						<label>
-							<input type="checkbox" name="checkout[cod_enabled]" value="1" <?php checked( $codEnabled, true ); ?>>
+							<input type="checkbox" name="checkout[cod_enabled]" value="1"
+								<?php checked( $codEnabled, true ); ?>>
 							<?php esc_html_e( 'Enable Cash on Delivery', 'whatsapp-commerce-hub' ); ?>
 						</label>
 					</td>
 				</tr>
 				<tr class="wch-cod-settings" <?php echo ! $codEnabled ? 'style="display:none;"' : ''; ?>>
 					<th scope="row">
-						<label for="cod_extra_charge"><?php esc_html_e( 'COD Extra Charge', 'whatsapp-commerce-hub' ); ?></label>
+						<label for="cod_extra_charge">
+							<?php esc_html_e( 'COD Extra Charge', 'whatsapp-commerce-hub' ); ?>
+						</label>
 					</th>
 					<td>
 						<input type="number" name="checkout[cod_extra_charge]" id="cod_extra_charge"
-							   value="<?php echo esc_attr( $codExtraCharge ); ?>" step="0.01" min="0" class="small-text">
+								value="<?php echo esc_attr( $codExtraCharge ); ?>"
+								step="0.01" min="0" class="small-text">
 						<?php echo esc_html( get_woocommerce_currency_symbol() ); ?>
-						<p class="description"><?php esc_html_e( 'Additional charge for Cash on Delivery orders', 'whatsapp-commerce-hub' ); ?></p>
+						<p class="description">
+							<?php esc_html_e( 'Additional charge for Cash on Delivery orders', 'whatsapp-commerce-hub' ); ?>
+						</p>
 					</td>
 				</tr>
 				<tr>
@@ -350,16 +374,24 @@ class SettingsTabRenderer implements SettingsTabRendererInterface {
 						<?php esc_html_e( 'Order Limits', 'whatsapp-commerce-hub' ); ?>
 					</th>
 					<td>
-						<label for="min_order_amount"><?php esc_html_e( 'Minimum Order Amount:', 'whatsapp-commerce-hub' ); ?></label>
+						<label for="min_order_amount">
+							<?php esc_html_e( 'Minimum Order Amount:', 'whatsapp-commerce-hub' ); ?>
+						</label>
 						<input type="number" name="checkout[min_order_amount]" id="min_order_amount"
-							   value="<?php echo esc_attr( $minOrder ); ?>" step="0.01" min="0" class="small-text">
+								value="<?php echo esc_attr( $minOrder ); ?>"
+								step="0.01" min="0" class="small-text">
 						<?php echo esc_html( get_woocommerce_currency_symbol() ); ?>
 						<br><br>
-						<label for="max_order_amount"><?php esc_html_e( 'Maximum Order Amount:', 'whatsapp-commerce-hub' ); ?></label>
+						<label for="max_order_amount">
+							<?php esc_html_e( 'Maximum Order Amount:', 'whatsapp-commerce-hub' ); ?>
+						</label>
 						<input type="number" name="checkout[max_order_amount]" id="max_order_amount"
-							   value="<?php echo esc_attr( $maxOrder ); ?>" step="0.01" min="0" class="small-text">
+								value="<?php echo esc_attr( $maxOrder ); ?>"
+								step="0.01" min="0" class="small-text">
 						<?php echo esc_html( get_woocommerce_currency_symbol() ); ?>
-						<p class="description"><?php esc_html_e( 'Set minimum and maximum order amounts (0 for no limit)', 'whatsapp-commerce-hub' ); ?></p>
+						<p class="description">
+							<?php esc_html_e( 'Set minimum and maximum order amounts (0 for no limit)', 'whatsapp-commerce-hub' ); ?>
+						</p>
 					</td>
 				</tr>
 				<tr>
@@ -406,7 +438,7 @@ class SettingsTabRenderer implements SettingsTabRendererInterface {
 							<div class="wch-notification-row">
 								<label>
 									<input type="checkbox" name="notifications[<?php echo esc_attr( $type ); ?>_enabled]"
-										   value="1" <?php checked( $enabled, true ); ?>>
+											value="1" <?php checked( $enabled, true ); ?>>
 									<?php echo esc_html( $label ); ?>
 								</label>
 								<button type="button" class="button button-small wch-test-notification"
@@ -421,13 +453,18 @@ class SettingsTabRenderer implements SettingsTabRendererInterface {
 				</tr>
 				<tr>
 					<th scope="row">
-						<label for="abandoned_cart_delay"><?php esc_html_e( 'Abandoned Cart Delay', 'whatsapp-commerce-hub' ); ?></label>
+						<label for="abandoned_cart_delay">
+							<?php esc_html_e( 'Abandoned Cart Delay', 'whatsapp-commerce-hub' ); ?>
+						</label>
 					</th>
 					<td>
 						<input type="number" name="notifications[abandoned_cart_delay]" id="abandoned_cart_delay"
-							   value="<?php echo esc_attr( $cartDelay ); ?>" min="1" max="168" class="small-text">
+								value="<?php echo esc_attr( $cartDelay ); ?>"
+								min="1" max="168" class="small-text">
 						<?php esc_html_e( 'hours', 'whatsapp-commerce-hub' ); ?>
-						<p class="description"><?php esc_html_e( 'How long to wait before sending abandoned cart reminder (1-168 hours)', 'whatsapp-commerce-hub' ); ?></p>
+						<p class="description">
+							<?php esc_html_e( 'How long to wait before sending abandoned cart reminder (1-168 hours)', 'whatsapp-commerce-hub' ); ?>
+						</p>
 					</td>
 				</tr>
 			</tbody>
@@ -467,7 +504,7 @@ class SettingsTabRenderer implements SettingsTabRendererInterface {
 					</th>
 					<td>
 						<input type="password" name="ai[openai_api_key]" id="openai_api_key"
-							   value="<?php echo esc_attr( $openaiKey ); ?>" class="regular-text" autocomplete="off">
+								value="<?php echo esc_attr( $openaiKey ); ?>" class="regular-text" autocomplete="off">
 						<p class="description"><?php esc_html_e( 'Your OpenAI API key (stored encrypted)', 'whatsapp-commerce-hub' ); ?></p>
 					</td>
 				</tr>
@@ -488,19 +525,27 @@ class SettingsTabRenderer implements SettingsTabRendererInterface {
 						<label for="ai_temperature"><?php esc_html_e( 'Temperature', 'whatsapp-commerce-hub' ); ?></label>
 					</th>
 					<td>
-						<input type="range" name="ai[temperature]" id="ai_temperature" min="0" max="1" step="0.1"
-							   value="<?php echo esc_attr( $temperature ); ?>">
+						<input type="range" name="ai[temperature]" id="ai_temperature"
+							min="0" max="1" step="0.1"
+							value="<?php echo esc_attr( $temperature ); ?>">
 						<span id="temperature-value"><?php echo esc_html( $temperature ); ?></span>
-						<p class="description"><?php esc_html_e( 'Controls randomness: 0 = focused, 1 = creative', 'whatsapp-commerce-hub' ); ?></p>
+						<p class="description">
+							<?php esc_html_e( 'Controls randomness: 0 = focused, 1 = creative', 'whatsapp-commerce-hub' ); ?>
+						</p>
 					</td>
 				</tr>
 				<tr class="wch-ai-settings" <?php echo ! $aiEnabled ? 'style="display:none;"' : ''; ?>>
 					<th scope="row">
-						<label for="system_prompt"><?php esc_html_e( 'Custom System Prompt', 'whatsapp-commerce-hub' ); ?></label>
+						<label for="system_prompt">
+							<?php esc_html_e( 'Custom System Prompt', 'whatsapp-commerce-hub' ); ?>
+						</label>
 					</th>
 					<td>
-						<textarea name="ai[system_prompt]" id="system_prompt" rows="8" class="large-text"><?php echo esc_textarea( $systemPrompt ); ?></textarea>
-						<p class="description"><?php esc_html_e( 'Custom instructions for the AI assistant behavior', 'whatsapp-commerce-hub' ); ?></p>
+						<textarea name="ai[system_prompt]" id="system_prompt"
+							rows="8" class="large-text"><?php echo esc_textarea( $systemPrompt ); ?></textarea>
+						<p class="description">
+							<?php esc_html_e( 'Custom instructions for the AI assistant behavior', 'whatsapp-commerce-hub' ); ?>
+						</p>
 					</td>
 				</tr>
 			</tbody>
@@ -538,7 +583,7 @@ class SettingsTabRenderer implements SettingsTabRendererInterface {
 					</th>
 					<td>
 						<input type="number" name="advanced[log_retention_days]" id="log_retention_days"
-							   value="<?php echo esc_attr( $logRetention ); ?>" min="1" max="365" class="small-text">
+								value="<?php echo esc_attr( $logRetention ); ?>" min="1" max="365" class="small-text">
 						<?php esc_html_e( 'days', 'whatsapp-commerce-hub' ); ?>
 						<p class="description"><?php esc_html_e( 'Number of days to keep log files', 'whatsapp-commerce-hub' ); ?></p>
 					</td>
@@ -616,8 +661,13 @@ class SettingsTabRenderer implements SettingsTabRendererInterface {
 
 		echo '<select name="catalog[categories][]" id="catalog_categories" multiple class="wch-multiselect" style="width: 400px; height: 150px;">';
 		foreach ( $productCategories as $category ) {
-			$selected = in_array( $category->term_id, $selectedCategories, true ) ? 'selected' : '';
-			echo '<option value="' . esc_attr( $category->term_id ) . '" ' . $selected . '>' . esc_html( $category->name ) . '</option>';
+			$is_selected = in_array( $category->term_id, $selectedCategories, true );
+			printf(
+				'<option value="%s"%s>%s</option>',
+				esc_attr( $category->term_id ),
+				$is_selected ? ' selected' : '',
+				esc_html( $category->name )
+			);
 		}
 		echo '</select>';
 	}
@@ -631,7 +681,7 @@ class SettingsTabRenderer implements SettingsTabRendererInterface {
 	protected function renderProductSelect( array $selectedProducts ): void {
 		?>
 		<input type="text" id="catalog_products_search"
-			   placeholder="<?php esc_attr_e( 'Search products...', 'whatsapp-commerce-hub' ); ?>" class="regular-text">
+				placeholder="<?php esc_attr_e( 'Search products...', 'whatsapp-commerce-hub' ); ?>" class="regular-text">
 		<div id="catalog_products_list" class="wch-product-list">
 			<?php
 			if ( ! empty( $selectedProducts ) ) {
