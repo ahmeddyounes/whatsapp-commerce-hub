@@ -8,6 +8,8 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Contracts\Repositories;
 
 // Exit if accessed directly.

@@ -8,6 +8,8 @@
  * @since 2.1.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Contracts\Payments;
 
 // Exit if accessed directly.
