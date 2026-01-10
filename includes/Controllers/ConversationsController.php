@@ -1072,7 +1072,7 @@ class ConversationsController extends AbstractController {
 	 * @param string          $param   Parameter name.
 	 * @return true|WP_Error
 	 */
-	public function validateIdsArray( $value, WP_REST_Request $request, string $param ) {
+	public function validateIdsArray( $value, WP_REST_Request $request, string $param ): true|WP_Error {
 		if ( ! is_array( $value ) ) {
 			return new WP_Error(
 				'rest_invalid_param',

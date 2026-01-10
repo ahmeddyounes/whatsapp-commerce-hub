@@ -80,7 +80,7 @@ abstract class AbstractController extends WP_REST_Controller {
 	 *
 	 * @return bool|WP_Error True if has permission, WP_Error otherwise.
 	 */
-	public function checkAdminPermission() {
+	public function checkAdminPermission(): bool|WP_Error {
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
 			return new WP_Error(
 				'wch_rest_forbidden',
@@ -98,7 +98,7 @@ abstract class AbstractController extends WP_REST_Controller {
 	 * @param string $phone Phone number to validate.
 	 * @return string|WP_Error Sanitized phone number or WP_Error on failure.
 	 */
-	public function validatePhone( string $phone ) {
+	public function validatePhone( string $phone ): string|WP_Error {
 		// Remove all non-digit characters.
 		$phone = preg_replace( '/[^0-9]/', '', $phone );
 
@@ -248,7 +248,7 @@ abstract class AbstractController extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Request object.
 	 * @return bool|WP_Error True if valid, WP_Error otherwise.
 	 */
-	public function checkApiKeyPermission( WP_REST_Request $request ) {
+	public function checkApiKeyPermission( WP_REST_Request $request ): bool|WP_Error {
 		$apiKey = $request->get_header( 'X-WCH-API-Key' );
 
 		if ( empty( $apiKey ) ) {
@@ -294,7 +294,7 @@ abstract class AbstractController extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Request object.
 	 * @return bool|WP_Error True if valid, WP_Error otherwise.
 	 */
-	public function checkWebhookSignature( WP_REST_Request $request ) {
+	public function checkWebhookSignature( WP_REST_Request $request ): bool|WP_Error {
 		$signature = $request->get_header( 'X-Hub-Signature-256' );
 
 		if ( empty( $signature ) ) {
@@ -343,7 +343,7 @@ abstract class AbstractController extends WP_REST_Controller {
 	 * @param string $endpointType Endpoint type ('admin', 'webhook', or 'public').
 	 * @return bool|WP_Error True if within limit, WP_Error otherwise.
 	 */
-	public function checkRateLimit( string $endpointType = 'admin' ) {
+	public function checkRateLimit( string $endpointType = 'admin' ): bool|WP_Error {
 		$limit    = $this->rateLimits[ $endpointType ] ?? 100;
 		$clientId = $this->getClientIdentifier();
 

@@ -105,7 +105,7 @@ class PaymentWebhookController {
 	 * @param WP_REST_Request $request Request object.
 	 * @return bool|WP_Error
 	 */
-	public function verifyWebhookPermission( WP_REST_Request $request ) {
+	public function verifyWebhookPermission( WP_REST_Request $request ): bool|WP_Error {
 		$gatewayId = $request->get_param( 'gateway' );
 		if ( ! $gatewayId ) {
 			$gatewayId = $this->detectGateway( $request );

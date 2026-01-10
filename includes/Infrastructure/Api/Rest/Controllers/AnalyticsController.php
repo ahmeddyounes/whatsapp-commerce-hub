@@ -618,7 +618,7 @@ class AnalyticsController extends RestController {
 	 * @param string          $param   Parameter name.
 	 * @return bool|WP_Error
 	 */
-	public function validateDays( $value, WP_REST_Request $request, string $param ) {
+	public function validateDays( $value, WP_REST_Request $request, string $param ): bool|WP_Error {
 		$days = absint( $value );
 
 		if ( $days < 1 ) {
@@ -656,7 +656,7 @@ class AnalyticsController extends RestController {
 	 * @param string          $param   Parameter name.
 	 * @return bool|WP_Error
 	 */
-	public function validateLimit( $value, WP_REST_Request $request, string $param ) {
+	public function validateLimit( $value, WP_REST_Request $request, string $param ): bool|WP_Error {
 		$limit = absint( $value );
 
 		if ( $limit < 1 ) {

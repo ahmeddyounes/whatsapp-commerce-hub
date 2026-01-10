@@ -276,7 +276,7 @@ class AnalyticsController extends AbstractController {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error
 	 */
-	public function getOrders( WP_REST_Request $request ) {
+	public function getOrders( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$rateLimitResult = $this->checkRateLimit( 'admin' );
 		if ( is_wp_error( $rateLimitResult ) ) {
 			return $rateLimitResult;
@@ -312,7 +312,7 @@ class AnalyticsController extends AbstractController {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error
 	 */
-	public function getRevenue( WP_REST_Request $request ) {
+	public function getRevenue( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$rateLimitResult = $this->checkRateLimit( 'admin' );
 		if ( is_wp_error( $rateLimitResult ) ) {
 			return $rateLimitResult;
@@ -348,7 +348,7 @@ class AnalyticsController extends AbstractController {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error
 	 */
-	public function getTopProducts( WP_REST_Request $request ) {
+	public function getTopProducts( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$rateLimitResult = $this->checkRateLimit( 'admin' );
 		if ( is_wp_error( $rateLimitResult ) ) {
 			return $rateLimitResult;
@@ -421,7 +421,7 @@ class AnalyticsController extends AbstractController {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error
 	 */
-	public function getMetrics( WP_REST_Request $request ) {
+	public function getMetrics( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$rateLimitResult = $this->checkRateLimit( 'admin' );
 		if ( is_wp_error( $rateLimitResult ) ) {
 			return $rateLimitResult;
@@ -617,7 +617,7 @@ class AnalyticsController extends AbstractController {
 	 * @param string          $param   Parameter name.
 	 * @return bool|WP_Error
 	 */
-	public function validateDays( $value, WP_REST_Request $request, string $param ) {
+	public function validateDays( $value, WP_REST_Request $request, string $param ): bool|WP_Error {
 		$days = absint( $value );
 
 		if ( $days < 1 ) {
@@ -655,7 +655,7 @@ class AnalyticsController extends AbstractController {
 	 * @param string          $param   Parameter name.
 	 * @return bool|WP_Error
 	 */
-	public function validateLimit( $value, WP_REST_Request $request, string $param ) {
+	public function validateLimit( $value, WP_REST_Request $request, string $param ): bool|WP_Error {
 		$limit = absint( $value );
 
 		if ( $limit < 1 ) {
