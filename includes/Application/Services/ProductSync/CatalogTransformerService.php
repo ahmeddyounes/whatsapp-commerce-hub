@@ -39,19 +39,11 @@ class CatalogTransformerService implements CatalogTransformerInterface {
 	public const MAX_DESCRIPTION_LENGTH = 9999;
 
 	/**
-	 * Product validator service.
-	 *
-	 * @var ProductValidatorInterface|null
-	 */
-	protected ?ProductValidatorInterface $validator;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param ProductValidatorInterface|null $validator Product validator.
 	 */
-	public function __construct( ?ProductValidatorInterface $validator = null ) {
-		$this->validator = $validator;
+	public function __construct( protected ?ProductValidatorInterface $validator = null ) {
 	}
 
 	/**

@@ -34,19 +34,11 @@ class ProductValidatorService implements ProductValidatorInterface {
 	public const META_SYNC_HASH = '_wch_sync_hash';
 
 	/**
-	 * Settings service.
-	 *
-	 * @var SettingsInterface|null
-	 */
-	protected ?SettingsInterface $settings;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param SettingsInterface|null $settings Settings service.
 	 */
-	public function __construct( ?SettingsInterface $settings = null ) {
-		$this->settings = $settings;
+	public function __construct( protected ?SettingsInterface $settings = null ) {
 	}
 
 	/**

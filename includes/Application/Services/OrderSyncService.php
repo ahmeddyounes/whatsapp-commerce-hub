@@ -76,31 +76,15 @@ class OrderSyncService implements OrderSyncServiceInterface {
 	);
 
 	/**
-	 * Queue service.
-	 *
-	 * @var QueueServiceInterface|null
-	 */
-	private ?QueueServiceInterface $queue_service;
-
-	/**
-	 * Customer repository.
-	 *
-	 * @var CustomerRepositoryInterface|null
-	 */
-	private ?CustomerRepositoryInterface $customer_repository;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param QueueServiceInterface|null       $queue_service       Queue service for notifications.
 	 * @param CustomerRepositoryInterface|null $customer_repository Customer repository.
 	 */
 	public function __construct(
-		?QueueServiceInterface $queue_service = null,
-		?CustomerRepositoryInterface $customer_repository = null
+		private ?QueueServiceInterface $queue_service = null,
+		private ?CustomerRepositoryInterface $customer_repository = null
 	) {
-		$this->queue_service       = $queue_service;
-		$this->customer_repository = $customer_repository;
 	}
 
 	/**

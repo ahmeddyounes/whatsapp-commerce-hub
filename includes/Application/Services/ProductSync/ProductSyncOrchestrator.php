@@ -38,48 +38,6 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 	public const BATCH_SIZE = 50;
 
 	/**
-	 * Product validator service.
-	 *
-	 * @var ProductValidatorInterface
-	 */
-	protected ProductValidatorInterface $validator;
-
-	/**
-	 * Catalog transformer service.
-	 *
-	 * @var CatalogTransformerInterface
-	 */
-	protected CatalogTransformerInterface $transformer;
-
-	/**
-	 * Catalog API service.
-	 *
-	 * @var CatalogApiInterface
-	 */
-	protected CatalogApiInterface $catalogApi;
-
-	/**
-	 * Progress tracker service.
-	 *
-	 * @var SyncProgressTrackerInterface
-	 */
-	protected SyncProgressTrackerInterface $progressTracker;
-
-	/**
-	 * Settings service.
-	 *
-	 * @var SettingsInterface|null
-	 */
-	protected ?SettingsInterface $settings;
-
-	/**
-	 * Logger service.
-	 *
-	 * @var LoggerInterface|null
-	 */
-	protected ?LoggerInterface $logger;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param ProductValidatorInterface    $validator       Product validator.
@@ -90,19 +48,13 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 	 * @param LoggerInterface|null         $logger          Logger service.
 	 */
 	public function __construct(
-		ProductValidatorInterface $validator,
-		CatalogTransformerInterface $transformer,
-		CatalogApiInterface $catalogApi,
-		SyncProgressTrackerInterface $progressTracker,
-		?SettingsInterface $settings = null,
-		?LoggerInterface $logger = null
+		protected ProductValidatorInterface $validator,
+		protected CatalogTransformerInterface $transformer,
+		protected CatalogApiInterface $catalogApi,
+		protected SyncProgressTrackerInterface $progressTracker,
+		protected ?SettingsInterface $settings = null,
+		protected ?LoggerInterface $logger = null
 	) {
-		$this->validator       = $validator;
-		$this->transformer     = $transformer;
-		$this->catalogApi      = $catalogApi;
-		$this->progressTracker = $progressTracker;
-		$this->settings        = $settings;
-		$this->logger          = $logger;
 	}
 
 	/**

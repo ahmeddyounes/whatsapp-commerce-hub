@@ -36,69 +36,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 
 	/**
-	 * State manager.
-	 *
-	 * @var CheckoutStateManagerInterface
-	 */
-	protected CheckoutStateManagerInterface $stateManager;
-
-	/**
-	 * Address handler.
-	 *
-	 * @var AddressHandlerInterface
-	 */
-	protected AddressHandlerInterface $addressHandler;
-
-	/**
-	 * Shipping calculator.
-	 *
-	 * @var ShippingCalculatorInterface
-	 */
-	protected ShippingCalculatorInterface $shippingCalculator;
-
-	/**
-	 * Payment handler.
-	 *
-	 * @var PaymentHandlerInterface
-	 */
-	protected PaymentHandlerInterface $paymentHandler;
-
-	/**
-	 * Totals calculator.
-	 *
-	 * @var CheckoutTotalsCalculatorInterface
-	 */
-	protected CheckoutTotalsCalculatorInterface $totalsCalculator;
-
-	/**
-	 * Coupon handler.
-	 *
-	 * @var CouponHandlerInterface
-	 */
-	protected CouponHandlerInterface $couponHandler;
-
-	/**
-	 * Cart service.
-	 *
-	 * @var CartServiceInterface|null
-	 */
-	protected ?CartServiceInterface $cartService;
-
-	/**
-	 * Order sync service.
-	 *
-	 * @var OrderSyncServiceInterface|null
-	 */
-	protected ?OrderSyncServiceInterface $orderSyncService;
-
-	/**
-	 * Checkout saga.
-	 *
-	 * @var CheckoutSaga|null
-	 */
-	protected ?CheckoutSaga $checkoutSaga;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param CheckoutStateManagerInterface     $stateManager       State manager.
@@ -112,25 +49,16 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 	 * @param CheckoutSaga|null                 $checkoutSaga       Checkout saga.
 	 */
 	public function __construct(
-		CheckoutStateManagerInterface $stateManager,
-		AddressHandlerInterface $addressHandler,
-		ShippingCalculatorInterface $shippingCalculator,
-		PaymentHandlerInterface $paymentHandler,
-		CheckoutTotalsCalculatorInterface $totalsCalculator,
-		CouponHandlerInterface $couponHandler,
-		?CartServiceInterface $cartService = null,
-		?OrderSyncServiceInterface $orderSyncService = null,
-		?CheckoutSaga $checkoutSaga = null
+		protected CheckoutStateManagerInterface $stateManager,
+		protected AddressHandlerInterface $addressHandler,
+		protected ShippingCalculatorInterface $shippingCalculator,
+		protected PaymentHandlerInterface $paymentHandler,
+		protected CheckoutTotalsCalculatorInterface $totalsCalculator,
+		protected CouponHandlerInterface $couponHandler,
+		protected ?CartServiceInterface $cartService = null,
+		protected ?OrderSyncServiceInterface $orderSyncService = null,
+		protected ?CheckoutSaga $checkoutSaga = null
 	) {
-		$this->stateManager       = $stateManager;
-		$this->addressHandler     = $addressHandler;
-		$this->shippingCalculator = $shippingCalculator;
-		$this->paymentHandler     = $paymentHandler;
-		$this->totalsCalculator   = $totalsCalculator;
-		$this->couponHandler      = $couponHandler;
-		$this->cartService        = $cartService;
-		$this->orderSyncService   = $orderSyncService;
-		$this->checkoutSaga       = $checkoutSaga;
 	}
 
 	/**

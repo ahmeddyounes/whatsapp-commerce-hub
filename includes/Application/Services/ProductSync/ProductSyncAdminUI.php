@@ -28,31 +28,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 class ProductSyncAdminUI {
 
 	/**
-	 * Product validator service.
-	 *
-	 * @var ProductValidatorInterface
-	 */
-	protected ProductValidatorInterface $validator;
-
-	/**
-	 * Product sync orchestrator.
-	 *
-	 * @var ProductSyncOrchestratorInterface
-	 */
-	protected ProductSyncOrchestratorInterface $orchestrator;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param ProductValidatorInterface        $validator    Product validator.
 	 * @param ProductSyncOrchestratorInterface $orchestrator Product sync orchestrator.
 	 */
 	public function __construct(
-		ProductValidatorInterface $validator,
-		ProductSyncOrchestratorInterface $orchestrator
+		protected ProductValidatorInterface $validator,
+		protected ProductSyncOrchestratorInterface $orchestrator
 	) {
-		$this->validator    = $validator;
-		$this->orchestrator = $orchestrator;
 	}
 
 	/**

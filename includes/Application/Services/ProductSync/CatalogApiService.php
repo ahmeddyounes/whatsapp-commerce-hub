@@ -45,20 +45,6 @@ class CatalogApiService implements CatalogApiInterface {
 	public const META_SYNC_STATUS = '_wch_sync_status';
 
 	/**
-	 * Settings service.
-	 *
-	 * @var SettingsInterface|null
-	 */
-	protected ?SettingsInterface $settings;
-
-	/**
-	 * Logger service.
-	 *
-	 * @var LoggerInterface|null
-	 */
-	protected ?LoggerInterface $logger;
-
-	/**
 	 * WhatsApp API client.
 	 *
 	 * @var \WCH_WhatsApp_API_Client|null
@@ -71,9 +57,10 @@ class CatalogApiService implements CatalogApiInterface {
 	 * @param SettingsInterface|null $settings Settings service.
 	 * @param LoggerInterface|null   $logger   Logger service.
 	 */
-	public function __construct( ?SettingsInterface $settings = null, ?LoggerInterface $logger = null ) {
-		$this->settings = $settings;
-		$this->logger   = $logger;
+	public function __construct(
+		protected ?SettingsInterface $settings = null,
+		protected ?LoggerInterface $logger = null
+	) {
 	}
 
 	/**
