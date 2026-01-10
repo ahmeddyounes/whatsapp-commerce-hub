@@ -32,48 +32,6 @@ final class RefundResult {
 	public const STATUS_MANUAL    = 'manual';
 
 	/**
-	 * Whether the refund was processed successfully.
-	 *
-	 * @var bool
-	 */
-	private bool $success;
-
-	/**
-	 * Refund ID from the gateway.
-	 *
-	 * @var string
-	 */
-	private string $refundId;
-
-	/**
-	 * Refund status.
-	 *
-	 * @var string
-	 */
-	private string $status;
-
-	/**
-	 * Refund amount.
-	 *
-	 * @var float
-	 */
-	private float $amount;
-
-	/**
-	 * Processing message.
-	 *
-	 * @var string
-	 */
-	private string $message;
-
-	/**
-	 * Error details if refund failed.
-	 *
-	 * @var array{code: string, message: string}|null
-	 */
-	private ?array $error;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param bool       $success  Success status.
@@ -84,19 +42,13 @@ final class RefundResult {
 	 * @param array|null $error    Error details.
 	 */
 	private function __construct(
-		bool $success,
-		string $refundId = '',
-		string $status = '',
-		float $amount = 0.0,
-		string $message = '',
-		?array $error = null
+		private readonly bool $success,
+		private readonly string $refundId = '',
+		private readonly string $status = '',
+		private readonly float $amount = 0.0,
+		private readonly string $message = '',
+		private readonly ?array $error = null
 	) {
-		$this->success  = $success;
-		$this->refundId = $refundId;
-		$this->status   = $status;
-		$this->amount   = $amount;
-		$this->message  = $message;
-		$this->error    = $error;
 	}
 
 	/**
