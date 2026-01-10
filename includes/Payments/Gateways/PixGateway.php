@@ -328,7 +328,7 @@ class PixGateway extends AbstractGateway {
 		}
 
 		// Send QR code as image if base64 is available.
-		if ( ! empty( $pixData['qr_code'] ) && strpos( $pixData['qr_code'], 'base64' ) !== false ) {
+		if ( ! empty( $pixData['qr_code'] ) && str_contains( $pixData['qr_code'], 'base64' ) ) {
 			$uploadDir = wp_upload_dir();
 			$qrFile    = $uploadDir['path'] . '/pix_qr_' . time() . '.png';
 

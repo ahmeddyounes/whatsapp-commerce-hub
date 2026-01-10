@@ -430,7 +430,7 @@ class WebhookMessageProcessor extends AbstractQueueProcessor {
 		}
 
 		// Don't retry if message was already processed (idempotency).
-		if ( strpos( $exception->getMessage(), 'already processed' ) !== false ) {
+		if ( str_contains( $exception->getMessage(), 'already processed' ) ) {
 			return false;
 		}
 

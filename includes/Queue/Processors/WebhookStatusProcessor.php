@@ -357,7 +357,7 @@ class WebhookStatusProcessor extends AbstractQueueProcessor {
 		}
 
 		// Don't retry if message not found (it won't suddenly appear).
-		if ( strpos( $exception->getMessage(), 'not found' ) !== false ) {
+		if ( str_contains( $exception->getMessage(), 'not found' ) ) {
 			return false;
 		}
 

@@ -425,12 +425,12 @@ class PaymentWebhookController {
 		$data = $request->get_json_params();
 
 		// Stripe events.
-		if ( isset( $data['type'] ) && strpos( $data['type'], 'payment_intent' ) !== false ) {
+		if ( isset( $data['type'] ) && str_contains( $data['type'], 'payment_intent' ) ) {
 			return 'stripe';
 		}
 
 		// Razorpay events.
-		if ( isset( $data['event'] ) && strpos( $data['event'], 'payment.' ) !== false ) {
+		if ( isset( $data['event'] ) && str_contains( $data['event'], 'payment.' ) ) {
 			return 'razorpay';
 		}
 

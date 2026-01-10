@@ -777,7 +777,7 @@ class OrderNotificationProcessor extends AbstractQueueProcessor {
 		}
 
 		// Don't retry if order not found.
-		if ( strpos( $exception->getMessage(), 'not found' ) !== false ) {
+		if ( str_contains( $exception->getMessage(), 'not found' ) ) {
 			return false;
 		}
 
