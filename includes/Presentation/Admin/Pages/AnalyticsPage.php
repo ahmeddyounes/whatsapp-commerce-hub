@@ -194,7 +194,7 @@ class AnalyticsPage {
 		<nav class="nav-tab-wrapper wch-nav-tab-wrapper">
 			<?php foreach ( $tabs as $tab => $label ) : ?>
 				<a href="?page=wch-analytics&tab=<?php echo esc_attr( $tab ); ?>"
-					class="nav-tab <?php echo $tab === $activeTab ? 'nav-tab-active' : ''; ?>">
+					class="nav-tab <?php echo esc_attr( $tab === $activeTab ? 'nav-tab-active' : '' ); ?>">
 					<?php echo esc_html( $label ); ?>
 				</a>
 			<?php endforeach; ?>
