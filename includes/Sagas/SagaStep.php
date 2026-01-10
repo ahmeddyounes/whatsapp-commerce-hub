@@ -23,53 +23,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 class SagaStep {
 
 	/**
-	 * Step name.
-	 *
-	 * @var string
-	 */
-	private string $name;
-
-	/**
-	 * Execute callback.
-	 *
-	 * @var callable
-	 */
-	private $execute;
-
-	/**
-	 * Compensate callback.
-	 *
-	 * @var callable|null
-	 */
-	private $compensate;
-
-	/**
-	 * Step timeout in seconds.
-	 *
-	 * @var int
-	 */
-	private int $timeout;
-
-	/**
-	 * Maximum retry attempts.
-	 *
-	 * @var int
-	 */
-	private int $max_retries;
-
-	/**
-	 * Whether this step is critical (saga fails if step fails).
-	 *
-	 * @var bool
-	 */
-	private bool $critical;
-
-	/**
 	 * Step metadata.
 	 *
 	 * @var array
 	 */
-	private array $metadata;
+	private array $metadata = array();
 
 	/**
 	 * Constructor.
@@ -82,20 +40,13 @@ class SagaStep {
 	 * @param bool          $critical   Whether step is critical.
 	 */
 	public function __construct(
-		string $name,
-		callable $execute,
-		?callable $compensate = null,
-		int $timeout = 30,
-		int $max_retries = 3,
-		bool $critical = true
+		private string $name,
+		private $execute,
+		private $compensate = null,
+		private int $timeout = 30,
+		private int $max_retries = 3,
+		private bool $critical = true
 	) {
-		$this->name        = $name;
-		$this->execute     = $execute;
-		$this->compensate  = $compensate;
-		$this->timeout     = $timeout;
-		$this->max_retries = $max_retries;
-		$this->critical    = $critical;
-		$this->metadata    = array();
 	}
 
 	/**
