@@ -135,7 +135,7 @@ class WebhookHandler extends RestController {
 
 		if ( ! $gatewayId ) {
 			return new WP_Error(
-				'rest_forbidden',
+				'wch_rest_forbidden',
 				__( 'Unable to identify payment gateway.', 'whatsapp-commerce-hub' ),
 				[ 'status' => 400 ]
 			);
@@ -169,7 +169,7 @@ class WebhookHandler extends RestController {
 
 		if ( ! $gatewayId ) {
 			return new WP_Error(
-				'invalid_gateway',
+				'wch_invalid_gateway',
 				__( 'Unable to identify payment gateway', 'whatsapp-commerce-hub' ),
 				[ 'status' => 400 ]
 			);
@@ -212,7 +212,7 @@ class WebhookHandler extends RestController {
 
 		if ( ! $eventId ) {
 			return new WP_Error(
-				'invalid_webhook',
+				'wch_invalid_webhook',
 				__( 'Unable to extract event ID', 'whatsapp-commerce-hub' ),
 				[ 'status' => 400 ]
 			);
@@ -262,7 +262,7 @@ class WebhookHandler extends RestController {
 				'stripe' => $this->processStripeWebhook( $data ),
 				'mercadopago' => $this->processMercadoPagoWebhook( $data ),
 				'paypal' => $this->processPayPalWebhook( $data ),
-				default => new WP_Error( 'unsupported_gateway', "Gateway {$gatewayId} not supported" ),
+				default => new WP_Error( 'wch_unsupported_gateway', "Gateway {$gatewayId} not supported" ),
 			};
 
 			if ( is_wp_error( $result ) ) {
@@ -292,7 +292,7 @@ class WebhookHandler extends RestController {
 			$this->clearEventProcessing( $eventId );
 
 			return new WP_Error(
-				'processing_failed',
+				'wch_processing_failed',
 				$e->getMessage(),
 				[ 'status' => 500 ]
 			);
@@ -358,12 +358,12 @@ class WebhookHandler extends RestController {
 		$orderId = $this->extractOrderId( $data );
 
 		if ( ! $orderId ) {
-			return new WP_Error( 'order_not_found', 'Order ID not found in payment data' );
+			return new WP_Error( 'wch_order_not_found', 'Order ID not found in payment data' );
 		}
 
 		$order = wc_get_order( $orderId );
 		if ( ! $order ) {
-			return new WP_Error( 'invalid_order', "Order #{$orderId} not found" );
+			return new WP_Error( 'wch_invalid_order', "Order #{$orderId} not found" );
 		}
 
 		// Update order status
@@ -439,7 +439,7 @@ class WebhookHandler extends RestController {
 		$paymentId   = $paymentData['id'] ?? null;
 
 		if ( ! $paymentId ) {
-			return new WP_Error( 'invalid_payment', 'Payment ID not found' );
+			return new WP_Error( 'wch_invalid_payment', 'Payment ID not found' );
 		}
 
 		// Fetch payment details from MercadoPago API
@@ -598,7 +598,7 @@ class WebhookHandler extends RestController {
 			'stripe' => $this->verifyStripeSignature( $request ),
 			'mercadopago' => $this->verifyMercadoPagoSignature( $request ),
 			'paypal' => $this->verifyPayPalSignature( $request ),
-			default => new WP_Error( 'unsupported_gateway', 'Signature verification not implemented' ),
+			default => new WP_Error( 'wch_unsupported_gateway', 'Signature verification not implemented' ),
 		};
 	}
 
@@ -613,7 +613,7 @@ class WebhookHandler extends RestController {
 		$secret    = $this->settings->get( 'payment.stripe.webhook_secret' );
 
 		if ( ! $signature || ! $secret ) {
-			return new WP_Error( 'invalid_signature', 'Missing signature or secret' );
+			return new WP_Error( 'wch_invalid_signature', 'Missing signature or secret' );
 		}
 
 		$payload = $request->get_body();
@@ -622,7 +622,7 @@ class WebhookHandler extends RestController {
 			\Stripe\Webhook::constructEvent( $payload, $signature, $secret );
 			return true;
 		} catch ( \Exception $e ) {
-			return new WP_Error( 'invalid_signature', $e->getMessage() );
+			return new WP_Error( 'wch_invalid_signature', $e->getMessage() );
 		}
 	}
 
@@ -643,7 +643,7 @@ class WebhookHandler extends RestController {
 		$xRequestId = $request->get_header( 'x_request_id' );
 
 		if ( ! $xSignature || ! $xRequestId ) {
-			return new WP_Error( 'invalid_signature', 'Missing signature headers' );
+			return new WP_Error( 'wch_invalid_signature', 'Missing signature headers' );
 		}
 
 		// Extract ts and hash from x-signature
@@ -660,7 +660,7 @@ class WebhookHandler extends RestController {
 		$expectedHash = hash_hmac( 'sha256', $manifest, $secret );
 
 		if ( ! hash_equals( $expectedHash, $hash ) ) {
-			return new WP_Error( 'invalid_signature', 'Signature mismatch' );
+			return new WP_Error( 'wch_invalid_signature', 'Signature mismatch' );
 		}
 
 		return true;
