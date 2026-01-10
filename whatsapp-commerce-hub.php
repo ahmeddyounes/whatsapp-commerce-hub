@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define plugin constants.
-define( 'WCH_VERSION', '2.0.0' );
+define( 'WCH_VERSION', '3.0.0' );
 define( 'WCH_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'WCH_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'WCH_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
@@ -27,53 +27,6 @@ define( 'WCH_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 // Container instance holder.
 global $wch_container;
 $wch_container = null;
-
-/**
- * Autoloader for WCH_ prefixed classes.
- *
- * Automatically loads class files when a WCH_ prefixed class is referenced.
- * Supports standard classes in /includes and payment gateway classes in /includes/payments.
- *
- * @since 1.0.0
- * @param string $class_name The fully-qualified class name to load.
- * @return void
- */
-function wch_autoloader( $class_name ) {
-	// Only autoload classes with WCH_ prefix.
-	if ( strpos( $class_name, 'WCH_' ) !== 0 ) {
-		return;
-	}
-
-	// Convert class name to file path.
-	$class_file = strtolower( str_replace( '_', '-', $class_name ) );
-
-	// Check for payment gateway classes.
-	if ( strpos( $class_name, 'WCH_Payment_' ) === 0 ) {
-		$file_path = WCH_PLUGIN_DIR . 'includes/payments/class-' . $class_file . '.php';
-		if ( file_exists( $file_path ) ) {
-			require_once $file_path;
-			return;
-		}
-	}
-
-	// Check for interface files in payments.
-	if ( $class_name === 'WCH_Payment_Gateway' ) {
-		$file_path = WCH_PLUGIN_DIR . 'includes/payments/interface-wch-payment-gateway.php';
-		if ( file_exists( $file_path ) ) {
-			require_once $file_path;
-			return;
-		}
-	}
-
-	// Standard class loading.
-	$file_path = WCH_PLUGIN_DIR . 'includes/class-' . $class_file . '.php';
-
-	if ( file_exists( $file_path ) ) {
-		require_once $file_path;
-	}
-}
-
-spl_autoload_register( 'wch_autoloader' );
 
 /**
  * PSR-4 Autoloader for namespaced classes.
