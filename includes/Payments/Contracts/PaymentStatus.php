@@ -32,41 +32,6 @@ final class PaymentStatus {
 	public const UNKNOWN   = 'unknown';
 
 	/**
-	 * Payment status.
-	 *
-	 * @var string
-	 */
-	private string $status;
-
-	/**
-	 * Transaction ID.
-	 *
-	 * @var string
-	 */
-	private string $transactionId;
-
-	/**
-	 * Payment amount.
-	 *
-	 * @var float
-	 */
-	private float $amount;
-
-	/**
-	 * Currency code.
-	 *
-	 * @var string
-	 */
-	private string $currency;
-
-	/**
-	 * Additional metadata.
-	 *
-	 * @var array
-	 */
-	private array $metadata;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param string $status        Payment status.
@@ -76,17 +41,12 @@ final class PaymentStatus {
 	 * @param array  $metadata      Additional metadata.
 	 */
 	public function __construct(
-		string $status,
-		string $transactionId,
-		float $amount = 0.0,
-		string $currency = '',
-		array $metadata = array()
+		private readonly string $status,
+		private readonly string $transactionId,
+		private readonly float $amount = 0.0,
+		private readonly string $currency = '',
+		private readonly array $metadata = array()
 	) {
-		$this->status        = $status;
-		$this->transactionId = $transactionId;
-		$this->amount        = $amount;
-		$this->currency      = $currency;
-		$this->metadata      = $metadata;
 	}
 
 	/**
