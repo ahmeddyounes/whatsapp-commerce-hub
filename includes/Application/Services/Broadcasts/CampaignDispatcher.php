@@ -40,27 +40,6 @@ class CampaignDispatcher implements CampaignDispatcherInterface {
 	protected const COST_PER_MESSAGE = 0.0058;
 
 	/**
-	 * Campaign repository.
-	 *
-	 * @var CampaignRepositoryInterface
-	 */
-	protected CampaignRepositoryInterface $repository;
-
-	/**
-	 * Audience calculator.
-	 *
-	 * @var AudienceCalculatorInterface
-	 */
-	protected AudienceCalculatorInterface $audienceCalculator;
-
-	/**
-	 * Settings service.
-	 *
-	 * @var SettingsInterface
-	 */
-	protected SettingsInterface $settings;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param CampaignRepositoryInterface $repository         Campaign repository.
@@ -68,13 +47,10 @@ class CampaignDispatcher implements CampaignDispatcherInterface {
 	 * @param SettingsInterface           $settings           Settings service.
 	 */
 	public function __construct(
-		CampaignRepositoryInterface $repository,
-		AudienceCalculatorInterface $audienceCalculator,
-		SettingsInterface $settings
+		protected CampaignRepositoryInterface $repository,
+		protected AudienceCalculatorInterface $audienceCalculator,
+		protected SettingsInterface $settings
 	) {
-		$this->repository         = $repository;
-		$this->audienceCalculator = $audienceCalculator;
-		$this->settings           = $settings;
 	}
 
 	/**
