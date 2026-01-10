@@ -29,19 +29,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 class CustomerService implements CustomerServiceInterface {
 
 	/**
-	 * Customer repository.
-	 *
-	 * @var CustomerRepositoryInterface
-	 */
-	private CustomerRepositoryInterface $repository;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param CustomerRepositoryInterface $repository Customer repository.
 	 */
-	public function __construct( CustomerRepositoryInterface $repository ) {
-		$this->repository = $repository;
+	public function __construct( private CustomerRepositoryInterface $repository ) {
 	}
 
 	/**

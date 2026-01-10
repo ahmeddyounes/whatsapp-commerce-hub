@@ -33,19 +33,11 @@ class CartService implements CartServiceInterface {
 	private const CART_EXPIRY_HOURS = 72;
 
 	/**
-	 * Cart repository.
-	 *
-	 * @var CartRepositoryInterface
-	 */
-	private CartRepositoryInterface $repository;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param CartRepositoryInterface $repository Cart repository.
 	 */
-	public function __construct( CartRepositoryInterface $repository ) {
-		$this->repository = $repository;
+	public function __construct( private CartRepositoryInterface $repository ) {
 	}
 
 	/**

@@ -39,27 +39,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 class CheckoutSaga {
 
 	/**
-	 * Saga orchestrator.
-	 *
-	 * @var SagaOrchestrator
-	 */
-	private SagaOrchestrator $orchestrator;
-
-	/**
-	 * Cart service.
-	 *
-	 * @var CartServiceInterface
-	 */
-	private CartServiceInterface $cart_service;
-
-	/**
-	 * WhatsApp client.
-	 *
-	 * @var WhatsAppClientInterface
-	 */
-	private WhatsAppClientInterface $whatsapp_client;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param SagaOrchestrator        $orchestrator    Saga orchestrator.
@@ -67,13 +46,10 @@ class CheckoutSaga {
 	 * @param WhatsAppClientInterface $whatsapp_client WhatsApp client.
 	 */
 	public function __construct(
-		SagaOrchestrator $orchestrator,
-		CartServiceInterface $cart_service,
-		WhatsAppClientInterface $whatsapp_client
+		private SagaOrchestrator $orchestrator,
+		private CartServiceInterface $cart_service,
+		private WhatsAppClientInterface $whatsapp_client
 	) {
-		$this->orchestrator    = $orchestrator;
-		$this->cart_service    = $cart_service;
-		$this->whatsapp_client = $whatsapp_client;
 	}
 
 	/**

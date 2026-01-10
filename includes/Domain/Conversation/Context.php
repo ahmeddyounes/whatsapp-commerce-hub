@@ -27,26 +27,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Context {
 	/**
-	 * Conversation ID.
-	 */
-	private string $conversationId;
-
-	/**
-	 * Current state.
-	 */
-	private string $currentState;
-
-	/**
-	 * Context variables.
-	 */
-	private array $variables = array();
-
-	/**
-	 * Message history.
-	 */
-	private array $history = array();
-
-	/**
 	 * Constructor.
 	 *
 	 * @param string $conversationId Conversation identifier.
@@ -55,15 +35,11 @@ class Context {
 	 * @param array  $history        Message history.
 	 */
 	public function __construct(
-		string $conversationId,
-		string $currentState = 'initial',
-		array $variables = array(),
-		array $history = array()
+		private string $conversationId,
+		private string $currentState = 'initial',
+		private array $variables = array(),
+		private array $history = array()
 	) {
-		$this->conversationId = $conversationId;
-		$this->currentState   = $currentState;
-		$this->variables      = $variables;
-		$this->history        = $history;
 	}
 
 	/**
