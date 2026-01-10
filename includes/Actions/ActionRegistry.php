@@ -119,9 +119,12 @@ class ActionRegistry {
 
 		// Sort handlers by priority (higher priority first).
 		$handlers = $this->handlers[ $actionName ];
-		usort( $handlers, function ( ActionHandlerInterface $a, ActionHandlerInterface $b ) {
-			return $b->getPriority() - $a->getPriority();
-		} );
+		usort(
+			$handlers,
+			function ( ActionHandlerInterface $a, ActionHandlerInterface $b ) {
+				return $b->getPriority() - $a->getPriority();
+			}
+		);
 
 		$this->sortedHandlers[ $actionName ] = $handlers;
 

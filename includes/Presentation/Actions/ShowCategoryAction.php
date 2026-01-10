@@ -58,10 +58,13 @@ class ShowCategoryAction extends AbstractAction {
 			$categoryId = (int) $params['category_id'];
 			$page       = ! empty( $params['page'] ) ? (int) $params['page'] : 1;
 
-			$this->log( 'Showing category', array(
-				'category_id' => $categoryId,
-				'page'        => $page,
-			) );
+			$this->log(
+				'Showing category',
+				array(
+					'category_id' => $categoryId,
+					'page'        => $page,
+				)
+			);
 
 			// Get category.
 			$category = get_term( $categoryId, 'product_cat' );

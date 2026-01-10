@@ -53,11 +53,14 @@ class AddToCartAction extends AbstractAction {
 			$variantId = ! empty( $params['variant_id'] ) ? (int) $params['variant_id'] : null;
 			$quantity  = ! empty( $params['quantity'] ) ? (int) $params['quantity'] : 1;
 
-			$this->log( 'Adding to cart', array(
-				'product_id' => $productId,
-				'variant_id' => $variantId,
-				'quantity'   => $quantity,
-			) );
+			$this->log(
+				'Adding to cart',
+				array(
+					'product_id' => $productId,
+					'variant_id' => $variantId,
+					'quantity'   => $quantity,
+				)
+			);
 
 			// Validate product.
 			$product = wc_get_product( $productId );
@@ -127,7 +130,11 @@ class AddToCartAction extends AbstractAction {
 				);
 			}
 
-			return array( 'success' => false, 'cart' => null, 'error' => __( 'Failed to add item to cart.', 'whatsapp-commerce-hub' ) );
+			return array(
+				'success' => false,
+				'cart'    => null,
+				'error'   => __( 'Failed to add item to cart.', 'whatsapp-commerce-hub' ),
+			);
 		}
 
 		// Fallback to legacy cart manager.
@@ -135,7 +142,11 @@ class AddToCartAction extends AbstractAction {
 		$cart        = $cartManager->get_or_create_cart( $phone );
 
 		if ( ! $cart ) {
-			return array( 'success' => false, 'cart' => null, 'error' => __( 'Failed to access cart.', 'whatsapp-commerce-hub' ) );
+			return array(
+				'success' => false,
+				'cart'    => null,
+				'error'   => __( 'Failed to access cart.', 'whatsapp-commerce-hub' ),
+			);
 		}
 
 		$result = $cartManager->add_item( $phone, $productId, $quantity, $variantId );
@@ -153,7 +164,11 @@ class AddToCartAction extends AbstractAction {
 			);
 		}
 
-		return array( 'success' => false, 'cart' => null, 'error' => __( 'Failed to add item.', 'whatsapp-commerce-hub' ) );
+		return array(
+			'success' => false,
+			'cart'    => null,
+			'error'   => __( 'Failed to add item.', 'whatsapp-commerce-hub' ),
+		);
 	}
 
 	/**
@@ -172,7 +187,7 @@ class AddToCartAction extends AbstractAction {
 
 		$productName = $product->get_name();
 		if ( $variantId ) {
-			$variation = wc_get_product( $variantId );
+			$variation   = wc_get_product( $variantId );
 			$productName = $variation ? $variation->get_name() : $productName;
 		}
 

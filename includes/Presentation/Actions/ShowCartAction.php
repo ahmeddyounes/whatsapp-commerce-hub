@@ -190,8 +190,8 @@ class ShowCartAction extends AbstractAction {
 		$lines = array();
 
 		foreach ( $items as $index => $item ) {
-			$product   = wc_get_product( $item['product_id'] );
-			$targetId  = $item['product_id'];
+			$product  = wc_get_product( $item['product_id'] );
+			$targetId = $item['product_id'];
 
 			if ( ! $product ) {
 				continue;

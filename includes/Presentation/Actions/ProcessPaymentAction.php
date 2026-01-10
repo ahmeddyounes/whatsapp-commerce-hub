@@ -101,7 +101,6 @@ class ProcessPaymentAction extends AbstractAction {
 				default:
 					return $this->error( __( 'Invalid payment method. Please select a valid option.', 'whatsapp-commerce-hub' ) );
 			}
-
 		} catch ( \Exception $e ) {
 			$this->log( 'Error processing payment', array( 'error' => $e->getMessage() ), 'error' );
 			return $this->error( __( 'Sorry, we could not process your payment. Please try again.', 'whatsapp-commerce-hub' ) );

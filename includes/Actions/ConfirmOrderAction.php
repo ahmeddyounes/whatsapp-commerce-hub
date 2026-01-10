@@ -315,10 +315,12 @@ class ConfirmOrderAction extends AbstractAction {
 		$message = $this->createMessageBuilder();
 
 		if ( ! $order ) {
-			$message->text( sprintf(
-				__( 'Order confirmed! Your order number is: #%d', 'whatsapp-commerce-hub' ),
-				$orderId
-			) );
+			$message->text(
+				sprintf(
+					__( 'Order confirmed! Your order number is: #%d', 'whatsapp-commerce-hub' ),
+					$orderId
+				)
+			);
 			return $message;
 		}
 
@@ -511,8 +513,8 @@ class ConfirmOrderAction extends AbstractAction {
 	 * @return array Validation result with 'valid', 'errors', and 'message' keys.
 	 */
 	private function validateStock( array $items ): array {
-		$errors = array();
-		$outOfStock = array();
+		$errors            = array();
+		$outOfStock        = array();
 		$insufficientStock = array();
 
 		foreach ( $items as $item ) {
@@ -609,18 +611,26 @@ class ConfirmOrderAction extends AbstractAction {
 			if ( count( $errors ) === 1 ) {
 				$message = $errors[0];
 			} else {
-				$message = __( 'Some items in your cart are no longer available:', 'whatsapp-commerce-hub' ) . "\n\n";
-				$message .= implode( "\n", array_map( function( $e ) { return '• ' . $e; }, $errors ) );
+				$message  = __( 'Some items in your cart are no longer available:', 'whatsapp-commerce-hub' ) . "\n\n";
+				$message .= implode(
+					"\n",
+					array_map(
+						function ( $e ) {
+							return '• ' . $e;
+						},
+						$errors
+					)
+				);
 			}
 			$message .= "\n\n" . __( 'Please update your cart and try again.', 'whatsapp-commerce-hub' );
 		}
 
 		return array(
-			'valid'             => empty( $errors ),
-			'errors'            => $errors,
-			'out_of_stock'      => $outOfStock,
+			'valid'              => empty( $errors ),
+			'errors'             => $errors,
+			'out_of_stock'       => $outOfStock,
 			'insufficient_stock' => $insufficientStock,
-			'message'           => $message,
+			'message'            => $message,
 		);
 	}
 

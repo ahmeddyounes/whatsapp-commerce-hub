@@ -234,7 +234,7 @@ abstract class AbstractAction implements ActionHandlerInterface {
 				continue;
 			}
 
-			$productId = ! empty( $item['variant_id'] ) ? $item['variant_id'] : $item['product_id'];
+			$productId     = ! empty( $item['variant_id'] ) ? $item['variant_id'] : $item['product_id'];
 			$actualProduct = wc_get_product( $productId );
 
 			if ( $actualProduct ) {
