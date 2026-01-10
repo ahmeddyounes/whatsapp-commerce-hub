@@ -359,8 +359,8 @@ class Container implements ContainerInterface {
 	public function call( object|string $target, ?string $method = null, array $parameters = [] ): mixed {
 		// Parse class::method syntax.
 		if ( is_string( $target ) && str_contains( $target, '::' ) ) {
-			list( $class, $method ) = explode( '::', $target, 2 );
-			$target                 = $this->get( $class );
+			[ $class, $method ] = explode( '::', $target, 2 );
+			$target             = $this->get( $class );
 		}
 
 		if ( null === $method ) {

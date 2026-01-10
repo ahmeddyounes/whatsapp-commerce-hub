@@ -520,8 +520,8 @@ abstract class AbstractController extends WP_REST_Controller {
 			return $ip === $range;
 		}
 
-		list( $subnet, $bits ) = explode( '/', $range, 2 );
-		$bits                  = (int) $bits;
+		[ $subnet, $bits ] = explode( '/', $range, 2 );
+		$bits              = (int) $bits;
 
 		// IPv6
 		if ( filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6 ) ) {

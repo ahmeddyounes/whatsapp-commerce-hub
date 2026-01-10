@@ -78,7 +78,7 @@ class SettingsManager {
 			return $default;
 		}
 
-		list( $section, $settingKey ) = $parts;
+		[ $section, $settingKey ] = $parts;
 
 		// Check if the setting exists.
 		if ( ! isset( $settings[ $section ][ $settingKey ] ) ) {
@@ -126,7 +126,7 @@ class SettingsManager {
 			return false;
 		}
 
-		list( $section, $settingKey ) = $parts;
+		[ $section, $settingKey ] = $parts;
 
 		// Validate the value type.
 		if ( ! $this->validateSetting( $key, $value ) ) {
@@ -216,7 +216,7 @@ class SettingsManager {
 			return false;
 		}
 
-		list( $section, $settingKey ) = $parts;
+		[ $section, $settingKey ] = $parts;
 
 		// Get current settings.
 		$settings = $this->getAll();
@@ -339,7 +339,7 @@ class SettingsManager {
 			return false;
 		}
 
-		list( $section, $settingKey ) = $parts;
+		[ $section, $settingKey ] = $parts;
 
 		// If schema doesn't define this setting, allow it.
 		if ( ! isset( $schema[ $section ][ $settingKey ] ) ) {
