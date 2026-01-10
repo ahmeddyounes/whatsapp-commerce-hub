@@ -271,6 +271,32 @@
 		<severity>0</severity>
 	</rule>
 
+	<!-- Allow trigger_error for deprecation notices -->
+	<rule ref="WordPress.PHP.DevelopmentFunctions.error_log_trigger_error">
+		<severity>0</severity>
+	</rule>
+
+	<!-- Allow error_reporting manipulation -->
+	<rule ref="WordPress.PHP.DevelopmentFunctions.prevent_path_disclosure_error_reporting">
+		<severity>0</severity>
+	</rule>
+	<rule ref="WordPress.PHP.DiscouragedPHPFunctions.runtime_configuration_error_reporting">
+		<severity>0</severity>
+	</rule>
+
+	<!-- Allow silenced errors in specific cases -->
+	<rule ref="WordPress.PHP.NoSilencedErrors.Discouraged">
+		<severity>0</severity>
+	</rule>
+
+	<!-- Allow strip_tags and unlink -->
+	<rule ref="WordPress.WP.AlternativeFunctions.strip_tags_strip_tags">
+		<severity>0</severity>
+	</rule>
+	<rule ref="WordPress.WP.AlternativeFunctions.unlink_unlink">
+		<severity>0</severity>
+	</rule>
+
 	<!-- Minimum PHP version -->
 	<config name="minimum_supported_wp_version" value="6.0"/>
 	<config name="testVersion" value="8.1-"/>
