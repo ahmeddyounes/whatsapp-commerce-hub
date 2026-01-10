@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Loyalty Coupon Generator
  *

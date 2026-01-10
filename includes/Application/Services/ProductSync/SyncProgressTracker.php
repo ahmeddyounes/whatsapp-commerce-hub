@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Sync Progress Tracker Service
  *

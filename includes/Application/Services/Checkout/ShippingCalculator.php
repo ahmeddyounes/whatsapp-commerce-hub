@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Shipping Calculator
  *

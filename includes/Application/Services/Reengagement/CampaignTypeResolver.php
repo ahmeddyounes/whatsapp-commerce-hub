@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Campaign Type Resolver
  *

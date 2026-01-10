@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Campaign Dispatcher Service
  *

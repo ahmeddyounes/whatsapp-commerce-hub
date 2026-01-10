@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Catalog Transformer Service
  *

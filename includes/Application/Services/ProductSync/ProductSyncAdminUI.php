@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Product Sync Admin UI Service
  *

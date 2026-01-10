@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Reengagement Message Builder
  *

@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Product Tracking Service
  *

@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Inactive Customer Identifier
  *

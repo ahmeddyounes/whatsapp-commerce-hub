@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Checkout Totals Calculator
  *

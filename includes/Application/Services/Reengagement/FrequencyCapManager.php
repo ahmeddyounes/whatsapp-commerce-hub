@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Frequency Cap Manager
  *
