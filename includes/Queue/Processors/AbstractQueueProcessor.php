@@ -72,7 +72,7 @@ abstract class AbstractQueueProcessor implements QueueProcessorInterface {
 		PriorityQueue $priorityQueue,
 		DeadLetterQueue $deadLetterQueue
 	) {
-		$this->priorityQueue = $priorityQueue;
+		$this->priorityQueue   = $priorityQueue;
 		$this->deadLetterQueue = $deadLetterQueue;
 	}
 
@@ -91,15 +91,18 @@ abstract class AbstractQueueProcessor implements QueueProcessorInterface {
 	public function execute( array $rawPayload ): void {
 		// Unwrap the payload to extract user args and metadata.
 		$unwrapped = PriorityQueue::unwrapPayload( $rawPayload );
-		$payload = $unwrapped['args'];
-		$meta = $unwrapped['meta'];
+		$payload   = $unwrapped['args'];
+		$meta      = $unwrapped['meta'];
 
 		$attempt = $meta['attempt'] ?? 1;
 
-		$this->logDebug( 'Processing job', array(
-			'attempt' => $attempt,
-			'payload_keys' => array_keys( $payload ),
-		) );
+		$this->logDebug(
+			'Processing job',
+			array(
+				'attempt'      => $attempt,
+				'payload_keys' => array_keys( $payload ),
+			)
+		);
 
 		try {
 			// Check circuit breaker before processing.
@@ -111,9 +114,12 @@ abstract class AbstractQueueProcessor implements QueueProcessorInterface {
 			// Execute the actual processing logic.
 			$this->process( $payload );
 
-			$this->logInfo( 'Job processed successfully', array(
-				'attempt' => $attempt,
-			) );
+			$this->logInfo(
+				'Job processed successfully',
+				array(
+					'attempt' => $attempt,
+				)
+			);
 
 		} catch ( \Throwable $exception ) {
 			$this->handleException( $exception, $rawPayload, $payload, $meta, $attempt );
@@ -137,11 +143,14 @@ abstract class AbstractQueueProcessor implements QueueProcessorInterface {
 		array $meta,
 		int $attempt
 	): void {
-		$this->logError( 'Job processing failed', array(
-			'attempt'   => $attempt,
-			'exception' => $exception->getMessage(),
-			'trace'     => $exception->getTraceAsString(),
-		) );
+		$this->logError(
+			'Job processing failed',
+			array(
+				'attempt'   => $attempt,
+				'exception' => $exception->getMessage(),
+				'trace'     => $exception->getTraceAsString(),
+			)
+		);
 
 		// Check if we should retry.
 		if ( $this->shouldRetry( $exception ) && $attempt < $this->getMaxRetries() ) {
@@ -165,9 +174,12 @@ abstract class AbstractQueueProcessor implements QueueProcessorInterface {
 	 * @return void
 	 */
 	protected function handleCircuitOpen( array $rawPayload, array $meta ): void {
-		$this->logWarning( 'Circuit breaker is open, rescheduling job', array(
-			'reschedule_delay' => 60,
-		) );
+		$this->logWarning(
+			'Circuit breaker is open, rescheduling job',
+			array(
+				'reschedule_delay' => 60,
+			)
+		);
 
 		// Reschedule for later when circuit might be closed.
 		$priority = $meta['priority'] ?? PriorityQueue::PRIORITY_NORMAL;
@@ -190,11 +202,14 @@ abstract class AbstractQueueProcessor implements QueueProcessorInterface {
 	protected function scheduleRetry( array $rawPayload, int $attempt ): void {
 		$delay = $this->getRetryDelay( $attempt );
 
-		$this->logInfo( 'Scheduling retry', array(
-			'attempt'     => $attempt,
-			'next_attempt' => $attempt + 1,
-			'delay'       => $delay,
-		) );
+		$this->logInfo(
+			'Scheduling retry',
+			array(
+				'attempt'      => $attempt,
+				'next_attempt' => $attempt + 1,
+				'delay'        => $delay,
+			)
+		);
 
 		$this->priorityQueue->retry(
 			$this->getHookName(),
@@ -219,13 +234,16 @@ abstract class AbstractQueueProcessor implements QueueProcessorInterface {
 		?string $error,
 		array $meta
 	): void {
-		$this->logWarning( 'Moving job to dead letter queue', array(
-			'reason' => $reason,
-			'error'  => $error,
-		) );
+		$this->logWarning(
+			'Moving job to dead letter queue',
+			array(
+				'reason' => $reason,
+				'error'  => $error,
+			)
+		);
 
 		// Add metadata for DLQ.
-		$dlqPayload = $payload;
+		$dlqPayload                  = $payload;
 		$dlqPayload['_wch_job_meta'] = $meta;
 
 		$result = $this->deadLetterQueue->push(
@@ -239,9 +257,12 @@ abstract class AbstractQueueProcessor implements QueueProcessorInterface {
 		);
 
 		if ( false === $result ) {
-			$this->logError( 'Failed to push job to dead letter queue - job data may be lost', array(
-				'payload_keys' => array_keys( $payload ),
-			) );
+			$this->logError(
+				'Failed to push job to dead letter queue - job data may be lost',
+				array(
+					'payload_keys' => array_keys( $payload ),
+				)
+			);
 		}
 	}
 

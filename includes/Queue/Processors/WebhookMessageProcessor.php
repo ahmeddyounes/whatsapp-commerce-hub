@@ -125,17 +125,23 @@ class WebhookMessageProcessor extends AbstractQueueProcessor {
 
 		// Attempt to claim this message for processing (idempotency check).
 		if ( ! $this->idempotencyService->claim( $messageId, IdempotencyService::SCOPE_WEBHOOK ) ) {
-			$this->logInfo( 'Message already processed, skipping', array(
-				'message_id' => $messageId,
-			) );
+			$this->logInfo(
+				'Message already processed, skipping',
+				array(
+					'message_id' => $messageId,
+				)
+			);
 			return;
 		}
 
-		$this->logDebug( 'Processing incoming message', array(
-			'message_id' => $messageId,
-			'from'       => $from,
-			'type'       => $type,
-		) );
+		$this->logDebug(
+			'Processing incoming message',
+			array(
+				'message_id' => $messageId,
+				'from'       => $from,
+				'type'       => $type,
+			)
+		);
 
 		// Find or create conversation for this phone number.
 		$conversation = $this->conversationRepository->findOrCreate( $from );
@@ -173,11 +179,14 @@ class WebhookMessageProcessor extends AbstractQueueProcessor {
 		 */
 		do_action( 'wch_webhook_message_processed', $data, $conversation, $intent, $fsmResult );
 
-		$this->logInfo( 'Message processed successfully', array(
-			'message_id'      => $messageId,
-			'conversation_id' => $conversation->id,
-			'intent'          => $intent ? $intent->getIntentName() : null,
-		) );
+		$this->logInfo(
+			'Message processed successfully',
+			array(
+				'message_id'      => $messageId,
+				'conversation_id' => $conversation->id,
+				'intent'          => $intent ? $intent->getIntentName() : null,
+			)
+		);
 	}
 
 	/**
@@ -215,10 +224,13 @@ class WebhookMessageProcessor extends AbstractQueueProcessor {
 
 			return $this->messageRepository->find( $messageId );
 		} catch ( \Throwable $e ) {
-			$this->logError( 'Failed to store message', array(
-				'error'      => $e->getMessage(),
-				'message_id' => $waMessageId,
-			) );
+			$this->logError(
+				'Failed to store message',
+				array(
+					'error'      => $e->getMessage(),
+					'message_id' => $waMessageId,
+				)
+			);
 			return null;
 		}
 	}
@@ -290,10 +302,13 @@ class WebhookMessageProcessor extends AbstractQueueProcessor {
 
 			return $classifier->classify( $text, $context );
 		} catch ( \Throwable $e ) {
-			$this->logError( 'Intent classification failed', array(
-				'error' => $e->getMessage(),
-				'text'  => substr( $text, 0, 100 ),
-			) );
+			$this->logError(
+				'Intent classification failed',
+				array(
+					'error' => $e->getMessage(),
+					'text'  => substr( $text, 0, 100 ),
+				)
+			);
 			return null;
 		}
 	}
@@ -318,9 +333,12 @@ class WebhookMessageProcessor extends AbstractQueueProcessor {
 			// Map intent to FSM event.
 			$event = $this->mapIntentToEvent( $intent );
 			if ( ! $event ) {
-				$this->logDebug( 'No FSM event mapping for intent', array(
-					'intent' => $intent->getIntentName(),
-				) );
+				$this->logDebug(
+					'No FSM event mapping for intent',
+					array(
+						'intent' => $intent->getIntentName(),
+					)
+				);
 				return null;
 			}
 
@@ -341,19 +359,25 @@ class WebhookMessageProcessor extends AbstractQueueProcessor {
 			$result = $fsm->transition( $conversationArray, $event, $payload );
 
 			if ( is_wp_error( $result ) ) {
-				$this->logWarning( 'FSM transition failed', array(
-					'error' => $result->get_error_message(),
-					'event' => $event,
-				) );
+				$this->logWarning(
+					'FSM transition failed',
+					array(
+						'error' => $result->get_error_message(),
+						'event' => $event,
+					)
+				);
 				return $result;
 			}
 
 			return $result;
 		} catch ( \Throwable $e ) {
-			$this->logError( 'FSM routing failed', array(
-				'error'  => $e->getMessage(),
-				'intent' => $intent->getIntentName(),
-			) );
+			$this->logError(
+				'FSM routing failed',
+				array(
+					'error'  => $e->getMessage(),
+					'intent' => $intent->getIntentName(),
+				)
+			);
 			return null;
 		}
 	}
@@ -369,18 +393,18 @@ class WebhookMessageProcessor extends AbstractQueueProcessor {
 
 		// Intent to FSM event mapping.
 		$mapping = array(
-			'GREETING'        => \WCH_Conversation_FSM::EVENT_START,
-			'START'           => \WCH_Conversation_FSM::EVENT_START,
-			'BROWSE'          => \WCH_Conversation_FSM::EVENT_START,
-			'SEARCH'          => \WCH_Conversation_FSM::EVENT_SEARCH,
-			'VIEW_CATEGORY'   => \WCH_Conversation_FSM::EVENT_SELECT_CATEGORY,
-			'VIEW_PRODUCT'    => \WCH_Conversation_FSM::EVENT_VIEW_PRODUCT,
-			'ADD_TO_CART'     => \WCH_Conversation_FSM::EVENT_ADD_TO_CART,
-			'VIEW_CART'       => \WCH_Conversation_FSM::EVENT_VIEW_CART,
-			'CHECKOUT'        => \WCH_Conversation_FSM::EVENT_START_CHECKOUT,
-			'CONFIRM_ORDER'   => \WCH_Conversation_FSM::EVENT_CONFIRM_ORDER,
-			'HUMAN_SUPPORT'   => \WCH_Conversation_FSM::EVENT_REQUEST_HUMAN,
-			'HELP'            => \WCH_Conversation_FSM::EVENT_REQUEST_HUMAN,
+			'GREETING'      => \WCH_Conversation_FSM::EVENT_START,
+			'START'         => \WCH_Conversation_FSM::EVENT_START,
+			'BROWSE'        => \WCH_Conversation_FSM::EVENT_START,
+			'SEARCH'        => \WCH_Conversation_FSM::EVENT_SEARCH,
+			'VIEW_CATEGORY' => \WCH_Conversation_FSM::EVENT_SELECT_CATEGORY,
+			'VIEW_PRODUCT'  => \WCH_Conversation_FSM::EVENT_VIEW_PRODUCT,
+			'ADD_TO_CART'   => \WCH_Conversation_FSM::EVENT_ADD_TO_CART,
+			'VIEW_CART'     => \WCH_Conversation_FSM::EVENT_VIEW_CART,
+			'CHECKOUT'      => \WCH_Conversation_FSM::EVENT_START_CHECKOUT,
+			'CONFIRM_ORDER' => \WCH_Conversation_FSM::EVENT_CONFIRM_ORDER,
+			'HUMAN_SUPPORT' => \WCH_Conversation_FSM::EVENT_REQUEST_HUMAN,
+			'HELP'          => \WCH_Conversation_FSM::EVENT_REQUEST_HUMAN,
 		);
 
 		/**

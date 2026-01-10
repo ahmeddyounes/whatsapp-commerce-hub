@@ -109,11 +109,11 @@ class RetryPolicy {
 		string $backoff_strategy = self::BACKOFF_EXPONENTIAL,
 		int $jitter = 25
 	) {
-		$this->max_attempts = $max_attempts;
-		$this->base_delay = $base_delay;
-		$this->max_delay = $max_delay;
+		$this->max_attempts     = $max_attempts;
+		$this->base_delay       = $base_delay;
+		$this->max_delay        = $max_delay;
 		$this->backoff_strategy = $backoff_strategy;
-		$this->jitter = max( 0, min( 100, $jitter ) );
+		$this->jitter           = max( 0, min( 100, $jitter ) );
 	}
 
 	/**
@@ -126,11 +126,11 @@ class RetryPolicy {
 	 * @throws \Throwable If all retries fail.
 	 */
 	public function execute( callable $operation ): mixed {
-		$attempt = 0;
+		$attempt        = 0;
 		$last_exception = null;
 
 		while ( $attempt < $this->max_attempts ) {
-			$attempt++;
+			++$attempt;
 
 			try {
 				return $operation();
@@ -182,12 +182,12 @@ class RetryPolicy {
 			}
 
 			// Schedule retry via Action Scheduler.
-			$delay = $this->getDelay( $attempt );
+			$delay         = $this->getDelay( $attempt );
 			$delay_seconds = (int) ceil( $delay / 1000 );
 
 			if ( function_exists( 'as_schedule_single_action' ) ) {
 				$args['_retry_attempt'] = $attempt + 1;
-				$args['_retry_reason'] = $e->getMessage();
+				$args['_retry_reason']  = $e->getMessage();
 
 				as_schedule_single_action(
 					time() + $delay_seconds,
@@ -221,12 +221,12 @@ class RetryPolicy {
 		if ( $this->jitter > 0 && $delay > 0 ) {
 			$jitter_range = (int) ( $delay * $this->jitter / 100 );
 			$jitter_value = random_int( -$jitter_range, $jitter_range );
-			$delay += $jitter_value;
+			$delay       += $jitter_value;
 
 			// Ensure delay doesn't go below half the base delay after jitter.
 			// This prevents near-zero delays while still allowing meaningful variation.
 			$minimum_delay = (int) ( $this->base_delay / 2 );
-			$delay = max( $minimum_delay, $delay );
+			$delay         = max( $minimum_delay, $delay );
 		}
 
 		// Ensure delay is within bounds.

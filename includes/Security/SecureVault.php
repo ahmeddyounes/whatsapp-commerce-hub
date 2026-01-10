@@ -116,7 +116,7 @@ class SecureVault {
 
 		if ( empty( $primary_key ) || ! is_string( $primary_key ) ) {
 			// Fallback to WordPress auth key (less secure, for backward compatibility).
-			$primary_key = defined( 'AUTH_KEY' ) ? AUTH_KEY : wp_salt( 'auth' );
+			$primary_key              = defined( 'AUTH_KEY' ) ? AUTH_KEY : wp_salt( 'auth' );
 			$this->using_fallback_key = true;
 
 			// Log security warning about using fallback key.
@@ -145,7 +145,7 @@ class SecureVault {
 		$latest_version = 1;
 		foreach ( $key_versions as $version => $meta ) {
 			$this->keys[ $version ] = $this->deriveKey( $primary_key, "wch-key-v{$version}" );
-			$latest_version = max( $latest_version, (int) $version );
+			$latest_version         = max( $latest_version, (int) $version );
 
 			if ( ! empty( $meta['active'] ) ) {
 				$this->current_key_version = (int) $version;
@@ -187,7 +187,7 @@ class SecureVault {
 	 * @return string The derived key.
 	 */
 	private function deriveFieldKey( string $field, ?int $key_version = null ): string {
-		$version = $key_version ?? $this->current_key_version;
+		$version  = $key_version ?? $this->current_key_version;
 		$base_key = $this->keys[ $version ] ?? $this->keys[ $this->current_key_version ];
 
 		return $this->deriveKey( $base_key, "wch-field-{$field}" );
@@ -216,7 +216,7 @@ class SecureVault {
 		}
 
 		// Encrypt with GCM.
-		$tag = '';
+		$tag        = '';
 		$ciphertext = openssl_encrypt(
 			$plaintext,
 			self::ALGORITHM,
@@ -278,9 +278,9 @@ class SecureVault {
 		}
 
 		// Unpack components.
-		$version = unpack( 'C', $packed[0] )[1];
-		$iv = substr( $packed, 1, self::IV_LENGTH );
-		$tag = substr( $packed, 1 + self::IV_LENGTH, self::TAG_LENGTH );
+		$version    = unpack( 'C', $packed[0] )[1];
+		$iv         = substr( $packed, 1, self::IV_LENGTH );
+		$tag        = substr( $packed, 1 + self::IV_LENGTH, self::TAG_LENGTH );
 		$ciphertext = substr( $packed, 1 + self::IV_LENGTH + self::TAG_LENGTH );
 
 		// Get the appropriate key.
@@ -344,10 +344,10 @@ class SecureVault {
 	public function rotateKey(): int {
 		global $wpdb;
 
-		$lock_name = 'wch_key_rotation_lock';
+		$lock_name    = 'wch_key_rotation_lock';
 		$lock_timeout = 30; // seconds
-		$max_retries = 3;
-		$retry_delay = 100000; // microseconds (0.1 seconds)
+		$max_retries  = 3;
+		$retry_delay  = 100000; // microseconds (0.1 seconds)
 
 		// Track whether we acquired the lock for proper cleanup.
 		$lock_acquired = false;
@@ -357,7 +357,7 @@ class SecureVault {
 			for ( $attempt = 0; $attempt < $max_retries; $attempt++ ) {
 				$result = $wpdb->get_var(
 					$wpdb->prepare(
-						"SELECT GET_LOCK(%s, %d)",
+						'SELECT GET_LOCK(%s, %d)',
 						$lock_name,
 						$lock_timeout
 					)
@@ -379,7 +379,7 @@ class SecureVault {
 
 			// Re-read key versions inside lock to get current state.
 			$key_versions = get_option( 'wch_encryption_key_versions', array() );
-			$old_version = $this->current_key_version;
+			$old_version  = $this->current_key_version;
 
 			// Deactivate current key.
 			foreach ( $key_versions as $version => $meta ) {
@@ -387,7 +387,7 @@ class SecureVault {
 			}
 
 			// Create new version.
-			$new_version = empty( $key_versions ) ? 1 : max( array_keys( $key_versions ) ) + 1;
+			$new_version                  = empty( $key_versions ) ? 1 : max( array_keys( $key_versions ) ) + 1;
 			$key_versions[ $new_version ] = array(
 				'created_at' => time(),
 				'active'     => true,
@@ -399,10 +399,14 @@ class SecureVault {
 			$this->loadKeys();
 
 			// Log the rotation.
-			do_action( 'wch_security_log', 'key_rotation', array(
-				'old_version' => $old_version,
-				'new_version' => $new_version,
-			) );
+			do_action(
+				'wch_security_log',
+				'key_rotation',
+				array(
+					'old_version' => $old_version,
+					'new_version' => $new_version,
+				)
+			);
 
 			return $new_version;
 		} finally {
@@ -410,7 +414,7 @@ class SecureVault {
 			if ( $lock_acquired ) {
 				$wpdb->query(
 					$wpdb->prepare(
-						"SELECT RELEASE_LOCK(%s)",
+						'SELECT RELEASE_LOCK(%s)',
 						$lock_name
 					)
 				);
@@ -536,7 +540,7 @@ class SecureVault {
 	private function logSecurityWarning( string $message, string $details ): void {
 		// Only log once per request to avoid flooding logs.
 		static $logged = array();
-		$key = md5( $message );
+		$key           = md5( $message );
 
 		if ( isset( $logged[ $key ] ) ) {
 			return;

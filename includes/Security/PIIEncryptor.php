@@ -36,14 +36,29 @@ class PIIEncryptor {
 	 * @var array<string, array>
 	 */
 	private array $pii_fields = array(
-		'phone'         => array( 'searchable' => true, 'normalize' => 'phone' ),
-		'email'         => array( 'searchable' => true, 'normalize' => 'email' ),
+		'phone'         => array(
+			'searchable' => true,
+			'normalize'  => 'phone',
+		),
+		'email'         => array(
+			'searchable' => true,
+			'normalize'  => 'email',
+		),
 		'name'          => array( 'searchable' => false ),
 		'address_line1' => array( 'searchable' => false ),
 		'address_line2' => array( 'searchable' => false ),
-		'city'          => array( 'searchable' => true, 'normalize' => 'lowercase' ),
-		'postcode'      => array( 'searchable' => true, 'normalize' => 'uppercase' ),
-		'country'       => array( 'searchable' => true, 'normalize' => 'uppercase' ),
+		'city'          => array(
+			'searchable' => true,
+			'normalize'  => 'lowercase',
+		),
+		'postcode'      => array(
+			'searchable' => true,
+			'normalize'  => 'uppercase',
+		),
+		'country'       => array(
+			'searchable' => true,
+			'normalize'  => 'uppercase',
+		),
 	);
 
 	/**
@@ -78,7 +93,7 @@ class PIIEncryptor {
 		// Generate blind index if searchable.
 		$blind_index = null;
 		if ( ! empty( $field_config['searchable'] ) ) {
-			$normalized = $this->normalize( $value, $field_config['normalize'] ?? null );
+			$normalized  = $this->normalize( $value, $field_config['normalize'] ?? null );
 			$blind_index = $this->generateBlindIndex( $field, $normalized );
 		}
 
@@ -169,7 +184,7 @@ class PIIEncryptor {
 		$phone = trim( $phone );
 
 		// Preserve + for international format, remove all other non-digits.
-		$has_plus = str_starts_with( $phone, '+' );
+		$has_plus   = str_starts_with( $phone, '+' );
 		$normalized = preg_replace( '/[^0-9]/', '', $phone );
 
 		// Re-add + prefix if it was present (indicates international format).
@@ -188,7 +203,7 @@ class PIIEncryptor {
 	 */
 	public function encryptMany( array $data ): array {
 		$encrypted = array();
-		$indexes = array();
+		$indexes   = array();
 
 		foreach ( $data as $field => $value ) {
 			if ( ! isset( $this->pii_fields[ $field ] ) ) {
@@ -197,7 +212,7 @@ class PIIEncryptor {
 				continue;
 			}
 
-			$result = $this->encrypt( $field, $value );
+			$result              = $this->encrypt( $field, $value );
 			$encrypted[ $field ] = $result['encrypted'];
 
 			if ( $result['blind_index'] ) {
@@ -323,7 +338,7 @@ class PIIEncryptor {
 			return $this->maskGeneric( $email );
 		}
 
-		$local = $parts[0];
+		$local  = $parts[0];
 		$domain = $parts[1];
 
 		// Mask local part - show first 2 chars.
@@ -334,9 +349,9 @@ class PIIEncryptor {
 		// Mask domain - preserve TLD but mask the rest.
 		$domain_parts = explode( '.', $domain );
 		if ( count( $domain_parts ) >= 2 ) {
-			$tld = array_pop( $domain_parts );
-			$domain_name = implode( '.', $domain_parts );
-			$masked_domain = strlen( $domain_name ) > 1
+			$tld            = array_pop( $domain_parts );
+			$domain_name    = implode( '.', $domain_parts );
+			$masked_domain  = strlen( $domain_name ) > 1
 				? substr( $domain_name, 0, 1 ) . str_repeat( '*', strlen( $domain_name ) - 1 )
 				: str_repeat( '*', strlen( $domain_name ) );
 			$masked_domain .= '.' . $tld;
@@ -356,13 +371,19 @@ class PIIEncryptor {
 	private function maskName( string $name ): string {
 		$parts = explode( ' ', $name );
 
-		return implode( ' ', array_map( function ( $part ) {
-			$length = strlen( $part );
-			if ( $length <= 1 ) {
-				return '*';
-			}
-			return substr( $part, 0, 1 ) . str_repeat( '*', $length - 1 );
-		}, $parts ) );
+		return implode(
+			' ',
+			array_map(
+				function ( $part ) {
+					$length = strlen( $part );
+					if ( $length <= 1 ) {
+							return '*';
+					}
+					return substr( $part, 0, 1 ) . str_repeat( '*', $length - 1 );
+				},
+				$parts
+			)
+		);
 	}
 
 	/**

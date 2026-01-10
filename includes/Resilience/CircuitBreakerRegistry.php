@@ -40,17 +40,17 @@ class CircuitBreakerRegistry {
 			'success_threshold' => 2,
 			'timeout'           => 30,
 		),
-		'openai' => array(
+		'openai'   => array(
 			'failure_threshold' => 3,
 			'success_threshold' => 2,
 			'timeout'           => 60,
 		),
-		'payment' => array(
+		'payment'  => array(
 			'failure_threshold' => 3,
 			'success_threshold' => 1,
 			'timeout'           => 120,
 		),
-		'default' => array(
+		'default'  => array(
 			'failure_threshold' => 5,
 			'success_threshold' => 2,
 			'timeout'           => 60,
@@ -84,7 +84,7 @@ class CircuitBreakerRegistry {
 	private function create( string $service, ?array $config = null ): CircuitBreaker {
 		// Use service-specific defaults or fall back to general defaults.
 		$defaults = $this->default_configs[ $service ] ?? $this->default_configs['default'];
-		$config = array_merge( $defaults, $config ?? array() );
+		$config   = array_merge( $defaults, $config ?? array() );
 
 		return new CircuitBreaker(
 			$service,
@@ -186,21 +186,21 @@ class CircuitBreakerRegistry {
 	 * @return array<string, mixed> Health summary.
 	 */
 	public function getHealthSummary(): array {
-		$total = count( $this->breakers );
-		$open = 0;
+		$total     = count( $this->breakers );
+		$open      = 0;
 		$half_open = 0;
-		$closed = 0;
+		$closed    = 0;
 
 		foreach ( $this->breakers as $breaker ) {
 			switch ( $breaker->getState() ) {
 				case CircuitBreaker::STATE_OPEN:
-					$open++;
+					++$open;
 					break;
 				case CircuitBreaker::STATE_HALF_OPEN:
-					$half_open++;
+					++$half_open;
 					break;
 				case CircuitBreaker::STATE_CLOSED:
-					$closed++;
+					++$closed;
 					break;
 			}
 		}

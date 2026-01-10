@@ -83,11 +83,11 @@ class DeadLetterQueue {
 	/**
 	 * Failure reasons.
 	 */
-	public const REASON_MAX_RETRIES    = 'max_retries_exceeded';
-	public const REASON_TIMEOUT        = 'timeout';
-	public const REASON_EXCEPTION      = 'exception';
-	public const REASON_VALIDATION     = 'validation_failed';
-	public const REASON_CIRCUIT_OPEN   = 'circuit_breaker_open';
+	public const REASON_MAX_RETRIES  = 'max_retries_exceeded';
+	public const REASON_TIMEOUT      = 'timeout';
+	public const REASON_EXCEPTION    = 'exception';
+	public const REASON_VALIDATION   = 'validation_failed';
+	public const REASON_CIRCUIT_OPEN = 'circuit_breaker_open';
 
 	/**
 	 * WordPress database instance.
@@ -143,36 +143,47 @@ class DeadLetterQueue {
 		// Encode JSON with strict error handling - fail instead of losing data.
 		$args_json = wp_json_encode( $args );
 		if ( false === $args_json ) {
-			do_action( 'wch_log_error', 'Failed to encode DLQ args for hook: ' . $hook, array(
-				'args_type'  => gettype( $args ),
-				'last_error' => json_last_error_msg(),
-			) );
+			do_action(
+				'wch_log_error',
+				'Failed to encode DLQ args for hook: ' . $hook,
+				array(
+					'args_type'  => gettype( $args ),
+					'last_error' => json_last_error_msg(),
+				)
+			);
 			return false; // Don't insert invalid data - fail explicitly.
 		}
 
-		$metadata_merged = array_merge( $metadata, array(
-			'original_scheduled_at' => $job_meta['scheduled_at'] ?? null,
-			'last_retry'            => $job_meta['last_retry'] ?? null,
-		) );
-		$metadata_json = wp_json_encode( $metadata_merged );
+		$metadata_merged = array_merge(
+			$metadata,
+			array(
+				'original_scheduled_at' => $job_meta['scheduled_at'] ?? null,
+				'last_retry'            => $job_meta['last_retry'] ?? null,
+			)
+		);
+		$metadata_json   = wp_json_encode( $metadata_merged );
 		if ( false === $metadata_json ) {
-			do_action( 'wch_log_error', 'Failed to encode DLQ metadata for hook: ' . $hook, array(
-				'metadata_type' => gettype( $metadata_merged ),
-				'last_error'    => json_last_error_msg(),
-			) );
+			do_action(
+				'wch_log_error',
+				'Failed to encode DLQ metadata for hook: ' . $hook,
+				array(
+					'metadata_type' => gettype( $metadata_merged ),
+					'last_error'    => json_last_error_msg(),
+				)
+			);
 			return false; // Don't insert invalid data - fail explicitly.
 		}
 
 		$data = array(
-			'hook'         => $hook,
-			'args'         => $args_json,
-			'reason'       => $reason,
-			'error_message'=> $error_msg,
-			'attempts'     => $job_meta['attempt'] ?? 1,
-			'priority'     => $job_meta['priority'] ?? 3,
-			'metadata'     => $metadata_json,
-			'created_at'   => current_time( 'mysql', true ),
-			'status'       => 'pending',
+			'hook'          => $hook,
+			'args'          => $args_json,
+			'reason'        => $reason,
+			'error_message' => $error_msg,
+			'attempts'      => $job_meta['attempt'] ?? 1,
+			'priority'      => $job_meta['priority'] ?? 3,
+			'metadata'      => $metadata_json,
+			'created_at'    => current_time( 'mysql', true ),
+			'status'        => 'pending',
 		);
 
 		$result = $this->wpdb->insert( $table, $data );
@@ -243,17 +254,21 @@ class DeadLetterQueue {
 		}
 
 		// Decode args with strict error checking - don't mask data corruption.
-		$args = json_decode( $entry->args, true );
+		$args       = json_decode( $entry->args, true );
 		$json_error = json_last_error();
 
 		if ( JSON_ERROR_NONE !== $json_error ) {
 			$error_msg = json_last_error_msg();
-			do_action( 'wch_log_error', 'DLQ replay failed: corrupted args JSON', array(
-				'dlq_id'     => $id,
-				'hook'       => $entry->hook,
-				'json_error' => $error_msg,
-				'raw_length' => strlen( $entry->args ?? '' ),
-			) );
+			do_action(
+				'wch_log_error',
+				'DLQ replay failed: corrupted args JSON',
+				array(
+					'dlq_id'     => $id,
+					'hook'       => $entry->hook,
+					'json_error' => $error_msg,
+					'raw_length' => strlen( $entry->args ?? '' ),
+				)
+			);
 
 			// Mark as dismissed with corruption reason rather than silently failing.
 			$this->dismiss( $id, 'Data corruption: ' . $error_msg );
@@ -264,16 +279,20 @@ class DeadLetterQueue {
 		}
 
 		if ( ! is_array( $args ) ) {
-			do_action( 'wch_log_error', 'DLQ replay failed: args is not an array', array(
-				'dlq_id'    => $id,
-				'hook'      => $entry->hook,
-				'args_type' => gettype( $args ),
-			) );
+			do_action(
+				'wch_log_error',
+				'DLQ replay failed: args is not an array',
+				array(
+					'dlq_id'    => $id,
+					'hook'      => $entry->hook,
+					'args_type' => gettype( $args ),
+				)
+			);
 
 			$this->dismiss( $id, 'Data corruption: args decoded to ' . gettype( $args ) );
 
 			throw new \RuntimeException(
-				"Cannot replay DLQ entry {$id}: args decoded to " . gettype( $args ) . " instead of array"
+				"Cannot replay DLQ entry {$id}: args decoded to " . gettype( $args ) . ' instead of array'
 			);
 		}
 
@@ -283,9 +302,9 @@ class DeadLetterQueue {
 		if ( ! isset( $args['_wch_job_meta'] ) || ! is_array( $args['_wch_job_meta'] ) ) {
 			$args['_wch_job_meta'] = array();
 		}
-		$args['_wch_job_meta']['attempt'] = 1;
+		$args['_wch_job_meta']['attempt']           = 1;
 		$args['_wch_job_meta']['replayed_from_dlq'] = $id;
-		$args['_wch_job_meta']['replayed_at'] = time();
+		$args['_wch_job_meta']['replayed_at']       = time();
 
 		// Schedule the job again.
 		if ( function_exists( 'as_schedule_single_action' ) ) {
@@ -315,10 +334,14 @@ class DeadLetterQueue {
 					// Non-critical: log but continue if metadata is corrupted.
 					// The replay itself is more important than preserving metadata.
 					elseif ( JSON_ERROR_NONE !== json_last_error() ) {
-						do_action( 'wch_log_warning', 'DLQ metadata corrupted during replay', array(
-							'dlq_id'     => $id,
-							'json_error' => json_last_error_msg(),
-						) );
+						do_action(
+							'wch_log_warning',
+							'DLQ metadata corrupted during replay',
+							array(
+								'dlq_id'     => $id,
+								'json_error' => json_last_error_msg(),
+							)
+						);
 					}
 				}
 
@@ -326,12 +349,14 @@ class DeadLetterQueue {
 				$this->wpdb->update(
 					$table,
 					array(
-						'status'     => 'replayed',
+						'status'      => 'replayed',
 						'replayed_at' => current_time( 'mysql', true ),
-						'metadata'   => wp_json_encode( array_merge(
-							$existing_metadata,
-							array( 'replay_action_id' => $action_id )
-						) ),
+						'metadata'    => wp_json_encode(
+							array_merge(
+								$existing_metadata,
+								array( 'replay_action_id' => $action_id )
+							)
+						),
 					),
 					array( 'id' => $id )
 				);
@@ -364,10 +389,14 @@ class DeadLetterQueue {
 		// Validate JSON encoding.
 		$metadata = wp_json_encode( array( 'dismiss_reason' => $reason ) );
 		if ( false === $metadata ) {
-			do_action( 'wch_log_error', 'DeadLetterQueue: Failed to encode dismiss metadata', array(
-				'id'     => $id,
-				'reason' => $reason,
-			) );
+			do_action(
+				'wch_log_error',
+				'DeadLetterQueue: Failed to encode dismiss metadata',
+				array(
+					'id'     => $id,
+					'reason' => $reason,
+				)
+			);
 			return false;
 		}
 
@@ -425,15 +454,15 @@ class DeadLetterQueue {
 		);
 
 		$stats = array(
-			'total'        => 0,
-			'pending'      => 0,
-			'replayed'     => 0,
-			'dismissed'    => 0,
-			'by_reason'    => array(),
+			'total'     => 0,
+			'pending'   => 0,
+			'replayed'  => 0,
+			'dismissed' => 0,
+			'by_reason' => array(),
 		);
 
 		foreach ( $results as $row ) {
-			$stats['total'] += (int) $row->count;
+			$stats['total']       += (int) $row->count;
 			$stats[ $row->status ] = ( $stats[ $row->status ] ?? 0 ) + (int) $row->count;
 
 			if ( ! isset( $stats['by_reason'][ $row->reason ] ) ) {
@@ -490,23 +519,27 @@ class DeadLetterQueue {
 		$row->args = json_decode( $row->args, true );
 		if ( JSON_ERROR_NONE !== json_last_error() ) {
 			$row->_json_errors['args'] = json_last_error_msg();
-			$row->args = null; // Explicitly null to indicate decode failure.
+			$row->args                 = null; // Explicitly null to indicate decode failure.
 		}
 
 		// Decode metadata with error tracking.
 		$row->metadata = json_decode( $row->metadata, true );
 		if ( JSON_ERROR_NONE !== json_last_error() ) {
 			$row->_json_errors['metadata'] = json_last_error_msg();
-			$row->metadata = null;
+			$row->metadata                 = null;
 		}
 
 		// Log if any corruption detected.
 		if ( ! empty( $row->_json_errors ) ) {
-			do_action( 'wch_log_warning', 'DLQ entry has corrupted JSON fields', array(
-				'dlq_id' => $row->id ?? 'unknown',
-				'hook'   => $row->hook ?? 'unknown',
-				'errors' => $row->_json_errors,
-			) );
+			do_action(
+				'wch_log_warning',
+				'DLQ entry has corrupted JSON fields',
+				array(
+					'dlq_id' => $row->id ?? 'unknown',
+					'hook'   => $row->hook ?? 'unknown',
+					'errors' => $row->_json_errors,
+				)
+			);
 		}
 
 		return $row;
@@ -520,7 +553,7 @@ class DeadLetterQueue {
 	public static function createTable(): void {
 		global $wpdb;
 
-		$table = $wpdb->prefix . self::TABLE_NAME;
+		$table           = $wpdb->prefix . self::TABLE_NAME;
 		$charset_collate = $wpdb->get_charset_collate();
 
 		$sql = "CREATE TABLE IF NOT EXISTS {$table} (

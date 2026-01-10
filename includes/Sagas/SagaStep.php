@@ -177,7 +177,7 @@ class SagaStep {
 	 * @return self
 	 */
 	public function withMetadata( string $key, mixed $value ): self {
-		$clone = clone $this;
+		$clone                   = clone $this;
 		$clone->metadata[ $key ] = $value;
 
 		return $clone;
@@ -210,7 +210,7 @@ class SagaStep {
 	 * @return self
 	 */
 	public function withTimeout( int $timeout ): self {
-		$clone = clone $this;
+		$clone          = clone $this;
 		$clone->timeout = $timeout;
 
 		return $clone;
@@ -223,7 +223,7 @@ class SagaStep {
 	 * @return self
 	 */
 	public function withRetries( int $retries ): self {
-		$clone = clone $this;
+		$clone              = clone $this;
 		$clone->max_retries = $retries;
 
 		return $clone;
@@ -235,7 +235,7 @@ class SagaStep {
 	 * @return self
 	 */
 	public function asOptional(): self {
-		$clone = clone $this;
+		$clone           = clone $this;
 		$clone->critical = false;
 
 		return $clone;

@@ -98,7 +98,7 @@ class PriorityQueue {
 			return false;
 		}
 
-		$group = $this->getGroup( $priority );
+		$group     = $this->getGroup( $priority );
 		$timestamp = time() + $delay;
 
 		// Wrap user args and metadata separately to avoid polluting user data.
@@ -234,7 +234,7 @@ class PriorityQueue {
 
 		// Create a unique lock key based on hook and args.
 		$args_json = wp_json_encode( $args );
-		$lock_key = 'wch_unique_job_' . md5( $hook . $args_json );
+		$lock_key  = 'wch_unique_job_' . md5( $hook . $args_json );
 
 		// Acquire advisory lock to prevent concurrent scheduling.
 		$lock_acquired = $wpdb->get_var(
@@ -330,7 +330,7 @@ class PriorityQueue {
 		// isPending() checks if ANY job with this hook is pending, not a
 		// specific one with matching args.
 		foreach ( self::PRIORITY_GROUPS as $group_suffix ) {
-			$group = self::GROUP_PREFIX . $group_suffix;
+			$group  = self::GROUP_PREFIX . $group_suffix;
 			$result = as_next_scheduled_action( $hook, null, $group );
 			if ( false !== $result ) {
 				return true;
@@ -362,7 +362,7 @@ class PriorityQueue {
 		// Note: We pass null for args because the actual args are wrapped in
 		// a job payload structure. This cancels ALL jobs with this hook.
 		foreach ( self::PRIORITY_GROUPS as $group_suffix ) {
-			$group = self::GROUP_PREFIX . $group_suffix;
+			$group  = self::GROUP_PREFIX . $group_suffix;
 			$result = as_unschedule_all_actions( $hook, null, $group );
 			// as_unschedule_all_actions returns int|null, null means unlimited were unscheduled.
 			if ( is_int( $result ) ) {
@@ -452,7 +452,7 @@ class PriorityQueue {
 		// Unwrap to get user args and metadata.
 		$unwrapped = self::unwrapPayload( $payload );
 		$user_args = $unwrapped['args'];
-		$meta = $unwrapped['meta'];
+		$meta      = $unwrapped['meta'];
 
 		// SECURITY: Atomic lock to prevent race conditions.
 		// Create unique key based on hook, args, and attempt to prevent duplicate retries.
@@ -466,18 +466,22 @@ class PriorityQueue {
 		// GET_LOCK returns 1 on success, 0 if held by another session, NULL on error.
 		if ( '1' !== (string) $lock_acquired ) {
 			// Another process is handling this retry - let it proceed.
-			do_action( 'wch_log_info', 'Retry skipped - another process is handling', array(
-				'hook'    => $hook,
-				'attempt' => $attempt,
-			) );
+			do_action(
+				'wch_log_info',
+				'Retry skipped - another process is handling',
+				array(
+					'hook'    => $hook,
+					'attempt' => $attempt,
+				)
+			);
 			return false;
 		}
 
 		try {
 			// Check idempotency - has this retry already been processed?
 			$idempotency_table = $wpdb->prefix . 'wch_webhook_idempotency';
-			$idempotency_hash = hash( 'sha256', $retry_key );
-			$now = current_time( 'mysql' );
+			$idempotency_hash  = hash( 'sha256', $retry_key );
+			$now               = current_time( 'mysql' );
 
 			// Atomic claim using INSERT IGNORE.
 			$claim_result = $wpdb->query(
@@ -493,10 +497,14 @@ class PriorityQueue {
 
 			// If 0 rows affected, this retry was already processed.
 			if ( 0 === $claim_result ) {
-				do_action( 'wch_log_info', 'Retry already processed by another request', array(
-					'hook'    => $hook,
-					'attempt' => $attempt,
-				) );
+				do_action(
+					'wch_log_info',
+					'Retry already processed by another request',
+					array(
+						'hook'    => $hook,
+						'attempt' => $attempt,
+					)
+				);
 				return false;
 			}
 
@@ -504,24 +512,32 @@ class PriorityQueue {
 				// Move to dead letter queue with original user args.
 				if ( $this->dead_letter_queue ) {
 					// Reconstruct for DLQ (include meta for debugging).
-					$dlq_args = $user_args;
+					$dlq_args                  = $user_args;
 					$dlq_args['_wch_job_meta'] = $meta;
-					$dlq_result = $this->dead_letter_queue->push( $hook, $dlq_args, DeadLetterQueue::REASON_MAX_RETRIES );
+					$dlq_result                = $this->dead_letter_queue->push( $hook, $dlq_args, DeadLetterQueue::REASON_MAX_RETRIES );
 
 					// If DLQ push fails, log critical error - job data may be lost.
 					if ( false === $dlq_result ) {
-						do_action( 'wch_log_critical', 'Failed to push failed job to DLQ - job data may be lost', array(
-							'hook'    => $hook,
-							'attempt' => $attempt,
-							'meta'    => $meta,
-						) );
+						do_action(
+							'wch_log_critical',
+							'Failed to push failed job to DLQ - job data may be lost',
+							array(
+								'hook'    => $hook,
+								'attempt' => $attempt,
+								'meta'    => $meta,
+							)
+						);
 					}
 				} else {
 					// No DLQ configured - log that job is being dropped.
-					do_action( 'wch_log_warning', 'Job exceeded max retries with no DLQ configured', array(
-						'hook'    => $hook,
-						'attempt' => $attempt,
-					) );
+					do_action(
+						'wch_log_warning',
+						'Job exceeded max retries with no DLQ configured',
+						array(
+							'hook'    => $hook,
+							'attempt' => $attempt,
+						)
+					);
 				}
 				return false;
 			}
@@ -572,7 +588,7 @@ class PriorityQueue {
 	 */
 	private function getGroup( int $priority ): string {
 		$priority = max( 1, min( 5, $priority ) );
-		$suffix = self::PRIORITY_GROUPS[ $priority ] ?? 'normal';
+		$suffix   = self::PRIORITY_GROUPS[ $priority ] ?? 'normal';
 		return self::GROUP_PREFIX . $suffix;
 	}
 
@@ -595,8 +611,8 @@ class PriorityQueue {
 		$table = $wpdb->prefix . 'wch_rate_limits';
 
 		// Current minute window identifier.
-		$window = gmdate( 'Y-m-d H:i' );
-		$identifier = 'queue_' . $group;
+		$window          = gmdate( 'Y-m-d H:i' );
+		$identifier      = 'queue_' . $group;
 		$identifier_hash = hash( 'sha256', $identifier );
 
 		// Use a fully atomic approach: conditionally increment only if under limit.
@@ -649,7 +665,7 @@ class PriorityQueue {
 	public static function createRateLimitsTable(): void {
 		global $wpdb;
 
-		$table = $wpdb->prefix . 'wch_rate_limits';
+		$table           = $wpdb->prefix . 'wch_rate_limits';
 		$charset_collate = $wpdb->get_charset_collate();
 
 		$sql = "CREATE TABLE IF NOT EXISTS {$table} (

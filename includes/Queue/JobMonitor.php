@@ -42,11 +42,11 @@ class JobMonitor {
 	 * @var array<string, int>
 	 */
 	private array $thresholds = array(
-		'pending_critical'  => 10,     // Alert if > 10 critical jobs pending.
-		'pending_total'     => 1000,   // Alert if > 1000 total jobs pending.
-		'dlq_pending'       => 50,     // Alert if > 50 items in DLQ.
-		'failed_per_hour'   => 100,    // Alert if > 100 failures per hour.
-		'avg_wait_seconds'  => 300,    // Alert if avg wait > 5 minutes.
+		'pending_critical' => 10,     // Alert if > 10 critical jobs pending.
+		'pending_total'    => 1000,   // Alert if > 1000 total jobs pending.
+		'dlq_pending'      => 50,     // Alert if > 50 items in DLQ.
+		'failed_per_hour'  => 100,    // Alert if > 100 failures per hour.
+		'avg_wait_seconds' => 300,    // Alert if avg wait > 5 minutes.
 	);
 
 	/**
@@ -59,7 +59,7 @@ class JobMonitor {
 		PriorityQueue $priority_queue,
 		DeadLetterQueue $dead_letter_queue
 	) {
-		$this->priority_queue = $priority_queue;
+		$this->priority_queue    = $priority_queue;
 		$this->dead_letter_queue = $dead_letter_queue;
 	}
 
@@ -70,15 +70,15 @@ class JobMonitor {
 	 */
 	public function getHealthStatus(): array {
 		$queue_stats = $this->priority_queue->getStats();
-		$dlq_stats = $this->dead_letter_queue->getStats();
+		$dlq_stats   = $this->dead_letter_queue->getStats();
 
 		$totals = $this->calculateTotals( $queue_stats );
 		$alerts = $this->checkAlerts( $totals, $dlq_stats );
 
 		return array(
-			'status'     => empty( $alerts ) ? 'healthy' : 'warning',
-			'timestamp'  => current_time( 'mysql', true ),
-			'queue'      => array(
+			'status'      => empty( $alerts ) ? 'healthy' : 'warning',
+			'timestamp'   => current_time( 'mysql', true ),
+			'queue'       => array(
 				'by_priority' => $queue_stats,
 				'totals'      => $totals,
 			),
@@ -96,9 +96,9 @@ class JobMonitor {
 	public function getThroughputMetrics(): array {
 		global $wpdb;
 
-		$table = $wpdb->prefix . 'actionscheduler_actions';
+		$table    = $wpdb->prefix . 'actionscheduler_actions';
 		$hour_ago = gmdate( 'Y-m-d H:i:s', strtotime( '-1 hour' ) );
-		$day_ago = gmdate( 'Y-m-d H:i:s', strtotime( '-24 hours' ) );
+		$day_ago  = gmdate( 'Y-m-d H:i:s', strtotime( '-24 hours' ) );
 
 		// Get completed in last hour.
 		$completed_hour = (int) $wpdb->get_var(
@@ -163,7 +163,7 @@ class JobMonitor {
 	public function getFailedJobs( int $limit = 50 ): array {
 		global $wpdb;
 
-		$table = $wpdb->prefix . 'actionscheduler_actions';
+		$table      = $wpdb->prefix . 'actionscheduler_actions';
 		$logs_table = $wpdb->prefix . 'actionscheduler_logs';
 
 		$results = $wpdb->get_results(
@@ -188,10 +188,13 @@ class JobMonitor {
 			)
 		);
 
-		return array_map( function ( $row ) {
-			$row->args = json_decode( $row->args, true );
-			return $row;
-		}, $results );
+		return array_map(
+			function ( $row ) {
+				$row->args = json_decode( $row->args, true );
+				return $row;
+			},
+			$results
+		);
 	}
 
 	/**
@@ -260,7 +263,7 @@ class JobMonitor {
 	 * @return array<string> Active alerts.
 	 */
 	private function checkAlerts( array $totals, array $dlq_stats ): array {
-		$alerts = array();
+		$alerts     = array();
 		$throughput = $this->getThroughputMetrics();
 
 		// Check pending total.
@@ -323,7 +326,7 @@ class JobMonitor {
 	 */
 	public function exportPrometheusMetrics(): string {
 		$health = $this->getHealthStatus();
-		$lines = array();
+		$lines  = array();
 
 		// Queue metrics.
 		$lines[] = '# HELP wch_queue_pending Number of pending jobs by priority';

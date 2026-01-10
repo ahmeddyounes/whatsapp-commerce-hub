@@ -144,17 +144,23 @@ class OrderNotificationProcessor extends AbstractQueueProcessor {
 
 		// Attempt to claim this notification for processing.
 		if ( ! $this->idempotencyService->claim( $idempotencyKey, IdempotencyService::SCOPE_NOTIFICATION ) ) {
-			$this->logInfo( 'Notification already sent, skipping', array(
-				'order_id' => $orderId,
-				'type'     => $notificationType,
-			) );
+			$this->logInfo(
+				'Notification already sent, skipping',
+				array(
+					'order_id' => $orderId,
+					'type'     => $notificationType,
+				)
+			);
 			return;
 		}
 
-		$this->logDebug( 'Processing order notification', array(
-			'order_id' => $orderId,
-			'type'     => $notificationType,
-		) );
+		$this->logDebug(
+			'Processing order notification',
+			array(
+				'order_id' => $orderId,
+				'type'     => $notificationType,
+			)
+		);
 
 		// Get the WooCommerce order.
 		$order = $this->getOrder( $orderId );
@@ -170,18 +176,24 @@ class OrderNotificationProcessor extends AbstractQueueProcessor {
 		}
 
 		if ( empty( $customerPhone ) ) {
-			$this->logWarning( 'No customer phone for notification', array(
-				'order_id' => $orderId,
-			) );
+			$this->logWarning(
+				'No customer phone for notification',
+				array(
+					'order_id' => $orderId,
+				)
+			);
 			return; // Don't throw - just skip silently.
 		}
 
 		// Check if we can send to this customer.
 		if ( ! $this->canSendNotification( $customerPhone ) ) {
-			$this->logInfo( 'Notification blocked by opt-out or quiet hours', array(
-				'order_id' => $orderId,
-				'phone'    => $this->maskPhone( $customerPhone ),
-			) );
+			$this->logInfo(
+				'Notification blocked by opt-out or quiet hours',
+				array(
+					'order_id' => $orderId,
+					'phone'    => $this->maskPhone( $customerPhone ),
+				)
+			);
 			return;
 		}
 
@@ -204,10 +216,13 @@ class OrderNotificationProcessor extends AbstractQueueProcessor {
 			$this->circuitBreaker->recordSuccess();
 		}
 
-		$this->logInfo( 'Order notification sent successfully', array(
-			'order_id' => $orderId,
-			'type'     => $notificationType,
-		) );
+		$this->logInfo(
+			'Order notification sent successfully',
+			array(
+				'order_id' => $orderId,
+				'type'     => $notificationType,
+			)
+		);
 	}
 
 	/**
@@ -366,11 +381,14 @@ class OrderNotificationProcessor extends AbstractQueueProcessor {
 			$result    = $apiClient->sendTemplate( $phone, $templateName, $variables );
 
 			if ( is_wp_error( $result ) ) {
-				$this->logError( 'Template send failed', array(
-					'order_id' => $orderId,
-					'template' => $templateName,
-					'error'    => $result->get_error_message(),
-				) );
+				$this->logError(
+					'Template send failed',
+					array(
+						'order_id' => $orderId,
+						'template' => $templateName,
+						'error'    => $result->get_error_message(),
+					)
+				);
 				return false;
 			}
 
@@ -390,11 +408,14 @@ class OrderNotificationProcessor extends AbstractQueueProcessor {
 
 			return true;
 		} catch ( \Throwable $e ) {
-			$this->logError( 'Template send exception', array(
-				'order_id' => $orderId,
-				'template' => $templateName,
-				'error'    => $e->getMessage(),
-			) );
+			$this->logError(
+				'Template send exception',
+				array(
+					'order_id' => $orderId,
+					'template' => $templateName,
+					'error'    => $e->getMessage(),
+				)
+			);
 
 			// Log failed notification.
 			$this->logNotificationHistory( $orderId, $phone, $templateName, 'failed', $e->getMessage() );
@@ -497,7 +518,7 @@ class OrderNotificationProcessor extends AbstractQueueProcessor {
 		}
 
 		try {
-			$now = new \DateTime( 'now', $timezone );
+			$now         = new \DateTime( 'now', $timezone );
 			$currentTime = $now->format( 'H:i' );
 
 			// Handle overnight quiet hours (e.g., 21:00 to 09:00).
@@ -629,13 +650,13 @@ class OrderNotificationProcessor extends AbstractQueueProcessor {
 	 */
 	private function formatCarrierName( string $carrier ): string {
 		$carriers = array(
-			'fedex'       => 'FedEx',
-			'ups'         => 'UPS',
-			'usps'        => 'USPS',
-			'dhl'         => 'DHL',
-			'aramex'      => 'Aramex',
-			'bluedart'    => 'Blue Dart',
-			'dtdc'        => 'DTDC',
+			'fedex'    => 'FedEx',
+			'ups'      => 'UPS',
+			'usps'     => 'USPS',
+			'dhl'      => 'DHL',
+			'aramex'   => 'Aramex',
+			'bluedart' => 'Blue Dart',
+			'dtdc'     => 'DTDC',
 		);
 
 		return $carriers[ strtolower( $carrier ) ] ?? ucfirst( $carrier );
@@ -650,11 +671,11 @@ class OrderNotificationProcessor extends AbstractQueueProcessor {
 	 */
 	private function getTrackingUrl( string $carrier, string $trackingNumber ): string {
 		$urlPatterns = array(
-			'fedex'    => 'https://www.fedex.com/fedextrack/?trknbr=%s',
-			'ups'      => 'https://www.ups.com/track?tracknum=%s',
-			'usps'     => 'https://tools.usps.com/go/TrackConfirmAction?tLabels=%s',
-			'dhl'      => 'https://www.dhl.com/en/express/tracking.html?AWB=%s',
-			'aramex'   => 'https://www.aramex.com/track/shipments?ShipmentNumber=%s',
+			'fedex'  => 'https://www.fedex.com/fedextrack/?trknbr=%s',
+			'ups'    => 'https://www.ups.com/track?tracknum=%s',
+			'usps'   => 'https://tools.usps.com/go/TrackConfirmAction?tLabels=%s',
+			'dhl'    => 'https://www.dhl.com/en/express/tracking.html?AWB=%s',
+			'aramex' => 'https://www.aramex.com/track/shipments?ShipmentNumber=%s',
 		);
 
 		$carrier = strtolower( $carrier );
@@ -673,7 +694,7 @@ class OrderNotificationProcessor extends AbstractQueueProcessor {
 	 */
 	private function getReviewUrl( \WC_Order $order ): string {
 		// Get the first product from the order for review.
-		$items = $order->get_items();
+		$items     = $order->get_items();
 		$firstItem = reset( $items );
 
 		if ( $firstItem ) {
@@ -700,19 +721,19 @@ class OrderNotificationProcessor extends AbstractQueueProcessor {
 		$tableName = $this->wpdb->prefix . 'wch_notification_history';
 
 		// Check if table exists.
-		if ( $this->wpdb->get_var( "SHOW TABLES LIKE '{$tableName}'" ) !== $tableName ) {
+		if ( $this->wpdb->get_var( $this->wpdb->prepare( 'SHOW TABLES LIKE %s', $tableName ) ) !== $tableName ) {
 			return;
 		}
 
 		$this->wpdb->insert(
 			$tableName,
 			array(
-				'order_id'      => $orderId,
+				'order_id'       => $orderId,
 				'customer_phone' => $phone,
-				'template_name' => $templateName,
-				'status'        => $status,
-				'response'      => is_string( $response ) ? $response : wp_json_encode( $response ),
-				'created_at'    => current_time( 'mysql' ),
+				'template_name'  => $templateName,
+				'status'         => $status,
+				'response'       => is_string( $response ) ? $response : wp_json_encode( $response ),
+				'created_at'     => current_time( 'mysql' ),
 			),
 			array( '%d', '%s', '%s', '%s', '%s', '%s' )
 		);

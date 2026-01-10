@@ -151,20 +151,26 @@ class WebhookErrorProcessor extends AbstractQueueProcessor {
 
 		// Attempt to claim this error for processing.
 		if ( ! $this->idempotencyService->claim( $idempotencyKey, IdempotencyService::SCOPE_WEBHOOK ) ) {
-			$this->logDebug( 'Error already processed, skipping', array(
-				'error_code' => $errorCode,
-				'message_id' => $messageId,
-			) );
+			$this->logDebug(
+				'Error already processed, skipping',
+				array(
+					'error_code' => $errorCode,
+					'message_id' => $messageId,
+				)
+			);
 			return;
 		}
 
-		$this->logError( 'Processing webhook error', array(
-			'code'       => $errorCode,
-			'message'    => $errorMessage,
-			'title'      => $errorTitle,
-			'message_id' => $messageId,
-			'details'    => $errorDetails,
-		) );
+		$this->logError(
+			'Processing webhook error',
+			array(
+				'code'       => $errorCode,
+				'message'    => $errorMessage,
+				'title'      => $errorTitle,
+				'message_id' => $messageId,
+				'details'    => $errorDetails,
+			)
+		);
 
 		// Categorize the error.
 		$errorCategory = $this->categorizeError( (int) $errorCode );
@@ -205,10 +211,13 @@ class WebhookErrorProcessor extends AbstractQueueProcessor {
 		 */
 		do_action( 'wch_webhook_error_processed', $data, $errorCategory, (int) $errorCode );
 
-		$this->logInfo( 'Error processed', array(
-			'code'     => $errorCode,
-			'category' => $errorCategory,
-		) );
+		$this->logInfo(
+			'Error processed',
+			array(
+				'code'     => $errorCode,
+				'category' => $errorCategory,
+			)
+		);
 	}
 
 	/**
@@ -260,10 +269,13 @@ class WebhookErrorProcessor extends AbstractQueueProcessor {
 		$reason = sprintf( '[%s] %s: %s', $errorCategory, $errorCode, $errorMessage );
 		$this->circuitBreaker->recordFailure( $reason );
 
-		$this->logDebug( 'Recorded circuit breaker failure', array(
-			'reason'   => $reason,
-			'category' => $errorCategory,
-		) );
+		$this->logDebug(
+			'Recorded circuit breaker failure',
+			array(
+				'reason'   => $reason,
+				'category' => $errorCategory,
+			)
+		);
 	}
 
 	/**
