@@ -63,19 +63,11 @@ class PriorityQueue {
 	);
 
 	/**
-	 * Dead letter queue instance.
-	 *
-	 * @var DeadLetterQueue|null
-	 */
-	private ?DeadLetterQueue $dead_letter_queue = null;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param DeadLetterQueue|null $dead_letter_queue Dead letter queue for failed jobs.
 	 */
-	public function __construct( ?DeadLetterQueue $dead_letter_queue = null ) {
-		$this->dead_letter_queue = $dead_letter_queue;
+	public function __construct( private ?DeadLetterQueue $dead_letter_queue = null ) {
 	}
 
 	/**
