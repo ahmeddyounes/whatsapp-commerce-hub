@@ -108,22 +108,28 @@ class SettingsSanitizer implements SettingsSanitizerInterface {
 	 * @var array<string, array<string>>
 	 */
 	protected array $enumFields = array(
-		'sync_products'      => array( 'all', 'published', 'selected' ),
-		'product_selection'  => array( 'all', 'categories', 'products' ),
-		'ai_model'           => array( 'gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo' ),
-		'model'              => array( 'gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo' ),
-		'discount_type'      => array( 'percent', 'fixed' ),
+		'sync_products'     => array( 'all', 'published', 'selected' ),
+		'product_selection' => array( 'all', 'categories', 'products' ),
+		'ai_model'          => array( 'gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo' ),
+		'model'             => array( 'gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo' ),
+		'discount_type'     => array( 'percent', 'fixed' ),
 	);
 
 	/**
-	 * {@inheritdoc}
+	 * Check if a field is boolean type.
+	 *
+	 * @param string $key Setting key to check.
+	 * @return bool True if boolean field.
 	 */
 	public function isBooleanField( string $key ): bool {
 		return in_array( $key, $this->booleanFields, true );
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * Check if a field is numeric type.
+	 *
+	 * @param string $key Setting key to check.
+	 * @return bool True if numeric field.
 	 */
 	public function isNumericField( string $key ): bool {
 		return in_array( $key, $this->numericFields, true );
@@ -170,7 +176,11 @@ class SettingsSanitizer implements SettingsSanitizerInterface {
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * Sanitize a setting value based on its key.
+	 *
+	 * @param mixed  $value The value to sanitize.
+	 * @param string $key   The setting key for type detection.
+	 * @return mixed The sanitized value.
 	 */
 	public function sanitize( mixed $value, string $key ): mixed {
 		// Handle arrays.
@@ -207,7 +217,12 @@ class SettingsSanitizer implements SettingsSanitizerInterface {
 	}
 
 	/**
-	 * {@inheritdoc}
+	 * Sanitize a value during settings import.
+	 *
+	 * @param string $section The settings section (api, catalog, etc.).
+	 * @param string $key     The setting key within the section.
+	 * @param mixed  $value   The value to sanitize.
+	 * @return mixed The sanitized value.
 	 */
 	public function sanitizeImportValue( string $section, string $key, mixed $value ): mixed {
 		// Boolean fields.
