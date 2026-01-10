@@ -75,7 +75,7 @@ final class CustomerProfile {
 	 * @param mixed  $default Default value.
 	 * @return mixed
 	 */
-	public function getPreference( string $key, $default = null ) {
+	public function getPreference( string $key, mixed $default = null ): mixed {
 		return $this->preferences[ $key ] ?? $default;
 	}
 
@@ -86,7 +86,7 @@ final class CustomerProfile {
 	 * @param mixed  $default Default value.
 	 * @return mixed
 	 */
-	public function getMetadata( string $key, $default = null ) {
+	public function getMetadata( string $key, mixed $default = null ): mixed {
 		return $this->metadata[ $key ] ?? $default;
 	}
 

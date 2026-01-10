@@ -79,7 +79,7 @@ final class Intent {
 	 * @param mixed  $default    Default value if not found.
 	 * @return mixed
 	 */
-	public function getEntity( string $entityName, $default = null ) {
+	public function getEntity( string $entityName, mixed $default = null ): mixed {
 		return $this->entities[ $entityName ] ?? $default;
 	}
 
@@ -100,7 +100,7 @@ final class Intent {
 	 * @param mixed  $default Default value if not found.
 	 * @return mixed
 	 */
-	public function getMetadata( string $key, $default = null ) {
+	public function getMetadata( string $key, mixed $default = null ): mixed {
 		return $this->metadata[ $key ] ?? $default;
 	}
 

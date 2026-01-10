@@ -77,7 +77,7 @@ class Context {
 	 * @param mixed  $default Default value.
 	 * @return mixed
 	 */
-	public function get( string $key, $default = null ) {
+	public function get( string $key, mixed $default = null ): mixed {
 		return $this->variables[ $key ] ?? $default;
 	}
 
@@ -88,7 +88,7 @@ class Context {
 	 * @param mixed  $value Variable value.
 	 * @return void
 	 */
-	public function set( string $key, $value ): void {
+	public function set( string $key, mixed $value ): void {
 		$this->variables[ $key ] = $value;
 	}
 
