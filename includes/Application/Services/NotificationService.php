@@ -887,6 +887,7 @@ class NotificationService {
 
 			echo '<div class="wch-notification-item">';
 			echo '<div class="wch-notification-type">' . esc_html( $typeText ) . '</div>';
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $statusClass is escaped above.
 			echo '<div><span class="wch-notification-status ' . $statusClass . '">' . esc_html( $statusText ) . '</span></div>';
 			echo '<div style="color: #666; font-size: 11px;">' . esc_html( $date ) . '</div>';
 

@@ -150,6 +150,7 @@ class ProductSyncAdminUI {
 				break;
 		}
 
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $icon is a safe HTML entity.
 		printf(
 			'<span style="color: %s; font-size: 16px;" title="%s">%s</span>',
 			esc_attr( $color ),
@@ -227,7 +228,8 @@ class ProductSyncAdminUI {
 	 * @return void
 	 */
 	public function showBulkActionNotices(): void {
-		// phpcs:disable WordPress.Security.NonceVerification.Recommended
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended,WordPress.Security.EscapeOutput.OutputNotEscaped
+		// Values are integers cast from $_REQUEST.
 		if ( ! empty( $_REQUEST['wch_bulk_synced'] ) ) {
 			$synced = (int) $_REQUEST['wch_bulk_synced'];
 			$total  = (int) ( $_REQUEST['wch_bulk_total'] ?? 0 );
@@ -257,7 +259,7 @@ class ProductSyncAdminUI {
 				)
 			);
 		}
-		// phpcs:enable WordPress.Security.NonceVerification.Recommended
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended,WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 
 	/**

@@ -344,6 +344,7 @@ class TemplatesPage {
 			<td>
 				<?php
 				if ( $usageCount > 0 ) {
+					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Integer for %d.
 					printf(
 						/* translators: %d: usage count */
 						esc_html( _n( '%d time', '%d times', $usageCount, 'whatsapp-commerce-hub' ) ),
@@ -487,6 +488,7 @@ class TemplatesPage {
 			<div class="notice notice-success is-dismissible">
 				<p>
 					<?php
+					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Integer for %d.
 					printf(
 						/* translators: %d: number of templates */
 						esc_html( _n( '%d template synced successfully.', '%d templates synced successfully.', $count, 'whatsapp-commerce-hub' ) ),

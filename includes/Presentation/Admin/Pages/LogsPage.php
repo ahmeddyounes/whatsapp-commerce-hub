@@ -255,6 +255,7 @@ class LogsPage {
 			$('#wch-log-file, #wch-log-level').on('change', function() {
 				var log = $('#wch-log-file').val();
 				var level = $('#wch-log-level').val();
+				<?php // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- esc_url() applied above. ?>
 				var url = '<?php echo $adminUrl; ?>';
 				if (log) url += '&log=' + encodeURIComponent(log);
 				if (level) url += '&level=' + encodeURIComponent(level);
@@ -271,6 +272,7 @@ class LogsPage {
 
 				$.post(ajaxurl, {
 					action: 'wch_delete_old_logs',
+					<?php // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- esc_js() applied above. ?>
 					nonce: '<?php echo $nonce; ?>'
 				}, function(response) {
 					if (response.success) {
