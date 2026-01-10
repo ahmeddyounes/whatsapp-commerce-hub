@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Contains the result of a flow action execution, including success status,
  * response messages, optional state override, and updated context data.
  */
-class ActionResult {
+final class ActionResult {
 
 	/**
 	 * Constructor.

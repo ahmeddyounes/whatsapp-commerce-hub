@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * Immutable value object holding the results of intent classification.
  */
-class Intent {
+final class Intent {
 
 	/**
 	 * Intent name constants.

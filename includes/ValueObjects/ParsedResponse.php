@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * Container for parsed message data with type, content, and detected intent.
  */
-class ParsedResponse {
+final class ParsedResponse {
 
 	/**
 	 * Message type constants.

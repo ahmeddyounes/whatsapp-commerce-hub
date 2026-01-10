@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * Holds the current state and data for a customer conversation.
  */
-class ConversationContext {
+final class ConversationContext {
 
 	/**
 	 * Default idle state.
