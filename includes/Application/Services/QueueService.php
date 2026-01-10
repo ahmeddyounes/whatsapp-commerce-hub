@@ -132,7 +132,7 @@ class QueueService implements QueueServiceInterface {
 	 * @param string $priority Priority group.
 	 * @return int|false Action ID or false on failure.
 	 */
-	public function dispatch( string $hook, array $args = array(), string $priority = self::PRIORITY_NORMAL ) {
+	public function dispatch( string $hook, array $args = array(), string $priority = self::PRIORITY_NORMAL ): int|false {
 		$priority_int = $this->mapPriority( $priority );
 		return $this->priority_queue->schedule( $hook, $args, $priority_int, 0 );
 	}
@@ -146,7 +146,7 @@ class QueueService implements QueueServiceInterface {
 	 * @param string $priority  Priority group.
 	 * @return int|false Action ID or false on failure.
 	 */
-	public function schedule( string $hook, array $args, int $timestamp, string $priority = self::PRIORITY_NORMAL ) {
+	public function schedule( string $hook, array $args, int $timestamp, string $priority = self::PRIORITY_NORMAL ): int|false {
 		$priority_int = $this->mapPriority( $priority );
 		$delay        = max( 0, $timestamp - time() );
 		return $this->priority_queue->schedule( $hook, $args, $priority_int, $delay );
@@ -161,7 +161,7 @@ class QueueService implements QueueServiceInterface {
 	 * @param string $priority Priority group.
 	 * @return int|false Action ID or false on failure.
 	 */
-	public function scheduleRecurring( string $hook, array $args, int $interval, string $priority = self::PRIORITY_NORMAL ) {
+	public function scheduleRecurring( string $hook, array $args, int $interval, string $priority = self::PRIORITY_NORMAL ): int|false {
 		$priority_int = $this->mapPriority( $priority );
 		return $this->priority_queue->scheduleRecurring( $hook, $args, $interval, $priority_int );
 	}

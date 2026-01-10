@@ -39,7 +39,7 @@ interface QueueServiceInterface {
 	 * @param string $priority Priority group (use PRIORITY_* constants).
 	 * @return int|false Action ID or false on failure.
 	 */
-	public function dispatch( string $hook, array $args = array(), string $priority = self::PRIORITY_NORMAL );
+	public function dispatch( string $hook, array $args = array(), string $priority = self::PRIORITY_NORMAL ): int|false;
 
 	/**
 	 * Schedule a job for later execution.
@@ -50,7 +50,7 @@ interface QueueServiceInterface {
 	 * @param string $priority  Priority group.
 	 * @return int|false Action ID or false on failure.
 	 */
-	public function schedule( string $hook, array $args, int $timestamp, string $priority = self::PRIORITY_NORMAL );
+	public function schedule( string $hook, array $args, int $timestamp, string $priority = self::PRIORITY_NORMAL ): int|false;
 
 	/**
 	 * Schedule a recurring job.
@@ -61,7 +61,7 @@ interface QueueServiceInterface {
 	 * @param string $priority  Priority group.
 	 * @return int|false Action ID or false on failure.
 	 */
-	public function scheduleRecurring( string $hook, array $args, int $interval, string $priority = self::PRIORITY_NORMAL );
+	public function scheduleRecurring( string $hook, array $args, int $interval, string $priority = self::PRIORITY_NORMAL ): int|false;
 
 	/**
 	 * Cancel a scheduled job.
