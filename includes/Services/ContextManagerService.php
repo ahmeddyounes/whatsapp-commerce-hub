@@ -73,8 +73,8 @@ class ContextManagerService implements ContextManagerInterface {
 	 * @param LoggerInterface|null $logger Logger service.
 	 */
 	public function __construct( ?\wpdb $wpdb = null, ?LoggerInterface $logger = null ) {
-		global $wpdb as $globalWpdb;
-		$this->wpdb   = $wpdb ?? $globalWpdb;
+		global $wpdb;
+		$this->wpdb   = $wpdb ?? $wpdb;
 		$this->logger = $logger;
 	}
 
