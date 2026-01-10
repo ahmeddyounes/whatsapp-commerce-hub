@@ -152,7 +152,7 @@ class AdminSettingsServiceProvider extends AbstractServiceProvider {
 
 		// Return a minimal settings implementation.
 		return new class() implements SettingsInterface {
-			public function get( string $key, $default = null ) {
+			public function get( string $key, mixed $default = null ): mixed {
 				return get_option( 'wch_' . str_replace( '.', '_', $key ), $default );
 			}
 

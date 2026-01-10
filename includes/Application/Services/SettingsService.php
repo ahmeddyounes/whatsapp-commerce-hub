@@ -82,7 +82,7 @@ class SettingsService implements SettingsInterface {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function get( string $key, $default = null ) {
+	public function get( string $key, mixed $default = null ): mixed {
 		return $this->settingsManager->get( $key, $default );
 	}
 

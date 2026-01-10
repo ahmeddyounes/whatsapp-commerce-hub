@@ -70,7 +70,7 @@ class SettingsManager {
 	 * @param mixed  $default Default value if setting doesn't exist.
 	 * @return mixed
 	 */
-	public function get( string $key, $default = null ) {
+	public function get( string $key, mixed $default = null ): mixed {
 		$settings = $this->getAll();
 		$parts    = explode( '.', $key );
 

@@ -31,7 +31,7 @@ interface SettingsInterface {
 	 * @param mixed  $default Default value if not found.
 	 * @return mixed Setting value.
 	 */
-	public function get( string $key, $default = null );
+	public function get( string $key, mixed $default = null ): mixed;
 
 	/**
 	 * Set a setting value.
