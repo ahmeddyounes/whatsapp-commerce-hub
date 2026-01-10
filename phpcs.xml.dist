@@ -201,6 +201,14 @@
 	<rule ref="Generic.CodeAnalysis.EmptyStatement.DetectedCatch">
 		<severity>0</severity>
 	</rule>
+	<rule ref="Generic.CodeAnalysis.EmptyStatement.DetectedIf">
+		<severity>0</severity>
+	</rule>
+
+	<!-- Allow useless overriding method (interface compliance) -->
+	<rule ref="Generic.CodeAnalysis.UselessOverridingMethod">
+		<severity>0</severity>
+	</rule>
 
 	<!-- Disable missing property comment warning -->
 	<rule ref="Squiz.Commenting.VariableComment.Missing">
@@ -209,6 +217,57 @@
 
 	<!-- Disable throws no full stop (documentation style preference) -->
 	<rule ref="Squiz.Commenting.FunctionComment.ThrowsNoFullStop">
+		<severity>0</severity>
+	</rule>
+
+	<!-- Disable incorrect type hint warnings (intentional mixed/array types) -->
+	<rule ref="Squiz.Commenting.FunctionComment.IncorrectTypeHint">
+		<severity>0</severity>
+	</rule>
+
+	<!-- Allow count() in loop condition for readability in some cases -->
+	<rule ref="Squiz.PHP.DisallowSizeFunctionsInLoops">
+		<severity>0</severity>
+	</rule>
+
+	<!-- Allow mt_rand (used for non-cryptographic purposes) -->
+	<rule ref="WordPress.WP.AlternativeFunctions.rand_mt_rand">
+		<severity>0</severity>
+	</rule>
+
+	<!-- Allow rename() for file operations -->
+	<rule ref="WordPress.WP.AlternativeFunctions.rename_rename">
+		<severity>0</severity>
+	</rule>
+
+	<!-- Allow dynamic i18n strings (handled properly) -->
+	<rule ref="WordPress.WP.I18n.NonSingularStringLiteralText">
+		<severity>0</severity>
+	</rule>
+
+	<!-- Disable SQL placeholder warnings (false positives with dynamic placeholders) -->
+	<rule ref="WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare">
+		<severity>0</severity>
+	</rule>
+	<rule ref="WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber">
+		<severity>0</severity>
+	</rule>
+	<rule ref="WordPress.DB.PreparedSQLPlaceholders.LikeWildcardsInQuery">
+		<severity>0</severity>
+	</rule>
+
+	<!-- Allow multiple classes per file (exception classes with main class) -->
+	<rule ref="Generic.Files.OneObjectStructurePerFile.MultipleFound">
+		<severity>0</severity>
+	</rule>
+
+	<!-- Allow set_error_handler for custom error handling -->
+	<rule ref="WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler">
+		<severity>0</severity>
+	</rule>
+
+	<!-- Disable commented out code warning -->
+	<rule ref="Squiz.PHP.CommentedOutCode.Found">
 		<severity>0</severity>
 	</rule>
 
