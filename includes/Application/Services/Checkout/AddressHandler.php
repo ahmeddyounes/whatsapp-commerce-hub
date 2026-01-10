@@ -1,6 +1,4 @@
 <?php
-declare(strict_types=1);
-
 
 /**
  * Address Handler
@@ -11,6 +9,7 @@ declare(strict_types=1);
  * @since 3.0.0
  */
 
+declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Application\Services\Checkout;
 
