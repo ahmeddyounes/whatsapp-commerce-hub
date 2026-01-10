@@ -8,6 +8,8 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Events\Handlers;
 
 use WhatsAppCommerceHub\Events\Event;
