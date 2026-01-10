@@ -150,7 +150,11 @@ class PaymentStep extends AbstractStep {
 				return $this->failure(
 					__( 'Payment method not found', 'whatsapp-commerce-hub' ),
 					'payment_method_not_found',
-					array( $this->errorMessage( __( 'The selected payment method is not available. Please choose another.', 'whatsapp-commerce-hub' ) ) )
+					array(
+						$this->errorMessage(
+							__( 'The selected payment method is not available. Please choose another.', 'whatsapp-commerce-hub' )
+						),
+					)
 				);
 			}
 

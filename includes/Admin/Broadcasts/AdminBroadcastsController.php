@@ -131,7 +131,9 @@ class AdminBroadcastsController {
 			array(
 				'id'      => 'wch_broadcasts_overview',
 				'title'   => __( 'Overview', 'whatsapp-commerce-hub' ),
-				'content' => '<p>' . __( 'Create and manage promotional broadcast campaigns to send WhatsApp messages to your customers.', 'whatsapp-commerce-hub' ) . '</p>',
+				'content' => '<p>' .
+					__( 'Create and manage promotional broadcast campaigns to send WhatsApp messages to your customers.', 'whatsapp-commerce-hub' ) .
+					'</p>',
 			)
 		);
 	}

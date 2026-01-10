@@ -188,7 +188,12 @@ class RefundService {
 
 		$message = sprintf(
 			/* translators: 1: Order number, 2: Refund amount */
-			__( "Refund Processed\n\nYour refund for order #%1\$s has been processed.\n\nRefund Amount: %2\$s\n\nThe amount will be credited to your original payment method within 5-7 business days.", 'whatsapp-commerce-hub' ),
+			__(
+				"Refund Processed\n\nYour refund for order #%1\$s has been processed.\n\n" .
+				"Refund Amount: %2\$s\n\n" .
+				'The amount will be credited to your original payment method within 5-7 business days.',
+				'whatsapp-commerce-hub'
+			),
 			$order->get_order_number(),
 			wc_price( $totalRefunded )
 		);

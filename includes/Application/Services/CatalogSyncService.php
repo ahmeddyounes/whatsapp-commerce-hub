@@ -353,7 +353,13 @@ class CatalogSyncService implements CatalogSyncServiceInterface {
 	 * @param array  $errors List of errors.
 	 * @return void
 	 */
-	public function recordSyncHistory( int $product_count, string $triggered_by = 'manual', string $status = 'success', int $duration = 0, array $errors = array() ): void {
+	public function recordSyncHistory(
+		int $product_count,
+		string $triggered_by = 'manual',
+		string $status = 'success',
+		int $duration = 0,
+		array $errors = array()
+	): void {
 		$history = get_option( 'wch_sync_history', array() );
 
 		$entry = array(

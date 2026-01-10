@@ -339,7 +339,10 @@ class ConfirmationStep extends AbstractStep {
 		// Add payment-specific instructions.
 		switch ( $payment_method ) {
 			case 'cod':
-				$text .= __( "💰 *Payment:* Cash on Delivery\n\nPlease have the exact amount ready when your order arrives.", 'whatsapp-commerce-hub' );
+				$text .= __(
+					"💰 *Payment:* Cash on Delivery\n\nPlease have the exact amount ready when your order arrives.",
+					'whatsapp-commerce-hub'
+				);
 				break;
 
 			case 'upi':

@@ -111,7 +111,11 @@ class CodGateway extends AbstractGateway {
 			$transactionId,
 			sprintf(
 				/* translators: %s: Order total */
-				__( 'Your order has been confirmed! Please keep %s ready for cash on delivery. You will receive updates about your order shortly.', 'whatsapp-commerce-hub' ),
+				__(
+					'Your order has been confirmed! Please keep %s ready for cash on delivery. ' .
+					'You will receive updates about your order shortly.',
+					'whatsapp-commerce-hub'
+				),
 				wc_price( $order->get_total() )
 			)
 		);

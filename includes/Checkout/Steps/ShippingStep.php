@@ -194,7 +194,11 @@ class ShippingStep extends AbstractStep {
 				return $this->failure(
 					__( 'Shipping method not found', 'whatsapp-commerce-hub' ),
 					'shipping_method_not_found',
-					array( $this->errorMessage( __( 'The selected shipping method is not available. Please choose another.', 'whatsapp-commerce-hub' ) ) )
+					array(
+						$this->errorMessage(
+							__( 'The selected shipping method is not available. Please choose another.', 'whatsapp-commerce-hub' )
+						),
+					)
 				);
 			}
 
@@ -211,7 +215,11 @@ class ShippingStep extends AbstractStep {
 			return $this->failure(
 				$e->getMessage(),
 				'shipping_processing_failed',
-				array( $this->errorMessage( __( 'Sorry, we could not process your shipping selection. Please try again.', 'whatsapp-commerce-hub' ) ) )
+				array(
+					$this->errorMessage(
+						__( 'Sorry, we could not process your shipping selection. Please try again.', 'whatsapp-commerce-hub' )
+					),
+				)
 			);
 		}
 	}

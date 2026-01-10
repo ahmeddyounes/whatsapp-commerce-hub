@@ -209,7 +209,9 @@ class IntentClassifierService implements IntentClassifierInterface {
 		$validIntents = Intent::getValidIntents();
 		$intentsList  = implode( ', ', $validIntents );
 		$prompt       = sprintf(
-			"Classify the following user message into one of these intents: %s.\n\nUser message: \"%s\"%s\n\nRespond with only the intent name and confidence (0-1) in JSON format: {\"intent\": \"INTENT_NAME\", \"confidence\": 0.9}",
+			"Classify the following user message into one of these intents: %s.\n\n" .
+			"User message: \"%s\"%s\n\n" .
+			'Respond with only the intent name and confidence (0-1) in JSON format: {"intent": "INTENT_NAME", "confidence": 0.9}',
 			$intentsList,
 			$text,
 			$contextStr

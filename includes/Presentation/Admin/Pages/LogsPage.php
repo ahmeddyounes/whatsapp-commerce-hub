@@ -17,6 +17,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// phpcs:disable Generic.Files.LineLength.MaxExceeded
+// Long lines in inline CSS styles are acceptable for readability.
+
 /**
  * Class LogsPage
  *

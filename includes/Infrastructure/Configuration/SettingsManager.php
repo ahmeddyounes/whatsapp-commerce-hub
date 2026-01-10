@@ -445,7 +445,10 @@ class SettingsManager {
 				'enable_bot'       => false,
 				'business_name'    => $businessName,
 				'welcome_message'  => __( 'Welcome! How can we help you today?', 'whatsapp-commerce-hub' ),
-				'fallback_message' => __( 'Sorry, I didn\'t understand that. Please try again or type "help" for assistance.', 'whatsapp-commerce-hub' ),
+				'fallback_message' => __(
+					'Sorry, I didn\'t understand that. Please try again or type "help" for assistance.',
+					'whatsapp-commerce-hub'
+				),
 				'operating_hours'  => array(),
 				'timezone'         => $timezone,
 			),

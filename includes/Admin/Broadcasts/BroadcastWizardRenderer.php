@@ -327,7 +327,9 @@ class BroadcastWizardRenderer {
 				<div class="wch-review-section">
 					<h3><?php esc_html_e( 'Campaign Name', 'whatsapp-commerce-hub' ); ?></h3>
 					<div class="wch-form-field">
-						<input type="text" name="campaign_name" placeholder="<?php esc_attr_e( 'Enter campaign name', 'whatsapp-commerce-hub' ); ?>" style="width: 100%; max-width: 500px;">
+						<input type="text" name="campaign_name"
+							placeholder="<?php esc_attr_e( 'Enter campaign name', 'whatsapp-commerce-hub' ); ?>"
+							style="width: 100%; max-width: 500px;">
 					</div>
 				</div>
 

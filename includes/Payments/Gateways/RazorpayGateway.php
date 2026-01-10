@@ -151,7 +151,11 @@ class RazorpayGateway extends AbstractGateway {
 				$paymentLink['id'],
 				sprintf(
 					/* translators: %s: Payment URL */
-					__( 'Please complete your payment by clicking this link: %s. You can pay using UPI, Cards, Net Banking, or Wallets.', 'whatsapp-commerce-hub' ),
+					__(
+						'Please complete your payment by clicking this link: %s. ' .
+						'You can pay using UPI, Cards, Net Banking, or Wallets.',
+						'whatsapp-commerce-hub'
+					),
 					$paymentLink['short_url']
 				),
 				$paymentLink['short_url']

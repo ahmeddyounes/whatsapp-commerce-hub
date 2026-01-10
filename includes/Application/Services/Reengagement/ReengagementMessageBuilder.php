@@ -139,7 +139,8 @@ class ReengagementMessageBuilder implements ReengagementMessageBuilderInterface 
 		return sprintf(
 			/* translators: 1: Customer name, 2: Shop URL */
 			__(
-				"Hi %1\$s! We haven't seen you in a while and we miss you! 😊\n\nWe have some exciting new products you might love. Check them out: %2\$s",
+				"Hi %1\$s! We haven't seen you in a while and we miss you! 😊\n\n" .
+				'We have some exciting new products you might love. Check them out: %2$s',
 				'whatsapp-commerce-hub'
 			),
 			$customerName,
@@ -232,7 +233,9 @@ class ReengagementMessageBuilder implements ReengagementMessageBuilderInterface 
 		return sprintf(
 			/* translators: 1: Customer name, 2: Discount amount, 3: Coupon code, 4: Shop URL */
 			__(
-				"Hi %1\$s! 🌟 Thank you for being a valued customer!\n\nAs a token of our appreciation, here's an exclusive %2\$d%% discount code: *%3\$s*\n\nValid for 7 days. Shop now: %4\$s",
+				"Hi %1\$s! 🌟 Thank you for being a valued customer!\n\n" .
+				"As a token of our appreciation, here's an exclusive %2\$d%% discount code: *%3\$s*\n\n" .
+				'Valid for 7 days. Shop now: %4$s',
 				'whatsapp-commerce-hub'
 			),
 			$customerName,

@@ -121,7 +121,9 @@ class ProductSyncAdminUI {
 				$color = '#46b450';
 				$title = __( 'Synced', 'whatsapp-commerce-hub' );
 				if ( $lastSynced ) {
-					$title .= ' - ' . human_time_diff( strtotime( $lastSynced ), current_time( 'timestamp' ) ) . ' ' . __( 'ago', 'whatsapp-commerce-hub' );
+					$title .= ' - ' .
+						human_time_diff( strtotime( $lastSynced ), current_time( 'timestamp' ) ) .
+						' ' . __( 'ago', 'whatsapp-commerce-hub' );
 				}
 				break;
 

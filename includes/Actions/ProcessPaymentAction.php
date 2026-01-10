@@ -221,7 +221,9 @@ class ProcessPaymentAction extends AbstractAction {
 		$paymentLink = $this->generatePaymentLink( $cart, $method );
 
 		if ( ! $paymentLink ) {
-			return $this->error( __( 'Failed to generate payment link. Please try again or select a different payment method.', 'whatsapp-commerce-hub' ) );
+			return $this->error(
+				__( 'Failed to generate payment link. Please try again or select a different payment method.', 'whatsapp-commerce-hub' )
+			);
 		}
 
 		$message = $this->createMessageBuilder();
@@ -276,7 +278,9 @@ class ProcessPaymentAction extends AbstractAction {
 		$upiLink = $this->generateUpiLink( $cart );
 
 		if ( ! $upiLink ) {
-			return $this->error( __( 'Failed to generate UPI payment link. Please try again or select a different payment method.', 'whatsapp-commerce-hub' ) );
+			return $this->error(
+				__( 'Failed to generate UPI payment link. Please try again or select a different payment method.', 'whatsapp-commerce-hub' )
+			);
 		}
 
 		$message = $this->createMessageBuilder();

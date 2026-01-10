@@ -149,7 +149,11 @@ class PixGateway extends AbstractGateway {
 
 			return PaymentResult::success(
 				$pixData['transaction_id'],
-				__( 'PIX QR code has been sent! Please scan it with your banking app to complete the payment. The code is valid for 30 minutes.', 'whatsapp-commerce-hub' )
+				__(
+					'PIX QR code has been sent! Please scan it with your banking app to complete the payment. ' .
+					'The code is valid for 30 minutes.',
+					'whatsapp-commerce-hub'
+				)
 			);
 
 		} catch ( \Exception $e ) {

@@ -120,7 +120,11 @@ class AddressStep extends AbstractStep {
 					return $this->failure(
 						__( 'Saved address not found', 'whatsapp-commerce-hub' ),
 						'saved_address_not_found',
-						array( $this->errorMessage( __( 'Sorry, we could not load that saved address. Please try again.', 'whatsapp-commerce-hub' ) ) )
+						array(
+							$this->errorMessage(
+								__( 'Sorry, we could not load that saved address. Please try again.', 'whatsapp-commerce-hub' )
+							),
+						)
 					);
 				}
 			} elseif ( 'new_address' === $input ) {

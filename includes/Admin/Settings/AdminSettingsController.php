@@ -134,17 +134,24 @@ class AdminSettingsController {
 			array(
 				'id'      => 'wch_settings_help',
 				'title'   => __( 'Settings Help', 'whatsapp-commerce-hub' ),
-				'content' => '<p>' . __( 'Configure your WhatsApp Commerce Hub settings here. For detailed documentation, visit:', 'whatsapp-commerce-hub' ) . '</p>' .
-							'<ul>' .
-							'<li><a href="https://developers.facebook.com/docs/whatsapp/business-platform" target="_blank">' . __( 'WhatsApp Business Platform Documentation', 'whatsapp-commerce-hub' ) . '</a></li>' .
-							'<li><a href="https://woocommerce.com/documentation/" target="_blank">' . __( 'WooCommerce Documentation', 'whatsapp-commerce-hub' ) . '</a></li>' .
-							'</ul>',
+				'content' => '<p>' .
+					__( 'Configure your WhatsApp Commerce Hub settings here. For detailed documentation, visit:', 'whatsapp-commerce-hub' ) .
+					'</p>' .
+					'<ul>' .
+					'<li><a href="https://developers.facebook.com/docs/whatsapp/business-platform" target="_blank">' .
+					__( 'WhatsApp Business Platform Documentation', 'whatsapp-commerce-hub' ) .
+					'</a></li>' .
+					'<li><a href="https://woocommerce.com/documentation/" target="_blank">' .
+					__( 'WooCommerce Documentation', 'whatsapp-commerce-hub' ) .
+					'</a></li>' .
+					'</ul>',
 			)
 		);
 
 		$screen->set_help_sidebar(
 			'<p><strong>' . __( 'For more information:', 'whatsapp-commerce-hub' ) . '</strong></p>' .
-			'<p><a href="https://developers.facebook.com/docs/whatsapp" target="_blank">' . __( 'WhatsApp Docs', 'whatsapp-commerce-hub' ) . '</a></p>'
+			'<p><a href="https://developers.facebook.com/docs/whatsapp" target="_blank">' .
+			__( 'WhatsApp Docs', 'whatsapp-commerce-hub' ) . '</a></p>'
 		);
 	}
 
@@ -187,7 +194,10 @@ class AdminSettingsController {
 					'success'        => __( 'Success', 'whatsapp-commerce-hub' ),
 					'error'          => __( 'Error', 'whatsapp-commerce-hub' ),
 					'copied'         => __( 'Copied!', 'whatsapp-commerce-hub' ),
-					'confirm_reset'  => __( 'Are you sure you want to reset all settings to defaults? This cannot be undone.', 'whatsapp-commerce-hub' ),
+					'confirm_reset'  => __(
+						'Are you sure you want to reset all settings to defaults? This cannot be undone.',
+						'whatsapp-commerce-hub'
+					),
 					'confirm_clear'  => __( 'Are you sure you want to clear all logs?', 'whatsapp-commerce-hub' ),
 					'settings_saved' => __( 'Settings saved successfully', 'whatsapp-commerce-hub' ),
 					'settings_error' => __( 'Error saving settings', 'whatsapp-commerce-hub' ),

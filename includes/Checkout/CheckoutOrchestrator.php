@@ -416,7 +416,11 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 			'checkout_cancelled',
 			array(
 				$this->message_builder->text(
-					__( "Checkout cancelled. Your cart items are still saved.\n\nReply 'cart' to view your cart or 'menu' to browse products.", 'whatsapp-commerce-hub' )
+					__(
+						"Checkout cancelled. Your cart items are still saved.\n\n" .
+						"Reply 'cart' to view your cart or 'menu' to browse products.",
+						'whatsapp-commerce-hub'
+					)
 				),
 			)
 		);
