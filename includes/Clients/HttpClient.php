@@ -335,6 +335,16 @@ class HttpClient implements HttpClientInterface {
 				throw new \RuntimeException( "File not found or not readable: {$file_path}" );
 			}
 
+			// Security: validate file path is within allowed directories.
+			$real_path   = realpath( $file_path );
+			$upload_dir  = wp_upload_dir();
+			$allowed_dir = realpath( $upload_dir['basedir'] ?? '' );
+
+			if ( false === $real_path || false === $allowed_dir || ! str_starts_with( $real_path, $allowed_dir ) ) {
+				throw new \RuntimeException( 'File must be within the WordPress uploads directory' );
+			}
+
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Reading local file for upload.
 			$file_contents = file_get_contents( $file_path );
 			if ( false === $file_contents ) {
 				throw new \RuntimeException( "Failed to read file: {$file_path}" );
