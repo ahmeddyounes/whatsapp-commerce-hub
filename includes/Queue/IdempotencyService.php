@@ -18,6 +18,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
+// SQL uses safe table names from $wpdb->prefix. Hook names use wch_ project prefix.
+
 /**
  * Class IdempotencyService
  *
@@ -30,11 +33,11 @@ class IdempotencyService {
 	/**
 	 * Scope constants for different operation types.
 	 */
-	public const SCOPE_WEBHOOK       = 'webhook';
-	public const SCOPE_NOTIFICATION  = 'notification';
-	public const SCOPE_ORDER         = 'order';
-	public const SCOPE_BROADCAST     = 'broadcast';
-	public const SCOPE_SYNC          = 'sync';
+	public const SCOPE_WEBHOOK      = 'webhook';
+	public const SCOPE_NOTIFICATION = 'notification';
+	public const SCOPE_ORDER        = 'order';
+	public const SCOPE_BROADCAST    = 'broadcast';
+	public const SCOPE_SYNC         = 'sync';
 
 	/**
 	 * Default TTL in hours for idempotency keys.
@@ -88,7 +91,7 @@ class IdempotencyService {
 	public function claim( string $key, string $scope = self::SCOPE_WEBHOOK, ?int $ttlHours = null ): bool {
 		$table = $this->getTableName();
 
-		$ttlHours = $ttlHours ?? self::DEFAULT_TTL_HOURS;
+		$ttlHours  = $ttlHours ?? self::DEFAULT_TTL_HOURS;
 		$expiresAt = gmdate( 'Y-m-d H:i:s', strtotime( "+{$ttlHours} hours" ) );
 
 		// Use INSERT IGNORE for atomic claim.
@@ -241,8 +244,8 @@ class IdempotencyService {
 		);
 
 		foreach ( $results as $row ) {
-			$stats['total'] += (int) $row->total;
-			$stats['expired'] += (int) $row->expired;
+			$stats['total']                  += (int) $row->total;
+			$stats['expired']                += (int) $row->expired;
 			$stats['by_scope'][ $row->scope ] = array(
 				'total'   => (int) $row->total,
 				'expired' => (int) $row->expired,
@@ -265,8 +268,8 @@ class IdempotencyService {
 	/**
 	 * Claim with automatic key generation.
 	 *
-	 * @param string   $scope     Operation scope.
-	 * @param string   ...$parts  Parts to combine into a key.
+	 * @param string $scope     Operation scope.
+	 * @param string ...$parts  Parts to combine into a key.
 	 * @return bool True if claim succeeded.
 	 */
 	public function claimWithParts( string $scope, string ...$parts ): bool {

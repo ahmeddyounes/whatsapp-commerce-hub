@@ -21,6 +21,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound, WordPress.Security.EscapeOutput.ExceptionNotEscaped
+// Hook names use wch_ project prefix. Exception messages are for logging, not output.
+
 /**
  * Class CheckoutSaga
  *
@@ -195,10 +198,13 @@ class CheckoutSaga {
 					$this->releaseStock( $item['product_id'], $item['quantity'] );
 				}
 
-				do_action( 'wch_log_info', sprintf(
-					'[CheckoutSaga] Released inventory for %d items',
-					count( $held )
-				) );
+				do_action(
+					'wch_log_info',
+					sprintf(
+						'[CheckoutSaga] Released inventory for %d items',
+						count( $held )
+					)
+				);
 			},
 			30,
 			2,
@@ -327,10 +333,13 @@ class CheckoutSaga {
 						$order->set_status( 'cancelled', 'Checkout saga compensation' );
 						$order->save();
 
-						do_action( 'wch_log_info', sprintf(
-							'[CheckoutSaga] Cancelled order #%d',
-							$order_id
-						) );
+						do_action(
+							'wch_log_info',
+							sprintf(
+								'[CheckoutSaga] Cancelled order #%d',
+								$order_id
+							)
+						);
 					}
 				}
 			},
@@ -376,10 +385,15 @@ class CheckoutSaga {
 				}
 
 				// For other payment methods, create payment intent.
-				$payment_result = apply_filters( 'wch_process_payment', array(
-					'success' => false,
-					'error'   => 'Payment method not supported',
-				), $order, $checkout_data );
+				$payment_result = apply_filters(
+					'wch_process_payment',
+					array(
+						'success' => false,
+						'error'   => 'Payment method not supported',
+					),
+					$order,
+					$checkout_data
+				);
 
 				if ( empty( $payment_result['success'] ) ) {
 					throw new \RuntimeException(
@@ -401,38 +415,53 @@ class CheckoutSaga {
 
 				if ( $payment_id && 'completed' === ( $result['payment_status'] ?? '' ) ) {
 					// Attempt refund and verify it was processed.
-					$refund_result = apply_filters( 'wch_refund_payment', array(
-						'success' => false,
-						'error'   => 'No refund handler configured',
-					), $payment_id, $order_id );
+					$refund_result = apply_filters(
+						'wch_refund_payment',
+						array(
+							'success' => false,
+							'error'   => 'No refund handler configured',
+						),
+						$payment_id,
+						$order_id
+					);
 
 					if ( ! empty( $refund_result['success'] ) ) {
-						do_action( 'wch_log_info', sprintf(
-							'[CheckoutSaga] Refund completed for payment %s (refund_id: %s)',
-							$payment_id,
-							$refund_result['refund_id'] ?? 'N/A'
-						) );
+						do_action(
+							'wch_log_info',
+							sprintf(
+								'[CheckoutSaga] Refund completed for payment %s (refund_id: %s)',
+								$payment_id,
+								$refund_result['refund_id'] ?? 'N/A'
+							)
+						);
 					} else {
 						// Refund failed - log critical error for manual intervention.
-						do_action( 'wch_log_critical', sprintf(
-							'[CheckoutSaga] REFUND FAILED for payment %s - manual intervention required: %s',
-							$payment_id,
-							$refund_result['error'] ?? 'Unknown error'
-						), array(
-							'payment_id' => $payment_id,
-							'order_id'   => $order_id,
-							'saga_id'    => $context['saga_id'] ?? null,
-						) );
+						do_action(
+							'wch_log_critical',
+							sprintf(
+								'[CheckoutSaga] REFUND FAILED for payment %s - manual intervention required: %s',
+								$payment_id,
+								$refund_result['error'] ?? 'Unknown error'
+							),
+							array(
+								'payment_id' => $payment_id,
+								'order_id'   => $order_id,
+								'saga_id'    => $context['saga_id'] ?? null,
+							)
+						);
 
 						// Store failed refund for later processing.
-						update_option( 'wch_failed_refund_' . $payment_id, array(
-							'payment_id'   => $payment_id,
-							'order_id'     => $order_id,
-							'saga_id'      => $context['saga_id'] ?? null,
-							'error'        => $refund_result['error'] ?? 'Unknown error',
-							'failed_at'    => current_time( 'mysql' ),
-							'retry_count'  => 0,
-						) );
+						update_option(
+							'wch_failed_refund_' . $payment_id,
+							array(
+								'payment_id'  => $payment_id,
+								'order_id'    => $order_id,
+								'saga_id'     => $context['saga_id'] ?? null,
+								'error'       => $refund_result['error'] ?? 'Unknown error',
+								'failed_at'   => current_time( 'mysql' ),
+								'retry_count' => 0,
+							)
+						);
 					}
 				}
 			},
@@ -478,11 +507,14 @@ class CheckoutSaga {
 					$cart_cleared = true;
 				} catch ( \Throwable $e ) {
 					// Cart clearing failure is non-critical - log and continue.
-					do_action( 'wch_log_warning', sprintf(
-						'[CheckoutSaga] Failed to clear cart for %s: %s',
-						$phone,
-						$e->getMessage()
-					) );
+					do_action(
+						'wch_log_warning',
+						sprintf(
+							'[CheckoutSaga] Failed to clear cart for %s: %s',
+							$phone,
+							$e->getMessage()
+						)
+					);
 				}
 
 				// Fire order completed event.
@@ -503,8 +535,8 @@ class CheckoutSaga {
 
 				try {
 					$message = sprintf(
-						"Your order #%s has been placed successfully! " .
-						"We had trouble sending confirmation but your order is safe. " .
+						'Your order #%s has been placed successfully! ' .
+						'We had trouble sending confirmation but your order is safe. ' .
 						"We'll notify you when it ships.",
 						$order_number
 					);
@@ -512,10 +544,13 @@ class CheckoutSaga {
 					$this->whatsapp_client->sendTextMessage( $phone, $message );
 				} catch ( \Throwable $e ) {
 					// Log but don't fail - notification is best effort.
-					do_action( 'wch_log_warning', sprintf(
-						'[CheckoutSaga] Failed to send recovery notification: %s',
-						$e->getMessage()
-					) );
+					do_action(
+						'wch_log_warning',
+						sprintf(
+							'[CheckoutSaga] Failed to send recovery notification: %s',
+							$e->getMessage()
+						)
+					);
 				}
 			},
 			30,
@@ -617,7 +652,7 @@ class CheckoutSaga {
 			return null;
 		}
 
-		$context = $state['context'] ?? array();
+		$context  = $state['context'] ?? array();
 		$order_id = $context['step_results']['create_order']['order_id'] ?? null;
 
 		$result = array(
