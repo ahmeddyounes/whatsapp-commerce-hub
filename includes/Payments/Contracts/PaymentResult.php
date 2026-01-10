@@ -24,48 +24,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 final class PaymentResult {
 	/**
-	 * Whether the payment was initiated successfully.
-	 *
-	 * @var bool
-	 */
-	private bool $success;
-
-	/**
-	 * Transaction ID from the gateway.
-	 *
-	 * @var string
-	 */
-	private string $transactionId;
-
-	/**
-	 * URL for customer to complete payment (if applicable).
-	 *
-	 * @var string
-	 */
-	private string $paymentUrl;
-
-	/**
-	 * Message to send to customer.
-	 *
-	 * @var string
-	 */
-	private string $message;
-
-	/**
-	 * Error details if payment failed.
-	 *
-	 * @var array{code: string, message: string}|null
-	 */
-	private ?array $error;
-
-	/**
-	 * Additional metadata.
-	 *
-	 * @var array
-	 */
-	private array $metadata;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param bool       $success       Success status.
@@ -76,19 +34,13 @@ final class PaymentResult {
 	 * @param array      $metadata      Additional metadata.
 	 */
 	private function __construct(
-		bool $success,
-		string $transactionId = '',
-		string $paymentUrl = '',
-		string $message = '',
-		?array $error = null,
-		array $metadata = array()
+		private readonly bool $success,
+		private readonly string $transactionId = '',
+		private readonly string $paymentUrl = '',
+		private readonly string $message = '',
+		private readonly ?array $error = null,
+		private readonly array $metadata = array()
 	) {
-		$this->success       = $success;
-		$this->transactionId = $transactionId;
-		$this->paymentUrl    = $paymentUrl;
-		$this->message       = $message;
-		$this->error         = $error;
-		$this->metadata      = $metadata;
 	}
 
 	/**
