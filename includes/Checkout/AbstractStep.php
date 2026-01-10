@@ -28,31 +28,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 abstract class AbstractStep implements StepInterface {
 
 	/**
-	 * Message builder factory.
-	 *
-	 * @var MessageBuilderFactory
-	 */
-	protected MessageBuilderFactory $message_builder;
-
-	/**
-	 * Address service.
-	 *
-	 * @var AddressServiceInterface
-	 */
-	protected AddressServiceInterface $address_service;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param MessageBuilderFactory   $message_builder Message builder factory.
 	 * @param AddressServiceInterface $address_service Address service.
 	 */
 	public function __construct(
-		MessageBuilderFactory $message_builder,
-		AddressServiceInterface $address_service
+		protected MessageBuilderFactory $message_builder,
+		protected AddressServiceInterface $address_service
 	) {
-		$this->message_builder = $message_builder;
-		$this->address_service = $address_service;
 	}
 
 	/**
