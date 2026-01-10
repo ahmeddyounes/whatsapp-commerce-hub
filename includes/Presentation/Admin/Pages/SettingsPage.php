@@ -21,6 +21,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// phpcs:disable Generic.Files.LineLength.MaxExceeded
+// Long lines in inline CSS and i18n strings are acceptable for readability.
+
 /**
  * Class AdminSettingsController
  *

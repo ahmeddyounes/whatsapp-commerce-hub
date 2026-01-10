@@ -75,7 +75,9 @@ class AddToCartAction extends AbstractAction {
 
 			// Validate stock.
 			if ( ! $this->hasStock( $productId, $quantity, $variantId ) ) {
-				return $this->error( __( 'Sorry, this product is out of stock or the requested quantity is not available.', 'whatsapp-commerce-hub' ) );
+				return $this->error(
+					__( 'Sorry, this product is out of stock or the requested quantity is not available.', 'whatsapp-commerce-hub' )
+				);
 			}
 
 			// Add to cart via service.
