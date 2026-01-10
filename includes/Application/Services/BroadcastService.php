@@ -34,7 +34,7 @@ class BroadcastService implements BroadcastServiceInterface {
 	private const CAMPAIGNS_OPTION = 'wch_broadcast_campaigns';
 
 	/**
-	 * wpdb instance.
+	 * WordPress database instance.
 	 *
 	 * @var \wpdb
 	 */
@@ -208,7 +208,7 @@ class BroadcastService implements BroadcastServiceInterface {
 		// Create duplicate with new ID.
 		$duplicate = $campaign;
 		unset( $duplicate['id'] );
-		$duplicate['name']       = sprintf(
+		$duplicate['name'] = sprintf(
 			/* translators: %s: original campaign name */
 			__( '%s (Copy)', 'whatsapp-commerce-hub' ),
 			$campaign['name']
@@ -269,7 +269,7 @@ class BroadcastService implements BroadcastServiceInterface {
 
 		if ( ! $schedule_result['success'] ) {
 			// Update campaign status to failed if scheduling failed.
-			$campaign['status'] = 'failed';
+			$campaign['status']            = 'failed';
 			$campaign['stats']['errors'][] = array(
 				'error' => $schedule_result['message'],
 				'time'  => gmdate( 'Y-m-d H:i:s' ),
@@ -362,12 +362,15 @@ class BroadcastService implements BroadcastServiceInterface {
 
 		$where_sql = implode( ' AND ', $where_clauses );
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// Table names are safe as they come from $wpdb->prefix. Dynamic WHERE clause uses proper placeholders.
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders
 		$query = $this->wpdb->prepare(
 			"SELECT COUNT(DISTINCT phone) FROM $table_name WHERE $where_sql",
 			$where_values
 		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Query already prepared above.
 		$count = (int) $this->wpdb->get_var( $query );
 
 		// Apply exclusions.
@@ -376,13 +379,15 @@ class BroadcastService implements BroadcastServiceInterface {
 			$broadcast_cutoff = gmdate( 'Y-m-d H:i:s', strtotime( "-$days days" ) );
 			$broadcasts_table = $this->wpdb->prefix . 'wch_broadcast_recipients';
 
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared
 			$table_exists = $this->wpdb->get_var(
 				$this->wpdb->prepare( 'SHOW TABLES LIKE %s', $broadcasts_table )
 			);
+			// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared
 
 			if ( $table_exists ) {
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				// Table names from wpdb prefix are safe, proper placeholders for data values.
+				// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
 				$excluded_count = (int) $this->wpdb->get_var(
 					$this->wpdb->prepare(
 						"SELECT COUNT(DISTINCT cp.phone) FROM $table_name cp
@@ -392,7 +397,8 @@ class BroadcastService implements BroadcastServiceInterface {
 						$broadcast_cutoff
 					)
 				);
-				$count = max( 0, $count - $excluded_count );
+				// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+				$count          = max( 0, $count - $excluded_count );
 			}
 		}
 
@@ -437,36 +443,41 @@ class BroadcastService implements BroadcastServiceInterface {
 		$per_page       = 1000;
 		$max_recipients = 100000;
 
+		$batch_size = $per_page; // Track expected batch size for loop condition.
 		do {
 			$batch_values = array_merge( $where_values, array( $per_page, $offset ) );
 
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			// Table name from wpdb prefix is safe. Dynamic WHERE uses placeholders.
+			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders, WordPress.DB.PreparedSQL.NotPrepared
 			$batch = $this->wpdb->get_col(
 				$this->wpdb->prepare(
 					"SELECT phone FROM {$table_name} WHERE {$where_sql} ORDER BY id ASC LIMIT %d OFFSET %d",
 					$batch_values
 				)
 			);
+			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders, WordPress.DB.PreparedSQL.NotPrepared
 
 			if ( empty( $batch ) ) {
 				break;
 			}
 
+			$batch_count = count( $batch );
 			array_push( $all_recipients, ...$batch );
-			$offset        += $per_page;
+			$offset += $per_page;
 
-			if ( count( $all_recipients ) >= $max_recipients ) {
+			$recipient_count = count( $all_recipients );
+			if ( $recipient_count >= $max_recipients ) {
 				\WCH_Logger::warning(
 					'Broadcast recipients hit safety limit',
 					array(
 						'category'    => 'broadcasts',
-						'fetched'     => count( $all_recipients ),
+						'fetched'     => $recipient_count,
 						'campaign_id' => $campaign['id'] ?? 'unknown',
 					)
 				);
 				break;
 			}
-		} while ( count( $batch ) === $per_page );
+		} while ( $batch_count === $batch_size );
 
 		return $all_recipients;
 	}
@@ -643,10 +654,10 @@ class BroadcastService implements BroadcastServiceInterface {
 		}
 
 		return array(
-			'success'          => true,
-			'message'          => __( 'Broadcast scheduled', 'whatsapp-commerce-hub' ),
-			'recipient_count'  => count( $recipients ),
-			'batch_count'      => count( $batches ),
+			'success'         => true,
+			'message'         => __( 'Broadcast scheduled', 'whatsapp-commerce-hub' ),
+			'recipient_count' => count( $recipients ),
+			'batch_count'     => count( $batches ),
 		);
 	}
 
@@ -682,12 +693,12 @@ class BroadcastService implements BroadcastServiceInterface {
 			return;
 		}
 
-		$stats          = $campaign['stats'] ?? array(
+		$stats            = $campaign['stats'] ?? array(
 			'sent'   => 0,
 			'failed' => 0,
 			'errors' => array(),
 		);
-		$stats['sent'] += $sent;
+		$stats['sent']   += $sent;
 		$stats['failed'] += $failed;
 
 		// Merge errors but cap at 100 to prevent unbounded growth.
@@ -744,7 +755,8 @@ class BroadcastService implements BroadcastServiceInterface {
 					return $container->get( \WCH_Template_Manager::class );
 				}
 			} catch ( \Throwable $e ) {
-				// Fall through.
+				// phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- Intentional fallthrough to alternative instantiation.
+				unset( $e );
 			}
 		}
 
