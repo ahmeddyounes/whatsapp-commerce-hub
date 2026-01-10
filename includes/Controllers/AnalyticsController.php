@@ -78,7 +78,7 @@ class AnalyticsController extends AbstractController {
 							'required'          => false,
 							'default'           => 'today',
 							'sanitize_callback' => 'sanitize_text_field',
-							'validate_callback' => array( $this, 'validatePeriod' ),
+							'validate_callback' => [ $this, 'validatePeriod' ],
 						],
 					],
 				],
@@ -129,7 +129,7 @@ class AnalyticsController extends AbstractController {
 								'required'          => false,
 								'default'           => 10,
 								'sanitize_callback' => 'absint',
-								'validate_callback' => array( $this, 'validateLimit' ),
+								'validate_callback' => [ $this, 'validateLimit' ],
 							],
 						]
 					),
@@ -208,7 +208,7 @@ class AnalyticsController extends AbstractController {
 							'type' => [
 								'required'          => true,
 								'sanitize_callback' => 'sanitize_text_field',
-								'validate_callback' => array( $this, 'validateExportType' ),
+								'validate_callback' => [ $this, 'validateExportType' ],
 							],
 						]
 					),

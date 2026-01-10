@@ -212,12 +212,12 @@ function example_checkout_flow( $conversation ) {
 		$conversation,
 		WCH_Conversation_FSM::EVENT_ENTER_ADDRESS,
 		[
-			'address' => array(
+			'address' => [
 				'street'  => '123 Main St',
 				'city'    => 'New York',
 				'zip'     => '10001',
 				'country' => 'US',
-			),
+			],
 		]
 	);
 

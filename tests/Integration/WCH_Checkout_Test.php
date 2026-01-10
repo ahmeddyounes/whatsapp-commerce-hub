@@ -97,12 +97,12 @@ class WCH_Checkout_Test extends WCH_Integration_Test_Case {
 
 		$state_data = [
 			'checkout_data' => [
-				'shipping_address' => array(
+				'shipping_address' => [
 					'address_1' => '123 Main St',
 					'city' => 'New York',
 					'postcode' => '10001',
 					'country' => 'US',
-				),
+				],
 			],
 		];
 
@@ -157,12 +157,12 @@ class WCH_Checkout_Test extends WCH_Integration_Test_Case {
 
 		$state_data = [
 			'checkout_data' => [
-				'shipping_address' => array(
+				'shipping_address' => [
 					'address_1' => '123 Main St',
 					'city' => 'New York',
 					'postcode' => '10001',
 					'country' => 'US',
-				),
+				],
 			],
 		];
 

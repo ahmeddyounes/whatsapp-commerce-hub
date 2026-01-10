@@ -41,10 +41,10 @@ class WCH_Order_Sync_Test extends WCH_Integration_Test_Case {
 			'customer_phone' => '+1234567890',
 			'customer_name' => 'John Doe',
 			'items' => [
-				array(
+				[
 					'product_id' => $product->get_id(),
 					'quantity' => 2,
-				),
+				],
 			],
 			'shipping_address' => [
 				'address_1' => '123 Main St',
@@ -178,8 +178,8 @@ class WCH_Order_Sync_Test extends WCH_Integration_Test_Case {
 		$order_data = [
 			'customer_phone' => '+1234567890',
 			'items' => [
-				array( 'product_id' => $product1->get_id(), 'quantity' => 2 ),
-				array( 'product_id' => $product2->get_id(), 'quantity' => 1 ),
+				[ 'product_id' => $product1->get_id(), 'quantity' => 2 ],
+				[ 'product_id' => $product2->get_id(), 'quantity' => 1 ],
 			],
 		];
 

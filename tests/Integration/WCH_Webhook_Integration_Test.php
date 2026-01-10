@@ -113,23 +113,23 @@ class WCH_Webhook_Integration_Test extends WCH_Integration_Test_Case {
 		$webhook_payload = [
 			'object' => 'whatsapp_business_account',
 			'entry'  => [
-				array(
+				[
 					'id'      => 'test_business_id',
-					'changes' => array(
-						array(
-							'value' => array(
+					'changes' => [
+						[
+							'value' => [
 								'messaging_product' => 'whatsapp',
-								'metadata'          => array(
+								'metadata'          => [
 									'display_phone_number' => '+1234567890',
 									'phone_number_id'      => 'test_phone_number_id',
-								),
-								'contacts'          => array(),
-								'messages'          => array(),
-							),
+								],
+								'contacts'          => [],
+								'messages'          => [],
+							],
 							'field' => 'messages',
-						),
-					),
-				),
+						],
+					],
+				],
 			],
 		];
 
@@ -346,7 +346,7 @@ class WCH_Webhook_Integration_Test extends WCH_Integration_Test_Case {
 		$base_payload = [
 			'object' => 'whatsapp_business_account',
 			'entry'  => [
-				array(
+				[
 					'id'      => 'test_business_id',
 					'changes' => array(
 						array(
@@ -368,7 +368,7 @@ class WCH_Webhook_Integration_Test extends WCH_Integration_Test_Case {
 							'field' => 'messages',
 						),
 					),
-				),
+				],
 			],
 		];
 
@@ -379,9 +379,9 @@ class WCH_Webhook_Integration_Test extends WCH_Integration_Test_Case {
 					'id'        => 'wamid.test_' . wp_generate_uuid4(),
 					'timestamp' => (string) time(),
 					'type'      => 'text',
-					'text'      => array(
+					'text'      => [
 						'body' => 'Hello, I want to browse products',
-					),
+					],
 				],
 			];
 		} elseif ( 'webhook_button_reply.json' === $filename ) {
@@ -391,13 +391,13 @@ class WCH_Webhook_Integration_Test extends WCH_Integration_Test_Case {
 					'id'          => 'wamid.test_' . wp_generate_uuid4(),
 					'timestamp'   => (string) time(),
 					'type'        => 'interactive',
-					'interactive' => array(
+					'interactive' => [
 						'type'         => 'button_reply',
 						'button_reply' => array(
 							'id'    => 'btn_view_cart',
 							'title' => 'View Cart',
 						),
-					),
+					],
 				],
 			];
 		} elseif ( 'webhook_status_update.json' === $filename ) {

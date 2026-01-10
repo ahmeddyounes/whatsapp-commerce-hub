@@ -535,18 +535,18 @@ function test_context_manager() {
 	$old_context = new WCH_Conversation_Context(
 		[
 			'customer_phone' => '+9876543210',
-			'slots'          => array(
+			'slots'          => [
 				'address'          => '123 Old St',
 				'payment_method'   => 'card',
 				'old_preference'   => 'value',
-			),
+			],
 		]
 	);
 	$new_data = [
 		'current_state' => WCH_Conversation_FSM::STATE_BROWSING,
-		'slots'         => array(
+		'slots'         => [
 			'product_name' => 'New Product',
-		),
+		],
 	];
 	$merged_context = $manager->merge_contexts( $old_context, $new_data );
 	assert( $merged_context->get_slot( 'address' ) === '123 Old St', 'Preserved slot should remain' );

@@ -583,7 +583,7 @@ class WCH_E2E_Conversation_Test extends WCH_Integration_Test_Case {
 		$payload = [
 			'object' => 'whatsapp_business_account',
 			'entry' => [
-				array(
+				[
 					'id' => 'test_business_id',
 					'changes' => array(
 						array(
@@ -608,7 +608,7 @@ class WCH_E2E_Conversation_Test extends WCH_Integration_Test_Case {
 							'field' => 'messages',
 						),
 					),
-				),
+				],
 			],
 		];
 

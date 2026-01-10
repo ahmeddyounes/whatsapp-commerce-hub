@@ -84,9 +84,9 @@ class WCH_API_Mock_Server {
 			],
 			'body'     => wp_json_encode(
 				[
-					'messages' => array(
+					'messages' => [
 						array( 'id' => $message_id ),
-					),
+					],
 				]
 			),
 		];
@@ -109,11 +109,11 @@ class WCH_API_Mock_Server {
 			],
 			'body'     => wp_json_encode(
 				[
-					'error' => array(
+					'error' => [
 						'message' => 'Rate limit exceeded',
 						'type'    => 'OAuthException',
 						'code'    => 4,
-					),
+					],
 				]
 			),
 		];
@@ -132,10 +132,10 @@ class WCH_API_Mock_Server {
 			],
 			'body'     => wp_json_encode(
 				[
-					'error' => array(
+					'error' => [
 						'code'    => 131026,
 						'message' => 'Recipient not valid',
-					),
+					],
 				]
 			),
 		];
@@ -214,9 +214,9 @@ class WCH_API_Mock_Server {
 					'name'        => 'Test Product',
 					'price'       => '10.00',
 					'description' => 'Test description',
-					'images'      => array(
+					'images'      => [
 						array( 'src' => 'https://example.com/image.jpg' ),
-					),
+					],
 				],
 			];
 		}

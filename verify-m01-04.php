@@ -86,7 +86,7 @@ echo "✓ Criterion 1: All WhatsApp message types parsed correctly\n";
 $parser = new WCH_Response_Parser();
 $message_types = [ 'text', 'interactive', 'location', 'image', 'document', 'order' ];
 foreach ( $message_types as $type ) {
-	$test_data = [ 'type' => $type, 'content' => array() ];
+	$test_data = [ 'type' => $type, 'content' => [] ];
 	$parsed = $parser->parse( $test_data );
 	if ( ! $parsed instanceof WCH_Parsed_Response ) {
 		echo "  ✗ Failed to parse message type: $type\n";
@@ -98,16 +98,16 @@ echo "  All message types parse successfully\n\n";
 // Acceptance Criterion 2: Intents detected accurately for common phrases.
 echo "✓ Criterion 2: Intents detected accurately for common phrases\n";
 $intent_tests = [
-	array( 'text' => 'hi', 'expected' => WCH_Response_Parser::INTENT_GREETING ),
-	array( 'text' => 'hello', 'expected' => WCH_Response_Parser::INTENT_GREETING ),
-	array( 'text' => 'order', 'expected' => WCH_Response_Parser::INTENT_ORDER_STATUS ),
-	array( 'text' => 'track', 'expected' => WCH_Response_Parser::INTENT_TRACK_SHIPPING ),
-	array( 'text' => 'help', 'expected' => WCH_Response_Parser::INTENT_HELP ),
-	array( 'text' => 'support', 'expected' => WCH_Response_Parser::INTENT_HELP ),
-	array( 'text' => 'cart', 'expected' => WCH_Response_Parser::INTENT_VIEW_CART ),
-	array( 'text' => 'basket', 'expected' => WCH_Response_Parser::INTENT_VIEW_CART ),
-	array( 'text' => 'checkout', 'expected' => WCH_Response_Parser::INTENT_CHECKOUT ),
-	array( 'text' => 'pay', 'expected' => WCH_Response_Parser::INTENT_CHECKOUT ),
+	[ 'text' => 'hi', 'expected' => WCH_Response_Parser::INTENT_GREETING ],
+	[ 'text' => 'hello', 'expected' => WCH_Response_Parser::INTENT_GREETING ],
+	[ 'text' => 'order', 'expected' => WCH_Response_Parser::INTENT_ORDER_STATUS ],
+	[ 'text' => 'track', 'expected' => WCH_Response_Parser::INTENT_TRACK_SHIPPING ],
+	[ 'text' => 'help', 'expected' => WCH_Response_Parser::INTENT_HELP ],
+	[ 'text' => 'support', 'expected' => WCH_Response_Parser::INTENT_HELP ],
+	[ 'text' => 'cart', 'expected' => WCH_Response_Parser::INTENT_VIEW_CART ],
+	[ 'text' => 'basket', 'expected' => WCH_Response_Parser::INTENT_VIEW_CART ],
+	[ 'text' => 'checkout', 'expected' => WCH_Response_Parser::INTENT_CHECKOUT ],
+	[ 'text' => 'pay', 'expected' => WCH_Response_Parser::INTENT_CHECKOUT ],
 ];
 
 $intent_passed = true;
@@ -155,7 +155,7 @@ add_filter( 'wch_parse_response', function( $parsed, $data ) {
 
 $test_data = [
 	'type' => 'text',
-	'content' => array( 'body' => 'test' ),
+	'content' => [ 'body' => 'test' ],
 ];
 $parsed = $parser->parse( $test_data );
 

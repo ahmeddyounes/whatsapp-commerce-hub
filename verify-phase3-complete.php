@@ -36,29 +36,29 @@ echo blue( "╚═════════════════════�
 
 $results = [];
 $domains = [
-'Cart Domain' => array(
+'Cart Domain' => [
 'Cart'          => 'WhatsAppCommerceHub\Domain\Cart\Cart',
 'CartException' => 'WhatsAppCommerceHub\Domain\Cart\CartException',
 'CartService'   => 'WhatsAppCommerceHub\Domain\Cart\CartService',
-),
-'Catalog Domain' => array(
+],
+'Catalog Domain' => [
 'ProductSyncService' => 'WhatsAppCommerceHub\Application\Services\ProductSyncService',
 'CatalogBrowser'     => 'WhatsAppCommerceHub\Domain\Catalog\CatalogBrowser',
-),
-'Order Domain' => array(
+],
+'Order Domain' => [
 'OrderSyncService' => 'WhatsAppCommerceHub\Application\Services\OrderSyncService',
-),
-'Customer Domain' => array(
+],
+'Customer Domain' => [
 'Customer'        => 'WhatsAppCommerceHub\Domain\Customer\Customer',
 'CustomerService' => 'WhatsAppCommerceHub\Domain\Customer\CustomerService',
-),
-'Conversation Domain' => array(
+],
+'Conversation Domain' => [
 'Conversation'     => 'WhatsAppCommerceHub\Domain\Conversation\Conversation',
 'Intent'           => 'WhatsAppCommerceHub\Domain\Conversation\Intent',
 'Context'          => 'WhatsAppCommerceHub\Domain\Conversation\Context',
 'StateMachine'     => 'WhatsAppCommerceHub\Domain\Conversation\StateMachine',
 'IntentClassifier' => 'WhatsAppCommerceHub\Support\AI\IntentClassifier',
-),
+],
 ];
 
 foreach ( $domains as $domainName => $classes ) {

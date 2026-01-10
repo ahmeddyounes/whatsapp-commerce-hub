@@ -194,54 +194,54 @@ echo "\n";
 echo "Test 6: Acceptance Criteria Verification\n";
 
 $criteria = [
-	'Inactive customers identified correctly' => array(
+	'Inactive customers identified correctly' => [
 		'file'   => $service_file,
 		'checks' => array(
 			'identify_inactive_customers',
 			'threshold_date',
 			'opt_in_marketing',
 		),
-	),
-	'Appropriate campaigns sent' => array(
+	],
+	'Appropriate campaigns sent' => [
 		'file'   => $service_file,
 		'checks' => array(
 			'determine_campaign_type',
 			'send_campaign_message',
 			'CAMPAIGN_TYPES',
 		),
-	),
-	'Frequency caps enforced' => array(
+	],
+	'Frequency caps enforced' => [
 		'file'   => $service_file,
 		'checks' => array(
 			'check_frequency_cap',
 			'7 * DAY_IN_SECONDS',
 			'30 * DAY_IN_SECONDS',
 		),
-	),
-	'Back-in-stock triggers work' => array(
+	],
+	'Back-in-stock triggers work' => [
 		'file'   => $service_file,
 		'checks' => array(
 			'check_back_in_stock',
 			'notify_back_in_stock',
 			'product_views',
 		),
-	),
-	'Price drop triggers work' => array(
+	],
+	'Price drop triggers work' => [
 		'file'   => $service_file,
 		'checks' => array(
 			'check_price_drops',
 			'get_price_drop_products',
 			'min_drop_percent',
 		),
-	),
-	'Conversions tracked' => array(
+	],
+	'Conversions tracked' => [
 		'file'   => $service_file,
 		'checks' => array(
 			'track_conversion',
 			'converted',
 			'order_id',
 		),
-	),
+	],
 ];
 
 foreach ( $criteria as $criterion => $data ) {

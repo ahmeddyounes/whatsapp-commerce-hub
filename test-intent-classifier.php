@@ -28,125 +28,125 @@ function run_intent_classifier_tests() {
 	// Test 1: Greeting intent
 	$test_cases = [
 		// Greetings
-		array(
+		[
 			'text'            => 'Hello!',
 			'expected_intent' => WCH_Intent::INTENT_GREETING,
 			'min_confidence'  => 0.9,
 			'description'     => 'Greeting - Hello',
-		),
-		array(
+		],
+		[
 			'text'            => 'Good morning',
 			'expected_intent' => WCH_Intent::INTENT_GREETING,
 			'min_confidence'  => 0.9,
 			'description'     => 'Greeting - Good morning',
-		),
-		array(
+		],
+		[
 			'text'            => 'Hey there',
 			'expected_intent' => WCH_Intent::INTENT_GREETING,
 			'min_confidence'  => 0.9,
 			'description'     => 'Greeting - Hey',
-		),
+		],
 
 		// Browse
-		array(
+		[
 			'text'            => 'Show me your products',
 			'expected_intent' => WCH_Intent::INTENT_BROWSE,
 			'min_confidence'  => 0.85,
 			'description'     => 'Browse - Show products',
-		),
-		array(
+		],
+		[
 			'text'            => 'I want to see the catalog',
 			'expected_intent' => WCH_Intent::INTENT_BROWSE,
 			'min_confidence'  => 0.85,
 			'description'     => 'Browse - View catalog',
-		),
+		],
 
 		// Search
-		array(
+		[
 			'text'            => 'I am looking for a blue shirt',
 			'expected_intent' => WCH_Intent::INTENT_SEARCH,
 			'min_confidence'  => 0.8,
 			'description'     => 'Search - Looking for product',
 			'expected_entity' => array( 'type' => 'PRODUCT_NAME', 'value' => 'a blue shirt' ),
-		),
-		array(
+		],
+		[
 			'text'            => 'Find me running shoes',
 			'expected_intent' => WCH_Intent::INTENT_SEARCH,
 			'min_confidence'  => 0.8,
 			'description'     => 'Search - Find product',
 			'expected_entity' => array( 'type' => 'PRODUCT_NAME', 'value' => 'running shoes' ),
-		),
+		],
 
 		// View Cart
-		array(
+		[
 			'text'            => 'Show my cart',
 			'expected_intent' => WCH_Intent::INTENT_VIEW_CART,
 			'min_confidence'  => 0.85,
 			'description'     => 'View Cart - My cart',
-		),
-		array(
+		],
+		[
 			'text'            => 'What is in my basket?',
 			'expected_intent' => WCH_Intent::INTENT_VIEW_CART,
 			'min_confidence'  => 0.85,
 			'description'     => 'View Cart - My basket',
-		),
+		],
 
 		// Checkout
-		array(
+		[
 			'text'            => 'I want to checkout',
 			'expected_intent' => WCH_Intent::INTENT_CHECKOUT,
 			'min_confidence'  => 0.85,
 			'description'     => 'Checkout - I want to checkout',
-		),
-		array(
+		],
+		[
 			'text'            => 'Let me buy this',
 			'expected_intent' => WCH_Intent::INTENT_CHECKOUT,
 			'min_confidence'  => 0.85,
 			'description'     => 'Checkout - Buy',
-		),
+		],
 
 		// Order Status
-		array(
+		[
 			'text'            => 'Where is my order #12345?',
 			'expected_intent' => WCH_Intent::INTENT_ORDER_STATUS,
 			'min_confidence'  => 0.8,
 			'description'     => 'Order Status - Where is order',
 			'expected_entity' => array( 'type' => 'ORDER_NUMBER', 'value' => '12345' ),
-		),
-		array(
+		],
+		[
 			'text'            => 'Track my package',
 			'expected_intent' => WCH_Intent::INTENT_ORDER_STATUS,
 			'min_confidence'  => 0.8,
 			'description'     => 'Order Status - Track package',
-		),
+		],
 
 		// Cancel
-		array(
+		[
 			'text'            => 'Cancel my order',
 			'expected_intent' => WCH_Intent::INTENT_CANCEL,
 			'min_confidence'  => 0.75,
 			'description'     => 'Cancel - Cancel order',
-		),
-		array(
+		],
+		[
 			'text'            => 'Remove this item',
 			'expected_intent' => WCH_Intent::INTENT_CANCEL,
 			'min_confidence'  => 0.75,
 			'description'     => 'Cancel - Remove item',
-		),
+		],
 
 		// Help
-		array(
+		[
 			'text'            => 'I need help',
 			'expected_intent' => WCH_Intent::INTENT_HELP,
 			'min_confidence'  => 0.85,
 			'description'     => 'Help - Need help',
-		),
-		array(
+		],
+		[
 			'text'            => 'Connect me to a human agent',
 			'expected_intent' => WCH_Intent::INTENT_HELP,
 			'min_confidence'  => 0.85,
 			'description'     => 'Help - Human agent',
-		),
+		],
 	];
 
 	// Run all test cases
@@ -192,21 +192,21 @@ function run_intent_classifier_tests() {
 
 	// Test entity extraction
 	$entity_tests = [
-		array(
+		[
 			'text'            => 'I want 3 items',
 			'expected_entity' => array( 'type' => 'QUANTITY', 'value' => 3 ),
 			'description'     => 'Entity - Quantity extraction',
-		),
-		array(
+		],
+		[
 			'text'            => 'My phone is +1-234-567-8900',
 			'expected_entity' => array( 'type' => 'PHONE', 'value' => '+12345678900' ),
 			'description'     => 'Entity - Phone extraction',
-		),
-		array(
+		],
+		[
 			'text'            => 'Email me at test@example.com',
 			'expected_entity' => array( 'type' => 'EMAIL', 'value' => 'test@example.com' ),
 			'description'     => 'Entity - Email extraction',
-		),
+		],
 	];
 
 	foreach ( $entity_tests as $test ) {

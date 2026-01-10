@@ -17,7 +17,7 @@ function get_bloginfo( $key ) {
 
 function get_option( $key, $default = null ) {
 	$options = [
-		'wch_settings' => array(
+		'wch_settings' => [
 			'ai' => array(
 				'enable_ai'          => true,
 				'openai_api_key'     => 'test-key',
@@ -30,7 +30,7 @@ function get_option( $key, $default = null ) {
 			'general' => array(
 				'business_name' => 'Test Store',
 			),
-		),
+		],
 	];
 	return $options[ $key ] ?? $default;
 }

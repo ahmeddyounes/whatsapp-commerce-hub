@@ -90,7 +90,7 @@ class WCH_WhatsApp_API_Integration_Test extends WCH_Integration_Test_Case {
 		$sections = [
 			[
 				'title' => 'Products',
-				'rows'  => array(
+				'rows'  => [
 					array(
 						'id'          => 'product_1',
 						'title'       => 'Product 1',
@@ -101,7 +101,7 @@ class WCH_WhatsApp_API_Integration_Test extends WCH_Integration_Test_Case {
 						'title'       => 'Product 2',
 						'description' => 'Description 2',
 					),
-				),
+				],
 			],
 		];
 
@@ -135,12 +135,12 @@ class WCH_WhatsApp_API_Integration_Test extends WCH_Integration_Test_Case {
 		$components = [
 			[
 				'type'       => 'body',
-				'parameters' => array(
+				'parameters' => [
 					array(
 						'type' => 'text',
 						'text' => 'John Doe',
 					),
-				),
+				],
 			],
 		];
 

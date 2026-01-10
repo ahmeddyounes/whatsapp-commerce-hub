@@ -71,7 +71,7 @@ echo "Set webhook secret: " . substr( $webhook_secret, 0, 10 ) . "...\n";
 // Create test payload.
 $test_payload = [
 	'object' => 'whatsapp_business_account',
-	'entry'  => array(
+	'entry'  => [
 		array(
 			'id'      => '123456789',
 			'changes' => array(
@@ -98,7 +98,7 @@ $test_payload = [
 				),
 			),
 		),
-	),
+	],
 ];
 
 $payload_json = wp_json_encode( $test_payload );
@@ -139,7 +139,7 @@ echo "--------------------------------\n";
 
 $status_payload = [
 	'object' => 'whatsapp_business_account',
-	'entry'  => array(
+	'entry'  => [
 		array(
 			'id'      => '123456789',
 			'changes' => array(
@@ -163,7 +163,7 @@ $status_payload = [
 				),
 			),
 		),
-	),
+	],
 ];
 
 $status_json      = wp_json_encode( $status_payload );
@@ -192,7 +192,7 @@ echo "-------------------------------\n";
 
 $error_payload = [
 	'object' => 'whatsapp_business_account',
-	'entry'  => array(
+	'entry'  => [
 		array(
 			'id'      => '123456789',
 			'changes' => array(
@@ -209,7 +209,7 @@ $error_payload = [
 				),
 			),
 		),
-	),
+	],
 ];
 
 $error_json      = wp_json_encode( $error_payload );

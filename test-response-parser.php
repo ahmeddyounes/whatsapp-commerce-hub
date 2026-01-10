@@ -105,9 +105,9 @@ $parser = new WCH_Response_Parser();
 test_output( 'Test 1: Text message with greeting intent', 'info' );
 $test1_data = [
 	'type'    => 'text',
-	'content' => array(
+	'content' => [
 		'body' => 'Hello there!',
-	),
+	],
 ];
 $parsed1 = $parser->parse( $test1_data );
 echo "Type: " . $parsed1->get_type() . "\n";
@@ -124,9 +124,9 @@ echo "\n";
 test_output( 'Test 2: Text message with order status intent', 'info' );
 $test2_data = [
 	'type'    => 'text',
-	'content' => array(
+	'content' => [
 		'body' => 'Where is my order?',
-	),
+	],
 ];
 $parsed2 = $parser->parse( $test2_data );
 echo "Type: " . $parsed2->get_type() . "\n";
@@ -142,9 +142,9 @@ echo "\n";
 test_output( 'Test 3: Text message with cart intent', 'info' );
 $test3_data = [
 	'type'    => 'text',
-	'content' => array(
+	'content' => [
 		'body' => 'Show me my cart',
-	),
+	],
 ];
 $parsed3 = $parser->parse( $test3_data );
 echo "Type: " . $parsed3->get_type() . "\n";
@@ -160,9 +160,9 @@ echo "\n";
 test_output( 'Test 4: Text message with checkout intent', 'info' );
 $test4_data = [
 	'type'    => 'text',
-	'content' => array(
+	'content' => [
 		'body' => 'I want to checkout',
-	),
+	],
 ];
 $parsed4 = $parser->parse( $test4_data );
 echo "Type: " . $parsed4->get_type() . "\n";
@@ -178,9 +178,9 @@ echo "\n";
 test_output( 'Test 5: Text message with help intent', 'info' );
 $test5_data = [
 	'type'    => 'text',
-	'content' => array(
+	'content' => [
 		'body' => 'I need help with my order',
-	),
+	],
 ];
 $parsed5 = $parser->parse( $test5_data );
 echo "Type: " . $parsed5->get_type() . "\n";
@@ -196,11 +196,11 @@ echo "\n";
 test_output( 'Test 6: Button reply message', 'info' );
 $test6_data = [
 	'type'    => 'interactive',
-	'content' => array(
+	'content' => [
 		'type'  => 'button_reply',
 		'id'    => 'btn_view_cart',
 		'title' => 'View Cart',
-	),
+	],
 ];
 $parsed6 = $parser->parse( $test6_data );
 echo "Type: " . $parsed6->get_type() . "\n";
@@ -218,12 +218,12 @@ echo "\n";
 test_output( 'Test 7: List reply message', 'info' );
 $test7_data = [
 	'type'    => 'interactive',
-	'content' => array(
+	'content' => [
 		'type'        => 'list_reply',
 		'id'          => 'list_product_123',
 		'title'       => 'Blue Shirt',
 		'description' => 'Size M, Color Blue',
-	),
+	],
 ];
 $parsed7 = $parser->parse( $test7_data );
 echo "Type: " . $parsed7->get_type() . "\n";
@@ -241,12 +241,12 @@ echo "\n";
 test_output( 'Test 8: Location message', 'info' );
 $test8_data = [
 	'type'    => 'location',
-	'content' => array(
+	'content' => [
 		'latitude'  => '37.7749',
 		'longitude' => '-122.4194',
 		'name'      => 'San Francisco',
 		'address'   => 'San Francisco, CA',
-	),
+	],
 ];
 $parsed8 = $parser->parse( $test8_data );
 echo "Type: " . $parsed8->get_type() . "\n";
@@ -264,12 +264,12 @@ echo "\n";
 test_output( 'Test 9: Image message with caption', 'info' );
 $test9_data = [
 	'type'    => 'image',
-	'content' => array(
+	'content' => [
 		'id'        => 'image_123456',
 		'mime_type' => 'image/jpeg',
 		'sha256'    => 'abc123',
 		'caption'   => 'I want to order this',
-	),
+	],
 ];
 $parsed9 = $parser->parse( $test9_data );
 echo "Type: " . $parsed9->get_type() . "\n";
@@ -287,13 +287,13 @@ echo "\n";
 test_output( 'Test 10: Document message', 'info' );
 $test10_data = [
 	'type'    => 'document',
-	'content' => array(
+	'content' => [
 		'id'        => 'doc_789',
 		'mime_type' => 'application/pdf',
 		'sha256'    => 'xyz789',
 		'caption'   => 'Track my shipment',
 		'filename'  => 'receipt.pdf',
-	),
+	],
 ];
 $parsed10 = $parser->parse( $test10_data );
 echo "Type: " . $parsed10->get_type() . "\n";
@@ -312,11 +312,11 @@ echo "\n";
 test_output( 'Test 11: Product inquiry (nfm_reply)', 'info' );
 $test11_data = [
 	'type'    => 'interactive',
-	'content' => array(
+	'content' => [
 		'type'                => 'nfm_reply',
 		'product_retailer_id' => 'prod_12345',
 		'catalog_id'          => 'catalog_abc',
-	),
+	],
 ];
 $parsed11 = $parser->parse( $test11_data );
 echo "Type: " . $parsed11->get_type() . "\n";
@@ -335,7 +335,7 @@ echo "\n";
 test_output( 'Test 12: Unknown message type', 'info' );
 $test12_data = [
 	'type'    => 'unknown_type',
-	'content' => array(),
+	'content' => [],
 ];
 $parsed12 = $parser->parse( $test12_data );
 echo "Type: " . $parsed12->get_type() . "\n";
@@ -360,9 +360,9 @@ add_filter( 'wch_parse_response', function( $parsed_response, $webhook_message_d
 
 $test13_data = [
 	'type'    => 'text',
-	'content' => array(
+	'content' => [
 		'body' => 'Test filter',
-	),
+	],
 ];
 $parsed13 = $parser->parse( $test13_data );
 if ( isset( $parsed13->get_parsed_data()['custom_field'] ) &&
@@ -391,9 +391,9 @@ echo "\n";
 test_output( 'Test 15: Test to_array method', 'info' );
 $test15_data = [
 	'type'    => 'text',
-	'content' => array(
+	'content' => [
 		'body' => 'Hello',
-	),
+	],
 ];
 $parsed15 = $parser->parse( $test15_data );
 $array15 = $parsed15->to_array();

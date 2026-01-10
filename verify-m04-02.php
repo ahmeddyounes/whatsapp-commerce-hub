@@ -459,7 +459,7 @@ run_test( 'Clean up expired carts', function() use ( $manager, $test_phone ) {
 		$table_name,
 		[
 			'customer_phone' => '+9999999999',
-			'items'          => wp_json_encode( array() ),
+			'items'          => wp_json_encode( [] ),
 			'total'          => 0.00,
 			'status'         => 'active',
 			'expires_at'     => date( 'Y-m-d H:i:s', strtotime( '-1 day' ) ),

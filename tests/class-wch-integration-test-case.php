@@ -85,9 +85,9 @@ abstract class WCH_Integration_Test_Case extends WCH_Unit_Test_Case {
 				],
 				'body' => wp_json_encode( [
 					'success' => true,
-					'messages' => array(
+					'messages' => [
 						array( 'id' => 'wamid.test_' . wp_generate_uuid4() ),
-					),
+					],
 				] ),
 			];
 		}
@@ -123,9 +123,9 @@ abstract class WCH_Integration_Test_Case extends WCH_Unit_Test_Case {
 					'message' => 'OK',
 				],
 				'body' => wp_json_encode( [
-					'messages' => array(
+					'messages' => [
 						array( 'id' => $message_id ),
-					),
+					],
 				] ),
 			]
 		);
@@ -146,10 +146,10 @@ abstract class WCH_Integration_Test_Case extends WCH_Unit_Test_Case {
 					'message' => 'Bad Request',
 				],
 				'body' => wp_json_encode( [
-					'error' => array(
+					'error' => [
 						'message' => $error_message,
 						'code' => $error_code,
-					),
+					],
 				] ),
 			]
 		);

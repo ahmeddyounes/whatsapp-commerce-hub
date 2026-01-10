@@ -111,7 +111,7 @@ class WCH_Webhook_Test extends WCH_Integration_Test_Case {
 		$payload = [
 			'object' => 'whatsapp_business_account',
 			'entry' => [
-				array(
+				[
 					'changes' => array(
 						array(
 							'value' => array(
@@ -127,7 +127,7 @@ class WCH_Webhook_Test extends WCH_Integration_Test_Case {
 							),
 						),
 					),
-				),
+				],
 			],
 		];
 
@@ -202,7 +202,7 @@ class WCH_Webhook_Test extends WCH_Integration_Test_Case {
 			return [
 				'object' => 'whatsapp_business_account',
 				'entry' => [
-					array(
+					[
 						'changes' => array(
 							array(
 								'value' => array(
@@ -218,7 +218,7 @@ class WCH_Webhook_Test extends WCH_Integration_Test_Case {
 								),
 							),
 						),
-					),
+					],
 				],
 			];
 		}

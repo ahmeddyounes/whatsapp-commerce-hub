@@ -310,7 +310,7 @@ class WCH_WooCommerce_Integration_Test extends WCH_Integration_Test_Case {
 		$payload = [
 			'object' => 'whatsapp_business_account',
 			'entry'  => [
-				array(
+				[
 					'id'      => 'test_business_id',
 					'changes' => array(
 						array(
@@ -338,7 +338,7 @@ class WCH_WooCommerce_Integration_Test extends WCH_Integration_Test_Case {
 							'field' => 'messages',
 						),
 					),
-				),
+				],
 			],
 		];
 

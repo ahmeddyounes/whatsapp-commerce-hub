@@ -76,13 +76,13 @@ $product->set_stock_quantity( 100 );
 $product->save();
 
 $cart_data = [
-	'items' => array(
+	'items' => [
 		array(
 			'product_id' => $product->get_id(),
 			'quantity' => 2,
 		),
-	),
-	'shipping_address' => array(
+	],
+	'shipping_address' => [
 		'first_name' => 'John',
 		'last_name' => 'Doe',
 		'address_1' => '123 Main St',
@@ -90,7 +90,7 @@ $cart_data = [
 		'state' => 'NY',
 		'postcode' => '10001',
 		'country' => 'US',
-	),
+	],
 	'payment_method' => 'cod',
 	'conversation_id' => 'test_conversation_123',
 ];

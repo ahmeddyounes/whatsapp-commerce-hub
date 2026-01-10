@@ -73,51 +73,51 @@ if ( ! $bool_fail && $bool_pass && ! $int_fail && $int_pass ) {
 // Check all required sections exist.
 echo "\n5. All required sections and keys exist:\n";
 $required_sections = [
-	'api' => array(
+	'api' => [
 		'whatsapp_phone_number_id',
 		'whatsapp_business_account_id',
 		'access_token',
 		'webhook_verify_token',
 		'api_version',
-	),
-	'general' => array(
+	],
+	'general' => [
 		'enable_bot',
 		'business_name',
 		'welcome_message',
 		'fallback_message',
 		'operating_hours',
 		'timezone',
-	),
-	'catalog' => array(
+	],
+	'catalog' => [
 		'sync_enabled',
 		'sync_products',
 		'include_out_of_stock',
 		'price_format',
 		'currency_symbol',
-	),
-	'checkout' => array(
+	],
+	'checkout' => [
 		'enabled_payment_methods',
 		'cod_enabled',
 		'cod_extra_charge',
 		'min_order_amount',
 		'max_order_amount',
 		'require_phone_verification',
-	),
-	'notifications' => array(
+	],
+	'notifications' => [
 		'order_confirmation',
 		'order_status_updates',
 		'shipping_updates',
 		'abandoned_cart_reminder',
 		'abandoned_cart_delay_hours',
-	),
-	'ai' => array(
+	],
+	'ai' => [
 		'enable_ai',
 		'openai_api_key',
 		'ai_model',
 		'ai_temperature',
 		'ai_max_tokens',
 		'ai_system_prompt',
-	),
+	],
 ];
 
 $section_pass = true;

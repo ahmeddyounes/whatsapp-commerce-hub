@@ -120,9 +120,9 @@ class WCH_Payment_Test extends WCH_Integration_Test_Case {
 			[
 				'response' => [ 'code' => 402 ],
 				'body' => wp_json_encode( [
-					'error' => array(
+					'error' => [
 						'message' => 'Card declined',
-					),
+					],
 				] ),
 			]
 		);
@@ -179,13 +179,13 @@ class WCH_Payment_Test extends WCH_Integration_Test_Case {
 		$webhook_data = [
 			'type' => 'payment_intent.succeeded',
 			'data' => [
-				'object' => array(
+				'object' => [
 					'id' => 'pi_test123',
 					'status' => 'succeeded',
 					'metadata' => array(
 						'order_id' => $order->get_id(),
 					),
-				),
+				],
 			],
 		];
 

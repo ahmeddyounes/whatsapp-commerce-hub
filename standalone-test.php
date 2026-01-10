@@ -64,8 +64,8 @@ if ( strpos( $settings_content, 'class WCH_Settings' ) !== false ) {
 // Test 4: Check required methods exist.
 echo "\n4. Checking required methods:\n";
 $required_methods = [
-	'WCH_Settings'   => array( 'get', 'set', 'get_all', 'delete', 'get_section' ),
-	'WCH_Encryption' => array( 'encrypt', 'decrypt' ),
+	'WCH_Settings'   => [ 'get', 'set', 'get_all', 'delete', 'get_section' ],
+	'WCH_Encryption' => [ 'encrypt', 'decrypt' ],
 ];
 
 foreach ( $required_methods as $class => $methods ) {

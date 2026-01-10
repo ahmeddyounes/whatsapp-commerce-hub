@@ -20,30 +20,30 @@ echo blue( "╚═════════════════════�
 
 $results = [];
 $classes = [
-'Cart' => array(
+'Cart' => [
 'Cart'          => 'WhatsAppCommerceHub\Domain\Cart\Cart',
 'CartException' => 'WhatsAppCommerceHub\Domain\Cart\CartException',
 'CartService'   => 'WhatsAppCommerceHub\Domain\Cart\CartService',
-),
-'Catalog' => array(
+],
+'Catalog' => [
 'ProductSyncService' => 'WhatsAppCommerceHub\Application\Services\ProductSyncService',
 'CatalogBrowser'     => 'WhatsAppCommerceHub\Domain\Catalog\CatalogBrowser',
-),
-'Order' => array(
+],
+'Order' => [
 'OrderSyncService' => 'WhatsAppCommerceHub\Application\Services\OrderSyncService',
-),
-'Customer' => array(
+],
+'Customer' => [
 'Customer'        => 'WhatsAppCommerceHub\Domain\Customer\Customer',
 'CustomerService' => 'WhatsAppCommerceHub\Domain\Customer\CustomerService',
 'CustomerProfile' => 'WhatsAppCommerceHub\Domain\Customer\CustomerProfile',
-),
-'Conversation' => array(
+],
+'Conversation' => [
 'Conversation'     => 'WhatsAppCommerceHub\Domain\Conversation\Conversation',
 'Intent'           => 'WhatsAppCommerceHub\Domain\Conversation\Intent',
 'Context'          => 'WhatsAppCommerceHub\Domain\Conversation\Context',
 'StateMachine'     => 'WhatsAppCommerceHub\Domain\Conversation\StateMachine',
 'IntentClassifier' => 'WhatsAppCommerceHub\Support\AI\IntentClassifier',
-),
+],
 ];
 
 $totalClasses = 0;
