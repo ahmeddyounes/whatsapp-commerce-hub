@@ -54,7 +54,7 @@ class HttpClient implements HttpClientInterface {
 	 *
 	 * @var array
 	 */
-	private array $default_headers = array();
+	private array $default_headers = [];
 
 	/**
 	 * SSL verification flag.
@@ -68,7 +68,7 @@ class HttpClient implements HttpClientInterface {
 	 *
 	 * @var array
 	 */
-	private array $request_history = array();
+	private array $request_history = [];
 
 	/**
 	 * Maximum history size.
@@ -107,7 +107,7 @@ class HttpClient implements HttpClientInterface {
 	 * @return array{status_code: int, headers: array, body: string}
 	 * @throws \RuntimeException If request fails after retries.
 	 */
-	public function get( string $url, array $headers = array(), array $options = array() ): array {
+	public function get( string $url, array $headers = [], array $options = [] ): array {
 		return $this->request( 'GET', $url, null, $headers, $options );
 	}
 
@@ -121,7 +121,7 @@ class HttpClient implements HttpClientInterface {
 	 * @return array{status_code: int, headers: array, body: string}
 	 * @throws \RuntimeException If request fails after retries.
 	 */
-	public function post( string $url, $body = array(), array $headers = array(), array $options = array() ): array {
+	public function post( string $url, $body = [], array $headers = [], array $options = [] ): array {
 		return $this->request( 'POST', $url, $body, $headers, $options );
 	}
 
@@ -135,7 +135,7 @@ class HttpClient implements HttpClientInterface {
 	 * @return array{status_code: int, headers: array, body: string}
 	 * @throws \RuntimeException If request fails after retries.
 	 */
-	public function put( string $url, $body = array(), array $headers = array(), array $options = array() ): array {
+	public function put( string $url, $body = [], array $headers = [], array $options = [] ): array {
 		return $this->request( 'PUT', $url, $body, $headers, $options );
 	}
 
@@ -149,7 +149,7 @@ class HttpClient implements HttpClientInterface {
 	 * @return array{status_code: int, headers: array, body: string}
 	 * @throws \RuntimeException If request fails after retries.
 	 */
-	public function patch( string $url, $body = array(), array $headers = array(), array $options = array() ): array {
+	public function patch( string $url, $body = [], array $headers = [], array $options = [] ): array {
 		return $this->request( 'PATCH', $url, $body, $headers, $options );
 	}
 
@@ -162,7 +162,7 @@ class HttpClient implements HttpClientInterface {
 	 * @return array{status_code: int, headers: array, body: string}
 	 * @throws \RuntimeException If request fails after retries.
 	 */
-	public function delete( string $url, array $headers = array(), array $options = array() ): array {
+	public function delete( string $url, array $headers = [], array $options = [] ): array {
 		return $this->request( 'DELETE', $url, null, $headers, $options );
 	}
 
@@ -181,8 +181,8 @@ class HttpClient implements HttpClientInterface {
 		string $method,
 		string $url,
 		$body = null,
-		array $headers = array(),
-		array $options = array()
+		array $headers = [],
+		array $options = []
 	): array {
 		// Build full URL.
 		$full_url = $this->buildUrl( $url );
@@ -198,16 +198,16 @@ class HttpClient implements HttpClientInterface {
 		$merged_headers = array_merge( $this->default_headers, $headers );
 
 		// Build request args.
-		$args = array(
+		$args = [
 			'method'      => strtoupper( $method ),
 			'timeout'     => $options['timeout'] ?? $this->timeout,
 			'headers'     => $merged_headers,
 			'sslverify'   => $options['ssl_verify'] ?? $this->ssl_verify,
 			'redirection' => $options['redirection'] ?? 5,
-		);
+		];
 
 		// Add body for methods that support it.
-		if ( null !== $body && in_array( $method, array( 'POST', 'PUT', 'PATCH' ), true ) ) {
+		if ( null !== $body && in_array( $method, [ 'POST', 'PUT', 'PATCH' ], true ) ) {
 			$args['body'] = is_array( $body ) ? wp_json_encode( $body ) : $body;
 
 			// Auto-set content type for JSON.
@@ -241,11 +241,11 @@ class HttpClient implements HttpClientInterface {
 				}
 
 				// Build result.
-				$result = array(
+				$result = [
 					'status_code' => $status_code,
 					'headers'     => wp_remote_retrieve_headers( $response )->getAll(),
 					'body'        => wp_remote_retrieve_body( $response ),
-				);
+				];
 
 				// Record request info.
 				$duration_ms = (int) ( ( microtime( true ) - $start_time ) * 1000 );
@@ -305,10 +305,10 @@ class HttpClient implements HttpClientInterface {
 	 */
 	public function upload(
 		string $url,
-		array $fields = array(),
-		array $files = array(),
-		array $headers = array(),
-		array $options = array()
+		array $fields = [],
+		array $files = [],
+		array $headers = [],
+		array $options = []
 	): array {
 		$full_url = $this->buildUrl( $url );
 
@@ -353,13 +353,13 @@ class HttpClient implements HttpClientInterface {
 		$merged_headers['Content-Type'] = "multipart/form-data; boundary={$boundary}";
 
 		// Build request args.
-		$args = array(
+		$args = [
 			'method'    => 'POST',
 			'timeout'   => $options['timeout'] ?? max( $this->timeout, 120 ),
 			'headers'   => $merged_headers,
 			'body'      => $body,
 			'sslverify' => $options['ssl_verify'] ?? $this->ssl_verify,
-		);
+		];
 
 		$start_time = microtime( true );
 		$response   = wp_remote_request( $full_url, $args );
@@ -383,11 +383,11 @@ class HttpClient implements HttpClientInterface {
 			$this->circuit_breaker->recordSuccess( $this->service_name );
 		}
 
-		return array(
+		return [
 			'status_code' => $status_code,
 			'headers'     => wp_remote_retrieve_headers( $response )->getAll(),
 			'body'        => wp_remote_retrieve_body( $response ),
-		);
+		];
 	}
 
 	/**
@@ -468,7 +468,7 @@ class HttpClient implements HttpClientInterface {
 	 * Clear request history.
 	 */
 	public function clearHistory(): void {
-		$this->request_history = array();
+		$this->request_history = [];
 		$this->last_request    = null;
 	}
 
@@ -506,11 +506,11 @@ class HttpClient implements HttpClientInterface {
 			$average_latency = (int) ( $total_duration / count( $recent_requests ) );
 		}
 
-		return array(
+		return [
 			'healthy'            => 'open' !== $circuit_state,
 			'circuit_state'      => $circuit_state,
 			'average_latency_ms' => $average_latency,
-		);
+		];
 	}
 
 	/**
@@ -549,14 +549,14 @@ class HttpClient implements HttpClientInterface {
 		int $duration_ms,
 		bool $failed = false
 	): void {
-		$request_info = array(
+		$request_info = [
 			'url'         => $url,
 			'method'      => $method,
 			'status_code' => $status_code,
 			'duration_ms' => $duration_ms,
 			'failed'      => $failed,
 			'timestamp'   => time(),
-		);
+		];
 
 		$this->last_request      = $request_info;
 		$this->request_history[] = $request_info;
