@@ -1,4 +1,12 @@
 <?php
+/**
+ * Inventory Sync Service
+ *
+ * Handles real-time inventory synchronization between WooCommerce and WhatsApp Catalog.
+ *
+ * @package WhatsApp_Commerce_Hub
+ * @since 3.0.0
+ */
 
 declare(strict_types=1);
 
@@ -10,12 +18,10 @@ use WC_Product;
 use WC_Product_Variation;
 
 /**
- * Inventory Sync Service
+ * Class InventorySyncService
  *
  * Handles real-time inventory synchronization between WooCommerce and WhatsApp Catalog
  * with debouncing and discrepancy detection.
- *
- * @package WhatsAppCommerceHub\Application\Services
  */
 class InventorySyncService {
 

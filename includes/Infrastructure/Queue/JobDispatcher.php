@@ -1,4 +1,12 @@
 <?php
+/**
+ * Job Dispatcher
+ *
+ * Dispatches and manages background jobs.
+ *
+ * @package WhatsApp_Commerce_Hub
+ * @since 3.0.0
+ */
 
 declare(strict_types=1);
 
@@ -7,11 +15,9 @@ namespace WhatsAppCommerceHub\Infrastructure\Queue;
 use WhatsAppCommerceHub\Core\Logger;
 
 /**
- * Job Dispatcher
+ * Class JobDispatcher
  *
  * Dispatches and manages background jobs using Action Scheduler.
- *
- * @package WhatsAppCommerceHub\Infrastructure\Queue
  */
 class JobDispatcher {
 

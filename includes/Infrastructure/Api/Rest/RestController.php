@@ -1,4 +1,12 @@
 <?php
+/**
+ * REST Controller Base Class
+ *
+ * Base class for all REST API controllers.
+ *
+ * @package WhatsApp_Commerce_Hub
+ * @since 3.0.0
+ */
 
 declare(strict_types=1);
 

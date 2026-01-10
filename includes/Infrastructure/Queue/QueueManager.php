@@ -1,4 +1,12 @@
 <?php
+/**
+ * Queue Manager
+ *
+ * Manages async job processing using Action Scheduler.
+ *
+ * @package WhatsApp_Commerce_Hub
+ * @since 3.0.0
+ */
 
 declare(strict_types=1);
 
@@ -7,11 +15,9 @@ namespace WhatsAppCommerceHub\Infrastructure\Queue;
 use WhatsAppCommerceHub\Core\Logger;
 
 /**
- * Queue Manager
+ * Class QueueManager
  *
  * Manages async job processing using Action Scheduler bundled with WooCommerce.
- *
- * @package WhatsAppCommerceHub\Infrastructure\Queue
  */
 class QueueManager {
 

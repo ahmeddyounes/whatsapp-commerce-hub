@@ -1,4 +1,12 @@
 <?php
+/**
+ * REST API Manager
+ *
+ * Manages REST API initialization and route registration.
+ *
+ * @package WhatsApp_Commerce_Hub
+ * @since 3.0.0
+ */
 
 declare(strict_types=1);
 
@@ -7,11 +15,9 @@ namespace WhatsAppCommerceHub\Infrastructure\Api\Rest;
 use WP_REST_Server;
 
 /**
- * REST API Manager
+ * Class RestApi
  *
  * Manages REST API initialization and route registration for WhatsApp Commerce Hub.
- *
- * @package WhatsAppCommerceHub\Infrastructure\Api\Rest
  */
 class RestApi {
 

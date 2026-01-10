@@ -1,4 +1,12 @@
 <?php
+/**
+ * WhatsApp Webhook Controller
+ *
+ * Handles incoming WhatsApp webhook events with signature validation.
+ *
+ * @package WhatsApp_Commerce_Hub
+ * @since 3.0.0
+ */
 
 declare(strict_types=1);
 
@@ -13,12 +21,10 @@ use WP_REST_Server;
 use WP_Error;
 
 /**
- * WhatsApp Webhook Controller
+ * Class WebhookController
  *
  * Handles incoming WhatsApp webhook events with signature validation,
  * idempotency, and async processing.
- *
- * @package WhatsAppCommerceHub\Infrastructure\Api\Rest\Controllers
  */
 class WebhookController extends RestController {
 

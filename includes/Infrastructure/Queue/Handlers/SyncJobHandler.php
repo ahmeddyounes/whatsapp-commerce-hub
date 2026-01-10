@@ -1,4 +1,12 @@
 <?php
+/**
+ * Sync Job Handler
+ *
+ * Handles product/order sync jobs with retry logic.
+ *
+ * @package WhatsApp_Commerce_Hub
+ * @since 3.0.0
+ */
 
 declare(strict_types=1);
 
@@ -8,11 +16,9 @@ use WhatsAppCommerceHub\Core\Logger;
 use WhatsAppCommerceHub\Infrastructure\Queue\JobDispatcher;
 
 /**
- * Sync Job Handler
+ * Class SyncJobHandler
  *
  * Handles product/order sync jobs with retry logic and exponential backoff.
- *
- * @package WhatsAppCommerceHub\Infrastructure\Queue\Handlers
  */
 class SyncJobHandler {
 
