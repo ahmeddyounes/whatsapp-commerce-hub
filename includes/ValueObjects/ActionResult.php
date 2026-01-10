@@ -26,48 +26,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 class ActionResult {
 
 	/**
-	 * Whether the action executed successfully.
-	 *
-	 * @var bool
-	 */
-	protected bool $success;
-
-	/**
-	 * Array of message builders to send to the customer.
-	 *
-	 * @var array
-	 */
-	protected array $messages;
-
-	/**
-	 * Optional state override - if set, FSM will transition to this state.
-	 *
-	 * @var string|null
-	 */
-	protected ?string $nextState;
-
-	/**
-	 * Updated context data to merge into conversation context.
-	 *
-	 * @var array<string, mixed>
-	 */
-	protected array $contextUpdates;
-
-	/**
-	 * Error message if action failed.
-	 *
-	 * @var string|null
-	 */
-	protected ?string $errorMessage;
-
-	/**
-	 * Error code if action failed.
-	 *
-	 * @var string|null
-	 */
-	protected ?string $errorCode;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param bool        $success        Whether the action succeeded.
@@ -78,19 +36,13 @@ class ActionResult {
 	 * @param string|null $errorCode      Error code.
 	 */
 	public function __construct(
-		bool $success = true,
-		array $messages = array(),
-		?string $nextState = null,
-		array $contextUpdates = array(),
-		?string $errorMessage = null,
-		?string $errorCode = null
+		protected bool $success = true,
+		protected array $messages = array(),
+		protected ?string $nextState = null,
+		protected array $contextUpdates = array(),
+		protected ?string $errorMessage = null,
+		protected ?string $errorCode = null
 	) {
-		$this->success        = $success;
-		$this->messages       = $messages;
-		$this->nextState      = $nextState;
-		$this->contextUpdates = $contextUpdates;
-		$this->errorMessage   = $errorMessage;
-		$this->errorCode      = $errorCode;
 	}
 
 	/**
