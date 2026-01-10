@@ -76,6 +76,11 @@
 		<severity>0</severity>
 	</rule>
 
+	<!-- Disable short prefix warning - wch/WCH is the established project prefix -->
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals.ShortPrefixPassed">
+		<severity>0</severity>
+	</rule>
+
 	<!-- Disable SQL interpolation warnings - table names use safe $wpdb->prefix -->
 	<rule ref="WordPress.DB.PreparedSQL.NotPrepared">
 		<severity>0</severity>
