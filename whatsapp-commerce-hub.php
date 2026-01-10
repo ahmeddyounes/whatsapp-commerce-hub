@@ -60,6 +60,40 @@ function wch_psr4_autoloader( $class_name ) {
 spl_autoload_register( 'wch_psr4_autoloader' );
 
 /**
+ * Legacy Autoloader for WCH_ prefixed classes.
+ *
+ * Maps old WCH_ class names to new PSR-4 namespaced classes
+ * using class_alias for backwards compatibility.
+ *
+ * @since 3.0.0
+ * @param string $class_name The class name to autoload.
+ * @return void
+ */
+function wch_legacy_autoloader( $class_name ) {
+	// Only handle WCH_ prefixed classes.
+	if ( strpos( $class_name, 'WCH_' ) !== 0 ) {
+		return;
+	}
+
+	// Get the mapping from LegacyClassMapper.
+	$mapping = \WhatsAppCommerceHub\Core\LegacyClassMapper::getMapping();
+
+	if ( isset( $mapping[ $class_name ] ) ) {
+		$new_class = $mapping[ $class_name ];
+
+		// Ensure the new class is loaded.
+		if ( ! class_exists( $new_class, true ) ) {
+			return;
+		}
+
+		// Create an alias from the old name to the new class.
+		class_alias( $new_class, $class_name );
+	}
+}
+
+spl_autoload_register( 'wch_legacy_autoloader' );
+
+/**
  * Get the DI container instance.
  *
  * Initializes the container on first call and registers all service providers.

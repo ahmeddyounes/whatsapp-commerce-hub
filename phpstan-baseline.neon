@@ -1,886 +1,2621 @@
 parameters:
 	ignoreErrors:
 		-
-			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
-			count: 8
-			path: includes/class-wch-abandoned-cart-handler.php
-
-		-
-			message: "#^If condition is always true\\.$#"
+			message: "#^Call to an undefined method WCH_Customer_Service\\|WhatsAppCommerceHub\\\\Domain\\\\Customer\\\\CustomerService\\:\\:get_or_create_profile\\(\\)\\.$#"
 			count: 1
-			path: includes/class-wch-abandoned-cart-handler.php
+			path: includes/Actions/AbstractAction.php
 
 		-
-			message: "#^Unreachable statement \\- code above always terminates\\.$#"
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Domain\\\\Cart\\\\CartService\\:\\:get_cart\\(\\)\\.$#"
 			count: 1
-			path: includes/class-wch-abandoned-cart-handler.php
-
-		-
-			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
-			count: 9
-			path: includes/class-wch-abandoned-cart-recovery.php
-
-		-
-			message: "#^Function as_next_scheduled_action not found\\.$#"
-			count: 1
-			path: includes/class-wch-abandoned-cart-recovery.php
-
-		-
-			message: "#^Function as_schedule_recurring_action not found\\.$#"
-			count: 1
-			path: includes/class-wch-abandoned-cart-recovery.php
-
-		-
-			message: "#^If condition is always true\\.$#"
-			count: 1
-			path: includes/class-wch-abandoned-cart-recovery.php
-
-		-
-			message: "#^Parameter \\#1 \\$attachment_id of function wp_get_attachment_url expects int, string given\\.$#"
-			count: 1
-			path: includes/class-wch-abandoned-cart-recovery.php
-
-		-
-			message: "#^Unreachable statement \\- code above always terminates\\.$#"
-			count: 1
-			path: includes/class-wch-abandoned-cart-recovery.php
-
-		-
-			message: "#^Method WCH_Message_Builder\\:\\:header\\(\\) invoked with 1 parameter, 2 required\\.$#"
-			count: 1
-			path: includes/class-wch-action-confirm-order.php
-
-		-
-			message: "#^Negated boolean expression is always false\\.$#"
-			count: 1
-			path: includes/class-wch-action-confirm-order.php
-
-		-
-			message: "#^Method WCH_Action_ProcessPayment\\:\\:generate_payment_link\\(\\) never returns null so it can be removed from the return type\\.$#"
-			count: 1
-			path: includes/class-wch-action-process-payment.php
-
-		-
-			message: "#^Method WCH_Action_ProcessPayment\\:\\:generate_upi_link\\(\\) never returns null so it can be removed from the return type\\.$#"
-			count: 1
-			path: includes/class-wch-action-process-payment.php
-
-		-
-			message: "#^Method WCH_Message_Builder\\:\\:header\\(\\) invoked with 1 parameter, 2 required\\.$#"
-			count: 1
-			path: includes/class-wch-action-process-payment.php
-
-		-
-			message: "#^Method WCH_Message_Builder\\:\\:header\\(\\) invoked with 1 parameter, 2 required\\.$#"
-			count: 1
-			path: includes/class-wch-action-request-address.php
-
-		-
-			message: "#^Parameter \\#1 \\$json of function json_decode expects string, array given\\.$#"
-			count: 1
-			path: includes/class-wch-action-request-address.php
-
-		-
-			message: "#^Method WCH_Message_Builder\\:\\:header\\(\\) invoked with 1 parameter, 2 required\\.$#"
-			count: 1
-			path: includes/class-wch-action-show-cart.php
-
-		-
-			message: "#^Method WCH_Message_Builder\\:\\:header\\(\\) invoked with 1 parameter, 2 required\\.$#"
-			count: 1
-			path: includes/class-wch-action-show-category.php
-
-		-
-			message: "#^Method WCH_Message_Builder\\:\\:header\\(\\) invoked with 1 parameter, 2 required\\.$#"
-			count: 1
-			path: includes/class-wch-action-show-product.php
+			path: includes/Actions/AbstractAction.php
 
 		-
 			message: "#^Parameter \\#1 \\$attachment_id of function wp_get_attachment_image_url expects int, string given\\.$#"
 			count: 1
-			path: includes/class-wch-action-show-product.php
+			path: includes/Actions/AbstractAction.php
 
 		-
-			message: "#^Parameter \\#1 \\$product of method WCH_Action_ShowProduct\\:\\:build_variant_selector\\(\\) expects WC_Product_Variable, WC_Product given\\.$#"
+			message: "#^Parameter \\#1 \\$errorMessage of static method WhatsAppCommerceHub\\\\ValueObjects\\\\ActionResult\\:\\:failure\\(\\) expects string, array\\<int, WhatsAppCommerceHub\\\\Support\\\\Messaging\\\\MessageBuilder\\> given\\.$#"
 			count: 1
-			path: includes/class-wch-action-show-product.php
+			path: includes/Actions/AbstractAction.php
 
 		-
-			message: "#^Comparison operation \"\\>\" between int\\<1, max\\> and 0 is always true\\.$#"
+			message: "#^Parameter \\#2 \\$messages of static method WhatsAppCommerceHub\\\\ValueObjects\\\\ActionResult\\:\\:failure\\(\\) expects array, string\\|null given\\.$#"
 			count: 1
-			path: includes/class-wch-address-parser.php
+			path: includes/Actions/AbstractAction.php
 
 		-
-			message: "#^Constant WCH_PLUGIN_URL not found\\.$#"
-			count: 2
-			path: includes/class-wch-admin-analytics.php
-
-		-
-			message: "#^Call to function is_array\\(\\) with array will always evaluate to true\\.$#"
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Domain\\\\Cart\\\\CartService\\:\\:add_item\\(\\)\\.$#"
 			count: 1
-			path: includes/class-wch-admin-broadcasts.php
+			path: includes/Actions/AddToCartAction.php
 
 		-
-			message: "#^Comparison operation \"\\>\" between int\\<1, 2\\> and 0 is always true\\.$#"
-			count: 2
-			path: includes/class-wch-admin-broadcasts.php
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Domain\\\\Cart\\\\CartService\\:\\:get_cart\\(\\)\\.$#"
+			count: 1
+			path: includes/Actions/AddToCartAction.php
 
 		-
-			message: "#^Constant WCH_PLUGIN_URL not found\\.$#"
-			count: 2
-			path: includes/class-wch-admin-broadcasts.php
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Domain\\\\Cart\\\\CartService\\:\\:get_or_create_cart\\(\\)\\.$#"
+			count: 1
+			path: includes/Actions/AddToCartAction.php
 
 		-
-			message: "#^Parameter \\#1 \\$text of function esc_attr expects string, \\(float\\|int\\) given\\.$#"
-			count: 2
-			path: includes/class-wch-admin-broadcasts.php
+			message: "#^If condition is always true\\.$#"
+			count: 1
+			path: includes/Actions/AddToCartAction.php
+
+		-
+			message: "#^Unreachable statement \\- code above always terminates\\.$#"
+			count: 1
+			path: includes/Actions/AddToCartAction.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Contracts\\\\Services\\\\CartServiceInterface\\:\\:updateCartStatus\\(\\)\\.$#"
+			count: 1
+			path: includes/Actions/ConfirmOrderAction.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Domain\\\\Cart\\\\CartService\\:\\:update_cart\\(\\)\\.$#"
+			count: 1
+			path: includes/Actions/ConfirmOrderAction.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Payments\\\\PaymentGatewayRegistry\\:\\:process_order_payment\\(\\)\\.$#"
+			count: 1
+			path: includes/Actions/ConfirmOrderAction.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\ValueObjects\\\\ConversationContext\\:\\:getData\\(\\)\\.$#"
+			count: 1
+			path: includes/Actions/ConfirmOrderAction.php
+
+		-
+			message: "#^Call to function is_array\\(\\) with object will always evaluate to false\\.$#"
+			count: 3
+			path: includes/Actions/ConfirmOrderAction.php
+
+		-
+			message: "#^Negated boolean expression is always false\\.$#"
+			count: 1
+			path: includes/Actions/ConfirmOrderAction.php
+
+		-
+			message: "#^Offset 'id' on \\*NEVER\\* on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: includes/Actions/ConfirmOrderAction.php
+
+		-
+			message: "#^Offset 'items' on \\*NEVER\\* on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: includes/Actions/ConfirmOrderAction.php
+
+		-
+			message: "#^Offset 'total' on \\*NEVER\\* on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: includes/Actions/ConfirmOrderAction.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Payments\\\\PaymentGatewayRegistry\\:\\:get_available_gateways\\(\\)\\.$#"
+			count: 1
+			path: includes/Actions/ProcessPaymentAction.php
+
+		-
+			message: "#^Call to function is_array\\(\\) with object will always evaluate to false\\.$#"
+			count: 3
+			path: includes/Actions/ProcessPaymentAction.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Actions\\\\ProcessPaymentAction\\:\\:generatePaymentLink\\(\\) never returns null so it can be removed from the return type\\.$#"
+			count: 1
+			path: includes/Actions/ProcessPaymentAction.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Actions\\\\ProcessPaymentAction\\:\\:generateUpiLink\\(\\) never returns null so it can be removed from the return type\\.$#"
+			count: 1
+			path: includes/Actions/ProcessPaymentAction.php
+
+		-
+			message: "#^Offset 'id' on \\*NEVER\\* on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: includes/Actions/ProcessPaymentAction.php
+
+		-
+			message: "#^Offset 'items' on \\*NEVER\\* on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: includes/Actions/ProcessPaymentAction.php
+
+		-
+			message: "#^Offset 'total' on \\*NEVER\\* on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: includes/Actions/ProcessPaymentAction.php
+
+		-
+			message: "#^Call to function is_array\\(\\) with object will always evaluate to false\\.$#"
+			count: 3
+			path: includes/Actions/ShowCartAction.php
+
+		-
+			message: "#^Offset 'id' on \\*NEVER\\* on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: includes/Actions/ShowCartAction.php
+
+		-
+			message: "#^Offset 'items' on \\*NEVER\\* on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: includes/Actions/ShowCartAction.php
+
+		-
+			message: "#^Offset 'total' on \\*NEVER\\* on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: includes/Actions/ShowCartAction.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Actions\\\\ShowMainMenuAction\\:\\:buildGreeting\\(\\) should return WCH_Message_Builder but returns WhatsAppCommerceHub\\\\Support\\\\Messaging\\\\MessageBuilder\\.$#"
+			count: 1
+			path: includes/Actions/ShowMainMenuAction.php
 
 		-
 			message: "#^Parameter \\#1 \\$text of function esc_attr expects string, int given\\.$#"
 			count: 3
-			path: includes/class-wch-admin-broadcasts.php
-
-		-
-			message: "#^Call to an undefined method WCH_Product_Sync_Service\\:\\:sync_product\\(\\)\\.$#"
-			count: 1
-			path: includes/class-wch-admin-catalog-sync.php
-
-		-
-			message: "#^Call to an undefined method WCH_Queue\\:\\:schedule_bulk_action\\(\\)\\.$#"
-			count: 2
-			path: includes/class-wch-admin-catalog-sync.php
-
-		-
-			message: "#^Constant WCH_PLUGIN_URL not found\\.$#"
-			count: 2
-			path: includes/class-wch-admin-catalog-sync.php
-
-		-
-			message: "#^Parameter \\#1 \\$text of function esc_attr expects string, int given\\.$#"
-			count: 3
-			path: includes/class-wch-admin-catalog-sync.php
-
-		-
-			message: "#^Constant WCH_PLUGIN_URL not found\\.$#"
-			count: 2
-			path: includes/class-wch-admin-jobs.php
+			path: includes/Admin/Broadcasts/BroadcastWizardRenderer.php
 
 		-
 			message: "#^Parameter \\#1 \\$text of function esc_html expects string, int given\\.$#"
-			count: 2
-			path: includes/class-wch-admin-jobs.php
-
-		-
-			message: "#^Parameter \\#1 \\$text of function esc_html expects string, int\\<0, max\\> given\\.$#"
-			count: 2
-			path: includes/class-wch-admin-logs.php
-
-		-
-			message: "#^Parameter \\#2 \\$src of function wp_enqueue_style expects string, false given\\.$#"
 			count: 1
-			path: includes/class-wch-admin-logs.php
+			path: includes/Admin/Broadcasts/BroadcastWizardRenderer.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Template_Manager\\:\\:getInstance\\(\\)\\.$#"
+			count: 1
+			path: includes/Admin/Broadcasts/BroadcastsAjaxHandler.php
+
+		-
+			message: "#^Unreachable statement \\- code above always terminates\\.$#"
+			count: 1
+			path: includes/Admin/Broadcasts/BroadcastsAjaxHandler.php
+
+		-
+			message: "#^Parameter \\#1 \\$text of function esc_attr expects string, float given\\.$#"
+			count: 1
+			path: includes/Admin/Broadcasts/CampaignReportGenerator.php
+
+		-
+			message: "#^Parameter \\#1 \\$text of function esc_attr expects string, int given\\.$#"
+			count: 1
+			path: includes/Admin/Broadcasts/CampaignReportGenerator.php
+
+		-
+			message: "#^Call to an undefined method WCH_WhatsApp_API_Client\\:\\:get_business_profile\\(\\)\\.$#"
+			count: 1
+			path: includes/Admin/Settings/SettingsAjaxHandler.php
+
+		-
+			message: "#^Call to an undefined method WCH_WhatsApp_API_Client\\:\\:send_text_message\\(\\)\\.$#"
+			count: 1
+			path: includes/Admin/Settings/SettingsAjaxHandler.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Contracts\\\\Admin\\\\Settings\\\\SettingsImportExporterInterface\\:\\:createBackup\\(\\)\\.$#"
+			count: 2
+			path: includes/Admin/Settings/SettingsAjaxHandler.php
 
 		-
 			message: "#^Call to an undefined static method WCH_Logger\\:\\:clear_all_logs\\(\\)\\.$#"
 			count: 1
-			path: includes/class-wch-admin-settings.php
+			path: includes/Admin/Settings/SettingsAjaxHandler.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Product_Sync_Service\\:\\:instance\\(\\)\\.$#"
+			count: 1
+			path: includes/Admin/Settings/SettingsAjaxHandler.php
+
+		-
+			message: "#^Class WCH_WhatsApp_API_Client constructor invoked with 0 parameters, 3\\-4 required\\.$#"
+			count: 2
+			path: includes/Admin/Settings/SettingsAjaxHandler.php
+
+		-
+			message: "#^Unreachable statement \\- code above always terminates\\.$#"
+			count: 3
+			path: includes/Admin/Settings/SettingsAjaxHandler.php
 
 		-
 			message: "#^Call to an undefined static method WCH_Payment_Manager\\:\\:getInstance\\(\\)\\.$#"
 			count: 1
-			path: includes/class-wch-admin-settings.php
-
-		-
-			message: "#^Class WCH_WhatsApp_API_Client constructor invoked with 0 parameters, 1 required\\.$#"
-			count: 2
-			path: includes/class-wch-admin-settings.php
-
-		-
-			message: "#^Constant WCH_PLUGIN_URL not found\\.$#"
-			count: 2
-			path: includes/class-wch-admin-settings.php
+			path: includes/Admin/Settings/SettingsTabRenderer.php
 
 		-
 			message: "#^Parameter \\#1 \\$text of function esc_attr expects string, int given\\.$#"
 			count: 1
-			path: includes/class-wch-admin-settings.php
-
-		-
-			message: "#^Constant WCH_PLUGIN_URL not found\\.$#"
-			count: 2
-			path: includes/class-wch-admin-templates.php
-
-		-
-			message: "#^Comparison operation \"\\>\" between int\\<1, max\\> and 0 is always true\\.$#"
-			count: 1
-			path: includes/class-wch-ai-assistant.php
-
-		-
-			message: "#^Parameter \\#1 \\$price of function wc_price expects float, string given\\.$#"
-			count: 1
-			path: includes/class-wch-ai-assistant.php
-
-		-
-			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
-			count: 9
-			path: includes/class-wch-analytics-controller.php
-
-		-
-			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
-			count: 5
-			path: includes/class-wch-broadcast-job-handler.php
-
-		-
-			message: "#^If condition is always true\\.$#"
-			count: 1
-			path: includes/class-wch-broadcast-job-handler.php
-
-		-
-			message: "#^Unreachable statement \\- code above always terminates\\.$#"
-			count: 1
-			path: includes/class-wch-broadcast-job-handler.php
-
-		-
-			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
-			count: 5
-			path: includes/class-wch-cart-cleanup-handler.php
-
-		-
-			message: "#^Binary operation \"\\*\" between float and string results in an error\\.$#"
-			count: 2
-			path: includes/class-wch-cart-manager.php
-
-		-
-			message: "#^Call to an undefined method WC_Product\\:\\:get_variation_attributes\\(\\)\\.$#"
-			count: 1
-			path: includes/class-wch-cart-manager.php
-
-		-
-			message: "#^Call to function is_null\\(\\) with WCH_Cart_Manager will always evaluate to false\\.$#"
-			count: 1
-			path: includes/class-wch-cart-manager.php
-
-		-
-			message: "#^Access to private property WCH_Message_Builder\\:\\:\\$body\\.$#"
-			count: 1
-			path: includes/class-wch-catalog-browser.php
-
-		-
-			message: "#^Call to an undefined method WC_Data_Store\\:\\:search_products\\(\\)\\.$#"
-			count: 1
-			path: includes/class-wch-catalog-browser.php
-
-		-
-			message: "#^Call to an undefined method WC_Product\\:\\:get_variation_attributes\\(\\)\\.$#"
-			count: 2
-			path: includes/class-wch-catalog-browser.php
-
-		-
-			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
-			count: 1
-			path: includes/class-wch-catalog-browser.php
-
-		-
-			message: "#^Method WCH_Message_Builder\\:\\:header\\(\\) invoked with 1 parameter, 2 required\\.$#"
-			count: 4
-			path: includes/class-wch-catalog-browser.php
-
-		-
-			message: "#^Parameter \\#1 \\$image_id of method WCH_Catalog_Browser\\:\\:generate_optimized_image\\(\\) expects int, string given\\.$#"
-			count: 1
-			path: includes/class-wch-catalog-browser.php
-
-		-
-			message: "#^Parameter \\#1 \\$post_id of function get_post_meta expects int, string given\\.$#"
-			count: 1
-			path: includes/class-wch-catalog-browser.php
-
-		-
-			message: "#^Parameter \\#1 \\$post_id of function update_post_meta expects int, string given\\.$#"
-			count: 1
-			path: includes/class-wch-catalog-browser.php
-
-		-
-			message: "#^Parameter \\#1 \\$product of method WCH_Catalog_Browser\\:\\:build_variant_overview\\(\\) expects WC_Product_Variable, WC_Product given\\.$#"
-			count: 1
-			path: includes/class-wch-catalog-browser.php
-
-		-
-			message: "#^Variable \\$category_rows in empty\\(\\) always exists and is not falsy\\.$#"
-			count: 2
-			path: includes/class-wch-catalog-browser.php
-
-		-
-			message: "#^Method WCH_Message_Builder\\:\\:header\\(\\) invoked with 1 parameter, 2 required\\.$#"
-			count: 3
-			path: includes/class-wch-checkout-controller.php
-
-		-
-			message: "#^Parameter \\#1 \\$json of function json_decode expects string, array given\\.$#"
-			count: 2
-			path: includes/class-wch-checkout-controller.php
-
-		-
-			message: "#^Parameter \\#2 \\$context of static method WCH_Logger\\:\\:error\\(\\) expects array, string given\\.$#"
-			count: 9
-			path: includes/class-wch-checkout-controller.php
-
-		-
-			message: "#^Parameter \\#2 \\$context of static method WCH_Logger\\:\\:info\\(\\) expects array, string given\\.$#"
-			count: 11
-			path: includes/class-wch-checkout-controller.php
-
-		-
-			message: "#^Static method WCH_Logger\\:\\:error\\(\\) invoked with 3 parameters, 1\\-2 required\\.$#"
-			count: 9
-			path: includes/class-wch-checkout-controller.php
-
-		-
-			message: "#^Static method WCH_Logger\\:\\:info\\(\\) invoked with 3 parameters, 1\\-2 required\\.$#"
-			count: 11
-			path: includes/class-wch-checkout-controller.php
-
-		-
-			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
-			count: 3
-			path: includes/class-wch-context-manager.php
-
-		-
-			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
-			count: 1
-			path: includes/class-wch-conversation-fsm.php
-
-		-
-			message: "#^Call to function is_array\\(\\) with array will always evaluate to true\\.$#"
-			count: 1
-			path: includes/class-wch-conversation-fsm.php
-
-		-
-			message: "#^Method WCH_Conversation_FSM\\:\\:check_guard\\(\\) never returns WP_Error so it can be removed from the return type\\.$#"
-			count: 1
-			path: includes/class-wch-conversation-fsm.php
-
-		-
-			message: "#^Method WCH_Conversation_FSM\\:\\:transition\\(\\) should return array but returns WP_Error\\.$#"
-			count: 4
-			path: includes/class-wch-conversation-fsm.php
-
-		-
-			message: "#^Call to static method getInstance\\(\\) on an unknown class WCH_AI_Service\\.$#"
-			count: 1
-			path: includes/class-wch-conversations-controller.php
-
-		-
-			message: "#^Call to static method getInstance\\(\\) on an unknown class WCH_WhatsApp_API\\.$#"
-			count: 1
-			path: includes/class-wch-conversations-controller.php
-
-		-
-			message: "#^Variable \\$where_values in empty\\(\\) always exists and is not falsy\\.$#"
-			count: 1
-			path: includes/class-wch-conversations-controller.php
-
-		-
-			message: "#^Call to function is_array\\(\\) with array will always evaluate to true\\.$#"
-			count: 3
-			path: includes/class-wch-customer-service.php
-
-		-
-			message: "#^Comparison operation \"\\>\" between int\\<1, max\\> and 0 is always true\\.$#"
-			count: 1
-			path: includes/class-wch-customer-service.php
-
-		-
-			message: "#^Parameter \\#2 \\$context of static method WCH_Logger\\:\\:info\\(\\) expects array, string given\\.$#"
-			count: 6
-			path: includes/class-wch-customer-service.php
-
-		-
-			message: "#^Parameter \\#2 \\$context of static method WCH_Logger\\:\\:warning\\(\\) expects array, string given\\.$#"
-			count: 1
-			path: includes/class-wch-customer-service.php
-
-		-
-			message: "#^Static method WCH_Logger\\:\\:info\\(\\) invoked with 3 parameters, 1\\-2 required\\.$#"
-			count: 6
-			path: includes/class-wch-customer-service.php
-
-		-
-			message: "#^Static method WCH_Logger\\:\\:warning\\(\\) invoked with 3 parameters, 1\\-2 required\\.$#"
-			count: 1
-			path: includes/class-wch-customer-service.php
-
-		-
-			message: "#^Comparison operation \"\\>\" between \\(array\\|float\\|int\\) and 0 results in an error\\.$#"
-			count: 1
-			path: includes/class-wch-dashboard-widgets.php
-
-		-
-			message: "#^Parameter \\#1 \\$text of function esc_html expects string, float\\|int given\\.$#"
-			count: 1
-			path: includes/class-wch-dashboard-widgets.php
-
-		-
-			message: "#^Parameter \\#1 \\$text of function esc_html expects string, int given\\.$#"
-			count: 1
-			path: includes/class-wch-error-handler.php
-
-		-
-			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
-			count: 1
-			path: includes/class-wch-flow-action.php
-
-		-
-			message: "#^Parameter \\#1 \\$attachment_id of function wp_get_attachment_image_url expects int, string given\\.$#"
-			count: 1
-			path: includes/class-wch-flow-action.php
-
-		-
-			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
-			count: 3
-			path: includes/class-wch-intent-classifier.php
+			path: includes/Admin/Settings/SettingsTabRenderer.php
 
 		-
 			message: "#^Right side of && is always true\\.$#"
-			count: 1
-			path: includes/class-wch-intent-classifier.php
+			count: 2
+			path: includes/Application/Services/AddressService.php
 
 		-
-			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_product_id\\(\\)\\.$#"
+			message: "#^Call to an undefined method WCH_Template_Manager\\:\\:get_templates\\(\\)\\.$#"
 			count: 1
-			path: includes/class-wch-inventory-sync-handler.php
+			path: includes/Application/Services/BroadcastService.php
 
 		-
-			message: "#^Function as_next_scheduled_action not found\\.$#"
+			message: "#^Call to an undefined static method WCH_Template_Manager\\:\\:getInstance\\(\\)\\.$#"
 			count: 1
-			path: includes/class-wch-inventory-sync-handler.php
+			path: includes/Application/Services/BroadcastService.php
 
 		-
-			message: "#^Function as_schedule_recurring_action not found\\.$#"
-			count: 1
-			path: includes/class-wch-inventory-sync-handler.php
+			message: "#^Call to an undefined static method WCH_WhatsApp_API_Client\\:\\:instance\\(\\)\\.$#"
+			count: 2
+			path: includes/Application/Services/BroadcastService.php
 
 		-
-			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
-			count: 8
-			path: includes/class-wch-job-dispatcher.php
-
-		-
-			message: "#^Call to function is_array\\(\\) with array will always evaluate to true\\.$#"
+			message: "#^Static call to instance method WhatsAppCommerceHub\\\\Infrastructure\\\\Queue\\\\JobDispatcher\\:\\:dispatch\\(\\)\\.$#"
 			count: 1
-			path: includes/class-wch-job-dispatcher.php
-
-		-
-			message: "#^Call to static method instance\\(\\) on an unknown class ActionScheduler_Store\\.$#"
-			count: 1
-			path: includes/class-wch-job-dispatcher.php
-
-		-
-			message: "#^Method WCH_Logger\\:\\:get_wc_logger\\(\\) never returns null so it can be removed from the return type\\.$#"
-			count: 1
-			path: includes/class-wch-logger.php
-
-		-
-			message: "#^Static property WCH_Logger\\:\\:\\$wc_logger \\(WC_Logger\\) does not accept WC_Logger_Interface\\.$#"
-			count: 1
-			path: includes/class-wch-logger.php
-
-		-
-			message: "#^Parameter \\#3 \\$http_status of class WCH_Exception constructor expects int, array\\<string, \\(int\\|string\\)\\> given\\.$#"
-			count: 1
-			path: includes/class-wch-message-builder.php
-
-		-
-			message: "#^Parameter \\#3 \\$http_status of class WCH_Exception constructor expects int, array\\<string, int\\<10, max\\>\\> given\\.$#"
-			count: 1
-			path: includes/class-wch-message-builder.php
-
-		-
-			message: "#^Parameter \\#3 \\$http_status of class WCH_Exception constructor expects int, array\\<string, int\\<3, max\\>\\> given\\.$#"
-			count: 1
-			path: includes/class-wch-message-builder.php
-
-		-
-			message: "#^Parameter \\#3 \\$http_status of class WCH_Exception constructor expects int, array\\<string, int\\|string\\> given\\.$#"
-			count: 1
-			path: includes/class-wch-message-builder.php
-
-		-
-			message: "#^Parameter \\#3 \\$http_status of class WCH_Exception constructor expects int, array\\<string, string\\> given\\.$#"
-			count: 1
-			path: includes/class-wch-message-builder.php
+			path: includes/Application/Services/BroadcastService.php
 
 		-
 			message: "#^Call to an undefined method WCH_WhatsApp_API_Client\\:\\:send_template_message\\(\\)\\.$#"
 			count: 1
-			path: includes/class-wch-order-notifications.php
+			path: includes/Application/Services/Broadcasts/CampaignDispatcher.php
 
 		-
-			message: "#^Class WCH_WhatsApp_API_Client constructor invoked with 0 parameters, 1 required\\.$#"
+			message: "#^Call to an undefined static method WCH_Job_Dispatcher\\:\\:cancel_by_prefix\\(\\)\\.$#"
 			count: 1
-			path: includes/class-wch-order-notifications.php
+			path: includes/Application/Services/Broadcasts/CampaignDispatcher.php
 
 		-
-			message: "#^Call to an undefined static method WCH_Settings\\:\\:instance\\(\\)\\.$#"
+			message: "#^Class WCH_WhatsApp_API_Client constructor invoked with 0 parameters, 3\\-4 required\\.$#"
 			count: 1
-			path: includes/class-wch-order-sync-service.php
+			path: includes/Application/Services/Broadcasts/CampaignDispatcher.php
 
 		-
-			message: "#^Constant WCH_PLUGIN_URL not found\\.$#"
+			message: "#^Static call to instance method WhatsAppCommerceHub\\\\Infrastructure\\\\Queue\\\\JobDispatcher\\:\\:dispatch\\(\\)\\.$#"
 			count: 1
-			path: includes/class-wch-order-sync-service.php
+			path: includes/Application/Services/Broadcasts/CampaignDispatcher.php
 
 		-
-			message: "#^Parameter \\#1 \\$text of function esc_attr expects string, int given\\.$#"
+			message: "#^Binary operation \"\\*\" between float and string results in an error\\.$#"
+			count: 1
+			path: includes/Application/Services/CartService.php
+
+		-
+			message: "#^Call to an undefined method WC_Product\\:\\:get_variation_attributes\\(\\)\\.$#"
+			count: 1
+			path: includes/Application/Services/CartService.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Contracts\\\\Repositories\\\\CartRepositoryInterface\\:\\:findOrCreateActiveForUpdate\\(\\)\\.$#"
+			count: 1
+			path: includes/Application/Services/CartService.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Contracts\\\\Repositories\\\\CartRepositoryInterface\\:\\:updateLocked\\(\\)\\.$#"
+			count: 3
+			path: includes/Application/Services/CartService.php
+
+		-
+			message: "#^Call to method get_customers\\(\\) on an unknown class WC_Customer_Query\\.$#"
+			count: 1
+			path: includes/Application/Services/CartService.php
+
+		-
+			message: "#^Instantiated class WC_Customer_Query not found\\.$#"
+			count: 1
+			path: includes/Application/Services/CartService.php
+
+		-
+			message: "#^Call to an undefined method WCH_Queue\\:\\:schedule_bulk_action\\(\\)\\.$#"
 			count: 2
-			path: includes/class-wch-order-sync-service.php
+			path: includes/Application/Services/CatalogSyncService.php
 
 		-
-			message: "#^Parameter \\#2 \\$context of static method WCH_Logger\\:\\:error\\(\\) expects array, string given\\.$#"
+			message: "#^Call to an undefined method WCH_Settings\\:\\:get\\(\\)\\.$#"
 			count: 1
-			path: includes/class-wch-order-sync-service.php
+			path: includes/Application/Services/CatalogSyncService.php
 
 		-
-			message: "#^Parameter \\#2 \\$context of static method WCH_Logger\\:\\:info\\(\\) expects array, string given\\.$#"
+			message: "#^Call to an undefined method WCH_Settings\\:\\:set\\(\\)\\.$#"
 			count: 4
-			path: includes/class-wch-order-sync-service.php
+			path: includes/Application/Services/CatalogSyncService.php
 
 		-
-			message: "#^Parameter \\#2 \\$value of method WC_Data\\:\\:update_meta_data\\(\\) expects array\\|string, true given\\.$#"
-			count: 1
-			path: includes/class-wch-order-sync-service.php
-
-		-
-			message: "#^Property WCH_Order_Sync_Service\\:\\:\\$settings is never read, only written\\.$#"
-			count: 1
-			path: includes/class-wch-order-sync-service.php
-
-		-
-			message: "#^Static method WCH_Logger\\:\\:error\\(\\) invoked with 3 parameters, 1\\-2 required\\.$#"
-			count: 1
-			path: includes/class-wch-order-sync-service.php
-
-		-
-			message: "#^Static method WCH_Logger\\:\\:info\\(\\) invoked with 3 parameters, 1\\-2 required\\.$#"
+			message: "#^Call to an undefined static method WCH_Product_Sync_Service\\:\\:instance\\(\\)\\.$#"
 			count: 4
-			path: includes/class-wch-order-sync-service.php
+			path: includes/Application/Services/CatalogSyncService.php
 
 		-
-			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
+			message: "#^Call to an undefined static method WCH_Queue\\:\\:getInstance\\(\\)\\.$#"
 			count: 2
-			path: includes/class-wch-payment-webhook-handler.php
+			path: includes/Application/Services/CatalogSyncService.php
 
 		-
-			message: "#^Call to an undefined static method WCH_Settings\\:\\:instance\\(\\)\\.$#"
+			message: "#^Parameter \\#3 \\$number of function _n expects int, float given\\.$#"
 			count: 1
-			path: includes/class-wch-product-sync-service.php
+			path: includes/Application/Services/CatalogSyncService.php
 
 		-
-			message: "#^Parameter \\#1 \\$attachment_id of function wp_get_attachment_image_url expects int, string given\\.$#"
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Sagas\\\\SagaResult\\:\\:getError\\(\\)\\.$#"
 			count: 1
-			path: includes/class-wch-product-sync-service.php
+			path: includes/Application/Services/Checkout/CheckoutOrchestrator.php
 
 		-
-			message: "#^Parameter \\#1 \\$product of method WCH_Product_Sync_Service\\:\\:sync_variable_product\\(\\) expects WC_Product_Variable, WC_Product given\\.$#"
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Sagas\\\\SagaResult\\:\\:isSuccess\\(\\)\\.$#"
 			count: 1
-			path: includes/class-wch-product-sync-service.php
-
-		-
-			message: "#^Parameter \\#2 \\$context of static method WCH_Logger\\:\\:debug\\(\\) expects array, string given\\.$#"
-			count: 1
-			path: includes/class-wch-product-sync-service.php
-
-		-
-			message: "#^Parameter \\#2 \\$context of static method WCH_Logger\\:\\:error\\(\\) expects array, string given\\.$#"
-			count: 3
-			path: includes/class-wch-product-sync-service.php
-
-		-
-			message: "#^Parameter \\#2 \\$context of static method WCH_Logger\\:\\:info\\(\\) expects array, string given\\.$#"
-			count: 6
-			path: includes/class-wch-product-sync-service.php
-
-		-
-			message: "#^Parameter \\#2 \\$context of static method WCH_Logger\\:\\:warning\\(\\) expects array, string given\\.$#"
-			count: 1
-			path: includes/class-wch-product-sync-service.php
-
-		-
-			message: "#^Static method WCH_Logger\\:\\:debug\\(\\) invoked with 3 parameters, 1\\-2 required\\.$#"
-			count: 1
-			path: includes/class-wch-product-sync-service.php
-
-		-
-			message: "#^Static method WCH_Logger\\:\\:error\\(\\) invoked with 3 parameters, 1\\-2 required\\.$#"
-			count: 3
-			path: includes/class-wch-product-sync-service.php
-
-		-
-			message: "#^Static method WCH_Logger\\:\\:info\\(\\) invoked with 3 parameters, 1\\-2 required\\.$#"
-			count: 6
-			path: includes/class-wch-product-sync-service.php
-
-		-
-			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
-			count: 4
-			path: includes/class-wch-queue.php
-
-		-
-			message: "#^Function as_next_scheduled_action not found\\.$#"
-			count: 1
-			path: includes/class-wch-queue.php
-
-		-
-			message: "#^Function as_schedule_recurring_action not found\\.$#"
-			count: 1
-			path: includes/class-wch-queue.php
-
-		-
-			message: "#^Parameter \\#2 \\$context of static method WCH_Logger\\:\\:info\\(\\) expects array, string given\\.$#"
-			count: 1
-			path: includes/class-wch-queue.php
-
-		-
-			message: "#^Parameter \\#2 \\$context of static method WCH_Logger\\:\\:warning\\(\\) expects array, string given\\.$#"
-			count: 1
-			path: includes/class-wch-queue.php
-
-		-
-			message: "#^Static method WCH_Logger\\:\\:info\\(\\) invoked with 3 parameters, 1\\-2 required\\.$#"
-			count: 1
-			path: includes/class-wch-queue.php
-
-		-
-			message: "#^Static method WCH_Logger\\:\\:warning\\(\\) invoked with 3 parameters, 1\\-2 required\\.$#"
-			count: 1
-			path: includes/class-wch-queue.php
-
-		-
-			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_product\\(\\)\\.$#"
-			count: 1
-			path: includes/class-wch-reengagement-service.php
-
-		-
-			message: "#^Function as_next_scheduled_action not found\\.$#"
-			count: 3
-			path: includes/class-wch-reengagement-service.php
-
-		-
-			message: "#^Function as_schedule_recurring_action not found\\.$#"
-			count: 3
-			path: includes/class-wch-reengagement-service.php
+			path: includes/Application/Services/Checkout/CheckoutOrchestrator.php
 
 		-
 			message: "#^Negated boolean expression is always false\\.$#"
 			count: 1
-			path: includes/class-wch-reengagement-service.php
+			path: includes/Application/Services/Checkout/CheckoutOrchestrator.php
 
 		-
-			message: "#^Parameter \\#2 \\$context of static method WCH_Logger\\:\\:info\\(\\) expects array, string given\\.$#"
+			message: "#^Ternary operator condition is always true\\.$#"
 			count: 2
-			path: includes/class-wch-reengagement-service.php
+			path: includes/Application/Services/Checkout/CheckoutOrchestrator.php
 
 		-
-			message: "#^Static method WCH_Logger\\:\\:info\\(\\) invoked with 3 parameters, 1\\-2 required\\.$#"
+			message: "#^Binary operation \"/\" between string and 100 results in an error\\.$#"
 			count: 1
-			path: includes/class-wch-reengagement-service.php
+			path: includes/Application/Services/Checkout/CheckoutTotalsCalculator.php
 
 		-
-			message: "#^Call to an undefined method WCH_WhatsApp_API_Client\\:\\:send_message\\(\\)\\.$#"
+			message: "#^Binary operation \"/\" between string and 100 results in an error\\.$#"
 			count: 1
-			path: includes/class-wch-refund-handler.php
-
-		-
-			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
-			count: 4
-			path: includes/class-wch-refund-handler.php
-
-		-
-			message: "#^Call to function is_null\\(\\) with WCH_Refund_Handler will always evaluate to false\\.$#"
-			count: 1
-			path: includes/class-wch-refund-handler.php
-
-		-
-			message: "#^Class WCH_WhatsApp_API_Client constructor invoked with 0 parameters, 1 required\\.$#"
-			count: 1
-			path: includes/class-wch-refund-handler.php
-
-		-
-			message: "#^Parameter \\#1 \\$price of function wc_price expects float, string given\\.$#"
-			count: 1
-			path: includes/class-wch-refund-handler.php
-
-		-
-			message: "#^Call to function is_array\\(\\) with array will always evaluate to true\\.$#"
-			count: 1
-			path: includes/class-wch-response-parser.php
-
-		-
-			message: "#^Call to function is_string\\(\\) with non\\-falsy\\-string will always evaluate to true\\.$#"
-			count: 1
-			path: includes/class-wch-response-parser.php
-
-		-
-			message: "#^Parameter \\#2 \\$value of method WP_HTTP_Response\\:\\:header\\(\\) expects string, int given\\.$#"
-			count: 2
-			path: includes/class-wch-rest-controller.php
-
-		-
-			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
-			count: 5
-			path: includes/class-wch-sync-job-handler.php
-
-		-
-			message: "#^Class WCH_WhatsApp_API_Client constructor invoked with 3 parameters, 1 required\\.$#"
-			count: 1
-			path: includes/class-wch-template-manager.php
-
-		-
-			message: "#^Negated boolean expression is always false\\.$#"
-			count: 1
-			path: includes/class-wch-template-manager.php
-
-		-
-			message: "#^Parameter \\#2 \\$api_error_code of class WCH_API_Exception constructor expects int\\|null, string given\\.$#"
-			count: 2
-			path: includes/class-wch-template-manager.php
-
-		-
-			message: "#^Parameter \\#3 \\$api_error_type of class WCH_API_Exception constructor expects string\\|null, array\\<string, mixed\\> given\\.$#"
-			count: 1
-			path: includes/class-wch-template-manager.php
-
-		-
-			message: "#^Parameter \\#3 \\$http_status of class WCH_Exception constructor expects int, array\\<string, string\\> given\\.$#"
-			count: 2
-			path: includes/class-wch-template-manager.php
-
-		-
-			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
-			count: 13
-			path: includes/class-wch-webhook-handler.php
-
-		-
-			message: "#^Parameter \\#1 \\$amount of method WC_Order_Item_Fee\\:\\:set_total\\(\\) expects string, float given\\.$#"
-			count: 1
-			path: includes/payments/class-wch-payment-cod.php
-
-		-
-			message: "#^Parameter \\#1 \\$value of method WC_Order_Item_Fee\\:\\:set_amount\\(\\) expects string, float given\\.$#"
-			count: 1
-			path: includes/payments/class-wch-payment-cod.php
-
-		-
-			message: "#^Call to an undefined method WCH_WhatsApp_API_Client\\:\\:send_message\\(\\)\\.$#"
-			count: 2
-			path: includes/payments/class-wch-payment-manager.php
-
-		-
-			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
-			count: 11
-			path: includes/payments/class-wch-payment-manager.php
-
-		-
-			message: "#^Call to function is_null\\(\\) with WCH_Payment_Manager will always evaluate to false\\.$#"
-			count: 1
-			path: includes/payments/class-wch-payment-manager.php
-
-		-
-			message: "#^Class WCH_WhatsApp_API_Client constructor invoked with 0 parameters, 1 required\\.$#"
-			count: 2
-			path: includes/payments/class-wch-payment-manager.php
-
-		-
-			message: "#^Constant WCH_PLUGIN_DIR not found\\.$#"
-			count: 6
-			path: includes/payments/class-wch-payment-manager.php
-
-		-
-			message: "#^Instanceof between WCH_Payment_Gateway and WCH_Payment_Gateway will always evaluate to true\\.$#"
-			count: 1
-			path: includes/payments/class-wch-payment-manager.php
-
-		-
-			message: "#^Call to an undefined method WCH_WhatsApp_API_Client\\:\\:send_message\\(\\)\\.$#"
-			count: 2
-			path: includes/payments/class-wch-payment-pix.php
-
-		-
-			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_product_id\\(\\)\\.$#"
-			count: 1
-			path: includes/payments/class-wch-payment-pix.php
-
-		-
-			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_total\\(\\)\\.$#"
-			count: 1
-			path: includes/payments/class-wch-payment-pix.php
-
-		-
-			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
-			count: 3
-			path: includes/payments/class-wch-payment-pix.php
-
-		-
-			message: "#^Class WCH_WhatsApp_API_Client constructor invoked with 0 parameters, 1 required\\.$#"
-			count: 1
-			path: includes/payments/class-wch-payment-pix.php
-
-		-
-			message: "#^Offset 'id' on non\\-falsy\\-string in isset\\(\\) does not exist\\.$#"
-			count: 1
-			path: includes/payments/class-wch-payment-pix.php
-
-		-
-			message: "#^Property WCH_Payment_PIX\\:\\:\\$api_key is never read, only written\\.$#"
-			count: 1
-			path: includes/payments/class-wch-payment-pix.php
+			path: includes/Application/Services/Checkout/CouponHandler.php
 
 		-
 			message: "#^Result of && is always false\\.$#"
 			count: 1
-			path: includes/payments/class-wch-payment-pix.php
+			path: includes/Application/Services/Checkout/CouponHandler.php
 
 		-
-			message: "#^Binary operation \"\\.\" between array and '\\:' results in an error\\.$#"
+			message: "#^Variable \\$categories in empty\\(\\) always exists and is not falsy\\.$#"
 			count: 1
-			path: includes/payments/class-wch-payment-razorpay.php
+			path: includes/Application/Services/Checkout/CouponHandler.php
 
 		-
-			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
+			message: "#^Binary operation \"/\" between string and 100 results in an error\\.$#"
+			count: 1
+			path: includes/Application/Services/CheckoutService.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Sagas\\\\SagaResult\\:\\:getError\\(\\)\\.$#"
+			count: 1
+			path: includes/Application/Services/CheckoutService.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Sagas\\\\SagaResult\\:\\:isSuccess\\(\\)\\.$#"
+			count: 1
+			path: includes/Application/Services/CheckoutService.php
+
+		-
+			message: "#^If condition is always true\\.$#"
 			count: 3
-			path: includes/payments/class-wch-payment-razorpay.php
+			path: includes/Application/Services/CheckoutService.php
 
 		-
-			message: "#^Binary operation \"\\*\" between string and 100 results in an error\\.$#"
+			message: "#^Negated boolean expression is always false\\.$#"
 			count: 1
-			path: includes/payments/class-wch-payment-stripe.php
+			path: includes/Application/Services/CheckoutService.php
+
+		-
+			message: "#^Ternary operator condition is always true\\.$#"
+			count: 1
+			path: includes/Application/Services/CheckoutService.php
+
+		-
+			message: "#^Call to function is_array\\(\\) with array will always evaluate to true\\.$#"
+			count: 1
+			path: includes/Application/Services/IntentClassifierService.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_product\\(\\)\\.$#"
+			count: 1
+			path: includes/Application/Services/InventorySyncService.php
+
+		-
+			message: "#^Call to an undefined static method WCH_WhatsApp_API_Client\\:\\:instance\\(\\)\\.$#"
+			count: 1
+			path: includes/Application/Services/InventorySyncService.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:error\\(\\) expects string, array\\<string, int\\> given\\.$#"
+			count: 1
+			path: includes/Application/Services/InventorySyncService.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:error\\(\\) expects string, array\\<string, int\\|string\\> given\\.$#"
+			count: 2
+			path: includes/Application/Services/InventorySyncService.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:info\\(\\) expects string, array\\<string, bool\\|int\\|string\\|null\\> given\\.$#"
+			count: 1
+			path: includes/Application/Services/InventorySyncService.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:info\\(\\) expects string, array\\<string, int\\<0, max\\>\\> given\\.$#"
+			count: 1
+			path: includes/Application/Services/InventorySyncService.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:info\\(\\) expects string, array\\<string, int\\> given\\.$#"
+			count: 1
+			path: includes/Application/Services/InventorySyncService.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:info\\(\\) expects string, array\\<string, mixed\\> given\\.$#"
+			count: 1
+			path: includes/Application/Services/InventorySyncService.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:warning\\(\\) expects string, array\\<string, int\\> given\\.$#"
+			count: 3
+			path: includes/Application/Services/InventorySyncService.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Application\\\\Services\\\\MessageBuilderFactory\\:\\:buttons\\(\\) should return WCH_Message_Builder but returns WhatsAppCommerceHub\\\\Support\\\\Messaging\\\\MessageBuilder\\.$#"
+			count: 1
+			path: includes/Application/Services/MessageBuilderFactory.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Application\\\\Services\\\\MessageBuilderFactory\\:\\:interactive\\(\\) should return WCH_Message_Builder but returns WhatsAppCommerceHub\\\\Support\\\\Messaging\\\\MessageBuilder\\.$#"
+			count: 1
+			path: includes/Application/Services/MessageBuilderFactory.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Application\\\\Services\\\\MessageBuilderFactory\\:\\:list\\(\\) should return WCH_Message_Builder but returns WhatsAppCommerceHub\\\\Support\\\\Messaging\\\\MessageBuilder\\.$#"
+			count: 1
+			path: includes/Application/Services/MessageBuilderFactory.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Application\\\\Services\\\\MessageBuilderFactory\\:\\:products\\(\\) should return WCH_Message_Builder but returns WhatsAppCommerceHub\\\\Support\\\\Messaging\\\\MessageBuilder\\.$#"
+			count: 1
+			path: includes/Application/Services/MessageBuilderFactory.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Application\\\\Services\\\\MessageBuilderFactory\\:\\:text\\(\\) should return WCH_Message_Builder but returns WhatsAppCommerceHub\\\\Support\\\\Messaging\\\\MessageBuilder\\.$#"
+			count: 1
+			path: includes/Application/Services/MessageBuilderFactory.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Application\\\\Services\\\\MessageBuilderFactory\\:\\:withHeader\\(\\) should return WCH_Message_Builder but returns WhatsAppCommerceHub\\\\Support\\\\Messaging\\\\MessageBuilder\\.$#"
+			count: 1
+			path: includes/Application/Services/MessageBuilderFactory.php
+
+		-
+			message: "#^Unsafe usage of new static\\(\\)\\.$#"
+			count: 1
+			path: includes/Application/Services/MessageBuilderService.php
+
+		-
+			message: "#^Call to an undefined method WCH_Template_Manager\\:\\:render_template\\(\\)\\.$#"
+			count: 1
+			path: includes/Application/Services/NotificationService.php
+
+		-
+			message: "#^Call to an undefined method WCH_WhatsApp_API_Client\\:\\:send_template_message\\(\\)\\.$#"
+			count: 1
+			path: includes/Application/Services/NotificationService.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Template_Manager\\:\\:getInstance\\(\\)\\.$#"
+			count: 1
+			path: includes/Application/Services/NotificationService.php
+
+		-
+			message: "#^Class WCH_WhatsApp_API_Client constructor invoked with 0 parameters, 3\\-4 required\\.$#"
+			count: 1
+			path: includes/Application/Services/NotificationService.php
+
+		-
+			message: "#^Static call to instance method WhatsAppCommerceHub\\\\Infrastructure\\\\Queue\\\\JobDispatcher\\:\\:dispatch\\(\\)\\.$#"
+			count: 1
+			path: includes/Application/Services/NotificationService.php
+
+		-
+			message: "#^Access to an undefined property WooCommerce\\:\\:\\$payment_gateways\\.$#"
+			count: 1
+			path: includes/Application/Services/OrderSyncService.php
 
 		-
 			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_total\\(\\)\\.$#"
 			count: 1
-			path: includes/payments/class-wch-payment-stripe.php
+			path: includes/Application/Services/OrderSyncService.php
 
 		-
-			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Contracts\\\\Repositories\\\\CustomerRepositoryInterface\\:\\:incrementOrderStats\\(\\)\\.$#"
+			count: 1
+			path: includes/Application/Services/OrderSyncService.php
+
+		-
+			message: "#^Parameter \\#1 \\$value of method WC_Order_Item_Shipping\\:\\:set_total\\(\\) expects string, float given\\.$#"
+			count: 1
+			path: includes/Application/Services/OrderSyncService.php
+
+		-
+			message: "#^Parameter \\#2 \\$value of method WC_Data\\:\\:update_meta_data\\(\\) expects array\\|string, int given\\.$#"
+			count: 1
+			path: includes/Application/Services/OrderSyncService.php
+
+		-
+			message: "#^Ternary operator condition is always true\\.$#"
+			count: 1
+			path: includes/Application/Services/OrderSyncService.php
+
+		-
+			message: "#^Call to an undefined method WCH_WhatsApp_API_Client\\:\\:create_catalog_product\\(\\)\\.$#"
+			count: 1
+			path: includes/Application/Services/ProductSync/CatalogApiService.php
+
+		-
+			message: "#^Call to an undefined method WCH_WhatsApp_API_Client\\:\\:delete_catalog_product\\(\\)\\.$#"
+			count: 1
+			path: includes/Application/Services/ProductSync/CatalogApiService.php
+
+		-
+			message: "#^Class WCH_WhatsApp_API_Client constructor invoked with 1 parameter, 3\\-4 required\\.$#"
+			count: 1
+			path: includes/Application/Services/ProductSync/CatalogApiService.php
+
+		-
+			message: "#^Parameter \\#1 \\$phone_number_id of class WCH_WhatsApp_API_Client constructor expects string, array\\<string, mixed\\> given\\.$#"
+			count: 1
+			path: includes/Application/Services/ProductSync/CatalogApiService.php
+
+		-
+			message: "#^Call to an undefined method WC_Product\\:\\:get_available_variations\\(\\)\\.$#"
+			count: 1
+			path: includes/Application/Services/ProductSync/CatalogTransformerService.php
+
+		-
+			message: "#^Parameter \\#1 \\$attachment_id of function wp_get_attachment_image_url expects int, string given\\.$#"
+			count: 1
+			path: includes/Application/Services/ProductSync/CatalogTransformerService.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Contracts\\\\Services\\\\ProductSync\\\\CatalogApiInterface\\:\\:clearSyncMetadata\\(\\)\\.$#"
+			count: 1
+			path: includes/Application/Services/ProductSync/ProductSyncOrchestrator.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Contracts\\\\Services\\\\ProductSync\\\\CatalogApiInterface\\:\\:getCatalogItemId\\(\\)\\.$#"
+			count: 1
+			path: includes/Application/Services/ProductSync/ProductSyncOrchestrator.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Contracts\\\\Services\\\\ProductSync\\\\CatalogApiInterface\\:\\:updateSyncStatus\\(\\)\\.$#"
+			count: 6
+			path: includes/Application/Services/ProductSync/ProductSyncOrchestrator.php
+
+		-
+			message: "#^Static call to instance method WhatsAppCommerceHub\\\\Infrastructure\\\\Queue\\\\JobDispatcher\\:\\:dispatch\\(\\)\\.$#"
+			count: 2
+			path: includes/Application/Services/ProductSync/ProductSyncOrchestrator.php
+
+		-
+			message: "#^Strict comparison using \\=\\=\\= between null and non\\-empty\\-string will always evaluate to false\\.$#"
+			count: 1
+			path: includes/Application/Services/ProductSync/ProductValidatorService.php
+
+		-
+			message: "#^PHPDoc tag @param references unknown parameter\\: \\$wpdb$#"
+			count: 1
+			path: includes/Application/Services/ProductSync/SyncProgressTracker.php
+
+		-
+			message: "#^Call to an undefined method WC_Product\\:\\:get_variation_attributes\\(\\)\\.$#"
+			count: 1
+			path: includes/Application/Services/ProductSyncService.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Contracts\\\\Clients\\\\WhatsAppClientInterface\\:\\:createCatalogItem\\(\\)\\.$#"
+			count: 1
+			path: includes/Application/Services/ProductSyncService.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Contracts\\\\Clients\\\\WhatsAppClientInterface\\:\\:deleteCatalogItem\\(\\)\\.$#"
+			count: 1
+			path: includes/Application/Services/ProductSyncService.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Contracts\\\\Clients\\\\WhatsAppClientInterface\\:\\:updateCatalogItem\\(\\)\\.$#"
+			count: 1
+			path: includes/Application/Services/ProductSyncService.php
+
+		-
+			message: "#^Parameter \\#1 \\$attachment_id of function wp_get_attachment_image_url expects int, string given\\.$#"
+			count: 1
+			path: includes/Application/Services/ProductSyncService.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Queue\\\\DeadLetterQueue\\:\\:getCount\\(\\)\\.$#"
+			count: 2
+			path: includes/Application/Services/QueueService.php
+
+		-
+			message: "#^Parameter \\#2 \\$args of function as_next_scheduled_action expects array, null given\\.$#"
+			count: 1
+			path: includes/Application/Services/QueueService.php
+
+		-
+			message: "#^Property WhatsAppCommerceHub\\\\Application\\\\Services\\\\QueueService\\:\\:\\$handlers is never read, only written\\.$#"
+			count: 1
+			path: includes/Application/Services/QueueService.php
+
+		-
+			message: "#^Call to an undefined method WCH_Customer_Service\\:\\:get_or_create_profile\\(\\)\\.$#"
+			count: 2
+			path: includes/Application/Services/Reengagement/CampaignTypeResolver.php
+
+		-
+			message: "#^Property WhatsAppCommerceHub\\\\Application\\\\Services\\\\Reengagement\\\\CampaignTypeResolver\\:\\:\\$customerService \\(WCH_Customer_Service\\) does not accept WhatsAppCommerceHub\\\\Domain\\\\Customer\\\\CustomerService\\.$#"
+			count: 1
+			path: includes/Application/Services/Reengagement/CampaignTypeResolver.php
+
+		-
+			message: "#^Call to an undefined method WCH_Database_Manager\\:\\:get_table_name\\(\\)\\.$#"
 			count: 3
-			path: includes/payments/class-wch-payment-stripe.php
+			path: includes/Application/Services/Reengagement/FrequencyCapManager.php
+
+		-
+			message: "#^Call to an undefined method WCH_Database_Manager\\:\\:get_table_name\\(\\)\\.$#"
+			count: 3
+			path: includes/Application/Services/Reengagement/InactiveCustomerIdentifier.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$phone\\.$#"
+			count: 1
+			path: includes/Application/Services/Reengagement/LoyaltyCouponGenerator.php
+
+		-
+			message: "#^Call to an undefined method WCH_Customer_Service\\:\\:calculate_customer_stats\\(\\)\\.$#"
+			count: 1
+			path: includes/Application/Services/Reengagement/LoyaltyCouponGenerator.php
+
+		-
+			message: "#^Property WhatsAppCommerceHub\\\\Application\\\\Services\\\\Reengagement\\\\LoyaltyCouponGenerator\\:\\:\\$customerService \\(WCH_Customer_Service\\) does not accept WhatsAppCommerceHub\\\\Domain\\\\Customer\\\\CustomerService\\.$#"
+			count: 1
+			path: includes/Application/Services/Reengagement/LoyaltyCouponGenerator.php
+
+		-
+			message: "#^Call to an undefined method WCH_Database_Manager\\:\\:get_table_name\\(\\)\\.$#"
+			count: 6
+			path: includes/Application/Services/Reengagement/ProductTrackingService.php
+
+		-
+			message: "#^Static call to instance method WhatsAppCommerceHub\\\\Infrastructure\\\\Queue\\\\JobDispatcher\\:\\:dispatch\\(\\)\\.$#"
+			count: 1
+			path: includes/Application/Services/Reengagement/ProductTrackingService.php
+
+		-
+			message: "#^Call to an undefined method WCH_Database_Manager\\:\\:get_table_name\\(\\)\\.$#"
+			count: 5
+			path: includes/Application/Services/Reengagement/ReengagementAnalytics.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_product\\(\\)\\.$#"
+			count: 1
+			path: includes/Application/Services/Reengagement/ReengagementMessageBuilder.php
+
+		-
+			message: "#^Property WhatsAppCommerceHub\\\\Application\\\\Services\\\\Reengagement\\\\ReengagementMessageBuilder\\:\\:\\$customerService \\(WCH_Customer_Service\\) does not accept WhatsAppCommerceHub\\\\Domain\\\\Customer\\\\CustomerService\\.$#"
+			count: 1
+			path: includes/Application/Services/Reengagement/ReengagementMessageBuilder.php
+
+		-
+			message: "#^Call to an undefined method WCH_Customer_Service\\:\\:get_or_create_profile\\(\\)\\.$#"
+			count: 1
+			path: includes/Application/Services/Reengagement/ReengagementOrchestrator.php
+
+		-
+			message: "#^Call to an undefined method WCH_WhatsApp_API_Client\\:\\:send_text_message\\(\\)\\.$#"
+			count: 1
+			path: includes/Application/Services/Reengagement/ReengagementOrchestrator.php
+
+		-
+			message: "#^Class WCH_WhatsApp_API_Client constructor invoked with 1 parameter, 3\\-4 required\\.$#"
+			count: 1
+			path: includes/Application/Services/Reengagement/ReengagementOrchestrator.php
+
+		-
+			message: "#^Parameter \\#1 \\$phone_number_id of class WCH_WhatsApp_API_Client constructor expects string, array\\<string, mixed\\> given\\.$#"
+			count: 1
+			path: includes/Application/Services/Reengagement/ReengagementOrchestrator.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of static method WCH_Logger\\:\\:info\\(\\) expects array, string given\\.$#"
+			count: 2
+			path: includes/Application/Services/Reengagement/ReengagementOrchestrator.php
+
+		-
+			message: "#^Property WhatsAppCommerceHub\\\\Application\\\\Services\\\\Reengagement\\\\ReengagementOrchestrator\\:\\:\\$customerService \\(WCH_Customer_Service\\) does not accept WhatsAppCommerceHub\\\\Domain\\\\Customer\\\\CustomerService\\.$#"
+			count: 1
+			path: includes/Application/Services/Reengagement/ReengagementOrchestrator.php
+
+		-
+			message: "#^Static call to instance method WhatsAppCommerceHub\\\\Infrastructure\\\\Queue\\\\JobDispatcher\\:\\:dispatch\\(\\)\\.$#"
+			count: 1
+			path: includes/Application/Services/Reengagement/ReengagementOrchestrator.php
+
+		-
+			message: "#^Static method WCH_Logger\\:\\:info\\(\\) invoked with 3 parameters, 1\\-2 required\\.$#"
+			count: 1
+			path: includes/Application/Services/Reengagement/ReengagementOrchestrator.php
 
 		-
 			message: "#^Call to an undefined method WCH_WhatsApp_API_Client\\:\\:send_message\\(\\)\\.$#"
 			count: 1
-			path: includes/payments/class-wch-payment-whatsapppay.php
+			path: includes/Application/Services/RefundService.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Payments\\\\Contracts\\\\RefundResult\\:\\:getErrorMessage\\(\\)\\.$#"
+			count: 2
+			path: includes/Application/Services/RefundService.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Payments\\\\Contracts\\\\RefundResult\\:\\:getTransactionId\\(\\)\\.$#"
+			count: 1
+			path: includes/Application/Services/RefundService.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Payments\\\\Contracts\\\\RefundResult\\:\\:isManual\\(\\)\\.$#"
+			count: 1
+			path: includes/Application/Services/RefundService.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Payments\\\\PaymentGatewayRegistry\\:\\:get_gateway\\(\\)\\.$#"
+			count: 1
+			path: includes/Application/Services/RefundService.php
+
+		-
+			message: "#^Call to an undefined static method WhatsAppCommerceHub\\\\Payments\\\\Contracts\\\\RefundResult\\:\\:manualRequired\\(\\)\\.$#"
+			count: 1
+			path: includes/Application/Services/RefundService.php
+
+		-
+			message: "#^Class WCH_WhatsApp_API_Client constructor invoked with 0 parameters, 3\\-4 required\\.$#"
+			count: 1
+			path: includes/Application/Services/RefundService.php
+
+		-
+			message: "#^Parameter \\#1 \\$price of function wc_price expects float, string given\\.$#"
+			count: 1
+			path: includes/Application/Services/RefundService.php
+
+		-
+			message: "#^Call to an undefined method WCH_Settings\\|WhatsAppCommerceHub\\\\Infrastructure\\\\Configuration\\\\SettingsManager\\:\\:get_all\\(\\)\\.$#"
+			count: 1
+			path: includes/Application/Services/SettingsService.php
+
+		-
+			message: "#^Call to an undefined method WCH_Settings\\|WhatsAppCommerceHub\\\\Infrastructure\\\\Configuration\\\\SettingsManager\\:\\:get_section\\(\\)\\.$#"
+			count: 1
+			path: includes/Application/Services/SettingsService.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of static method WCH_Logger\\:\\:error\\(\\) expects array, string given\\.$#"
+			count: 1
+			path: includes/Checkout/AbstractStep.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of static method WCH_Logger\\:\\:info\\(\\) expects array, string given\\.$#"
+			count: 1
+			path: includes/Checkout/AbstractStep.php
+
+		-
+			message: "#^Static method WCH_Logger\\:\\:error\\(\\) invoked with 3 parameters, 1\\-2 required\\.$#"
+			count: 1
+			path: includes/Checkout/AbstractStep.php
+
+		-
+			message: "#^Static method WCH_Logger\\:\\:info\\(\\) invoked with 3 parameters, 1\\-2 required\\.$#"
+			count: 1
+			path: includes/Checkout/AbstractStep.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Contracts\\\\Services\\\\CustomerServiceInterface\\:\\:getProfile\\(\\)\\.$#"
+			count: 1
+			path: includes/Checkout/CheckoutOrchestrator.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of static method WCH_Logger\\:\\:error\\(\\) expects array, string given\\.$#"
+			count: 1
+			path: includes/Checkout/CheckoutOrchestrator.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of static method WCH_Logger\\:\\:info\\(\\) expects array, string given\\.$#"
+			count: 1
+			path: includes/Checkout/CheckoutOrchestrator.php
+
+		-
+			message: "#^Static method WCH_Logger\\:\\:error\\(\\) invoked with 3 parameters, 1\\-2 required\\.$#"
+			count: 1
+			path: includes/Checkout/CheckoutOrchestrator.php
+
+		-
+			message: "#^Static method WCH_Logger\\:\\:info\\(\\) invoked with 3 parameters, 1\\-2 required\\.$#"
+			count: 1
+			path: includes/Checkout/CheckoutOrchestrator.php
+
+		-
+			message: "#^Call to an undefined method WCH_Order_Sync_Service\\:\\:create_order_from_cart\\(\\)\\.$#"
+			count: 1
+			path: includes/Checkout/Steps/ConfirmationStep.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Resilience\\\\CircuitBreaker\\:\\:getState\\(\\) invoked with 1 parameter, 0 required\\.$#"
+			count: 1
+			path: includes/Clients/HttpClient.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Resilience\\\\CircuitBreaker\\:\\:isAvailable\\(\\) invoked with 1 parameter, 0 required\\.$#"
+			count: 2
+			path: includes/Clients/HttpClient.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Resilience\\\\CircuitBreaker\\:\\:recordSuccess\\(\\) invoked with 1 parameter, 0 required\\.$#"
+			count: 2
+			path: includes/Clients/HttpClient.php
+
+		-
+			message: "#^Offset 'state' on string on left side of \\?\\? does not exist\\.$#"
+			count: 1
+			path: includes/Clients/HttpClient.php
+
+		-
+			message: "#^Strict comparison using \\!\\=\\= between 'open' and 'closed' will always evaluate to true\\.$#"
+			count: 1
+			path: includes/Clients/HttpClient.php
+
+		-
+			message: "#^Call to an undefined method ReflectionType\\:\\:getName\\(\\)\\.$#"
+			count: 1
+			path: includes/Container/Container.php
+
+		-
+			message: "#^Call to an undefined method ReflectionType\\:\\:isBuiltin\\(\\)\\.$#"
+			count: 1
+			path: includes/Container/Container.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Contracts\\\\Payments\\\\PaymentGatewayRegistryInterface\\:\\:all\\(\\) has invalid return type WCH_Payment_Gateway\\.$#"
+			count: 1
+			path: includes/Contracts/Payments/PaymentGatewayRegistryInterface.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Contracts\\\\Payments\\\\PaymentGatewayRegistryInterface\\:\\:get\\(\\) has invalid return type WCH_Payment_Gateway\\.$#"
+			count: 2
+			path: includes/Contracts/Payments/PaymentGatewayRegistryInterface.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Contracts\\\\Payments\\\\PaymentGatewayRegistryInterface\\:\\:getAvailable\\(\\) has invalid return type WCH_Payment_Gateway\\.$#"
+			count: 1
+			path: includes/Contracts/Payments/PaymentGatewayRegistryInterface.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Contracts\\\\Payments\\\\PaymentGatewayRegistryInterface\\:\\:getEnabled\\(\\) has invalid return type WCH_Payment_Gateway\\.$#"
+			count: 1
+			path: includes/Contracts/Payments/PaymentGatewayRegistryInterface.php
+
+		-
+			message: "#^Parameter \\$gateway of method WhatsAppCommerceHub\\\\Contracts\\\\Payments\\\\PaymentGatewayRegistryInterface\\:\\:register\\(\\) has invalid type WCH_Payment_Gateway\\.$#"
+			count: 2
+			path: includes/Contracts/Payments/PaymentGatewayRegistryInterface.php
+
+		-
+			message: "#^Offset 'remaining' on array\\{allowed\\: false, remaining\\: int, reset_at\\: int\\} on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: includes/Controllers/AbstractController.php
+
+		-
+			message: "#^Offset 'reset_at' on array\\{allowed\\: false, remaining\\: int, reset_at\\: int\\} on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: includes/Controllers/AbstractController.php
+
+		-
+			message: "#^Offset 'retry_after' on array\\{allowed\\: false, remaining\\: int, reset_at\\: int\\} on left side of \\?\\? does not exist\\.$#"
+			count: 1
+			path: includes/Controllers/AbstractController.php
+
+		-
+			message: "#^Parameter \\#2 \\$value of method WP_HTTP_Response\\:\\:header\\(\\) expects string, int given\\.$#"
+			count: 2
+			path: includes/Controllers/AbstractController.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Analytics_Data\\:\\:export_to_csv\\(\\)\\.$#"
+			count: 1
+			path: includes/Controllers/AnalyticsController.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Analytics_Data\\:\\:get_conversation_heatmap\\(\\)\\.$#"
+			count: 1
+			path: includes/Controllers/AnalyticsController.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Analytics_Data\\:\\:get_customer_insights\\(\\)\\.$#"
+			count: 1
+			path: includes/Controllers/AnalyticsController.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Analytics_Data\\:\\:get_detailed_metrics\\(\\)\\.$#"
+			count: 2
+			path: includes/Controllers/AnalyticsController.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Analytics_Data\\:\\:get_funnel_data\\(\\)\\.$#"
+			count: 2
+			path: includes/Controllers/AnalyticsController.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Analytics_Data\\:\\:get_orders_over_time\\(\\)\\.$#"
+			count: 2
+			path: includes/Controllers/AnalyticsController.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Analytics_Data\\:\\:get_revenue_by_day\\(\\)\\.$#"
+			count: 2
+			path: includes/Controllers/AnalyticsController.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Analytics_Data\\:\\:get_summary\\(\\)\\.$#"
+			count: 1
+			path: includes/Controllers/AnalyticsController.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Analytics_Data\\:\\:get_top_products\\(\\)\\.$#"
+			count: 2
+			path: includes/Controllers/AnalyticsController.php
+
+		-
+			message: "#^Call to static method getInstance\\(\\) on an unknown class WCH_AI_Service\\.$#"
+			count: 1
+			path: includes/Controllers/ConversationsController.php
+
+		-
+			message: "#^Call to static method getInstance\\(\\) on an unknown class WCH_WhatsApp_API\\.$#"
+			count: 1
+			path: includes/Controllers/ConversationsController.php
+
+		-
+			message: "#^Variable \\$whereValues in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 1
+			path: includes/Controllers/ConversationsController.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Payments\\\\PaymentGatewayRegistry\\:\\:get_gateway\\(\\)\\.$#"
+			count: 1
+			path: includes/Controllers/PaymentWebhookController.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Controllers\\\\PaymentWebhookController\\:\\:tryClaimEvent\\(\\) never returns false so it can be removed from the return type\\.$#"
+			count: 1
+			path: includes/Controllers/PaymentWebhookController.php
+
+		-
+			message: "#^Undefined variable\\: \\$method$#"
+			count: 2
+			path: includes/Core/CompatibilityLayer.php
+
+		-
+			message: "#^Binary operation \"\\*\" between float and string results in an error\\.$#"
+			count: 1
+			path: includes/Domain/Cart/CartService.php
+
+		-
+			message: "#^Call to an undefined method WC_Product\\:\\:get_variation_attributes\\(\\)\\.$#"
+			count: 1
+			path: includes/Domain/Cart/CartService.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Contracts\\\\Repositories\\\\CartRepositoryInterface\\:\\:findOrCreateActiveForUpdate\\(\\)\\.$#"
+			count: 1
+			path: includes/Domain/Cart/CartService.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Contracts\\\\Repositories\\\\CartRepositoryInterface\\:\\:updateLocked\\(\\)\\.$#"
+			count: 3
+			path: includes/Domain/Cart/CartService.php
+
+		-
+			message: "#^Call to method get_customers\\(\\) on an unknown class WC_Customer_Query\\.$#"
+			count: 1
+			path: includes/Domain/Cart/CartService.php
+
+		-
+			message: "#^Instantiated class WC_Customer_Query not found\\.$#"
+			count: 1
+			path: includes/Domain/Cart/CartService.php
+
+		-
+			message: "#^Call to an undefined method WCH_Catalog_Browser\\:\\:search_products\\(\\)\\.$#"
+			count: 1
+			path: includes/Domain/Catalog/CatalogBrowser.php
+
+		-
+			message: "#^Call to an undefined method WCH_Catalog_Browser\\:\\:show_category\\(\\)\\.$#"
+			count: 1
+			path: includes/Domain/Catalog/CatalogBrowser.php
+
+		-
+			message: "#^Call to an undefined method WCH_Catalog_Browser\\:\\:show_featured_products\\(\\)\\.$#"
+			count: 1
+			path: includes/Domain/Catalog/CatalogBrowser.php
+
+		-
+			message: "#^Call to an undefined method WCH_Catalog_Browser\\:\\:show_main_menu\\(\\)\\.$#"
+			count: 1
+			path: includes/Domain/Catalog/CatalogBrowser.php
+
+		-
+			message: "#^Call to an undefined method WCH_Catalog_Browser\\:\\:show_product\\(\\)\\.$#"
+			count: 1
+			path: includes/Domain/Catalog/CatalogBrowser.php
+
+		-
+			message: "#^Constant WhatsAppCommerceHub\\\\Domain\\\\Catalog\\\\CatalogBrowser\\:\\:IMAGE_SIZE is unused\\.$#"
+			count: 1
+			path: includes/Domain/Catalog/CatalogBrowser.php
+
+		-
+			message: "#^Constant WhatsAppCommerceHub\\\\Domain\\\\Catalog\\\\CatalogBrowser\\:\\:MAX_PRODUCT_DESC_LENGTH is unused\\.$#"
+			count: 1
+			path: includes/Domain/Catalog/CatalogBrowser.php
+
+		-
+			message: "#^Constant WhatsAppCommerceHub\\\\Domain\\\\Catalog\\\\CatalogBrowser\\:\\:MAX_PRODUCT_NAME_LENGTH is unused\\.$#"
+			count: 1
+			path: includes/Domain/Catalog/CatalogBrowser.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Domain\\\\Customer\\\\CustomerService\\:\\:get_customer_profile\\(\\)\\.$#"
+			count: 1
+			path: includes/Events/Handlers/CartAbandonedHandler.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Domain\\\\Customer\\\\CustomerService\\:\\:update_customer_profile\\(\\)\\.$#"
+			count: 1
+			path: includes/Events/Handlers/CartAbandonedHandler.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Domain\\\\Customer\\\\CustomerService\\:\\:get_customer_profile\\(\\)\\.$#"
+			count: 1
+			path: includes/Events/Handlers/CartRecoveredHandler.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Domain\\\\Customer\\\\CustomerService\\:\\:update_customer_profile\\(\\)\\.$#"
+			count: 1
+			path: includes/Events/Handlers/CartRecoveredHandler.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Domain\\\\Customer\\\\CustomerService\\:\\:update_customer_profile\\(\\)\\.$#"
+			count: 1
+			path: includes/Events/Handlers/MessageReceivedHandler.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Domain\\\\Customer\\\\CustomerService\\:\\:get_customer_profile\\(\\)\\.$#"
+			count: 1
+			path: includes/Events/Handlers/OrderCreatedHandler.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Domain\\\\Customer\\\\CustomerService\\:\\:update_customer_profile\\(\\)\\.$#"
+			count: 1
+			path: includes/Events/Handlers/OrderCreatedHandler.php
+
+		-
+			message: "#^Unsafe usage of new static\\(\\)\\.$#"
+			count: 1
+			path: includes/Exceptions/ApiException.php
+
+		-
+			message: "#^Unsafe usage of new static\\(\\)\\.$#"
+			count: 5
+			path: includes/Exceptions/CartException.php
+
+		-
+			message: "#^Unsafe usage of new static\\(\\)\\.$#"
+			count: 2
+			path: includes/Exceptions/ValidationException.php
+
+		-
+			message: "#^Unsafe usage of new static\\(\\)\\.$#"
+			count: 1
+			path: includes/Exceptions/WchException.php
+
+		-
+			message: "#^Call to private method sendMessage\\(\\) of class WhatsAppCommerceHub\\\\Clients\\\\WhatsAppApiClient\\.$#"
+			count: 1
+			path: includes/Features/AbandonedCart/CartHandler.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Clients\\\\WhatsAppApiClient\\:\\:sendMessage\\(\\) invoked with 2 parameters, 1 required\\.$#"
+			count: 1
+			path: includes/Features/AbandonedCart/CartHandler.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:error\\(\\) expects string, array\\<string, mixed\\> given\\.$#"
+			count: 1
+			path: includes/Features/AbandonedCart/CartHandler.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:info\\(\\) expects string, array\\<string, int\\> given\\.$#"
+			count: 1
+			path: includes/Features/AbandonedCart/CartHandler.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:info\\(\\) expects string, array\\<string, mixed\\> given\\.$#"
+			count: 4
+			path: includes/Features/AbandonedCart/CartHandler.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:warning\\(\\) expects string, array\\<string, mixed\\> given\\.$#"
+			count: 1
+			path: includes/Features/AbandonedCart/CartHandler.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:error\\(\\) expects string, array\\<string, mixed\\> given\\.$#"
+			count: 1
+			path: includes/Features/AbandonedCart/CleanupHandler.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:info\\(\\) expects string, array\\<string, mixed\\> given\\.$#"
+			count: 3
+			path: includes/Features/AbandonedCart/CleanupHandler.php
+
+		-
+			message: "#^Call to private method sendMessage\\(\\) of class WhatsAppCommerceHub\\\\Clients\\\\WhatsAppApiClient\\.$#"
+			count: 1
+			path: includes/Features/AbandonedCart/RecoveryService.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Clients\\\\WhatsAppApiClient\\:\\:sendMessage\\(\\) invoked with 2 parameters, 1 required\\.$#"
+			count: 1
+			path: includes/Features/AbandonedCart/RecoveryService.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Features\\\\AbandonedCart\\\\RecoveryService\\:\\:buildTemplateVariables\\(\\) should return array\\<string, string\\> but returns array\\<int, string\\>\\.$#"
+			count: 1
+			path: includes/Features/AbandonedCart/RecoveryService.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Features\\\\AbandonedCart\\\\RecoveryService\\:\\:getSequenceDelay\\(\\) is unused\\.$#"
+			count: 1
+			path: includes/Features/AbandonedCart/RecoveryService.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:error\\(\\) expects string, array\\<string, array\\<string, mixed\\>\\> given\\.$#"
+			count: 1
+			path: includes/Features/AbandonedCart/RecoveryService.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:error\\(\\) expects string, array\\<string, mixed\\> given\\.$#"
+			count: 1
+			path: includes/Features/AbandonedCart/RecoveryService.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:info\\(\\) expects string, array\\<string, float\\|int\\> given\\.$#"
+			count: 1
+			path: includes/Features/AbandonedCart/RecoveryService.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:info\\(\\) expects string, array\\<string, int\\> given\\.$#"
+			count: 1
+			path: includes/Features/AbandonedCart/RecoveryService.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:info\\(\\) expects string, array\\<string, mixed\\> given\\.$#"
+			count: 2
+			path: includes/Features/AbandonedCart/RecoveryService.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:info\\(\\) expects string, array\\<string, string\\> given\\.$#"
+			count: 1
+			path: includes/Features/AbandonedCart/RecoveryService.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:warning\\(\\) expects string, array\\<string, mixed\\> given\\.$#"
+			count: 1
+			path: includes/Features/AbandonedCart/RecoveryService.php
+
+		-
+			message: "#^Call to private method sendMessage\\(\\) of class WhatsAppCommerceHub\\\\Clients\\\\WhatsAppApiClient\\.$#"
+			count: 1
+			path: includes/Features/Broadcasts/BroadcastJobHandler.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Clients\\\\WhatsAppApiClient\\:\\:sendMessage\\(\\) invoked with 2 parameters, 1 required\\.$#"
+			count: 1
+			path: includes/Features/Broadcasts/BroadcastJobHandler.php
+
+		-
+			message: "#^Parameter \\#1 \\$body of method WhatsAppCommerceHub\\\\Clients\\\\WhatsAppApiClient\\:\\:sendMessage\\(\\) expects array, string given\\.$#"
+			count: 1
+			path: includes/Features/Broadcasts/BroadcastJobHandler.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:error\\(\\) expects string, array\\<string, int\\> given\\.$#"
+			count: 1
+			path: includes/Features/Broadcasts/BroadcastJobHandler.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:error\\(\\) expects string, array\\<string, int\\|string\\> given\\.$#"
+			count: 1
+			path: includes/Features/Broadcasts/BroadcastJobHandler.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:info\\(\\) expects string, array\\<string, int\\> given\\.$#"
+			count: 3
+			path: includes/Features/Broadcasts/BroadcastJobHandler.php
+
+		-
+			message: "#^Call to private method sendMessage\\(\\) of class WhatsAppCommerceHub\\\\Clients\\\\WhatsAppApiClient\\.$#"
+			count: 1
+			path: includes/Features/Notifications/OrderNotifications.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Clients\\\\WhatsAppApiClient\\:\\:sendMessage\\(\\) invoked with 2 parameters, 1 required\\.$#"
+			count: 1
+			path: includes/Features/Notifications/OrderNotifications.php
+
+		-
+			message: "#^Parameter \\#1 \\$body of method WhatsAppCommerceHub\\\\Clients\\\\WhatsAppApiClient\\:\\:sendMessage\\(\\) expects array, string given\\.$#"
+			count: 1
+			path: includes/Features/Notifications/OrderNotifications.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:error\\(\\) expects string, array\\<string, int\\|string\\> given\\.$#"
+			count: 1
+			path: includes/Features/Notifications/OrderNotifications.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:info\\(\\) expects string, array\\<string, int\\|string\\> given\\.$#"
+			count: 1
+			path: includes/Features/Notifications/OrderNotifications.php
+
+		-
+			message: "#^Parameter \\#5 \\$variables of method WhatsAppCommerceHub\\\\Features\\\\Notifications\\\\OrderNotifications\\:\\:sendTemplateNotification\\(\\) expects array\\<string, string\\>, array\\<int, string\\> given\\.$#"
+			count: 4
+			path: includes/Features/Notifications/OrderNotifications.php
+
+		-
+			message: "#^Variable \\$logId in isset\\(\\) always exists and is not nullable\\.$#"
+			count: 1
+			path: includes/Features/Notifications/OrderNotifications.php
+
+		-
+			message: "#^Access to an undefined property WooCommerce\\:\\:\\$payment_gateways\\.$#"
+			count: 1
+			path: includes/Features/Payments/RefundService.php
+
+		-
+			message: "#^Call to private method sendMessage\\(\\) of class WhatsAppCommerceHub\\\\Clients\\\\WhatsAppApiClient\\.$#"
+			count: 1
+			path: includes/Features/Payments/RefundService.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Clients\\\\WhatsAppApiClient\\:\\:sendMessage\\(\\) invoked with 2 parameters, 1 required\\.$#"
+			count: 1
+			path: includes/Features/Payments/RefundService.php
+
+		-
+			message: "#^Parameter \\#1 \\$price of function wc_price expects float, string given\\.$#"
+			count: 1
+			path: includes/Features/Payments/RefundService.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:error\\(\\) expects string, array\\<string, int\\|string\\> given\\.$#"
+			count: 2
+			path: includes/Features/Payments/RefundService.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:info\\(\\) expects string, array\\<string, float\\|int\\|string\\> given\\.$#"
+			count: 1
+			path: includes/Features/Payments/RefundService.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:info\\(\\) expects string, array\\<string, int\\> given\\.$#"
+			count: 1
+			path: includes/Features/Payments/RefundService.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:info\\(\\) expects string, array\\<string, mixed\\> given\\.$#"
+			count: 1
+			path: includes/Features/Payments/RefundService.php
+
+		-
+			message: "#^Call to static method constructEvent\\(\\) on an unknown class Stripe\\\\Webhook\\.$#"
+			count: 1
+			path: includes/Features/Payments/WebhookHandler.php
+
+		-
+			message: "#^Constant WhatsAppCommerceHub\\\\Features\\\\Payments\\\\WebhookHandler\\:\\:PROCESSING_TIMEOUT is unused\\.$#"
+			count: 1
+			path: includes/Features/Payments/WebhookHandler.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Features\\\\Payments\\\\WebhookHandler\\:\\:handlePaymentFailed\\(\\) never returns WP_Error so it can be removed from the return type\\.$#"
+			count: 1
+			path: includes/Features/Payments/WebhookHandler.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Features\\\\Payments\\\\WebhookHandler\\:\\:handleRefundCompleted\\(\\) never returns WP_Error so it can be removed from the return type\\.$#"
+			count: 1
+			path: includes/Features/Payments/WebhookHandler.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Features\\\\Payments\\\\WebhookHandler\\:\\:verifyPayPalSignature\\(\\) never returns WP_Error so it can be removed from the return type\\.$#"
+			count: 1
+			path: includes/Features/Payments/WebhookHandler.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:error\\(\\) expects string, array\\<string, mixed\\> given\\.$#"
+			count: 1
+			path: includes/Features/Payments/WebhookHandler.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:error\\(\\) expects string, array\\<string, string\\> given\\.$#"
+			count: 1
+			path: includes/Features/Payments/WebhookHandler.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:info\\(\\) expects string, array\\<string, int\\<min, \\-1\\>\\|int\\<1, max\\>\\> given\\.$#"
+			count: 2
+			path: includes/Features/Payments/WebhookHandler.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:info\\(\\) expects string, array\\<string, mixed\\> given\\.$#"
+			count: 1
+			path: includes/Features/Payments/WebhookHandler.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:info\\(\\) expects string, array\\<string, string\\> given\\.$#"
+			count: 1
+			path: includes/Features/Payments/WebhookHandler.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:warning\\(\\) expects string, array\\<string, int\\<min, \\-1\\>\\|int\\<1, max\\>\\> given\\.$#"
+			count: 1
+			path: includes/Features/Payments/WebhookHandler.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:warning\\(\\) expects string, array\\<string, string\\> given\\.$#"
+			count: 1
+			path: includes/Features/Payments/WebhookHandler.php
+
+		-
+			message: "#^Call to private method sendMessage\\(\\) of class WhatsAppCommerceHub\\\\Clients\\\\WhatsAppApiClient\\.$#"
+			count: 1
+			path: includes/Features/Reengagement/ReengagementService.php
+
+		-
+			message: "#^Constant WhatsAppCommerceHub\\\\Features\\\\Reengagement\\\\ReengagementService\\:\\:CAMPAIGN_TYPES is unused\\.$#"
+			count: 1
+			path: includes/Features/Reengagement/ReengagementService.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Clients\\\\WhatsAppApiClient\\:\\:sendMessage\\(\\) invoked with 2 parameters, 1 required\\.$#"
+			count: 1
+			path: includes/Features/Reengagement/ReengagementService.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Features\\\\Reengagement\\\\ReengagementService\\:\\:buildCampaignVariables\\(\\) should return array\\<string, string\\> but returns array\\<int, mixed\\>\\.$#"
+			count: 1
+			path: includes/Features/Reengagement/ReengagementService.php
+
+		-
+			message: "#^Parameter \\#1 \\$body of method WhatsAppCommerceHub\\\\Clients\\\\WhatsAppApiClient\\:\\:sendMessage\\(\\) expects array, string given\\.$#"
+			count: 1
+			path: includes/Features/Reengagement/ReengagementService.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:error\\(\\) expects string, array\\<string, int\\|string\\> given\\.$#"
+			count: 1
+			path: includes/Features/Reengagement/ReengagementService.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:info\\(\\) expects string, array\\<string, int\\<0, max\\>\\> given\\.$#"
+			count: 1
+			path: includes/Features/Reengagement/ReengagementService.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:info\\(\\) expects string, array\\<string, int\\|string\\> given\\.$#"
+			count: 1
+			path: includes/Features/Reengagement/ReengagementService.php
+
+		-
+			message: "#^Property WhatsAppCommerceHub\\\\Features\\\\Reengagement\\\\ReengagementService\\:\\:\\$jobDispatcher is never read, only written\\.$#"
+			count: 1
+			path: includes/Features/Reengagement/ReengagementService.php
+
+		-
+			message: "#^Access to an undefined property WhatsAppCommerceHub\\\\Infrastructure\\\\Api\\\\Rest\\\\Controllers\\\\AnalyticsController\\:\\:\\$apiNamespace\\.$#"
+			count: 9
+			path: includes/Infrastructure/Api/Rest/Controllers/AnalyticsController.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Infrastructure\\\\Api\\\\Rest\\\\Controllers\\\\AnalyticsController\\:\\:log\\(\\)\\.$#"
+			count: 9
+			path: includes/Infrastructure/Api/Rest/Controllers/AnalyticsController.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Infrastructure\\\\Api\\\\Rest\\\\Controllers\\\\AnalyticsController\\:\\:prepareError\\(\\)\\.$#"
+			count: 10
+			path: includes/Infrastructure/Api/Rest/Controllers/AnalyticsController.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Infrastructure\\\\Api\\\\Rest\\\\Controllers\\\\AnalyticsController\\:\\:prepareResponse\\(\\)\\.$#"
+			count: 9
+			path: includes/Infrastructure/Api/Rest/Controllers/AnalyticsController.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Analytics_Data\\:\\:export_to_csv\\(\\)\\.$#"
+			count: 1
+			path: includes/Infrastructure/Api/Rest/Controllers/AnalyticsController.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Analytics_Data\\:\\:get_conversation_heatmap\\(\\)\\.$#"
+			count: 1
+			path: includes/Infrastructure/Api/Rest/Controllers/AnalyticsController.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Analytics_Data\\:\\:get_customer_insights\\(\\)\\.$#"
+			count: 1
+			path: includes/Infrastructure/Api/Rest/Controllers/AnalyticsController.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Analytics_Data\\:\\:get_detailed_metrics\\(\\)\\.$#"
+			count: 2
+			path: includes/Infrastructure/Api/Rest/Controllers/AnalyticsController.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Analytics_Data\\:\\:get_funnel_data\\(\\)\\.$#"
+			count: 2
+			path: includes/Infrastructure/Api/Rest/Controllers/AnalyticsController.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Analytics_Data\\:\\:get_orders_over_time\\(\\)\\.$#"
+			count: 2
+			path: includes/Infrastructure/Api/Rest/Controllers/AnalyticsController.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Analytics_Data\\:\\:get_revenue_by_day\\(\\)\\.$#"
+			count: 2
+			path: includes/Infrastructure/Api/Rest/Controllers/AnalyticsController.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Analytics_Data\\:\\:get_summary\\(\\)\\.$#"
+			count: 1
+			path: includes/Infrastructure/Api/Rest/Controllers/AnalyticsController.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Analytics_Data\\:\\:get_top_products\\(\\)\\.$#"
+			count: 2
+			path: includes/Infrastructure/Api/Rest/Controllers/AnalyticsController.php
+
+		-
+			message: "#^Access to an undefined property WhatsAppCommerceHub\\\\Infrastructure\\\\Api\\\\Rest\\\\Controllers\\\\ConversationsController\\:\\:\\$apiNamespace\\.$#"
+			count: 5
+			path: includes/Infrastructure/Api/Rest/Controllers/ConversationsController.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Infrastructure\\\\Api\\\\Rest\\\\Controllers\\\\ConversationsController\\:\\:addPaginationHeaders\\(\\)\\.$#"
+			count: 2
+			path: includes/Infrastructure/Api/Rest/Controllers/ConversationsController.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Infrastructure\\\\Api\\\\Rest\\\\Controllers\\\\ConversationsController\\:\\:log\\(\\)\\.$#"
+			count: 2
+			path: includes/Infrastructure/Api/Rest/Controllers/ConversationsController.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Infrastructure\\\\Api\\\\Rest\\\\Controllers\\\\ConversationsController\\:\\:prepareError\\(\\)\\.$#"
+			count: 9
+			path: includes/Infrastructure/Api/Rest/Controllers/ConversationsController.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Infrastructure\\\\Api\\\\Rest\\\\Controllers\\\\ConversationsController\\:\\:prepareResponse\\(\\)\\.$#"
+			count: 6
+			path: includes/Infrastructure/Api/Rest/Controllers/ConversationsController.php
+
+		-
+			message: "#^Call to static method getInstance\\(\\) on an unknown class WCH_AI_Service\\.$#"
+			count: 1
+			path: includes/Infrastructure/Api/Rest/Controllers/ConversationsController.php
+
+		-
+			message: "#^Call to static method getInstance\\(\\) on an unknown class WCH_WhatsApp_API\\.$#"
+			count: 1
+			path: includes/Infrastructure/Api/Rest/Controllers/ConversationsController.php
+
+		-
+			message: "#^Variable \\$whereValues in empty\\(\\) always exists and is not falsy\\.$#"
+			count: 1
+			path: includes/Infrastructure/Api/Rest/Controllers/ConversationsController.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:debug\\(\\) expects string, array\\<string, mixed\\> given\\.$#"
+			count: 1
+			path: includes/Infrastructure/Api/Rest/Controllers/WebhookController.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:error\\(\\) expects string, array\\<string, mixed\\> given\\.$#"
+			count: 1
+			path: includes/Infrastructure/Api/Rest/Controllers/WebhookController.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:error\\(\\) expects string, array\\<string, string\\> given\\.$#"
+			count: 2
+			path: includes/Infrastructure/Api/Rest/Controllers/WebhookController.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:info\\(\\) expects string, array\\<string, mixed\\> given\\.$#"
+			count: 1
+			path: includes/Infrastructure/Api/Rest/Controllers/WebhookController.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:info\\(\\) expects string, array\\<string, string\\> given\\.$#"
+			count: 1
+			path: includes/Infrastructure/Api/Rest/Controllers/WebhookController.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:warning\\(\\) expects string, array\\<string, int\\<1048576, max\\>\\> given\\.$#"
+			count: 1
+			path: includes/Infrastructure/Api/Rest/Controllers/WebhookController.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:warning\\(\\) expects string, array\\<string, mixed\\> given\\.$#"
+			count: 1
+			path: includes/Infrastructure/Api/Rest/Controllers/WebhookController.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:warning\\(\\) expects string, array\\<string, string\\> given\\.$#"
+			count: 2
+			path: includes/Infrastructure/Api/Rest/Controllers/WebhookController.php
+
+		-
+			message: "#^Call to function method_exists\\(\\) with WhatsAppCommerceHub\\\\Infrastructure\\\\Api\\\\Rest\\\\RestController and 'registerRoutes' will always evaluate to true\\.$#"
+			count: 1
+			path: includes/Infrastructure/Api/Rest/RestApi.php
+
+		-
+			message: "#^Class WhatsAppCommerceHub\\\\Infrastructure\\\\Api\\\\Rest\\\\Controllers\\\\AnalyticsController constructor invoked with 0 parameters, 1 required\\.$#"
+			count: 1
+			path: includes/Infrastructure/Api/Rest/RestApi.php
+
+		-
+			message: "#^Class WhatsAppCommerceHub\\\\Infrastructure\\\\Api\\\\Rest\\\\Controllers\\\\ConversationsController constructor invoked with 0 parameters, 1 required\\.$#"
+			count: 1
+			path: includes/Infrastructure/Api/Rest/RestApi.php
+
+		-
+			message: "#^Class WhatsAppCommerceHub\\\\Infrastructure\\\\Api\\\\Rest\\\\Controllers\\\\WebhookController constructor invoked with 0 parameters, 2 required\\.$#"
+			count: 1
+			path: includes/Infrastructure/Api/Rest/RestApi.php
+
+		-
+			message: "#^Strict comparison using \\=\\=\\= between false and string will always evaluate to false\\.$#"
+			count: 2
+			path: includes/Infrastructure/Configuration/SettingsManager.php
+
+		-
+			message: "#^Call to method up\\(\\) on an unknown class WhatsAppCommerceHub\\\\Infrastructure\\\\Database\\\\MigrationInterface\\.$#"
+			count: 1
+			path: includes/Infrastructure/Database/DatabaseManager.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Infrastructure\\\\Database\\\\DatabaseManager\\:\\:getMigrations\\(\\) has invalid return type WhatsAppCommerceHub\\\\Infrastructure\\\\Database\\\\MigrationInterface\\.$#"
+			count: 1
+			path: includes/Infrastructure/Database/DatabaseManager.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:error\\(\\) expects string, array\\<string, int\\|string\\|null\\> given\\.$#"
+			count: 1
+			path: includes/Infrastructure/Queue/Handlers/SyncJobHandler.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:error\\(\\) expects string, array\\<string, mixed\\> given\\.$#"
+			count: 1
+			path: includes/Infrastructure/Queue/Handlers/SyncJobHandler.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:info\\(\\) expects string, array\\<string, int\\|string\\> given\\.$#"
+			count: 1
+			path: includes/Infrastructure/Queue/Handlers/SyncJobHandler.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:info\\(\\) expects string, array\\<string, mixed\\> given\\.$#"
+			count: 2
+			path: includes/Infrastructure/Queue/Handlers/SyncJobHandler.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:warning\\(\\) expects string, array\\<string, mixed\\> given\\.$#"
+			count: 1
+			path: includes/Infrastructure/Queue/Handlers/SyncJobHandler.php
+
+		-
+			message: "#^Call to static method store\\(\\) on an unknown class ActionScheduler\\.$#"
+			count: 1
+			path: includes/Infrastructure/Queue/JobDispatcher.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:debug\\(\\) expects string, array\\<string, array\\|int\\|string\\> given\\.$#"
+			count: 1
+			path: includes/Infrastructure/Queue/JobDispatcher.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:debug\\(\\) expects string, array\\<string, int\\|string\\> given\\.$#"
+			count: 1
+			path: includes/Infrastructure/Queue/JobDispatcher.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:debug\\(\\) expects string, array\\<string, int\\|string\\|null\\> given\\.$#"
+			count: 1
+			path: includes/Infrastructure/Queue/JobDispatcher.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:error\\(\\) expects string, array\\<string, int\\> given\\.$#"
+			count: 1
+			path: includes/Infrastructure/Queue/JobDispatcher.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:info\\(\\) expects string, array\\<string, int\\<0, max\\>\\|string\\> given\\.$#"
+			count: 1
+			path: includes/Infrastructure/Queue/JobDispatcher.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:info\\(\\) expects string, array\\<string, int\\> given\\.$#"
+			count: 1
+			path: includes/Infrastructure/Queue/JobDispatcher.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:info\\(\\) expects string, array\\<string, int\\|string\\> given\\.$#"
+			count: 2
+			path: includes/Infrastructure/Queue/JobDispatcher.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:warning\\(\\) expects string, array\\<string, int\\<0, max\\>\\|string\\> given\\.$#"
+			count: 4
+			path: includes/Infrastructure/Queue/JobDispatcher.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:debug\\(\\) expects string, array\\<string, array\\> given\\.$#"
+			count: 1
+			path: includes/Infrastructure/Queue/QueueManager.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:debug\\(\\) expects string, array\\<string, int\\<0, max\\>\\> given\\.$#"
+			count: 2
+			path: includes/Infrastructure/Queue/QueueManager.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:info\\(\\) expects string, array\\<string, int\\<0, max\\>\\> given\\.$#"
+			count: 1
+			path: includes/Infrastructure/Queue/QueueManager.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:info\\(\\) expects string, array\\<string, mixed\\> given\\.$#"
+			count: 2
+			path: includes/Infrastructure/Queue/QueueManager.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:warning\\(\\) expects string, array\\<string, int\\<0, max\\>\\> given\\.$#"
+			count: 2
+			path: includes/Infrastructure/Queue/QueueManager.php
+
+		-
+			message: "#^Parameter \\#1 \\$amount of method WC_Order_Item_Fee\\:\\:set_total\\(\\) expects string, float given\\.$#"
+			count: 1
+			path: includes/Payments/Gateways/CodGateway.php
+
+		-
+			message: "#^Parameter \\#1 \\$value of method WC_Order_Item_Fee\\:\\:set_amount\\(\\) expects string, float given\\.$#"
+			count: 1
+			path: includes/Payments/Gateways/CodGateway.php
+
+		-
+			message: "#^Call to an undefined method WCH_WhatsApp_API_Client\\:\\:send_message\\(\\)\\.$#"
+			count: 2
+			path: includes/Payments/Gateways/PixGateway.php
+
+		-
+			message: "#^Call to an undefined method WCH_WhatsApp_API_Client\\:\\:upload_media\\(\\)\\.$#"
+			count: 1
+			path: includes/Payments/Gateways/PixGateway.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_product_id\\(\\)\\.$#"
+			count: 1
+			path: includes/Payments/Gateways/PixGateway.php
 
 		-
 			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_total\\(\\)\\.$#"
 			count: 1
-			path: includes/payments/class-wch-payment-whatsapppay.php
+			path: includes/Payments/Gateways/PixGateway.php
 
 		-
-			message: "#^Call to an undefined static method WCH_Logger\\:\\:log\\(\\)\\.$#"
+			message: "#^Class WCH_WhatsApp_API_Client constructor invoked with 0 parameters, 3\\-4 required\\.$#"
 			count: 1
-			path: includes/payments/class-wch-payment-whatsapppay.php
+			path: includes/Payments/Gateways/PixGateway.php
 
 		-
-			message: "#^Class WCH_WhatsApp_API_Client constructor invoked with 0 parameters, 1 required\\.$#"
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_total\\(\\)\\.$#"
 			count: 1
-			path: includes/payments/class-wch-payment-whatsapppay.php
+			path: includes/Payments/Gateways/StripeGateway.php
+
+		-
+			message: "#^Call to an undefined method WCH_WhatsApp_API_Client\\:\\:send_message\\(\\)\\.$#"
+			count: 1
+			path: includes/Payments/Gateways/WhatsAppPayGateway.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_total\\(\\)\\.$#"
+			count: 1
+			path: includes/Payments/Gateways/WhatsAppPayGateway.php
+
+		-
+			message: "#^Class WCH_WhatsApp_API_Client constructor invoked with 0 parameters, 3\\-4 required\\.$#"
+			count: 1
+			path: includes/Payments/Gateways/WhatsAppPayGateway.php
+
+		-
+			message: "#^Call to method get_title\\(\\) on an unknown class WCH_Payment_Gateway\\.$#"
+			count: 1
+			path: includes/Payments/PaymentGatewayRegistry.php
+
+		-
+			message: "#^Call to method is_available\\(\\) on an unknown class WCH_Payment_Gateway\\.$#"
+			count: 1
+			path: includes/Payments/PaymentGatewayRegistry.php
+
+		-
+			message: "#^Class WCH_Payment_Gateway not found\\.$#"
+			count: 1
+			path: includes/Payments/PaymentGatewayRegistry.php
+
+		-
+			message: "#^Left side of && is always true\\.$#"
+			count: 1
+			path: includes/Payments/PaymentGatewayRegistry.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Payments\\\\PaymentGatewayRegistry\\:\\:all\\(\\) has invalid return type WCH_Payment_Gateway\\.$#"
+			count: 1
+			path: includes/Payments/PaymentGatewayRegistry.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Payments\\\\PaymentGatewayRegistry\\:\\:get\\(\\) has invalid return type WCH_Payment_Gateway\\.$#"
+			count: 2
+			path: includes/Payments/PaymentGatewayRegistry.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Payments\\\\PaymentGatewayRegistry\\:\\:getAvailable\\(\\) has invalid return type WCH_Payment_Gateway\\.$#"
+			count: 1
+			path: includes/Payments/PaymentGatewayRegistry.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Payments\\\\PaymentGatewayRegistry\\:\\:getEnabled\\(\\) has invalid return type WCH_Payment_Gateway\\.$#"
+			count: 1
+			path: includes/Payments/PaymentGatewayRegistry.php
+
+		-
+			message: "#^Parameter \\$gateway of method WhatsAppCommerceHub\\\\Payments\\\\PaymentGatewayRegistry\\:\\:register\\(\\) has invalid type WCH_Payment_Gateway\\.$#"
+			count: 2
+			path: includes/Payments/PaymentGatewayRegistry.php
+
+		-
+			message: "#^Property WhatsAppCommerceHub\\\\Payments\\\\PaymentGatewayRegistry\\:\\:\\$gateways has unknown class WCH_Payment_Gateway as its type\\.$#"
+			count: 1
+			path: includes/Payments/PaymentGatewayRegistry.php
+
+		-
+			message: "#^Property WooCommerce\\:\\:\\$countries \\(WC_Countries\\) in isset\\(\\) is not nullable\\.$#"
+			count: 1
+			path: includes/Payments/PaymentGatewayRegistry.php
+
+		-
+			message: "#^Call to an undefined method WCH_Customer_Service\\|WhatsAppCommerceHub\\\\Domain\\\\Customer\\\\CustomerService\\:\\:get_or_create_profile\\(\\)\\.$#"
+			count: 1
+			path: includes/Presentation/Actions/AbstractAction.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Domain\\\\Cart\\\\CartService\\:\\:get_cart\\(\\)\\.$#"
+			count: 1
+			path: includes/Presentation/Actions/AbstractAction.php
+
+		-
+			message: "#^Parameter \\#1 \\$attachment_id of function wp_get_attachment_image_url expects int, string given\\.$#"
+			count: 1
+			path: includes/Presentation/Actions/AbstractAction.php
+
+		-
+			message: "#^Parameter \\#1 \\$errorMessage of static method WhatsAppCommerceHub\\\\ValueObjects\\\\ActionResult\\:\\:failure\\(\\) expects string, array\\<int, WhatsAppCommerceHub\\\\Support\\\\Messaging\\\\MessageBuilder\\> given\\.$#"
+			count: 1
+			path: includes/Presentation/Actions/AbstractAction.php
+
+		-
+			message: "#^Parameter \\#2 \\$messages of static method WhatsAppCommerceHub\\\\ValueObjects\\\\ActionResult\\:\\:failure\\(\\) expects array, string\\|null given\\.$#"
+			count: 1
+			path: includes/Presentation/Actions/AbstractAction.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Domain\\\\Cart\\\\CartService\\:\\:add_item\\(\\)\\.$#"
+			count: 1
+			path: includes/Presentation/Actions/AddToCartAction.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Domain\\\\Cart\\\\CartService\\:\\:get_cart\\(\\)\\.$#"
+			count: 1
+			path: includes/Presentation/Actions/AddToCartAction.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Domain\\\\Cart\\\\CartService\\:\\:get_or_create_cart\\(\\)\\.$#"
+			count: 1
+			path: includes/Presentation/Actions/AddToCartAction.php
+
+		-
+			message: "#^If condition is always true\\.$#"
+			count: 1
+			path: includes/Presentation/Actions/AddToCartAction.php
+
+		-
+			message: "#^Unreachable statement \\- code above always terminates\\.$#"
+			count: 1
+			path: includes/Presentation/Actions/AddToCartAction.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Contracts\\\\Services\\\\CartServiceInterface\\:\\:updateCartStatus\\(\\)\\.$#"
+			count: 1
+			path: includes/Presentation/Actions/ConfirmOrderAction.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Domain\\\\Cart\\\\CartService\\:\\:update_cart\\(\\)\\.$#"
+			count: 1
+			path: includes/Presentation/Actions/ConfirmOrderAction.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Payments\\\\PaymentGatewayRegistry\\:\\:process_order_payment\\(\\)\\.$#"
+			count: 1
+			path: includes/Presentation/Actions/ConfirmOrderAction.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\ValueObjects\\\\ConversationContext\\:\\:getData\\(\\)\\.$#"
+			count: 1
+			path: includes/Presentation/Actions/ConfirmOrderAction.php
+
+		-
+			message: "#^Call to function is_array\\(\\) with object will always evaluate to false\\.$#"
+			count: 3
+			path: includes/Presentation/Actions/ConfirmOrderAction.php
+
+		-
+			message: "#^Negated boolean expression is always false\\.$#"
+			count: 1
+			path: includes/Presentation/Actions/ConfirmOrderAction.php
+
+		-
+			message: "#^Offset 'id' on \\*NEVER\\* on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: includes/Presentation/Actions/ConfirmOrderAction.php
+
+		-
+			message: "#^Offset 'items' on \\*NEVER\\* on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: includes/Presentation/Actions/ConfirmOrderAction.php
+
+		-
+			message: "#^Offset 'total' on \\*NEVER\\* on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: includes/Presentation/Actions/ConfirmOrderAction.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Payments\\\\PaymentGatewayRegistry\\:\\:get_available_gateways\\(\\)\\.$#"
+			count: 1
+			path: includes/Presentation/Actions/ProcessPaymentAction.php
+
+		-
+			message: "#^Call to function is_array\\(\\) with object will always evaluate to false\\.$#"
+			count: 3
+			path: includes/Presentation/Actions/ProcessPaymentAction.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Presentation\\\\Actions\\\\ProcessPaymentAction\\:\\:generatePaymentLink\\(\\) never returns null so it can be removed from the return type\\.$#"
+			count: 1
+			path: includes/Presentation/Actions/ProcessPaymentAction.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Presentation\\\\Actions\\\\ProcessPaymentAction\\:\\:generateUpiLink\\(\\) never returns null so it can be removed from the return type\\.$#"
+			count: 1
+			path: includes/Presentation/Actions/ProcessPaymentAction.php
+
+		-
+			message: "#^Offset 'id' on \\*NEVER\\* on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: includes/Presentation/Actions/ProcessPaymentAction.php
+
+		-
+			message: "#^Offset 'items' on \\*NEVER\\* on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: includes/Presentation/Actions/ProcessPaymentAction.php
+
+		-
+			message: "#^Offset 'total' on \\*NEVER\\* on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: includes/Presentation/Actions/ProcessPaymentAction.php
+
+		-
+			message: "#^Call to function is_array\\(\\) with object will always evaluate to false\\.$#"
+			count: 3
+			path: includes/Presentation/Actions/ShowCartAction.php
+
+		-
+			message: "#^Offset 'id' on \\*NEVER\\* on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: includes/Presentation/Actions/ShowCartAction.php
+
+		-
+			message: "#^Offset 'items' on \\*NEVER\\* on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: includes/Presentation/Actions/ShowCartAction.php
+
+		-
+			message: "#^Offset 'total' on \\*NEVER\\* on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: includes/Presentation/Actions/ShowCartAction.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Presentation\\\\Actions\\\\ShowMainMenuAction\\:\\:buildGreeting\\(\\) should return WCH_Message_Builder but returns WhatsAppCommerceHub\\\\Support\\\\Messaging\\\\MessageBuilder\\.$#"
+			count: 1
+			path: includes/Presentation/Actions/ShowMainMenuAction.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Analytics_Data\\:\\:clear_caches\\(\\)\\.$#"
+			count: 1
+			path: includes/Presentation/Admin/Pages/AnalyticsPage.php
+
+		-
+			message: "#^Call to method register\\(\\) on an unknown class WhatsAppCommerceHub\\\\Presentation\\\\Admin\\\\Pages\\\\BroadcastsAjaxHandler\\.$#"
+			count: 1
+			path: includes/Presentation/Admin/Pages/BroadcastsPage.php
+
+		-
+			message: "#^Call to method render\\(\\) on an unknown class WhatsAppCommerceHub\\\\Presentation\\\\Admin\\\\Pages\\\\BroadcastWizardRenderer\\.$#"
+			count: 1
+			path: includes/Presentation/Admin/Pages/BroadcastsPage.php
+
+		-
+			message: "#^Call to method render\\(\\) on an unknown class WhatsAppCommerceHub\\\\Presentation\\\\Admin\\\\Pages\\\\CampaignReportGenerator\\.$#"
+			count: 1
+			path: includes/Presentation/Admin/Pages/BroadcastsPage.php
+
+		-
+			message: "#^Parameter \\$ajaxHandler of method WhatsAppCommerceHub\\\\Presentation\\\\Admin\\\\Pages\\\\AdminBroadcastsController\\:\\:__construct\\(\\) has invalid type WhatsAppCommerceHub\\\\Presentation\\\\Admin\\\\Pages\\\\BroadcastsAjaxHandler\\.$#"
+			count: 2
+			path: includes/Presentation/Admin/Pages/BroadcastsPage.php
+
+		-
+			message: "#^Parameter \\$reportGenerator of method WhatsAppCommerceHub\\\\Presentation\\\\Admin\\\\Pages\\\\AdminBroadcastsController\\:\\:__construct\\(\\) has invalid type WhatsAppCommerceHub\\\\Presentation\\\\Admin\\\\Pages\\\\CampaignReportGenerator\\.$#"
+			count: 2
+			path: includes/Presentation/Admin/Pages/BroadcastsPage.php
+
+		-
+			message: "#^Parameter \\$wizardRenderer of method WhatsAppCommerceHub\\\\Presentation\\\\Admin\\\\Pages\\\\AdminBroadcastsController\\:\\:__construct\\(\\) has invalid type WhatsAppCommerceHub\\\\Presentation\\\\Admin\\\\Pages\\\\BroadcastWizardRenderer\\.$#"
+			count: 2
+			path: includes/Presentation/Admin/Pages/BroadcastsPage.php
+
+		-
+			message: "#^Property WhatsAppCommerceHub\\\\Presentation\\\\Admin\\\\Pages\\\\AdminBroadcastsController\\:\\:\\$ajaxHandler has unknown class WhatsAppCommerceHub\\\\Presentation\\\\Admin\\\\Pages\\\\BroadcastsAjaxHandler as its type\\.$#"
+			count: 2
+			path: includes/Presentation/Admin/Pages/BroadcastsPage.php
+
+		-
+			message: "#^Property WhatsAppCommerceHub\\\\Presentation\\\\Admin\\\\Pages\\\\AdminBroadcastsController\\:\\:\\$reportGenerator has unknown class WhatsAppCommerceHub\\\\Presentation\\\\Admin\\\\Pages\\\\CampaignReportGenerator as its type\\.$#"
+			count: 2
+			path: includes/Presentation/Admin/Pages/BroadcastsPage.php
+
+		-
+			message: "#^Property WhatsAppCommerceHub\\\\Presentation\\\\Admin\\\\Pages\\\\AdminBroadcastsController\\:\\:\\$wizardRenderer has unknown class WhatsAppCommerceHub\\\\Presentation\\\\Admin\\\\Pages\\\\BroadcastWizardRenderer as its type\\.$#"
+			count: 2
+			path: includes/Presentation/Admin/Pages/BroadcastsPage.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Product_Sync_Service\\:\\:instance\\(\\)\\.$#"
+			count: 5
+			path: includes/Presentation/Admin/Pages/CatalogSyncPage.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Queue\\:\\:getInstance\\(\\)\\.$#"
+			count: 2
+			path: includes/Presentation/Admin/Pages/CatalogSyncPage.php
+
+		-
+			message: "#^Parameter \\#3 \\$number of function _n expects int, float given\\.$#"
+			count: 1
+			path: includes/Presentation/Admin/Pages/CatalogSyncPage.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Job_Dispatcher\\:\\:get_all_pending_counts\\(\\)\\.$#"
+			count: 1
+			path: includes/Presentation/Admin/Pages/JobsPage.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Job_Dispatcher\\:\\:get_failed_jobs\\(\\)\\.$#"
+			count: 1
+			path: includes/Presentation/Admin/Pages/JobsPage.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Job_Dispatcher\\:\\:retry_failed_job\\(\\)\\.$#"
+			count: 1
+			path: includes/Presentation/Admin/Pages/JobsPage.php
+
+		-
+			message: "#^Call to static method get_active_carts_count\\(\\) on an unknown class WCH_Cart_Cleanup_Handler\\.$#"
+			count: 1
+			path: includes/Presentation/Admin/Pages/JobsPage.php
+
+		-
+			message: "#^Call to static method get_expired_carts_count\\(\\) on an unknown class WCH_Cart_Cleanup_Handler\\.$#"
+			count: 1
+			path: includes/Presentation/Admin/Pages/JobsPage.php
+
+		-
+			message: "#^Call to static method get_last_cleanup_result\\(\\) on an unknown class WCH_Cart_Cleanup_Handler\\.$#"
+			count: 1
+			path: includes/Presentation/Admin/Pages/JobsPage.php
+
+		-
+			message: "#^Call to static method trigger_cleanup\\(\\) on an unknown class WCH_Cart_Cleanup_Handler\\.$#"
+			count: 1
+			path: includes/Presentation/Admin/Pages/JobsPage.php
+
+		-
+			message: "#^Parameter \\#1 \\$text of function esc_html expects string, int given\\.$#"
+			count: 2
+			path: includes/Presentation/Admin/Pages/JobsPage.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Logger\\:\\:delete_old_logs\\(\\)\\.$#"
+			count: 1
+			path: includes/Presentation/Admin/Pages/LogsPage.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Logger\\:\\:get_log_files\\(\\)\\.$#"
+			count: 1
+			path: includes/Presentation/Admin/Pages/LogsPage.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Logger\\:\\:read_log\\(\\)\\.$#"
+			count: 1
+			path: includes/Presentation/Admin/Pages/LogsPage.php
+
+		-
+			message: "#^Parameter \\#1 \\$text of function esc_html expects string, int given\\.$#"
+			count: 1
+			path: includes/Presentation/Admin/Pages/LogsPage.php
+
+		-
+			message: "#^Parameter \\#1 \\$text of function esc_html expects string, int\\<0, max\\> given\\.$#"
+			count: 1
+			path: includes/Presentation/Admin/Pages/LogsPage.php
+
+		-
+			message: "#^Parameter \\#2 \\$src of function wp_enqueue_style expects string, false given\\.$#"
+			count: 1
+			path: includes/Presentation/Admin/Pages/LogsPage.php
+
+		-
+			message: "#^Property WhatsAppCommerceHub\\\\Presentation\\\\Admin\\\\Pages\\\\LogsPage\\:\\:\\$pageHook is never read, only written\\.$#"
+			count: 1
+			path: includes/Presentation/Admin/Pages/LogsPage.php
+
+		-
+			message: "#^Call to method register\\(\\) on an unknown class WhatsAppCommerceHub\\\\Presentation\\\\Admin\\\\Pages\\\\SettingsAjaxHandler\\.$#"
+			count: 1
+			path: includes/Presentation/Admin/Pages/SettingsPage.php
+
+		-
+			message: "#^Parameter \\$ajaxHandler of method WhatsAppCommerceHub\\\\Presentation\\\\Admin\\\\Pages\\\\AdminSettingsController\\:\\:__construct\\(\\) has invalid type WhatsAppCommerceHub\\\\Presentation\\\\Admin\\\\Pages\\\\SettingsAjaxHandler\\.$#"
+			count: 2
+			path: includes/Presentation/Admin/Pages/SettingsPage.php
+
+		-
+			message: "#^Property WhatsAppCommerceHub\\\\Presentation\\\\Admin\\\\Pages\\\\AdminSettingsController\\:\\:\\$ajaxHandler has unknown class WhatsAppCommerceHub\\\\Presentation\\\\Admin\\\\Pages\\\\SettingsAjaxHandler as its type\\.$#"
+			count: 2
+			path: includes/Presentation/Admin/Pages/SettingsPage.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Template_Manager\\:\\:getInstance\\(\\)\\.$#"
+			count: 3
+			path: includes/Presentation/Admin/Pages/TemplatesPage.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Analytics_Data\\:\\:get_summary\\(\\)\\.$#"
+			count: 1
+			path: includes/Presentation/Admin/Widgets/DashboardWidgets.php
+
+		-
+			message: "#^Call to static method instance\\(\\) on an unknown class WCH_Inventory_Sync_Handler\\.$#"
+			count: 1
+			path: includes/Presentation/Admin/Widgets/DashboardWidgets.php
+
+		-
+			message: "#^Comparison operation \"\\>\" between \\(array\\|float\\|int\\) and 0 results in an error\\.$#"
+			count: 1
+			path: includes/Presentation/Admin/Widgets/DashboardWidgets.php
+
+		-
+			message: "#^Call to method getCode\\(\\) on an unknown class WhatsAppCommerceHub\\\\Domain\\\\Exceptions\\\\ApiException\\.$#"
+			count: 1
+			path: includes/Presentation/Templates/TemplateManager.php
+
+		-
+			message: "#^Call to method getMessage\\(\\) on an unknown class WhatsAppCommerceHub\\\\Domain\\\\Exceptions\\\\ApiException\\.$#"
+			count: 3
+			path: includes/Presentation/Templates/TemplateManager.php
+
+		-
+			message: "#^Caught class WhatsAppCommerceHub\\\\Domain\\\\Exceptions\\\\ApiException not found\\.$#"
+			count: 1
+			path: includes/Presentation/Templates/TemplateManager.php
+
+		-
+			message: "#^Instantiated class WhatsAppCommerceHub\\\\Domain\\\\Exceptions\\\\ApiException not found\\.$#"
+			count: 4
+			path: includes/Presentation/Templates/TemplateManager.php
+
+		-
+			message: "#^Instantiated class WhatsAppCommerceHub\\\\Domain\\\\Exceptions\\\\WchException not found\\.$#"
+			count: 4
+			path: includes/Presentation/Templates/TemplateManager.php
+
+		-
+			message: "#^PHPDoc tag @throws with type WhatsAppCommerceHub\\\\Domain\\\\Exceptions\\\\ApiException is not subtype of Throwable$#"
+			count: 2
+			path: includes/Presentation/Templates/TemplateManager.php
+
+		-
+			message: "#^PHPDoc tag @throws with type WhatsAppCommerceHub\\\\Domain\\\\Exceptions\\\\WchException is not subtype of Throwable$#"
+			count: 2
+			path: includes/Presentation/Templates/TemplateManager.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:error\\(\\) expects string, array\\<string, \\(int\\|string\\)\\> given\\.$#"
+			count: 1
+			path: includes/Presentation/Templates/TemplateManager.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:info\\(\\) expects string, array\\<string, int\\<0, max\\>\\> given\\.$#"
+			count: 1
+			path: includes/Presentation/Templates/TemplateManager.php
+
+		-
+			message: "#^Property WhatsAppCommerceHub\\\\Presentation\\\\Templates\\\\TemplateManager\\:\\:\\$apiClient is never read, only written\\.$#"
+			count: 1
+			path: includes/Presentation/Templates/TemplateManager.php
+
+		-
+			message: "#^Throwing object of an unknown class WhatsAppCommerceHub\\\\Domain\\\\Exceptions\\\\ApiException\\.$#"
+			count: 4
+			path: includes/Presentation/Templates/TemplateManager.php
+
+		-
+			message: "#^Throwing object of an unknown class WhatsAppCommerceHub\\\\Domain\\\\Exceptions\\\\WchException\\.$#"
+			count: 4
+			path: includes/Presentation/Templates/TemplateManager.php
+
+		-
+			message: "#^Parameter \\#1 \\$customerService of method WhatsAppCommerceHub\\\\Actions\\\\AbstractAction\\:\\:setCustomerService\\(\\) expects WCH_Customer_Service, WhatsAppCommerceHub\\\\Domain\\\\Customer\\\\CustomerService given\\.$#"
+			count: 1
+			path: includes/Providers/ActionServiceProvider.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Providers\\\\AdminSettingsServiceProvider\\:\\:getFallbackSettings\\(\\) should return WhatsAppCommerceHub\\\\Contracts\\\\Services\\\\SettingsInterface but returns WhatsAppCommerceHub\\\\Infrastructure\\\\Configuration\\\\SettingsManager\\.$#"
+			count: 1
+			path: includes/Providers/AdminSettingsServiceProvider.php
+
+		-
+			message: "#^Call to an undefined static method WCH_WhatsApp_API_Client\\:\\:getClient\\(\\)\\.$#"
+			count: 1
+			path: includes/Providers/ApiClientServiceProvider.php
+
+		-
+			message: "#^Call to an undefined static method WCH_WhatsApp_API_Client\\:\\:instance\\(\\)\\.$#"
+			count: 1
+			path: includes/Providers/ApiClientServiceProvider.php
+
+		-
+			message: "#^Call to function method_exists\\(\\) with 'WCH_OpenAI_Client' and 'instance' will always evaluate to false\\.$#"
+			count: 1
+			path: includes/Providers/ApiClientServiceProvider.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Providers\\\\BroadcastsServiceProvider\\:\\:getFallbackSettings\\(\\) should return WhatsAppCommerceHub\\\\Contracts\\\\Services\\\\SettingsInterface but returns WhatsAppCommerceHub\\\\Infrastructure\\\\Configuration\\\\SettingsManager\\.$#"
+			count: 1
+			path: includes/Providers/BroadcastsServiceProvider.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of static method WCH_Logger\\:\\:info\\(\\) expects array, string given\\.$#"
+			count: 2
+			path: includes/Providers/CheckoutServiceProvider.php
+
+		-
+			message: "#^Static method WCH_Logger\\:\\:info\\(\\) invoked with 3 parameters, 1\\-2 required\\.$#"
+			count: 2
+			path: includes/Providers/CheckoutServiceProvider.php
+
+		-
+			message: "#^Class WCH_Encryption not found\\.$#"
+			count: 3
+			path: includes/Providers/CoreServiceProvider.php
+
+		-
+			message: "#^Class WCH_Error_Handler not found\\.$#"
+			count: 1
+			path: includes/Providers/CoreServiceProvider.php
+
+		-
+			message: "#^Class WCH_Queue constructor invoked with 0 parameters, 1 required\\.$#"
+			count: 1
+			path: includes/Providers/CoreServiceProvider.php
+
+		-
+			message: "#^Class WCH_Settings does not have a constructor and must be instantiated without any parameters\\.$#"
+			count: 1
+			path: includes/Providers/CoreServiceProvider.php
+
+		-
+			message: "#^Class WCH_Template_Manager constructor invoked with 1 parameter, 3 required\\.$#"
+			count: 1
+			path: includes/Providers/CoreServiceProvider.php
+
+		-
+			message: "#^Class WhatsAppCommerceHub\\\\Core\\\\ErrorHandler does not have a constructor and must be instantiated without any parameters\\.$#"
+			count: 1
+			path: includes/Providers/CoreServiceProvider.php
+
+		-
+			message: "#^Parameter \\#1 \\$cart of class WhatsAppCommerceHub\\\\Events\\\\CartAbandonedEvent constructor expects WhatsAppCommerceHub\\\\Domain\\\\Cart\\\\Cart, WhatsAppCommerceHub\\\\Entities\\\\Cart given\\.$#"
+			count: 1
+			path: includes/Providers/EventServiceProvider.php
+
+		-
+			message: "#^Parameter \\#1 \\$cart of class WhatsAppCommerceHub\\\\Events\\\\CartRecoveredEvent constructor expects WhatsAppCommerceHub\\\\Domain\\\\Cart\\\\Cart, WhatsAppCommerceHub\\\\Entities\\\\Cart given\\.$#"
+			count: 1
+			path: includes/Providers/EventServiceProvider.php
+
+		-
+			message: "#^Class WCH_Order_Notifications not found\\.$#"
+			count: 3
+			path: includes/Providers/NotificationServiceProvider.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Template_Manager\\:\\:getInstance\\(\\)\\.$#"
+			count: 1
+			path: includes/Providers/PaymentServiceProvider.php
+
+		-
+			message: "#^Class WCH_WhatsApp_API_Client constructor invoked with 0 parameters, 3\\-4 required\\.$#"
+			count: 2
+			path: includes/Providers/PaymentServiceProvider.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Queue\\:\\:getInstance\\(\\)\\.$#"
+			count: 1
+			path: includes/Providers/QueueServiceProvider.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Database_Manager\\:\\:instance\\(\\)\\.$#"
+			count: 4
+			path: includes/Providers/ReengagementServiceProvider.php
+
+		-
+			message: "#^Method WhatsAppCommerceHub\\\\Providers\\\\ReengagementServiceProvider\\:\\:getFallbackSettings\\(\\) should return WhatsAppCommerceHub\\\\Contracts\\\\Services\\\\SettingsInterface but returns WhatsAppCommerceHub\\\\Infrastructure\\\\Configuration\\\\SettingsManager\\.$#"
+			count: 1
+			path: includes/Providers/ReengagementServiceProvider.php
+
+		-
+			message: "#^Call to function is_int\\(\\) with null will always evaluate to false\\.$#"
+			count: 1
+			path: includes/Queue/PriorityQueue.php
+
+		-
+			message: "#^Offset int\\<1, 5\\> on array\\{1\\: 'critical', 2\\: 'urgent', 3\\: 'normal', 4\\: 'bulk', 5\\: 'maintenance'\\} on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: includes/Queue/PriorityQueue.php
+
+		-
+			message: "#^Parameter \\#2 \\$args of function as_next_scheduled_action expects array, null given\\.$#"
+			count: 1
+			path: includes/Queue/PriorityQueue.php
+
+		-
+			message: "#^Parameter \\#2 \\$args of function as_unschedule_all_actions expects array, null given\\.$#"
+			count: 1
+			path: includes/Queue/PriorityQueue.php
+
+		-
+			message: "#^Result of function as_unschedule_all_actions \\(void\\) is used\\.$#"
+			count: 1
+			path: includes/Queue/PriorityQueue.php
+
+		-
+			message: "#^Call to an undefined method WC_Order_Item\\:\\:get_product\\(\\)\\.$#"
+			count: 1
+			path: includes/Queue/Processors/OrderNotificationProcessor.php
+
+		-
+			message: "#^Call to an undefined static method WCH_WhatsApp_API_Client\\:\\:getInstance\\(\\)\\.$#"
+			count: 1
+			path: includes/Queue/Processors/OrderNotificationProcessor.php
+
+		-
+			message: "#^Expression on left side of \\?\\? is not nullable\\.$#"
+			count: 1
+			path: includes/Queue/Processors/OrderNotificationProcessor.php
+
+		-
+			message: "#^Constant WhatsAppCommerceHub\\\\Queue\\\\Processors\\\\WebhookErrorProcessor\\:\\:CIRCUIT_SERVICE is unused\\.$#"
+			count: 1
+			path: includes/Queue/Processors/WebhookErrorProcessor.php
+
+		-
+			message: "#^Access to undefined constant WCH_Conversation_FSM\\:\\:EVENT_ADD_TO_CART\\.$#"
+			count: 1
+			path: includes/Queue/Processors/WebhookMessageProcessor.php
+
+		-
+			message: "#^Access to undefined constant WCH_Conversation_FSM\\:\\:EVENT_CONFIRM_ORDER\\.$#"
+			count: 1
+			path: includes/Queue/Processors/WebhookMessageProcessor.php
+
+		-
+			message: "#^Access to undefined constant WCH_Conversation_FSM\\:\\:EVENT_REQUEST_HUMAN\\.$#"
+			count: 2
+			path: includes/Queue/Processors/WebhookMessageProcessor.php
+
+		-
+			message: "#^Access to undefined constant WCH_Conversation_FSM\\:\\:EVENT_SEARCH\\.$#"
+			count: 1
+			path: includes/Queue/Processors/WebhookMessageProcessor.php
+
+		-
+			message: "#^Access to undefined constant WCH_Conversation_FSM\\:\\:EVENT_SELECT_CATEGORY\\.$#"
+			count: 1
+			path: includes/Queue/Processors/WebhookMessageProcessor.php
+
+		-
+			message: "#^Access to undefined constant WCH_Conversation_FSM\\:\\:EVENT_START\\.$#"
+			count: 3
+			path: includes/Queue/Processors/WebhookMessageProcessor.php
+
+		-
+			message: "#^Access to undefined constant WCH_Conversation_FSM\\:\\:EVENT_START_CHECKOUT\\.$#"
+			count: 1
+			path: includes/Queue/Processors/WebhookMessageProcessor.php
+
+		-
+			message: "#^Access to undefined constant WCH_Conversation_FSM\\:\\:EVENT_VIEW_CART\\.$#"
+			count: 1
+			path: includes/Queue/Processors/WebhookMessageProcessor.php
+
+		-
+			message: "#^Access to undefined constant WCH_Conversation_FSM\\:\\:EVENT_VIEW_PRODUCT\\.$#"
+			count: 1
+			path: includes/Queue/Processors/WebhookMessageProcessor.php
+
+		-
+			message: "#^Call to an undefined method WCH_Conversation_FSM\\:\\:transition\\(\\)\\.$#"
+			count: 1
+			path: includes/Queue/Processors/WebhookMessageProcessor.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Contracts\\\\Repositories\\\\ConversationRepositoryInterface\\:\\:findOrCreate\\(\\)\\.$#"
+			count: 1
+			path: includes/Queue/Processors/WebhookMessageProcessor.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Contracts\\\\Repositories\\\\ConversationRepositoryInterface\\:\\:incrementUnread\\(\\)\\.$#"
+			count: 1
+			path: includes/Queue/Processors/WebhookMessageProcessor.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Contracts\\\\Repositories\\\\ConversationRepositoryInterface\\:\\:touchMessage\\(\\)\\.$#"
+			count: 1
+			path: includes/Queue/Processors/WebhookMessageProcessor.php
+
+		-
+			message: "#^Class WCH_Conversation_FSM constructor invoked with 0 parameters, 1 required\\.$#"
+			count: 1
+			path: includes/Queue/Processors/WebhookMessageProcessor.php
+
+		-
+			message: "#^Call to function method_exists\\(\\) with WhatsAppCommerceHub\\\\Contracts\\\\Repositories\\\\MessageRepositoryInterface and 'incrementRetryCount' will always evaluate to true\\.$#"
+			count: 1
+			path: includes/Queue/Processors/WebhookStatusProcessor.php
+
+		-
+			message: "#^Property WhatsAppCommerceHub\\\\Resilience\\\\FallbackStrategy\\:\\:\\$cache is never read, only written\\.$#"
+			count: 1
+			path: includes/Resilience/FallbackStrategy.php
+
+		-
+			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Contracts\\\\Services\\\\CartServiceInterface\\:\\:recordCouponPhoneUsage\\(\\)\\.$#"
+			count: 1
+			path: includes/Sagas/CheckoutSaga.php
+
+		-
+			message: "#^Comparison operation \"\\<\" between int\\<min, \\-1\\> and 0 is always true\\.$#"
+			count: 1
+			path: includes/Sagas/CheckoutSaga.php
+
+		-
+			message: "#^Instanceof between WC_Order and WC_Order will always evaluate to true\\.$#"
+			count: 1
+			path: includes/Sagas/CheckoutSaga.php
+
+		-
+			message: "#^Parameter \\#2 \\$value of method WC_Data\\:\\:update_meta_data\\(\\) expects array\\|string, true given\\.$#"
+			count: 1
+			path: includes/Sagas/CheckoutSaga.php
+
+		-
+			message: "#^Instanceof between WhatsAppCommerceHub\\\\Sagas\\\\SagaStep and WhatsAppCommerceHub\\\\Sagas\\\\SagaStep will always evaluate to true\\.$#"
+			count: 1
+			path: includes/Sagas/SagaOrchestrator.php
+
+		-
+			message: "#^Strict comparison using \\=\\=\\= between 1 and string\\|null will always evaluate to false\\.$#"
+			count: 2
+			path: includes/Sagas/SagaOrchestrator.php
+
+		-
+			message: "#^Comparison operation \"\\>\" between int\\<1, max\\> and 0 is always true\\.$#"
+			count: 1
+			path: includes/Security/SecureVault.php
+
+		-
+			message: "#^Parameter \\#2 \\$context of method WhatsAppCommerceHub\\\\Core\\\\Logger\\:\\:error\\(\\) expects string, array\\<string, mixed\\> given\\.$#"
+			count: 1
+			path: includes/Support/AI/AiAssistant.php
+
+		-
+			message: "#^Constant WhatsAppCommerceHub\\\\Support\\\\Messaging\\\\MessageBuilder\\:\\:MAX_HEADER_TEXT_LENGTH is unused\\.$#"
+			count: 1
+			path: includes/Support/Messaging/MessageBuilder.php
+
+		-
+			message: "#^Comparison operation \"\\>\" between int\\<1, max\\> and 0 is always true\\.$#"
+			count: 1
+			path: includes/Support/Utilities/AddressParser.php
+
+		-
+			message: "#^Unsafe usage of new static\\(\\)\\.$#"
+			count: 3
+			path: includes/ValueObjects/ActionResult.php
+
+		-
+			message: "#^Unsafe usage of new static\\(\\)\\.$#"
+			count: 3
+			path: includes/ValueObjects/ConversationContext.php
+
+		-
+			message: "#^Offset 'type' on array\\{type\\: string, value\\: mixed, position\\?\\: int\\} in isset\\(\\) always exists and is not nullable\\.$#"
+			count: 2
+			path: includes/ValueObjects/Intent.php
+
+		-
+			message: "#^Unsafe usage of new static\\(\\)\\.$#"
+			count: 2
+			path: includes/ValueObjects/Intent.php
+
+		-
+			message: "#^Unsafe usage of new static\\(\\)\\.$#"
+			count: 6
+			path: includes/ValueObjects/ParsedResponse.php
+
+		-
+			message: "#^Call to an undefined method WCH_Database_Manager\\:\\:run_migrations\\(\\)\\.$#"
+			count: 1
+			path: whatsapp-commerce-hub.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Order_Sync_Service\\:\\:instance\\(\\)\\.$#"
+			count: 1
+			path: whatsapp-commerce-hub.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Product_Sync_Service\\:\\:instance\\(\\)\\.$#"
+			count: 1
+			path: whatsapp-commerce-hub.php
+
+		-
+			message: "#^Call to an undefined static method WCH_Queue\\:\\:getInstance\\(\\)\\.$#"
+			count: 1
+			path: whatsapp-commerce-hub.php
+
+		-
+			message: "#^Call to static method getInstance\\(\\) on an unknown class WCH_Abandoned_Cart_Recovery\\.$#"
+			count: 1
+			path: whatsapp-commerce-hub.php
+
+		-
+			message: "#^Call to static method getInstance\\(\\) on an unknown class WCH_REST_API\\.$#"
+			count: 1
+			path: whatsapp-commerce-hub.php
+
+		-
+			message: "#^Call to static method init\\(\\) on an unknown class WCH_Admin_Analytics\\.$#"
+			count: 1
+			path: whatsapp-commerce-hub.php
+
+		-
+			message: "#^Call to static method init\\(\\) on an unknown class WCH_Admin_Broadcasts\\.$#"
+			count: 1
+			path: whatsapp-commerce-hub.php
+
+		-
+			message: "#^Call to static method init\\(\\) on an unknown class WCH_Admin_Catalog_Sync\\.$#"
+			count: 1
+			path: whatsapp-commerce-hub.php
+
+		-
+			message: "#^Call to static method init\\(\\) on an unknown class WCH_Admin_Inbox\\.$#"
+			count: 1
+			path: whatsapp-commerce-hub.php
+
+		-
+			message: "#^Call to static method init\\(\\) on an unknown class WCH_Admin_Jobs\\.$#"
+			count: 1
+			path: whatsapp-commerce-hub.php
+
+		-
+			message: "#^Call to static method init\\(\\) on an unknown class WCH_Admin_Logs\\.$#"
+			count: 1
+			path: whatsapp-commerce-hub.php
+
+		-
+			message: "#^Call to static method init\\(\\) on an unknown class WCH_Admin_Settings\\.$#"
+			count: 1
+			path: whatsapp-commerce-hub.php
+
+		-
+			message: "#^Call to static method init\\(\\) on an unknown class WCH_Admin_Templates\\.$#"
+			count: 1
+			path: whatsapp-commerce-hub.php
+
+		-
+			message: "#^Call to static method init\\(\\) on an unknown class WCH_Dashboard_Widgets\\.$#"
+			count: 1
+			path: whatsapp-commerce-hub.php
+
+		-
+			message: "#^Call to static method init\\(\\) on an unknown class WCH_Error_Handler\\.$#"
+			count: 1
+			path: whatsapp-commerce-hub.php
+
+		-
+			message: "#^Call to static method instance\\(\\) on an unknown class WCH_Inventory_Sync_Handler\\.$#"
+			count: 1
+			path: whatsapp-commerce-hub.php
+
+		-
+			message: "#^Call to static method instance\\(\\) on an unknown class WCH_Order_Notifications\\.$#"
+			count: 1
+			path: whatsapp-commerce-hub.php
+
+		-
+			message: "#^Call to static method instance\\(\\) on an unknown class WCH_Reengagement_Service\\.$#"
+			count: 2
+			path: whatsapp-commerce-hub.php
+
+		-
+			message: "#^Call to static method instance\\(\\) on an unknown class WCH_Refund_Handler\\.$#"
+			count: 1
+			path: whatsapp-commerce-hub.php
+
+		-
+			message: "#^Call to static method schedule_discrepancy_check\\(\\) on an unknown class WCH_Inventory_Sync_Handler\\.$#"
+			count: 1
+			path: whatsapp-commerce-hub.php

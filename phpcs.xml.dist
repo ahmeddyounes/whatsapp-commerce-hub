@@ -30,6 +30,16 @@
 		<!-- We're using PSR-4 autoloading, so file names don't need class- prefix -->
 		<exclude name="WordPress.Files.FileName.InvalidClassFileName"/>
 		<exclude name="WordPress.Files.FileName.NotHyphenatedLowercase"/>
+
+		<!-- Allow PSR-4 style camelCase for class methods and properties -->
+		<exclude name="WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid"/>
+		<exclude name="WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase"/>
+		<exclude name="WordPress.NamingConventions.ValidVariableName.PropertyNotSnakeCase"/>
+		<exclude name="WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase"/>
+		<exclude name="WordPress.NamingConventions.ValidVariableName.InterpolatedVariableNotSnakeCase"/>
+
+		<!-- Allow short ternary operator -->
+		<exclude name="Universal.Operators.DisallowShortTernary.Found"/>
 	</rule>
 
 	<!-- Include the WordPress-Docs standard. -->
@@ -51,8 +61,39 @@
 				<element value="WCH"/>
 				<element value="whatsapp_commerce_hub"/>
 				<element value="WhatsApp_Commerce_Hub"/>
+				<element value="WhatsAppCommerceHub"/>
 			</property>
 		</properties>
+	</rule>
+
+	<!-- Allow namespaced classes without prefix requirement -->
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedNamespaceFound">
+		<severity>0</severity>
+	</rule>
+
+	<!-- Relax hook name prefix requirement for internal hooks -->
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound">
+		<severity>5</severity>
+	</rule>
+
+	<!-- Allow non-Yoda conditions for modern PHP style -->
+	<rule ref="WordPress.PHP.YodaConditions.NotYoda">
+		<severity>0</severity>
+	</rule>
+
+	<!-- Reduce severity for missing param tags (PSR-12 allows type hints instead) -->
+	<rule ref="Squiz.Commenting.FunctionComment.MissingParamTag">
+		<severity>5</severity>
+	</rule>
+
+	<!-- Allow param comments without full stop -->
+	<rule ref="Squiz.Commenting.FunctionComment.ParamCommentFullStop">
+		<severity>0</severity>
+	</rule>
+
+	<!-- Allow inline comments without period -->
+	<rule ref="Squiz.Commenting.InlineComment.InvalidEndChar">
+		<severity>0</severity>
 	</rule>
 
 	<!-- Minimum PHP version -->
