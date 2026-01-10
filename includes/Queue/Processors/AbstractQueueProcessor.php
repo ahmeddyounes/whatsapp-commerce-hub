@@ -49,31 +49,15 @@ abstract class AbstractQueueProcessor implements QueueProcessorInterface {
 	protected const BACKOFF_MULTIPLIER = 3;
 
 	/**
-	 * Priority queue for rescheduling retries.
-	 *
-	 * @var PriorityQueue
-	 */
-	protected PriorityQueue $priorityQueue;
-
-	/**
-	 * Dead letter queue for failed jobs.
-	 *
-	 * @var DeadLetterQueue
-	 */
-	protected DeadLetterQueue $deadLetterQueue;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param PriorityQueue   $priorityQueue   Priority queue for retries.
 	 * @param DeadLetterQueue $deadLetterQueue Dead letter queue for failures.
 	 */
 	public function __construct(
-		PriorityQueue $priorityQueue,
-		DeadLetterQueue $deadLetterQueue
+		protected PriorityQueue $priorityQueue,
+		protected DeadLetterQueue $deadLetterQueue
 	) {
-		$this->priorityQueue   = $priorityQueue;
-		$this->deadLetterQueue = $deadLetterQueue;
 	}
 
 	/**
