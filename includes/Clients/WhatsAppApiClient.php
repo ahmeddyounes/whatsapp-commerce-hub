@@ -210,7 +210,7 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 		string $to,
 		string $template_name,
 		string $language_code,
-		array $components = array()
+		array $components = []
 	): array {
 		$this->validatePhoneNumber( $to );
 
@@ -242,7 +242,7 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 	public function sendImage( string $to, string $image_url_or_id, ?string $caption = null ): array {
 		$this->validatePhoneNumber( $to );
 
-		$image = array();
+		$image = [];
 		if ( $this->isMediaId( $image_url_or_id ) ) {
 			$image['id'] = $image_url_or_id;
 		} else {
@@ -275,7 +275,7 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 	): array {
 		$this->validatePhoneNumber( $to );
 
-		$document = array();
+		$document = [];
 		if ( $this->isMediaId( $document_url_or_id ) ) {
 			$document['id'] = $document_url_or_id;
 		} else {
@@ -451,7 +451,7 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 		$fields   = 'about,address,description,email,profile_picture_url,websites,vertical';
 		$response = $this->request( 'GET', $this->phone_number_id . '/whatsapp_business_profile?fields=' . $fields );
 
-		return $response['data'][0] ?? array();
+		return $response['data'][0] ?? [];
 	}
 
 	/**
@@ -515,13 +515,13 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 			$catalog_id . '/products?filter=' . rawurlencode( '{"retailer_id":"' . $product_id . '"}' )
 		);
 
-		return $response['data'][0] ?? array();
+		return $response['data'][0] ?? [];
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
-	public function listCatalogProducts( string $catalog_id, array $params = array() ): array {
+	public function listCatalogProducts( string $catalog_id, array $params = [] ): array {
 		$query = http_build_query( $params );
 		$url   = $catalog_id . '/products' . ( $query ? '?' . $query : '' );
 
@@ -594,7 +594,7 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 	 * @return array Response data.
 	 * @throws \RuntimeException If request fails and cannot be queued.
 	 */
-	private function request( string $method, string $endpoint, array $body = array() ): array {
+	private function request( string $method, string $endpoint, array $body = [] ): array {
 		return $this->circuit_breaker->call(
 			function () use ( $method, $endpoint, $body ) {
 				return $this->executeRequest( $method, $endpoint, $body );
@@ -676,7 +676,7 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 	 * @return array Response data.
 	 * @throws \RuntimeException If request fails after retries.
 	 */
-	private function executeRequest( string $method, string $endpoint, array $body = array() ): array {
+	private function executeRequest( string $method, string $endpoint, array $body = [] ): array {
 		$url     = $this->base_url . $endpoint;
 		$attempt = 0;
 		$start   = microtime( true );
@@ -748,7 +748,7 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 				);
 			}
 
-			return $response_body ?? array();
+			return $response_body ?? [];
 		}
 
 		throw new \RuntimeException( 'Max retries exceeded' );
