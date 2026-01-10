@@ -17,6 +17,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
+// SQL uses safe table names from $wpdb->prefix. Hook names use wch_ project prefix.
+
 /**
  * Class AbstractRepository
  *
@@ -204,7 +207,7 @@ abstract class AbstractRepository implements RepositoryInterface {
 		$where_parts = array();
 
 		if ( ! empty( $criteria ) ) {
-			$where       = $this->buildWhereClause( $criteria );
+			$where         = $this->buildWhereClause( $criteria );
 			$where_parts[] = $where['clause'];
 		}
 
@@ -317,7 +320,7 @@ abstract class AbstractRepository implements RepositoryInterface {
 		$where_parts = array();
 
 		if ( ! empty( $criteria ) ) {
-			$where       = $this->buildWhereClause( $criteria );
+			$where         = $this->buildWhereClause( $criteria );
 			$where_parts[] = $where['clause'];
 		}
 
@@ -544,7 +547,7 @@ abstract class AbstractRepository implements RepositoryInterface {
 
 		// Phase 1: Prepare all rows and extract columns.
 		$prepared_rows = array();
-		$columns = null;
+		$columns       = null;
 
 		foreach ( $rows as $index => $row ) {
 			$row = $this->prepareData( $row );

@@ -329,10 +329,10 @@ class MessageRepository extends AbstractRepository implements MessageRepositoryI
 	/**
 	 * Create a new inbound message.
 	 *
-	 * @param int         $conversation_id The conversation ID.
-	 * @param string      $wa_message_id   The WhatsApp message ID.
-	 * @param string      $type            The message type.
-	 * @param array       $content         The message content.
+	 * @param int    $conversation_id The conversation ID.
+	 * @param string $wa_message_id   The WhatsApp message ID.
+	 * @param string $type            The message type.
+	 * @param array  $content         The message content.
 	 * @return int The new message ID.
 	 * @throws \InvalidArgumentException If type is invalid.
 	 */

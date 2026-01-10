@@ -18,6 +18,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
+// SQL uses safe table names from $wpdb->prefix. Hook names use wch_ project prefix.
+
 /**
  * Class CustomerRepository
  *
@@ -156,10 +159,14 @@ class CustomerRepository extends AbstractRepository implements CustomerRepositor
 
 			if ( JSON_ERROR_NONE !== json_last_error() ) {
 				$this->rollback();
-				do_action( 'wch_log_error', 'Corrupted preferences JSON', array(
-					'customer_id' => $id,
-					'json_error'  => json_last_error_msg(),
-				) );
+				do_action(
+					'wch_log_error',
+					'Corrupted preferences JSON',
+					array(
+						'customer_id' => $id,
+						'json_error'  => json_last_error_msg(),
+					)
+				);
 				return false;
 			}
 
@@ -390,7 +397,7 @@ class CustomerRepository extends AbstractRepository implements CustomerRepositor
 
 			// Delete carts.
 			$carts_table = $this->wpdb->prefix . 'wch_carts';
-			$result = $this->wpdb->delete(
+			$result      = $this->wpdb->delete(
 				$carts_table,
 				array( 'customer_phone' => $customer->phone ),
 				array( '%s' )
@@ -412,9 +419,13 @@ class CustomerRepository extends AbstractRepository implements CustomerRepositor
 			$this->rollback();
 
 			// Log the error for debugging.
-			do_action( 'wch_log_error', 'GDPR deleteAllData failed: ' . $e->getMessage(), array(
-				'customer_id' => $id,
-			) );
+			do_action(
+				'wch_log_error',
+				'GDPR deleteAllData failed: ' . $e->getMessage(),
+				array(
+					'customer_id' => $id,
+				)
+			);
 
 			return false;
 		}
