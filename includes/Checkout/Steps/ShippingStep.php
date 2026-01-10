@@ -94,9 +94,9 @@ class ShippingStep extends AbstractStep {
 		try {
 			$this->log( 'Showing shipping methods', array( 'phone' => $this->getCustomerPhone( $context ) ) );
 
-			$cart = $this->getCart( $context );
+			$cart          = $this->getCart( $context );
 			$checkout_data = $this->getCheckoutData( $context );
-			$address = $checkout_data['shipping_address'] ?? null;
+			$address       = $checkout_data['shipping_address'] ?? null;
 
 			if ( ! $address ) {
 				return $this->failure(
@@ -148,10 +148,13 @@ class ShippingStep extends AbstractStep {
 	 */
 	public function processInput( string $input, array $context ): CheckoutResponse {
 		try {
-			$this->log( 'Processing shipping selection', array(
-				'phone' => $this->getCustomerPhone( $context ),
-				'input' => $input,
-			) );
+			$this->log(
+				'Processing shipping selection',
+				array(
+					'phone' => $this->getCustomerPhone( $context ),
+					'input' => $input,
+				)
+			);
 
 			// Parse shipping method selection.
 			if ( ! preg_match( '/^shipping_(.+)$/', $input, $matches ) ) {
@@ -162,14 +165,14 @@ class ShippingStep extends AbstractStep {
 				);
 			}
 
-			$method_id = $matches[1];
-			$cart = $this->getCart( $context );
+			$method_id     = $matches[1];
+			$cart          = $this->getCart( $context );
 			$checkout_data = $this->getCheckoutData( $context );
-			$address = $checkout_data['shipping_address'] ?? null;
+			$address       = $checkout_data['shipping_address'] ?? null;
 
 			// Get available methods to validate selection.
 			$shipping_methods = $this->calculateShippingMethods( $cart, $address );
-			$selected_method = null;
+			$selected_method  = null;
 
 			foreach ( $shipping_methods as $method ) {
 				if ( $method['id'] === $method_id ) {

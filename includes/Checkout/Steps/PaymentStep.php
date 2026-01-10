@@ -72,8 +72,8 @@ class PaymentStep extends AbstractStep {
 			$this->log( 'Showing payment methods', array( 'phone' => $this->getCustomerPhone( $context ) ) );
 
 			$checkout_data = $this->getCheckoutData( $context );
-			$address = $checkout_data['shipping_address'] ?? array();
-			$country = $address['country'] ?? '';
+			$address       = $checkout_data['shipping_address'] ?? array();
+			$country       = $address['country'] ?? '';
 
 			// Get available payment methods based on country.
 			$payment_methods = $this->getAvailablePaymentMethods( $country );
@@ -113,10 +113,13 @@ class PaymentStep extends AbstractStep {
 	 */
 	public function processInput( string $input, array $context ): CheckoutResponse {
 		try {
-			$this->log( 'Processing payment selection', array(
-				'phone' => $this->getCustomerPhone( $context ),
-				'input' => $input,
-			) );
+			$this->log(
+				'Processing payment selection',
+				array(
+					'phone' => $this->getCustomerPhone( $context ),
+					'input' => $input,
+				)
+			);
 
 			// Parse payment method selection.
 			if ( ! preg_match( '/^payment_(.+)$/', $input, $matches ) ) {
@@ -127,10 +130,10 @@ class PaymentStep extends AbstractStep {
 				);
 			}
 
-			$method_id = $matches[1];
+			$method_id     = $matches[1];
 			$checkout_data = $this->getCheckoutData( $context );
-			$address = $checkout_data['shipping_address'] ?? array();
-			$country = $address['country'] ?? '';
+			$address       = $checkout_data['shipping_address'] ?? array();
+			$country       = $address['country'] ?? '';
 
 			// Validate selection against available methods.
 			$payment_methods = $this->getAvailablePaymentMethods( $country );

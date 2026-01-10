@@ -120,7 +120,7 @@ abstract class AbstractStep implements StepInterface {
 	 * @return \WCH_Message_Builder
 	 */
 	protected function errorMessage( string $message ): \WCH_Message_Builder {
-		return $this->message_builder->text( "⚠️ " . $message );
+		return $this->message_builder->text( '⚠️ ' . $message );
 	}
 
 	/**

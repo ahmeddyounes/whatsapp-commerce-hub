@@ -71,7 +71,7 @@ class AddressStep extends AbstractStep {
 		try {
 			$this->log( 'Requesting address', array( 'phone' => $this->getCustomerPhone( $context ) ) );
 
-			$customer = $this->getCustomer( $context );
+			$customer        = $this->getCustomer( $context );
 			$saved_addresses = $this->getSavedAddresses( $customer );
 
 			if ( ! empty( $saved_addresses ) ) {
@@ -102,10 +102,13 @@ class AddressStep extends AbstractStep {
 	 */
 	public function processInput( string $input, array $context ): CheckoutResponse {
 		try {
-			$this->log( 'Processing address input', array(
-				'phone' => $this->getCustomerPhone( $context ),
-				'input_length' => strlen( $input ),
-			) );
+			$this->log(
+				'Processing address input',
+				array(
+					'phone'        => $this->getCustomerPhone( $context ),
+					'input_length' => strlen( $input ),
+				)
+			);
 
 			$address = null;
 
@@ -197,7 +200,7 @@ class AddressStep extends AbstractStep {
 	 * @return array|null
 	 */
 	private function loadSavedAddress( int $index, array $context ): ?array {
-		$customer = $this->getCustomer( $context );
+		$customer        = $this->getCustomer( $context );
 		$saved_addresses = $this->getSavedAddresses( $customer );
 
 		return $saved_addresses[ $index ] ?? null;
@@ -211,13 +214,13 @@ class AddressStep extends AbstractStep {
 	 */
 	private function buildSavedAddressesMessage( array $addresses ): \WCH_Message_Builder {
 		$message = $this->message_builder->create();
-		$message->body( __( "📍 Select a shipping address or add a new one:", 'whatsapp-commerce-hub' ) );
+		$message->body( __( '📍 Select a shipping address or add a new one:', 'whatsapp-commerce-hub' ) );
 
 		$rows = array();
 
 		foreach ( $addresses as $index => $address ) {
 			$summary = $this->address_service->formatSummary( $address );
-			$rows[] = array(
+			$rows[]  = array(
 				'id'          => 'saved_address_' . $index,
 				'title'       => $address['name'] ?? __( 'Address', 'whatsapp-commerce-hub' ) . ' ' . ( $index + 1 ),
 				'description' => mb_substr( $summary, 0, 72 ),
@@ -253,7 +256,7 @@ class AddressStep extends AbstractStep {
 			"Example:\n" .
 			"123 Main Street\n" .
 			"New York, NY 10001\n" .
-			"United States",
+			'United States',
 			'whatsapp-commerce-hub'
 		);
 
@@ -270,7 +273,7 @@ class AddressStep extends AbstractStep {
 		$message = __( "Address incomplete:\n\n", 'whatsapp-commerce-hub' );
 
 		foreach ( $errors as $field => $error ) {
-			$message .= "• " . $error . "\n";
+			$message .= '• ' . $error . "\n";
 		}
 
 		$message .= "\n" . __( 'Please provide a complete address.', 'whatsapp-commerce-hub' );

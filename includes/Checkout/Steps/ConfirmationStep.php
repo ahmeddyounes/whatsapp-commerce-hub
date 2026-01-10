@@ -96,8 +96,8 @@ class ConfirmationStep extends AbstractStep {
 		try {
 			$this->log( 'Creating order', array( 'phone' => $this->getCustomerPhone( $context ) ) );
 
-			$cart = $this->getCart( $context );
-			$checkout_data = $this->getCheckoutData( $context );
+			$cart           = $this->getCart( $context );
+			$checkout_data  = $this->getCheckoutData( $context );
 			$customer_phone = $this->getCustomerPhone( $context );
 
 			// Validate all required data is present.
@@ -122,7 +122,7 @@ class ConfirmationStep extends AbstractStep {
 				);
 			}
 
-			$order_id = $order_result['order_id'];
+			$order_id     = $order_result['order_id'];
 			$order_number = $order_result['order_number'] ?? $order_id;
 
 			// Build confirmation message.
@@ -132,7 +132,7 @@ class ConfirmationStep extends AbstractStep {
 				$order_id,
 				array( $message ),
 				array(
-					'order_number' => $order_number,
+					'order_number'   => $order_number,
 					'payment_method' => $checkout_data['payment_method']['id'] ?? 'cod',
 				)
 			);
@@ -169,8 +169,8 @@ class ConfirmationStep extends AbstractStep {
 	 * @return array{is_valid: bool, errors: array<string, string>}
 	 */
 	public function validate( array $data, array $context ): array {
-		$errors = array();
-		$cart = $this->getCart( $context );
+		$errors        = array();
+		$cart          = $this->getCart( $context );
 		$checkout_data = $this->getCheckoutData( $context );
 
 		if ( empty( $cart['items'] ) ) {
@@ -247,9 +247,9 @@ class ConfirmationStep extends AbstractStep {
 
 			// Add items to order.
 			foreach ( $cart['items'] as $item ) {
-				$product_id = $item['product_id'] ?? 0;
+				$product_id   = $item['product_id'] ?? 0;
 				$variation_id = $item['variation_id'] ?? 0;
-				$quantity = $item['quantity'] ?? 1;
+				$quantity     = $item['quantity'] ?? 1;
 
 				$product = $variation_id > 0 ? wc_get_product( $variation_id ) : wc_get_product( $product_id );
 
@@ -259,7 +259,7 @@ class ConfirmationStep extends AbstractStep {
 			}
 
 			// Set address.
-			$address = $checkout_data['shipping_address'];
+			$address    = $checkout_data['shipping_address'];
 			$wc_address = $this->address_service->formatForWooCommerce( $address, 'billing' );
 			$order->set_address( $wc_address, 'billing' );
 
@@ -346,7 +346,7 @@ class ConfirmationStep extends AbstractStep {
 			case 'pix':
 			case 'razorpay':
 			case 'stripe':
-				$text .= __( "💳 *Payment:* You will receive payment instructions shortly.", 'whatsapp-commerce-hub' );
+				$text .= __( '💳 *Payment:* You will receive payment instructions shortly.', 'whatsapp-commerce-hub' );
 				break;
 
 			default:

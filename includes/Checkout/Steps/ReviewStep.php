@@ -71,7 +71,7 @@ class ReviewStep extends AbstractStep {
 		try {
 			$this->log( 'Showing order review', array( 'phone' => $this->getCustomerPhone( $context ) ) );
 
-			$cart = $this->getCart( $context );
+			$cart          = $this->getCart( $context );
 			$checkout_data = $this->getCheckoutData( $context );
 
 			if ( empty( $cart['items'] ) ) {
@@ -83,7 +83,7 @@ class ReviewStep extends AbstractStep {
 			}
 
 			// Build order summary.
-			$totals = $this->calculateTotals( $cart, $checkout_data );
+			$totals  = $this->calculateTotals( $cart, $checkout_data );
 			$message = $this->buildOrderSummaryMessage( $cart, $checkout_data, $totals );
 
 			return $this->success(
@@ -111,10 +111,13 @@ class ReviewStep extends AbstractStep {
 	 */
 	public function processInput( string $input, array $context ): CheckoutResponse {
 		try {
-			$this->log( 'Processing review input', array(
-				'phone' => $this->getCustomerPhone( $context ),
-				'input' => $input,
-			) );
+			$this->log(
+				'Processing review input',
+				array(
+					'phone' => $this->getCustomerPhone( $context ),
+					'input' => $input,
+				)
+			);
 
 			switch ( $input ) {
 				case 'confirm_order':
@@ -147,7 +150,6 @@ class ReviewStep extends AbstractStep {
 						array( $this->errorMessage( __( 'Please select a valid option.', 'whatsapp-commerce-hub' ) ) )
 					);
 			}
-
 		} catch ( \Throwable $e ) {
 			$this->logError( 'Error processing review input', array( 'error' => $e->getMessage() ) );
 
@@ -167,7 +169,7 @@ class ReviewStep extends AbstractStep {
 	 * @return array{is_valid: bool, errors: array<string, string>}
 	 */
 	public function validate( array $data, array $context ): array {
-		$errors = array();
+		$errors        = array();
 		$checkout_data = $this->getCheckoutData( $context );
 
 		if ( empty( $checkout_data['shipping_address'] ) ) {
@@ -203,20 +205,20 @@ class ReviewStep extends AbstractStep {
 		}
 
 		$shipping_cost = $checkout_data['shipping_method']['cost'] ?? 0.0;
-		$payment_fee = $checkout_data['payment_method']['fee'] ?? 0.0;
-		$discount = $cart['discount'] ?? 0.0;
-		$tax = $this->calculateTax( $subtotal - $discount );
+		$payment_fee   = $checkout_data['payment_method']['fee'] ?? 0.0;
+		$discount      = $cart['discount'] ?? 0.0;
+		$tax           = $this->calculateTax( $subtotal - $discount );
 
 		$total = $subtotal + $shipping_cost + $payment_fee + $tax - $discount;
 
 		return array(
-			'subtotal'      => $subtotal,
-			'shipping'      => $shipping_cost,
-			'payment_fee'   => $payment_fee,
-			'discount'      => $discount,
-			'tax'           => $tax,
-			'total'         => max( 0, $total ),
-			'currency'      => get_woocommerce_currency(),
+			'subtotal'        => $subtotal,
+			'shipping'        => $shipping_cost,
+			'payment_fee'     => $payment_fee,
+			'discount'        => $discount,
+			'tax'             => $tax,
+			'total'           => max( 0, $total ),
+			'currency'        => get_woocommerce_currency(),
 			'currency_symbol' => get_woocommerce_currency_symbol(),
 		);
 	}
@@ -255,63 +257,72 @@ class ReviewStep extends AbstractStep {
 		// Items.
 		$summary .= "*Items:*\n";
 		foreach ( $cart['items'] as $item ) {
-			$name = $item['name'] ?? __( 'Product', 'whatsapp-commerce-hub' );
-			$qty = $item['quantity'] ?? 1;
-			$price = $this->formatPrice( ( $item['price'] ?? 0 ) * $qty );
+			$name     = $item['name'] ?? __( 'Product', 'whatsapp-commerce-hub' );
+			$qty      = $item['quantity'] ?? 1;
+			$price    = $this->formatPrice( ( $item['price'] ?? 0 ) * $qty );
 			$summary .= "• {$name} x{$qty} - {$price}\n";
 		}
 		$summary .= "\n";
 
 		// Address.
-		$address = $checkout_data['shipping_address'] ?? array();
+		$address         = $checkout_data['shipping_address'] ?? array();
 		$address_display = $this->address_service->formatDisplay( $address );
-		$summary .= "*Shipping to:*\n{$address_display}\n\n";
+		$summary        .= "*Shipping to:*\n{$address_display}\n\n";
 
 		// Shipping method.
-		$shipping = $checkout_data['shipping_method'] ?? array();
+		$shipping       = $checkout_data['shipping_method'] ?? array();
 		$shipping_label = $shipping['label'] ?? __( 'Standard Shipping', 'whatsapp-commerce-hub' );
-		$summary .= "*Shipping:* {$shipping_label}\n";
+		$summary       .= "*Shipping:* {$shipping_label}\n";
 
 		// Payment method.
-		$payment = $checkout_data['payment_method'] ?? array();
+		$payment       = $checkout_data['payment_method'] ?? array();
 		$payment_label = $payment['label'] ?? __( 'Cash on Delivery', 'whatsapp-commerce-hub' );
-		$summary .= "*Payment:* {$payment_label}\n\n";
+		$summary      .= "*Payment:* {$payment_label}\n\n";
 
 		// Totals.
 		$summary .= "*Order Total:*\n";
-		$summary .= "Subtotal: " . $this->formatPrice( $totals['subtotal'] ) . "\n";
+		$summary .= 'Subtotal: ' . $this->formatPrice( $totals['subtotal'] ) . "\n";
 
 		if ( $totals['discount'] > 0 ) {
-			$summary .= "Discount: -" . $this->formatPrice( $totals['discount'] ) . "\n";
+			$summary .= 'Discount: -' . $this->formatPrice( $totals['discount'] ) . "\n";
 		}
 
 		if ( $totals['shipping'] > 0 ) {
-			$summary .= "Shipping: " . $this->formatPrice( $totals['shipping'] ) . "\n";
+			$summary .= 'Shipping: ' . $this->formatPrice( $totals['shipping'] ) . "\n";
 		}
 
 		if ( $totals['tax'] > 0 ) {
-			$summary .= "Tax: " . $this->formatPrice( $totals['tax'] ) . "\n";
+			$summary .= 'Tax: ' . $this->formatPrice( $totals['tax'] ) . "\n";
 		}
 
-		$summary .= "*Total: " . $this->formatPrice( $totals['total'] ) . "*";
+		$summary .= '*Total: ' . $this->formatPrice( $totals['total'] ) . '*';
 
 		$message->body( $summary );
 
 		// Add action buttons.
-		$message->button( 'reply', array(
-			'id'    => 'confirm_order',
-			'title' => __( 'Confirm Order', 'whatsapp-commerce-hub' ),
-		) );
+		$message->button(
+			'reply',
+			array(
+				'id'    => 'confirm_order',
+				'title' => __( 'Confirm Order', 'whatsapp-commerce-hub' ),
+			)
+		);
 
-		$message->button( 'reply', array(
-			'id'    => 'edit_address',
-			'title' => __( 'Edit Address', 'whatsapp-commerce-hub' ),
-		) );
+		$message->button(
+			'reply',
+			array(
+				'id'    => 'edit_address',
+				'title' => __( 'Edit Address', 'whatsapp-commerce-hub' ),
+			)
+		);
 
-		$message->button( 'reply', array(
-			'id'    => 'cancel_checkout',
-			'title' => __( 'Cancel', 'whatsapp-commerce-hub' ),
-		) );
+		$message->button(
+			'reply',
+			array(
+				'id'    => 'cancel_checkout',
+				'title' => __( 'Cancel', 'whatsapp-commerce-hub' ),
+			)
+		);
 
 		return $message;
 	}

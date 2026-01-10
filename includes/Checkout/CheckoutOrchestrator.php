@@ -119,10 +119,10 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 	 */
 	private function initializeSteps(): void {
 		// Create step handlers.
-		$address_step = new AddressStep( $this->message_builder, $this->address_service );
-		$shipping_step = new ShippingStep( $this->message_builder, $this->address_service );
-		$payment_step = new PaymentStep( $this->message_builder, $this->address_service );
-		$review_step = new ReviewStep( $this->message_builder, $this->address_service );
+		$address_step      = new AddressStep( $this->message_builder, $this->address_service );
+		$shipping_step     = new ShippingStep( $this->message_builder, $this->address_service );
+		$payment_step      = new PaymentStep( $this->message_builder, $this->address_service );
+		$review_step       = new ReviewStep( $this->message_builder, $this->address_service );
 		$confirmation_step = new ConfirmationStep(
 			$this->message_builder,
 			$this->address_service,
@@ -169,7 +169,7 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 			$validation = $this->cart_service->checkCartValidity( $customer_phone );
 
 			if ( ! $validation['is_valid'] ) {
-				$issues_text = "⚠️ " . __( "There are issues with your cart:\n\n", 'whatsapp-commerce-hub' );
+				$issues_text = '⚠️ ' . __( "There are issues with your cart:\n\n", 'whatsapp-commerce-hub' );
 				foreach ( $validation['issues'] as $issue ) {
 					$issues_text .= '• ' . $issue['message'] . "\n";
 				}
@@ -199,10 +199,13 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 			return $first_step->execute( $context );
 
 		} catch ( \Throwable $e ) {
-			$this->logError( 'Error starting checkout', array(
-				'phone' => $customer_phone,
-				'error' => $e->getMessage(),
-			) );
+			$this->logError(
+				'Error starting checkout',
+				array(
+					'phone' => $customer_phone,
+					'error' => $e->getMessage(),
+				)
+			);
 
 			return CheckoutResponse::failure(
 				'address',
@@ -228,11 +231,14 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 	 */
 	public function processInput( string $customer_phone, string $input, string $current_step, array $state_data ): CheckoutResponse {
 		try {
-			$this->log( 'Processing input', array(
-				'phone'        => $customer_phone,
-				'step'         => $current_step,
-				'input_length' => strlen( $input ),
-			) );
+			$this->log(
+				'Processing input',
+				array(
+					'phone'        => $customer_phone,
+					'step'         => $current_step,
+					'input_length' => strlen( $input ),
+				)
+			);
 
 			$step = $this->getStep( $current_step );
 
@@ -274,11 +280,14 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 			return $response;
 
 		} catch ( \Throwable $e ) {
-			$this->logError( 'Error processing input', array(
-				'phone' => $customer_phone,
-				'step'  => $current_step,
-				'error' => $e->getMessage(),
-			) );
+			$this->logError(
+				'Error processing input',
+				array(
+					'phone' => $customer_phone,
+					'step'  => $current_step,
+					'error' => $e->getMessage(),
+				)
+			);
 
 			return CheckoutResponse::failure(
 				$current_step,
@@ -338,11 +347,14 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 			return $step->execute( $context );
 
 		} catch ( \Throwable $e ) {
-			$this->logError( 'Error going to step', array(
-				'phone' => $customer_phone,
-				'step'  => $step_id,
-				'error' => $e->getMessage(),
-			) );
+			$this->logError(
+				'Error going to step',
+				array(
+					'phone' => $customer_phone,
+					'step'  => $step_id,
+					'error' => $e->getMessage(),
+				)
+			);
 
 			return CheckoutResponse::failure(
 				$step_id,
@@ -437,7 +449,7 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 	 * @return array
 	 */
 	private function buildContext( string $customer_phone, array $state_data ): array {
-		$cart = $this->cart_service->getCart( $customer_phone );
+		$cart     = $this->cart_service->getCart( $customer_phone );
 		$customer = $this->customer_service->getProfile( $customer_phone );
 
 		return array(
@@ -469,7 +481,6 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 			if ( isset( $step_data['shipping_address'] ) ) {
 				$this->cart_service->setShippingAddress( $customer_phone, $step_data['shipping_address'] );
 			}
-
 		} catch ( \Throwable $e ) {
 			$this->logError( 'Error updating cart with checkout data', array( 'error' => $e->getMessage() ) );
 		}

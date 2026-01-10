@@ -14,7 +14,7 @@ namespace WhatsAppCommerceHub\Domain\Catalog;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
-exit;
+	exit;
 }
 
 /**
@@ -33,119 +33,119 @@ exit;
  * domain models (Product, Category, etc.) in a future phase.
  */
 class CatalogBrowser {
-/**
- * Products per page.
- */
-private const PRODUCTS_PER_PAGE = 10;
+	/**
+	 * Products per page.
+	 */
+	private const PRODUCTS_PER_PAGE = 10;
 
-/**
- * Maximum product name length in list.
- */
-private const MAX_PRODUCT_NAME_LENGTH = 50;
+	/**
+	 * Maximum product name length in list.
+	 */
+	private const MAX_PRODUCT_NAME_LENGTH = 50;
 
-/**
- * Maximum product description length in list.
- */
-private const MAX_PRODUCT_DESC_LENGTH = 72;
+	/**
+	 * Maximum product description length in list.
+	 */
+	private const MAX_PRODUCT_DESC_LENGTH = 72;
 
-/**
- * Image thumbnail size for WhatsApp optimization.
- */
-private const IMAGE_SIZE = 500;
+	/**
+	 * Image thumbnail size for WhatsApp optimization.
+	 */
+	private const IMAGE_SIZE = 500;
 
-/**
- * Show main menu.
- *
- * @param mixed $conversation Conversation context.
- * @return array Array of message builder instances.
- */
-public function showMainMenu( $conversation ): array {
-// Delegate to legacy implementation for now.
-// TODO: Implement with proper domain models in future phase.
-if ( class_exists( 'WCH_Catalog_Browser' ) ) {
-$legacy = new \WCH_Catalog_Browser();
-return $legacy->show_main_menu( $conversation );
-}
+	/**
+	 * Show main menu.
+	 *
+	 * @param mixed $conversation Conversation context.
+	 * @return array Array of message builder instances.
+	 */
+	public function showMainMenu( $conversation ): array {
+		// Delegate to legacy implementation for now.
+		// TODO: Implement with proper domain models in future phase.
+		if ( class_exists( 'WCH_Catalog_Browser' ) ) {
+			$legacy = new \WCH_Catalog_Browser();
+			return $legacy->show_main_menu( $conversation );
+		}
 
-return array();
-}
+		return array();
+	}
 
-/**
- * Show category products.
- *
- * @param int   $categoryId Category ID.
- * @param int   $page       Page number.
- * @param mixed $conversation Conversation context.
- * @return array Array of message builder instances.
- */
-public function showCategory( int $categoryId, int $page, $conversation ): array {
-// Delegate to legacy implementation for now.
-if ( class_exists( 'WCH_Catalog_Browser' ) ) {
-$legacy = new \WCH_Catalog_Browser();
-return $legacy->show_category( $categoryId, $page, $conversation );
-}
+	/**
+	 * Show category products.
+	 *
+	 * @param int   $categoryId Category ID.
+	 * @param int   $page       Page number.
+	 * @param mixed $conversation Conversation context.
+	 * @return array Array of message builder instances.
+	 */
+	public function showCategory( int $categoryId, int $page, $conversation ): array {
+		// Delegate to legacy implementation for now.
+		if ( class_exists( 'WCH_Catalog_Browser' ) ) {
+			$legacy = new \WCH_Catalog_Browser();
+			return $legacy->show_category( $categoryId, $page, $conversation );
+		}
 
-return array();
-}
+		return array();
+	}
 
-/**
- * Show product details.
- *
- * @param int   $productId Product ID.
- * @param mixed $conversation Conversation context.
- * @return array Array of message builder instances.
- */
-public function showProduct( int $productId, $conversation ): array {
-// Delegate to legacy implementation for now.
-if ( class_exists( 'WCH_Catalog_Browser' ) ) {
-$legacy = new \WCH_Catalog_Browser();
-return $legacy->show_product( $productId, $conversation );
-}
+	/**
+	 * Show product details.
+	 *
+	 * @param int   $productId Product ID.
+	 * @param mixed $conversation Conversation context.
+	 * @return array Array of message builder instances.
+	 */
+	public function showProduct( int $productId, $conversation ): array {
+		// Delegate to legacy implementation for now.
+		if ( class_exists( 'WCH_Catalog_Browser' ) ) {
+			$legacy = new \WCH_Catalog_Browser();
+			return $legacy->show_product( $productId, $conversation );
+		}
 
-return array();
-}
+		return array();
+	}
 
-/**
- * Search products.
- *
- * @param string $query Search query.
- * @param int    $page  Page number.
- * @param mixed  $conversation Conversation context.
- * @return array Array of message builder instances.
- */
-public function searchProducts( string $query, int $page, $conversation ): array {
-// Delegate to legacy implementation for now.
-if ( class_exists( 'WCH_Catalog_Browser' ) ) {
-$legacy = new \WCH_Catalog_Browser();
-return $legacy->search_products( $query, $page, $conversation );
-}
+	/**
+	 * Search products.
+	 *
+	 * @param string $query Search query.
+	 * @param int    $page  Page number.
+	 * @param mixed  $conversation Conversation context.
+	 * @return array Array of message builder instances.
+	 */
+	public function searchProducts( string $query, int $page, $conversation ): array {
+		// Delegate to legacy implementation for now.
+		if ( class_exists( 'WCH_Catalog_Browser' ) ) {
+			$legacy = new \WCH_Catalog_Browser();
+			return $legacy->search_products( $query, $page, $conversation );
+		}
 
-return array();
-}
+		return array();
+	}
 
-/**
- * Show featured products.
- *
- * @param int   $page Page number.
- * @param mixed $conversation Conversation context.
- * @return array Array of message builder instances.
- */
-public function showFeaturedProducts( int $page, $conversation ): array {
-// Delegate to legacy implementation for now.
-if ( class_exists( 'WCH_Catalog_Browser' ) ) {
-$legacy = new \WCH_Catalog_Browser();
-return $legacy->show_featured_products( $page, $conversation );
-}
+	/**
+	 * Show featured products.
+	 *
+	 * @param int   $page Page number.
+	 * @param mixed $conversation Conversation context.
+	 * @return array Array of message builder instances.
+	 */
+	public function showFeaturedProducts( int $page, $conversation ): array {
+		// Delegate to legacy implementation for now.
+		if ( class_exists( 'WCH_Catalog_Browser' ) ) {
+			$legacy = new \WCH_Catalog_Browser();
+			return $legacy->show_featured_products( $page, $conversation );
+		}
 
-return array();
-}
+		return array();
+	}
 
-/**
- * Get products per page.
- *
- * @return int
- */
-public function getProductsPerPage(): int {
-return self::PRODUCTS_PER_PAGE;
-}
+	/**
+	 * Get products per page.
+	 *
+	 * @return int
+	 */
+	public function getProductsPerPage(): int {
+		return self::PRODUCTS_PER_PAGE;
+	}
 }

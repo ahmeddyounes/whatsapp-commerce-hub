@@ -192,11 +192,15 @@ final class Customer {
 
 		if ( JSON_ERROR_NONE !== json_last_error() ) {
 			// Log the error for debugging - helps identify corrupted data in the database.
-			do_action( 'wch_log_warning', 'Customer: JSON decode failed', array(
-				'field'     => $field,
-				'error'     => json_last_error_msg(),
-				'json_head' => mb_substr( $json, 0, 100 ), // First 100 chars for debugging.
-			) );
+			do_action(
+				'wch_log_warning',
+				'Customer: JSON decode failed',
+				array(
+					'field'     => $field,
+					'error'     => json_last_error_msg(),
+					'json_head' => mb_substr( $json, 0, 100 ), // First 100 chars for debugging.
+				)
+			);
 			return $default;
 		}
 
@@ -217,7 +221,7 @@ final class Customer {
 			'wc_customer_id'      => $this->wc_customer_id,
 			'preferences'         => wp_json_encode( $this->preferences ),
 			'tags'                => wp_json_encode( $this->tags ),
-			'opt_in_marketing'  => $this->opt_in_marketing ? 1 : 0,
+			'opt_in_marketing'    => $this->opt_in_marketing ? 1 : 0,
 			'language'            => $this->language,
 			'timezone'            => $this->timezone,
 			'last_known_address'  => $this->last_known_address
@@ -440,8 +444,8 @@ final class Customer {
 			),
 			'preferences'          => $this->preferences,
 			'marketing'            => array(
-				'opted_in'  => $this->opt_in_marketing,
-				'opted_at'  => $this->marketing_opted_at?->format( 'c' ),
+				'opted_in' => $this->opt_in_marketing,
+				'opted_at' => $this->marketing_opted_at?->format( 'c' ),
 			),
 			'order_history'        => array(
 				'total_orders' => $this->total_orders,

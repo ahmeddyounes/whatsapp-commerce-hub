@@ -33,14 +33,14 @@ final class Conversation {
 	/**
 	 * Conversation FSM states.
 	 */
-	public const STATE_IDLE              = 'idle';
-	public const STATE_BROWSING          = 'browsing';
-	public const STATE_VIEWING_PRODUCT   = 'viewing_product';
-	public const STATE_CART_MANAGEMENT   = 'cart_management';
-	public const STATE_CHECKOUT_ADDRESS  = 'checkout_address';
-	public const STATE_CHECKOUT_PAYMENT  = 'checkout_payment';
-	public const STATE_CHECKOUT_CONFIRM  = 'checkout_confirm';
-	public const STATE_AWAITING_HUMAN    = 'awaiting_human';
+	public const STATE_IDLE             = 'idle';
+	public const STATE_BROWSING         = 'browsing';
+	public const STATE_VIEWING_PRODUCT  = 'viewing_product';
+	public const STATE_CART_MANAGEMENT  = 'cart_management';
+	public const STATE_CHECKOUT_ADDRESS = 'checkout_address';
+	public const STATE_CHECKOUT_PAYMENT = 'checkout_payment';
+	public const STATE_CHECKOUT_CONFIRM = 'checkout_confirm';
+	public const STATE_AWAITING_HUMAN   = 'awaiting_human';
 
 	/**
 	 * Constructor.
