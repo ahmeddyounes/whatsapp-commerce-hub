@@ -12,6 +12,7 @@ namespace WhatsAppCommerceHub\Providers;
 
 use WhatsAppCommerceHub\Container\ContainerInterface;
 use WhatsAppCommerceHub\Container\ServiceProviderInterface;
+use WhatsAppCommerceHub\Core\Logger;
 use WhatsAppCommerceHub\Services\LoggerService;
 use WhatsAppCommerceHub\Services\SettingsService;
 use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
@@ -270,24 +271,27 @@ class CoreServiceProvider implements ServiceProviderInterface {
 			static fn( ContainerInterface $c ) => $c->get( \WCH_Settings::class )
 		);
 
-		// Register LoggerService (new namespaced service).
+		// Register Core Logger (new PSR-4 location).
 		$container->singleton(
-			LoggerService::class,
+			Logger::class,
 			static function ( ContainerInterface $c ) {
 				$settings = $c->has( 'wch.settings' ) ? $c->get( 'wch.settings' ) : array();
-
-				// Explicit boolean cast to handle string values like "false", "0", etc.
 				$debugEnabled = (bool) ( $settings['enable_debug_logging'] ?? false );
-				$minLevel     = $debugEnabled ? LoggerService::LEVEL_DEBUG : LoggerService::LEVEL_INFO;
-
-				return new LoggerService( $minLevel );
+				$minLevel = $debugEnabled ? Logger::LEVEL_DEBUG : Logger::LEVEL_INFO;
+				return new Logger( $minLevel );
 			}
 		);
 
-		// Alias LoggerInterface to LoggerService.
+		// Register LoggerService (BC - points to Core\Logger).
+		$container->singleton(
+			LoggerService::class,
+			static fn( ContainerInterface $c ) => $c->get( Logger::class )
+		);
+
+		// Alias LoggerInterface to Core\Logger.
 		$container->singleton(
 			LoggerInterface::class,
-			static fn( ContainerInterface $c ) => $c->get( LoggerService::class )
+			static fn( ContainerInterface $c ) => $c->get( Logger::class )
 		);
 
 		// Register SettingsService (new namespaced service).
@@ -391,6 +395,7 @@ class CoreServiceProvider implements ServiceProviderInterface {
 			'wch.database',
 			\WCH_Settings::class,
 			'wch.settings.manager',
+			Logger::class,
 			LoggerService::class,
 			LoggerInterface::class,
 			SettingsService::class,
