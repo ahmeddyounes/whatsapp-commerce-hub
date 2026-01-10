@@ -330,10 +330,9 @@ class DeadLetterQueue {
 					$decoded = json_decode( $entry->metadata, true );
 					if ( JSON_ERROR_NONE === json_last_error() && is_array( $decoded ) ) {
 						$existing_metadata = $decoded;
-					}
-					// Non-critical: log but continue if metadata is corrupted.
-					// The replay itself is more important than preserving metadata.
-					elseif ( JSON_ERROR_NONE !== json_last_error() ) {
+					} elseif ( JSON_ERROR_NONE !== json_last_error() ) {
+						// Non-critical: log but continue if metadata is corrupted.
+						// The replay itself is more important than preserving metadata.
 						do_action(
 							'wch_log_warning',
 							'DLQ metadata corrupted during replay',

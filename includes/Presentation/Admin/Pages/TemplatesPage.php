@@ -344,12 +344,13 @@ class TemplatesPage {
 			<td>
 				<?php
 				if ( $usageCount > 0 ) {
-					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Integer for %d.
+					// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- Integer for %d placeholder.
 					printf(
 						/* translators: %d: usage count */
 						esc_html( _n( '%d time', '%d times', $usageCount, 'whatsapp-commerce-hub' ) ),
 						$usageCount
 					);
+					// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 				} else {
 					esc_html_e( 'Not used', 'whatsapp-commerce-hub' );
 				}
@@ -488,12 +489,13 @@ class TemplatesPage {
 			<div class="notice notice-success is-dismissible">
 				<p>
 					<?php
-					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Integer for %d.
+					// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- Integer for %d placeholder.
 					printf(
 						/* translators: %d: number of templates */
 						esc_html( _n( '%d template synced successfully.', '%d templates synced successfully.', $count, 'whatsapp-commerce-hub' ) ),
 						$count
 					);
+					// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 					?>
 				</p>
 			</div>

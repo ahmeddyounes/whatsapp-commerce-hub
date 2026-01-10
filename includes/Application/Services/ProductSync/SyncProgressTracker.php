@@ -64,8 +64,8 @@ class SyncProgressTracker implements SyncProgressTrackerInterface {
 	/**
 	 * Constructor.
 	 *
-	 * @param \wpdb|null           $wpdb   WordPress database.
-	 * @param LoggerInterface|null $logger Logger service.
+	 * @param \wpdb|null           $wpdb_instance WordPress database.
+	 * @param LoggerInterface|null $logger        Logger service.
 	 */
 	public function __construct( ?\wpdb $wpdb_instance = null, ?LoggerInterface $logger = null ) {
 		global $wpdb;

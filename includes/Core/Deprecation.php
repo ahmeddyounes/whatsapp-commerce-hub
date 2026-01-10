@@ -40,7 +40,7 @@ class Deprecation {
 
 		// Trigger user warning in debug mode.
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Deprecation warning for devs.
+			// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- Deprecation warning for developers only.
 			trigger_error(
 				sprintf(
 					'%s is deprecated since version %s. Use %s instead.',
@@ -50,6 +50,7 @@ class Deprecation {
 				),
 				E_USER_DEPRECATED
 			);
+			// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
 
 		// Fire action for external logging.

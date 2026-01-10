@@ -324,8 +324,8 @@ class RetryPolicy {
 	/**
 	 * Maximum safe n for fibonacci to prevent overflow.
 	 *
-	 * fib(45) = 1,134,903,170 (safe for 32-bit signed)
-	 * fib(46) = 1,836,311,903 (exceeds 32-bit signed max on some systems)
+	 * Fib(45) = 1,134,903,170 (safe for 32-bit signed).
+	 * Fib(46) = 1,836,311,903 (exceeds 32-bit signed max on some systems).
 	 */
 	private const MAX_FIBONACCI_N = 45;
 

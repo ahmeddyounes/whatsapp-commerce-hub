@@ -150,13 +150,14 @@ class ProductSyncAdminUI {
 				break;
 		}
 
-		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $icon is a safe HTML entity.
+		// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped -- $icon is a safe HTML entity.
 		printf(
 			'<span style="color: %s; font-size: 16px;" title="%s">%s</span>',
 			esc_attr( $color ),
 			esc_attr( $title ),
 			$icon
 		);
+		// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 
 	/**
