@@ -91,14 +91,14 @@ class OpenAIClient implements OpenAIClientInterface {
 	 *
 	 * @var array
 	 */
-	private array $functions = array();
+	private array $functions = [];
 
 	/**
 	 * Function handlers.
 	 *
 	 * @var array<string, callable>
 	 */
-	private array $function_handlers = array();
+	private array $function_handlers = [];
 
 	/**
 	 * Monthly budget cap (null = no cap).
@@ -143,22 +143,22 @@ class OpenAIClient implements OpenAIClientInterface {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function generateResponse( string $user_message, array $context = array() ): array {
+	public function generateResponse( string $user_message, array $context = [] ): array {
 		if ( ! $this->isEnabled() ) {
-			return array(
+			return [
 				'text'    => '',
-				'actions' => array(),
+				'actions' => [],
 				'error'   => 'AI assistant is not enabled',
-			);
+			];
 		}
 
 		$conversation_id = $context['conversation_id'] ?? 0;
 		if ( $conversation_id && ! $this->checkRateLimit( $conversation_id ) ) {
-			return array(
+			return [
 				'text'    => '',
-				'actions' => array(),
+				'actions' => [],
 				'error'   => 'Rate limit exceeded',
-			);
+			];
 		}
 
 		try {
@@ -168,11 +168,11 @@ class OpenAIClient implements OpenAIClientInterface {
 				},
 				function () {
 					// Fallback: return a generic response when circuit is open.
-					return array(
+					return [
 						'text'    => 'I apologize, but I am currently experiencing technical difficulties. Please try again in a few moments.',
-						'actions' => array(),
+						'actions' => [],
 						'error'   => 'AI service temporarily unavailable',
-					);
+					];
 				}
 			);
 
@@ -185,38 +185,38 @@ class OpenAIClient implements OpenAIClientInterface {
 		} catch ( \Throwable $e ) {
 			do_action( 'wch_log_error', 'OpenAI API error: ' . $e->getMessage() );
 
-			return array(
+			return [
 				'text'    => '',
-				'actions' => array(),
+				'actions' => [],
 				'error'   => $e->getMessage(),
-			);
+			];
 		}
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
-	public function processFunctionCall( string $function_name, array $arguments, array $context = array() ): array {
+	public function processFunctionCall( string $function_name, array $arguments, array $context = [] ): array {
 		if ( ! isset( $this->function_handlers[ $function_name ] ) ) {
-			return array(
+			return [
 				'success' => false,
 				'error'   => 'Unknown function: ' . $function_name,
-			);
+			];
 		}
 
 		try {
 			$handler = $this->function_handlers[ $function_name ];
 			$result  = $handler( $arguments, $context );
 
-			return array(
+			return [
 				'success' => true,
 				'result'  => $result,
-			);
+			];
 		} catch ( \Throwable $e ) {
-			return array(
+			return [
 				'success' => false,
 				'error'   => $e->getMessage(),
-			);
+			];
 		}
 	}
 
@@ -231,7 +231,7 @@ class OpenAIClient implements OpenAIClientInterface {
 	 * {@inheritdoc}
 	 */
 	public function registerFunction( string $name, array $definition, callable $handler ): void {
-		$this->functions[]                = array_merge( $definition, array( 'name' => $name ) );
+		$this->functions[]                = array_merge( $definition, [ 'name' => $name ] );
 		$this->function_handlers[ $name ] = $handler;
 	}
 
@@ -266,18 +266,18 @@ class OpenAIClient implements OpenAIClientInterface {
 		$month_key = 'wch_ai_usage_' . gmdate( 'Y_m' );
 		$usage     = get_option(
 			$month_key,
-			array(
+			[
 				'tokens' => 0,
 				'cost'   => 0.0,
 				'calls'  => 0,
-			)
+			]
 		);
 
-		return array(
+		return [
 			'tokens' => (int) ( $usage['tokens'] ?? 0 ),
 			'cost'   => (float) ( $usage['cost'] ?? 0.0 ),
 			'calls'  => (int) ( $usage['calls'] ?? 0 ),
-		);
+		];
 	}
 
 	/**
@@ -314,10 +314,10 @@ class OpenAIClient implements OpenAIClientInterface {
 	 */
 	public function isContentSafe( string $text ): bool {
 		// Basic content filtering - can be enhanced with OpenAI moderation API.
-		$blocked_patterns = array(
+		$blocked_patterns = [
 			'/\b(hack|exploit|inject)\b/i',
 			'/\b(password|credential|secret)\s+\b/i',
-		);
+		];
 
 		foreach ( $blocked_patterns as $pattern ) {
 			if ( preg_match( $pattern, $text ) ) {
@@ -341,11 +341,11 @@ class OpenAIClient implements OpenAIClientInterface {
 	public function getHealthStatus(): array {
 		$metrics = $this->circuit_breaker->getMetrics();
 
-		return array(
+		return [
 			'healthy'    => $this->isAvailable(),
 			'latency_ms' => $this->last_latency_ms,
 			'last_error' => $metrics['last_failure']['message'] ?? null,
-		);
+		];
 	}
 
 	/**
@@ -373,36 +373,36 @@ class OpenAIClient implements OpenAIClientInterface {
 		$system_prompt = $this->buildSystemPrompt( $context );
 
 		// Build messages array.
-		$messages = array(
-			array(
+		$messages = [
+			[
 				'role'    => 'system',
 				'content' => $system_prompt,
-			),
-		);
+			],
+		];
 
 		// Add conversation history if provided.
 		if ( ! empty( $context['history'] ) ) {
 			foreach ( $context['history'] as $msg ) {
-				$messages[] = array(
+				$messages[] = [
 					'role'    => $msg['role'] ?? 'user',
 					'content' => $msg['content'] ?? '',
-				);
+				];
 			}
 		}
 
 		// Add current user message.
-		$messages[] = array(
+		$messages[] = [
 			'role'    => 'user',
 			'content' => $user_message,
-		);
+		];
 
 		// Build request body.
-		$request_body = array(
+		$request_body = [
 			'model'       => $this->model,
 			'messages'    => $messages,
 			'temperature' => $this->temperature,
 			'max_tokens'  => $this->max_tokens,
-		);
+		];
 
 		// Add function calling if functions are defined.
 		if ( ! empty( $this->functions ) ) {
@@ -413,14 +413,14 @@ class OpenAIClient implements OpenAIClientInterface {
 		// Make API request.
 		$response = wp_remote_post(
 			self::API_ENDPOINT,
-			array(
-				'headers' => array(
+			[
+				'headers' => [
 					'Authorization' => 'Bearer ' . $this->api_key,
 					'Content-Type'  => 'application/json',
-				),
+				],
 				'body'    => wp_json_encode( $request_body ),
 				'timeout' => $this->timeout,
-			)
+			]
 		);
 
 		$this->last_latency_ms = (int) ( ( microtime( true ) - $start ) * 1000 );
@@ -455,9 +455,9 @@ class OpenAIClient implements OpenAIClientInterface {
 		}
 
 		// Parse response.
-		$choice  = $response_body['choices'][0] ?? array();
-		$message = $choice['message'] ?? array();
-		$actions = array();
+		$choice  = $response_body['choices'][0] ?? [];
+		$message = $choice['message'] ?? [];
+		$actions = [];
 
 		// Handle function calls.
 		if ( ! empty( $message['function_call'] ) ) {
@@ -471,31 +471,31 @@ class OpenAIClient implements OpenAIClientInterface {
 				// Validate arguments JSON.
 				if ( ! is_array( $arguments ) ) {
 					do_action( 'wch_log_warning', 'Invalid function_call arguments JSON: ' . json_last_error_msg() );
-					$arguments = array();
+					$arguments = [];
 				}
 
-				$actions[] = array(
+				$actions[] = [
 					'type'      => 'function_call',
 					'function'  => $function_name,
 					'arguments' => $arguments,
-				);
+				];
 
 				// Execute function if handler exists.
 				if ( isset( $this->function_handlers[ $function_name ] ) ) {
 					$function_result = $this->processFunctionCall( $function_name, $arguments, $context );
-					$actions[]       = array(
+					$actions[]       = [
 						'type'   => 'function_result',
 						'result' => $function_result,
-					);
+					];
 				}
 			}
 		}
 
-		return array(
+		return [
 			'text'    => $message['content'] ?? '',
 			'actions' => $actions,
 			'error'   => null,
-		);
+		];
 	}
 
 	/**
@@ -540,11 +540,11 @@ class OpenAIClient implements OpenAIClientInterface {
 		$month_key = 'wch_ai_usage_' . gmdate( 'Y_m' );
 		$usage     = get_option(
 			$month_key,
-			array(
+			[
 				'tokens' => 0,
 				'cost'   => 0.0,
 				'calls'  => 0,
-			)
+			]
 		);
 
 		// Estimate tokens (rough approximation).
@@ -563,11 +563,11 @@ class OpenAIClient implements OpenAIClientInterface {
 
 		do_action(
 			'wch_ai_usage_tracked',
-			array(
+			[
 				'conversation_id' => $conversation_id,
 				'tokens'          => $tokens,
 				'cost'            => $cost,
-			)
+			]
 		);
 	}
 
@@ -580,45 +580,45 @@ class OpenAIClient implements OpenAIClientInterface {
 		// Product search function.
 		$this->registerFunction(
 			'suggest_products',
-			array(
+			[
 				'description' => 'Search for and suggest products based on customer query',
-				'parameters'  => array(
+				'parameters'  => [
 					'type'       => 'object',
-					'properties' => array(
-						'query' => array(
+					'properties' => [
+						'query' => [
 							'type'        => 'string',
 							'description' => 'Search query for products',
-						),
-						'limit' => array(
+						],
+						'limit' => [
 							'type'        => 'integer',
 							'description' => 'Maximum number of products to return',
 							'default'     => 5,
-						),
-					),
-					'required'   => array( 'query' ),
-				),
-			),
+						],
+					],
+					'required'   => [ 'query' ],
+				],
+			],
 			function ( array $args, array $context ) {
-				return apply_filters( 'wch_ai_suggest_products', array(), $args, $context );
+				return apply_filters( 'wch_ai_suggest_products', [], $args, $context );
 			}
 		);
 
 		// Product details function.
 		$this->registerFunction(
 			'get_product_details',
-			array(
+			[
 				'description' => 'Get detailed information about a specific product',
-				'parameters'  => array(
+				'parameters'  => [
 					'type'       => 'object',
-					'properties' => array(
-						'product_id' => array(
+					'properties' => [
+						'product_id' => [
 							'type'        => 'integer',
 							'description' => 'The WooCommerce product ID',
-						),
-					),
-					'required'   => array( 'product_id' ),
-				),
-			),
+						],
+					],
+					'required'   => [ 'product_id' ],
+				],
+			],
 			function ( array $args, array $context ) {
 				return apply_filters( 'wch_ai_get_product_details', null, $args['product_id'] ?? 0 );
 			}
@@ -627,24 +627,24 @@ class OpenAIClient implements OpenAIClientInterface {
 		// Add to cart function.
 		$this->registerFunction(
 			'add_to_cart',
-			array(
+			[
 				'description' => 'Add a product to the customer\'s cart',
-				'parameters'  => array(
+				'parameters'  => [
 					'type'       => 'object',
-					'properties' => array(
-						'product_id' => array(
+					'properties' => [
+						'product_id' => [
 							'type'        => 'integer',
 							'description' => 'The WooCommerce product ID',
-						),
-						'quantity'   => array(
+						],
+						'quantity'   => [
 							'type'        => 'integer',
 							'description' => 'Quantity to add',
 							'default'     => 1,
-						),
-					),
-					'required'   => array( 'product_id' ),
-				),
-			),
+						],
+					],
+					'required'   => [ 'product_id' ],
+				],
+			],
 			function ( array $args, array $context ) {
 				return apply_filters( 'wch_ai_add_to_cart', false, $args, $context );
 			}
@@ -653,22 +653,22 @@ class OpenAIClient implements OpenAIClientInterface {
 		// Escalate to human function.
 		$this->registerFunction(
 			'escalate_to_human',
-			array(
+			[
 				'description' => 'Escalate the conversation to a human agent',
-				'parameters'  => array(
+				'parameters'  => [
 					'type'       => 'object',
-					'properties' => array(
-						'reason' => array(
+					'properties' => [
+						'reason' => [
 							'type'        => 'string',
 							'description' => 'Reason for escalation',
-						),
-					),
-					'required'   => array( 'reason' ),
-				),
-			),
+						],
+					],
+					'required'   => [ 'reason' ],
+				],
+			],
 			function ( array $args, array $context ) {
 				do_action( 'wch_ai_escalate', $args['reason'] ?? '', $context );
-				return array( 'escalated' => true );
+				return [ 'escalated' => true ];
 			}
 		);
 	}
