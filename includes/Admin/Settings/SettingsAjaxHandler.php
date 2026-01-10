@@ -123,13 +123,14 @@ class SettingsAjaxHandler {
 	 * @return void
 	 */
 	public function handleSaveSettings(): void {
-		$this->verifyRequest();
+		$this->verifyRequest(); // Calls check_ajax_referer()
 
 		$sections = array( 'api', 'catalog', 'checkout', 'notifications', 'ai', 'advanced' );
 
 		foreach ( $sections as $section ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in verifyRequest() above.
 			if ( isset( $_POST[ $section ] ) && is_array( $_POST[ $section ] ) ) {
-				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.NonceVerification.Missing -- Nonce verified, values sanitized by sanitizer.
 				foreach ( $_POST[ $section ] as $key => $value ) {
 					$settingKey     = $section . '.' . sanitize_key( $key );
 					$sanitizedValue = $this->sanitizer->sanitize( $value, $key );
@@ -253,8 +254,9 @@ class SettingsAjaxHandler {
 	 * @return void
 	 */
 	public function handleSearchProducts(): void {
-		$this->verifyRequest();
+		$this->verifyRequest(); // Calls check_ajax_referer()
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in verifyRequest() above.
 		$query = isset( $_POST['query'] ) ? sanitize_text_field( wp_unslash( $_POST['query'] ) ) : '';
 
 		if ( empty( $query ) ) {
@@ -296,8 +298,9 @@ class SettingsAjaxHandler {
 	 * @return void
 	 */
 	public function handleTestNotification(): void {
-		$this->verifyRequest();
+		$this->verifyRequest(); // Calls check_ajax_referer()
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in verifyRequest() above.
 		$type = isset( $_POST['type'] ) ? sanitize_key( wp_unslash( $_POST['type'] ) ) : '';
 
 		if ( empty( $type ) ) {
@@ -329,7 +332,14 @@ class SettingsAjaxHandler {
 
 			wp_send_json_success( array( 'message' => __( 'Test notification sent successfully', 'whatsapp-commerce-hub' ) ) );
 		} catch ( Exception $e ) {
-			$this->log( 'error', 'Test notification failed', array( 'type' => $type, 'error' => $e->getMessage() ) );
+			$this->log(
+				'error',
+				'Test notification failed',
+				array(
+					'type'  => $type,
+					'error' => $e->getMessage(),
+				)
+			);
 			wp_send_json_error( array( 'message' => $e->getMessage() ) );
 		}
 	}
@@ -376,13 +386,14 @@ class SettingsAjaxHandler {
 	 * @return void
 	 */
 	public function handleImportSettings(): void {
-		$this->verifyRequest();
+		$this->verifyRequest(); // Calls check_ajax_referer()
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in verifyRequest() above.
 		if ( ! isset( $_POST['settings'] ) ) {
 			wp_send_json_error( array( 'message' => __( 'No settings data provided', 'whatsapp-commerce-hub' ) ) );
 		}
 
-		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.NonceVerification.Missing -- Nonce verified, JSON sanitized in import method.
 		$jsonData = wp_unslash( $_POST['settings'] );
 
 		// Create backup before import.
@@ -397,16 +408,22 @@ class SettingsAjaxHandler {
 			$result['skipped']
 		);
 
-		$this->log( 'info', 'Settings imported', array(
-			'imported' => $result['imported'],
-			'skipped'  => $result['skipped'],
-		) );
+		$this->log(
+			'info',
+			'Settings imported',
+			array(
+				'imported' => $result['imported'],
+				'skipped'  => $result['skipped'],
+			)
+		);
 
 		if ( ! empty( $result['errors'] ) ) {
-			wp_send_json_error( array(
-				'message' => $message,
-				'errors'  => $result['errors'],
-			) );
+			wp_send_json_error(
+				array(
+					'message' => $message,
+					'errors'  => $result['errors'],
+				)
+			);
 		}
 
 		wp_send_json_success( array( 'message' => $message ) );
