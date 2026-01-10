@@ -33,48 +33,6 @@ final class WebhookResult {
 	public const STATUS_UNKNOWN           = 'unknown';
 
 	/**
-	 * Whether the webhook was processed successfully.
-	 *
-	 * @var bool
-	 */
-	private bool $success;
-
-	/**
-	 * Associated WooCommerce order ID.
-	 *
-	 * @var int
-	 */
-	private int $orderId;
-
-	/**
-	 * Payment status.
-	 *
-	 * @var string
-	 */
-	private string $status;
-
-	/**
-	 * Processing message.
-	 *
-	 * @var string
-	 */
-	private string $message;
-
-	/**
-	 * Transaction ID from the gateway.
-	 *
-	 * @var string
-	 */
-	private string $transactionId;
-
-	/**
-	 * Additional metadata.
-	 *
-	 * @var array
-	 */
-	private array $metadata;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param bool   $success       Success status.
@@ -85,19 +43,13 @@ final class WebhookResult {
 	 * @param array  $metadata      Additional metadata.
 	 */
 	private function __construct(
-		bool $success,
-		int $orderId = 0,
-		string $status = '',
-		string $message = '',
-		string $transactionId = '',
-		array $metadata = array()
+		private readonly bool $success,
+		private readonly int $orderId = 0,
+		private readonly string $status = '',
+		private readonly string $message = '',
+		private readonly string $transactionId = '',
+		private readonly array $metadata = array()
 	) {
-		$this->success       = $success;
-		$this->orderId       = $orderId;
-		$this->status        = $status;
-		$this->message       = $message;
-		$this->transactionId = $transactionId;
-		$this->metadata      = $metadata;
 	}
 
 	/**
