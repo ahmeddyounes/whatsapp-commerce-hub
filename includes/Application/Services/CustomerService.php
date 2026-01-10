@@ -429,7 +429,7 @@ class CustomerService implements CustomerServiceInterface {
 		$phone = preg_replace( '/[^\d+]/', '', $phone );
 
 		// Ensure it starts with +.
-		if ( strpos( $phone, '+' ) !== 0 ) {
+		if ( ! str_starts_with( $phone, '+' ) ) {
 			$phone = '+' . $phone;
 		}
 

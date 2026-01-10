@@ -227,7 +227,7 @@ class ResponseParserService implements ResponseParserInterface {
 		$matches = array();
 		foreach ( $this->intentKeywords as $intent => $keywords ) {
 			foreach ( $keywords as $keyword ) {
-				if ( false !== strpos( $textLower, strtolower( $keyword ) ) ) {
+				if ( str_contains( $textLower, strtolower( $keyword ) ) ) {
 					$matches[] = array(
 						'intent'  => $intent,
 						'keyword' => $keyword,

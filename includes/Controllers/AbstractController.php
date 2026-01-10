@@ -529,7 +529,7 @@ abstract class AbstractController extends WP_REST_Controller {
 	 * @return bool True if IP is in range.
 	 */
 	protected function ipInRange( string $ip, string $range ): bool {
-		if ( strpos( $range, '/' ) === false ) {
+		if ( ! str_contains( $range, '/' ) ) {
 			return $ip === $range;
 		}
 
