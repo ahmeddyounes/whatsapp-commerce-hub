@@ -36,12 +36,12 @@ final class ActionResult {
 	 * @param string|null $errorCode      Error code.
 	 */
 	public function __construct(
-		protected bool $success = true,
-		protected array $messages = [],
-		protected ?string $nextState = null,
-		protected array $contextUpdates = [],
-		protected ?string $errorMessage = null,
-		protected ?string $errorCode = null
+		protected readonly bool $success = true,
+		protected readonly array $messages = [],
+		protected readonly ?string $nextState = null,
+		protected readonly array $contextUpdates = [],
+		protected readonly ?string $errorMessage = null,
+		protected readonly ?string $errorCode = null
 	) {
 	}
 
