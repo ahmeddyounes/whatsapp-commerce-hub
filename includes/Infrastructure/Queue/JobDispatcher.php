@@ -31,11 +31,12 @@ class JobDispatcher {
 	 * These are only triggered by internal WordPress hooks, not user actions
 	 */
 	private const INTERNAL_HOOKS = [
-		'wch_process_webhook_message',
-		'wch_process_webhook_status',
-		'wch_process_webhook_error',
+		'wch_process_webhook_messages',
+		'wch_process_webhook_statuses',
+		'wch_process_webhook_errors',
 		'wch_send_order_notification',
 		'wch_process_abandoned_cart',
+		'wch_sync_single_product',
 		'wch_sync_product_batch',
 		'wch_cleanup_expired_carts',
 		'wch_send_broadcast_batch',

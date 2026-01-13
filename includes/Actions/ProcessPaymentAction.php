@@ -73,6 +73,11 @@ class ProcessPaymentAction extends AbstractAction {
 				return $this->showPaymentMethods();
 			}
 
+			$paymentMethod    = $this->normalizePaymentMethod( (string) $paymentMethod );
+			$country          = $contextData['shipping_address']['country'] ?? '';
+			$gateway          = wch( PaymentGatewayRegistry::class );
+			$availableGateway = $gateway->getAvailable( $country );
+
 			$this->log(
 				'Processing payment',
 				[
@@ -105,14 +110,24 @@ class ProcessPaymentAction extends AbstractAction {
 				case self::METHOD_COD:
 					return $this->processCod( $cartData );
 
-				case self::METHOD_CARD:
-				case self::METHOD_ONLINE:
-					return $this->processOnlinePayment( $cartData, $paymentMethod );
-
 				case self::METHOD_UPI:
 					return $this->processUpi( $cartData );
 
+				case self::METHOD_CARD:
+				case self::METHOD_ONLINE:
+					$resolved = $this->resolveOnlineGateway( $availableGateway );
+					if ( ! $resolved ) {
+						return $this->error(
+							__( 'No online payment methods are currently available. Please select another option.', 'whatsapp-commerce-hub' )
+						);
+					}
+					return $this->processOnlinePayment( $cartData, $resolved );
+
 				default:
+					if ( isset( $availableGateway[ $paymentMethod ] ) ) {
+						return $this->processOnlinePayment( $cartData, $paymentMethod );
+					}
+
 					return $this->error( __( 'Invalid payment method. Please select a valid option.', 'whatsapp-commerce-hub' ) );
 			}
 		} catch ( \Exception $e ) {
@@ -391,5 +406,46 @@ class ProcessPaymentAction extends AbstractAction {
 		];
 
 		return 'upi://pay?' . http_build_query( $params );
+	}
+
+	/**
+	 * Normalize payment method IDs and aliases.
+	 *
+	 * @param string $method Raw payment method.
+	 * @return string Normalized payment method.
+	 */
+	private function normalizePaymentMethod( string $method ): string {
+		$normalized = strtolower( trim( $method ) );
+
+		return match ( $normalized ) {
+			'whatsapp_pay', 'whatsapp-pay' => 'whatsapppay',
+			'cash_on_delivery', 'cash-on-delivery' => self::METHOD_COD,
+			default => $normalized,
+		};
+	}
+
+	/**
+	 * Resolve the best available online gateway for generic selections.
+	 *
+	 * @param array $available Available gateways keyed by ID.
+	 * @return string|null Gateway ID or null when none available.
+	 */
+	private function resolveOnlineGateway( array $available ): ?string {
+		$preferred = [ 'stripe', 'razorpay', 'pix', 'whatsapppay' ];
+		foreach ( $preferred as $gatewayId ) {
+			if ( isset( $available[ $gatewayId ] ) ) {
+				return $gatewayId;
+			}
+		}
+
+		foreach ( $available as $gatewayId => $gateway ) {
+			if ( self::METHOD_COD === $gatewayId ) {
+				continue;
+			}
+
+			return $gatewayId;
+		}
+
+		return null;
 	}
 }

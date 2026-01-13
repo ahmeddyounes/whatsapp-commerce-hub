@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Actions;
 
+use WhatsAppCommerceHub\Contracts\Services\CustomerServiceInterface;
 use WhatsAppCommerceHub\Support\Messaging\MessageBuilder;
 use WhatsAppCommerceHub\ValueObjects\ActionResult;
 use WhatsAppCommerceHub\ValueObjects\ConversationContext;
@@ -47,14 +48,9 @@ class RequestAddressAction extends AbstractAction {
 		try {
 			$this->log( 'Requesting address', [ 'phone' => $phone ] );
 
-			// Get customer profile.
-			$customer = $this->getCustomerProfile( $phone );
-
 			// Check for saved addresses.
-			$savedAddresses = [];
-			if ( $customer && ! empty( $customer->saved_addresses ) && is_array( $customer->saved_addresses ) ) {
-				$savedAddresses = $customer->saved_addresses;
-			}
+			$customerService = $this->customerService ?? wch( CustomerServiceInterface::class );
+			$savedAddresses  = $customerService->getSavedAddresses( $phone );
 
 			// Build message based on saved addresses.
 			if ( ! empty( $savedAddresses ) ) {

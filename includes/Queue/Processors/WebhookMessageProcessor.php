@@ -19,6 +19,9 @@ use WhatsAppCommerceHub\Application\Services\IntentClassifierService;
 use WhatsAppCommerceHub\Clients\WhatsAppApiClient;
 use WhatsAppCommerceHub\Domain\Catalog\CatalogBrowser;
 use WhatsAppCommerceHub\Entities\Message;
+use WhatsAppCommerceHub\Events\EventBus;
+use WhatsAppCommerceHub\Events\MessageReceivedEvent;
+use WhatsAppCommerceHub\Events\MessageSentEvent;
 use WhatsAppCommerceHub\Queue\DeadLetterQueue;
 use WhatsAppCommerceHub\Queue\PriorityQueue;
 use WhatsAppCommerceHub\Queue\IdempotencyService;
@@ -167,6 +170,10 @@ class WebhookMessageProcessor extends AbstractQueueProcessor {
 
 		// Store the message in the database.
 		$messageEntity = $this->storeMessage( $conversation->id, $messageId, $from, $type, $data, $timestamp );
+
+		if ( $messageEntity instanceof Message ) {
+			$this->dispatchMessageReceivedEvent( $messageEntity, $from, (int) $conversation->id );
+		}
 
 		// Extract text content for processing.
 		$textContent = $this->extractTextContent( $type, $data );
@@ -1334,7 +1341,11 @@ class WebhookMessageProcessor extends AbstractQueueProcessor {
 				);
 			}
 
-			$this->persistOutboundMessage( $conversationId, $message, $messageId );
+			$storedMessage = $this->persistOutboundMessage( $conversationId, $message, $messageId );
+
+			if ( $storedMessage instanceof Message && Message::STATUS_SENT === $storedMessage->status ) {
+				$this->dispatchMessageSentEvent( $storedMessage, $phone );
+			}
 		}
 	}
 
@@ -1362,9 +1373,9 @@ class WebhookMessageProcessor extends AbstractQueueProcessor {
 	 * @param int         $conversationId Conversation ID.
 	 * @param array       $message       Message payload.
 	 * @param string|null $messageId     WhatsApp message ID.
-	 * @return void
+	 * @return Message|null
 	 */
-	private function persistOutboundMessage( int $conversationId, array $message, ?string $messageId ): void {
+	private function persistOutboundMessage( int $conversationId, array $message, ?string $messageId ): ?Message {
 		try {
 			$waMessageId = $messageId;
 			if ( ! $waMessageId ) {
@@ -1375,7 +1386,7 @@ class WebhookMessageProcessor extends AbstractQueueProcessor {
 				}
 			}
 
-			$this->messageRepository->create(
+			$messageId = $this->messageRepository->create(
 				[
 					'conversation_id' => $conversationId,
 					'wa_message_id'   => $waMessageId,
@@ -1386,9 +1397,51 @@ class WebhookMessageProcessor extends AbstractQueueProcessor {
 					'created_at'      => current_time( 'mysql' ),
 				]
 			);
+
+			return $this->messageRepository->find( $messageId );
 		} catch ( \Throwable $e ) {
 			$this->logError(
 				'Failed to persist outbound message',
+				[ 'error' => $e->getMessage() ]
+			);
+			return null;
+		}
+	}
+
+	/**
+	 * Dispatch message received event.
+	 *
+	 * @param Message $message Message entity.
+	 * @param string  $from Sender phone number.
+	 * @param int     $conversationId Conversation ID.
+	 * @return void
+	 */
+	private function dispatchMessageReceivedEvent( Message $message, string $from, int $conversationId ): void {
+		try {
+			$eventBus = wch( EventBus::class );
+			$eventBus->dispatch( new MessageReceivedEvent( $message, $from, $conversationId ) );
+		} catch ( \Throwable $e ) {
+			$this->logWarning(
+				'Failed to dispatch message received event',
+				[ 'error' => $e->getMessage() ]
+			);
+		}
+	}
+
+	/**
+	 * Dispatch message sent event.
+	 *
+	 * @param Message $message Message entity.
+	 * @param string  $to Recipient phone number.
+	 * @return void
+	 */
+	private function dispatchMessageSentEvent( Message $message, string $to ): void {
+		try {
+			$eventBus = wch( EventBus::class );
+			$eventBus->dispatch( new MessageSentEvent( $message, $to ) );
+		} catch ( \Throwable $e ) {
+			$this->logWarning(
+				'Failed to dispatch message sent event',
 				[ 'error' => $e->getMessage() ]
 			);
 		}

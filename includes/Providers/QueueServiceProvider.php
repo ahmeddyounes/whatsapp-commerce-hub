@@ -21,7 +21,6 @@ use WhatsAppCommerceHub\Queue\IdempotencyService;
 use WhatsAppCommerceHub\Queue\Processors\WebhookMessageProcessor;
 use WhatsAppCommerceHub\Queue\Processors\WebhookStatusProcessor;
 use WhatsAppCommerceHub\Queue\Processors\WebhookErrorProcessor;
-use WhatsAppCommerceHub\Queue\Processors\OrderNotificationProcessor;
 use WhatsAppCommerceHub\Contracts\Repositories\ConversationRepositoryInterface;
 use WhatsAppCommerceHub\Contracts\Repositories\MessageRepositoryInterface;
 use WhatsAppCommerceHub\Resilience\CircuitBreaker;
@@ -144,31 +143,10 @@ class QueueServiceProvider implements ServiceProviderInterface {
 			}
 		);
 
-		// Register OrderNotificationProcessor.
-		$container->singleton(
-			OrderNotificationProcessor::class,
-			static function ( ContainerInterface $c ): OrderNotificationProcessor {
-				// Get circuit breaker for WhatsApp API if available.
-				$circuitBreaker = null;
-				if ( $c->has( CircuitBreaker::class ) ) {
-					$circuitBreaker = $c->get( CircuitBreaker::class );
-				}
-
-				return new OrderNotificationProcessor(
-					$c->get( PriorityQueue::class ),
-					$c->get( DeadLetterQueue::class ),
-					$c->get( IdempotencyService::class ),
-					$circuitBreaker,
-					$c->get( \wpdb::class )
-				);
-			}
-		);
-
 		// Convenience aliases for processors.
 		$container->singleton( 'wch.processor.webhook_message', fn( $c ) => $c->get( WebhookMessageProcessor::class ) );
 		$container->singleton( 'wch.processor.webhook_status', fn( $c ) => $c->get( WebhookStatusProcessor::class ) );
 		$container->singleton( 'wch.processor.webhook_error', fn( $c ) => $c->get( WebhookErrorProcessor::class ) );
-		$container->singleton( 'wch.processor.order_notification', fn( $c ) => $c->get( OrderNotificationProcessor::class ) );
 	}
 
 	/**
@@ -295,21 +273,6 @@ class QueueServiceProvider implements ServiceProviderInterface {
 			1
 		);
 
-		// OrderNotificationProcessor hook.
-		add_action(
-			'wch_send_order_notification',
-			function ( array $args ) use ( $container ) {
-				try {
-					$processor = $container->get( OrderNotificationProcessor::class );
-					$processor->execute( $args );
-				} catch ( \Throwable $e ) {
-					do_action( 'wch_log_error', 'OrderNotificationProcessor failed: ' . $e->getMessage() );
-					throw $e;
-				}
-			},
-			10,
-			1
-		);
 	}
 
 	/**
@@ -355,7 +318,6 @@ class QueueServiceProvider implements ServiceProviderInterface {
 			WebhookMessageProcessor::class,
 			WebhookStatusProcessor::class,
 			WebhookErrorProcessor::class,
-			OrderNotificationProcessor::class,
 			'wch.queue',
 			'wch.queue.dead_letter',
 			'wch.queue.monitor',
@@ -363,7 +325,6 @@ class QueueServiceProvider implements ServiceProviderInterface {
 			'wch.processor.webhook_message',
 			'wch.processor.webhook_status',
 			'wch.processor.webhook_error',
-			'wch.processor.order_notification',
 		];
 	}
 }

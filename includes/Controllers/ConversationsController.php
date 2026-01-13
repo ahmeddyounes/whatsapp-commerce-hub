@@ -405,8 +405,14 @@ class ConversationsController extends AbstractController {
 		}
 
 		$conversation['context']         = json_decode( $conversation['context'] ?? '{}', true );
-		$conversation['saved_addresses'] = json_decode( $conversation['saved_addresses'] ?? '[]', true );
 		$conversation['preferences']     = json_decode( $conversation['preferences'] ?? '{}', true );
+		$savedAddresses                  = $conversation['preferences']['saved_addresses'] ?? null;
+
+		if ( ! is_array( $savedAddresses ) ) {
+			$savedAddresses = json_decode( $conversation['saved_addresses'] ?? '[]', true );
+		}
+
+		$conversation['saved_addresses'] = is_array( $savedAddresses ) ? $savedAddresses : [];
 
 		return $this->prepareResponse( $conversation, $request );
 	}

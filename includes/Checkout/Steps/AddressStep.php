@@ -188,15 +188,22 @@ class AddressStep extends AbstractStep {
 	 * @return array
 	 */
 	private function getSavedAddresses( $customer ): array {
-		if ( ! $customer || empty( $customer->saved_addresses ) ) {
+		if ( ! $customer || ! method_exists( $customer, 'getPreference' ) ) {
 			return [];
 		}
 
-		if ( is_array( $customer->saved_addresses ) ) {
-			return $customer->saved_addresses;
+		$saved = $customer->getPreference( 'saved_addresses', [] );
+
+		if ( ! is_array( $saved ) || empty( $saved ) ) {
+			return [];
 		}
 
-		return [];
+		return array_values(
+			array_filter(
+				$saved,
+				static fn( $address ) => is_array( $address )
+			)
+		);
 	}
 
 	/**
@@ -210,7 +217,12 @@ class AddressStep extends AbstractStep {
 		$customer        = $this->getCustomer( $context );
 		$saved_addresses = $this->getSavedAddresses( $customer );
 
-		return $saved_addresses[ $index ] ?? null;
+		$address = $saved_addresses[ $index ] ?? null;
+		if ( ! is_array( $address ) ) {
+			return null;
+		}
+
+		return $this->normalizeSavedAddress( $address );
 	}
 
 	/**
@@ -226,10 +238,13 @@ class AddressStep extends AbstractStep {
 		$rows = [];
 
 		foreach ( $addresses as $index => $address ) {
-			$summary = $this->address_service->formatSummary( $address );
+			$normalized = $this->normalizeSavedAddress( $address );
+			$summary    = $this->address_service->formatSummary( $normalized );
 			$rows[]  = [
 				'id'          => 'saved_address_' . $index,
-				'title'       => $address['name'] ?? __( 'Address', 'whatsapp-commerce-hub' ) . ' ' . ( $index + 1 ),
+				'title'       => $address['label']
+					?? $normalized['name']
+					?? __( 'Address', 'whatsapp-commerce-hub' ) . ' ' . ( $index + 1 ),
 				'description' => mb_substr( $summary, 0, 72 ),
 			];
 		}
@@ -244,6 +259,35 @@ class AddressStep extends AbstractStep {
 		$message->section( __( 'Addresses', 'whatsapp-commerce-hub' ), $rows );
 
 		return $message;
+	}
+
+	/**
+	 * Normalize saved address keys to standard address format.
+	 *
+	 * @param array $address Raw saved address.
+	 * @return array Normalized address.
+	 */
+	private function normalizeSavedAddress( array $address ): array {
+		$normalized = $address;
+
+		if ( empty( $normalized['street'] ) && ! empty( $normalized['address_1'] ) ) {
+			$normalized['street'] = $normalized['address_1'];
+		}
+
+		if ( empty( $normalized['street_2'] ) && ! empty( $normalized['address_2'] ) ) {
+			$normalized['street_2'] = $normalized['address_2'];
+		}
+
+		if ( empty( $normalized['postal_code'] ) && ! empty( $normalized['postcode'] ) ) {
+			$normalized['postal_code'] = $normalized['postcode'];
+		}
+
+		if ( empty( $normalized['name'] ) && ! empty( $normalized['first_name'] ) ) {
+			$lastName           = $normalized['last_name'] ?? '';
+			$normalized['name'] = trim( $normalized['first_name'] . ' ' . $lastName );
+		}
+
+		return $normalized;
 	}
 
 	/**

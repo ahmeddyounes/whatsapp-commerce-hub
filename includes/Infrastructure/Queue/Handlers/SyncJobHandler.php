@@ -129,7 +129,7 @@ class SyncJobHandler {
 		}
 
 		// Trigger sync action
-		do_action( 'wch_sync_product', $productId, $args );
+		do_action( 'wch_sync_single_product', $productId, $args );
 
 		return [
 			'success'    => true,
@@ -156,7 +156,7 @@ class SyncJobHandler {
 
 		foreach ( $productIds as $productId ) {
 			try {
-				do_action( 'wch_sync_product', $productId, $args );
+				do_action( 'wch_sync_single_product', $productId, $args );
 				++$synced;
 			} catch ( \Exception $e ) {
 				++$failed;

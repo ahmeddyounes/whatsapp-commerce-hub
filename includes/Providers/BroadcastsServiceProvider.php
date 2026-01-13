@@ -21,6 +21,8 @@ use WhatsAppCommerceHub\Contracts\Services\SettingsInterface;
 use WhatsAppCommerceHub\Application\Services\Broadcasts\CampaignRepository;
 use WhatsAppCommerceHub\Application\Services\Broadcasts\AudienceCalculator;
 use WhatsAppCommerceHub\Application\Services\Broadcasts\CampaignDispatcher;
+use WhatsAppCommerceHub\Application\Services\Broadcasts\BroadcastBatchProcessor;
+use WhatsAppCommerceHub\Application\Services\Broadcasts\BroadcastTemplateBuilder;
 use WhatsAppCommerceHub\Admin\Broadcasts\BroadcastWizardRenderer;
 use WhatsAppCommerceHub\Admin\Broadcasts\CampaignReportGenerator;
 use WhatsAppCommerceHub\Admin\Broadcasts\BroadcastsAjaxHandler;
@@ -67,7 +69,27 @@ class BroadcastsServiceProvider extends AbstractServiceProvider {
 				return new CampaignDispatcher(
 					$container->get( CampaignRepositoryInterface::class ),
 					$container->get( AudienceCalculatorInterface::class ),
-					$container->get( SettingsInterface::class )
+					$container->get( SettingsInterface::class ),
+					$container->get( BroadcastTemplateBuilder::class )
+				);
+			}
+		);
+
+		// Register Broadcast Template Builder.
+		$this->container->singleton(
+			BroadcastTemplateBuilder::class,
+			static fn() => new BroadcastTemplateBuilder()
+		);
+
+		// Register Broadcast Batch Processor.
+		$this->container->singleton(
+			BroadcastBatchProcessor::class,
+			function ( $container ) {
+				return new BroadcastBatchProcessor(
+					$container->get( CampaignRepositoryInterface::class ),
+					$container->get( BroadcastTemplateBuilder::class ),
+					$container->get( \WhatsAppCommerceHub\Clients\WhatsAppApiClient::class ),
+					$container->get( \wpdb::class )
 				);
 			}
 		);
@@ -124,6 +146,16 @@ class BroadcastsServiceProvider extends AbstractServiceProvider {
 	 * @return void
 	 */
 	protected function doBoot(): void {
+		add_action(
+			'wch_send_broadcast_batch',
+			function ( array $args ) {
+				$processor = $this->container->get( BroadcastBatchProcessor::class );
+				$processor->handle( $args );
+			},
+			10,
+			1
+		);
+
 		// Only initialize in admin context.
 		if ( is_admin() ) {
 			$controller = $this->container->get( AdminBroadcastsController::class );
@@ -145,6 +177,8 @@ class BroadcastsServiceProvider extends AbstractServiceProvider {
 			CampaignReportGenerator::class,
 			BroadcastsAjaxHandler::class,
 			AdminBroadcastsController::class,
+			BroadcastTemplateBuilder::class,
+			BroadcastBatchProcessor::class,
 		];
 	}
 

@@ -225,7 +225,7 @@ class CatalogSyncService implements CatalogSyncServiceInterface {
 
 			// Queue sync jobs.
 			$queue = $this->queue ?? wch( QueueManager::class );
-			$queue->schedule_bulk_action( 'wch_sync_product', $product_ids );
+			$queue->schedule_bulk_action( 'wch_sync_single_product', $product_ids );
 
 			$count = count( $product_ids );
 		}
@@ -482,7 +482,7 @@ class CatalogSyncService implements CatalogSyncServiceInterface {
 
 		// Queue sync jobs.
 		$queue = $this->queue ?? wch( QueueManager::class );
-		$queue->schedule_bulk_action( 'wch_sync_product', $product_ids );
+		$queue->schedule_bulk_action( 'wch_sync_single_product', $product_ids );
 
 		return [
 			'success' => true,

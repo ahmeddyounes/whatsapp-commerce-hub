@@ -17,7 +17,6 @@ use WhatsAppCommerceHub\Container\ServiceProviderInterface;
 use WhatsAppCommerceHub\Contracts\Services\CartServiceInterface;
 use WhatsAppCommerceHub\Contracts\Services\CustomerServiceInterface;
 use WhatsAppCommerceHub\Contracts\Services\AddressServiceInterface;
-use WhatsAppCommerceHub\Contracts\Services\BroadcastServiceInterface;
 use WhatsAppCommerceHub\Contracts\Services\CatalogSyncServiceInterface;
 use WhatsAppCommerceHub\Contracts\Checkout\CheckoutOrchestratorInterface;
 use WhatsAppCommerceHub\Contracts\Payments\PaymentGatewayRegistryInterface;
@@ -26,13 +25,12 @@ use WhatsAppCommerceHub\Contracts\Repositories\CustomerRepositoryInterface;
 use WhatsAppCommerceHub\Domain\Cart\CartService;
 use WhatsAppCommerceHub\Domain\Customer\CustomerService;
 use WhatsAppCommerceHub\Application\Services\AddressService;
-use WhatsAppCommerceHub\Application\Services\BroadcastService;
 use WhatsAppCommerceHub\Application\Services\CatalogSyncService;
 use WhatsAppCommerceHub\Application\Services\MessageBuilderFactory;
+use WhatsAppCommerceHub\Features\AbandonedCart\RecoveryService;
 use WhatsAppCommerceHub\Infrastructure\Configuration\SettingsManager;
 use WhatsAppCommerceHub\Infrastructure\Queue\QueueManager;
 use WhatsAppCommerceHub\Payments\PaymentGatewayRegistry;
-use WhatsAppCommerceHub\Presentation\Templates\TemplateManager;
 use WhatsAppCommerceHub\Checkout\CheckoutOrchestrator;
 
 // Exit if accessed directly.
@@ -151,27 +149,6 @@ class BusinessServiceProvider implements ServiceProviderInterface {
 			static fn( ContainerInterface $c ) => $c->get( CheckoutOrchestratorInterface::class )
 		);
 
-		// Register Broadcast Service.
-		$container->singleton(
-			BroadcastServiceInterface::class,
-			static fn( ContainerInterface $c ) => new BroadcastService(
-				$c->get( \wpdb::class ),
-				$c->has( TemplateManager::class ) ? $c->get( TemplateManager::class ) : null
-			)
-		);
-
-		// Alias for convenience.
-		$container->singleton(
-			BroadcastService::class,
-			static fn( ContainerInterface $c ) => $c->get( BroadcastServiceInterface::class )
-		);
-
-		// Convenience alias.
-		$container->singleton(
-			'wch.broadcasts',
-			static fn( ContainerInterface $c ) => $c->get( BroadcastServiceInterface::class )
-		);
-
 		// Register Catalog Sync Service.
 		$container->singleton(
 			CatalogSyncServiceInterface::class,
@@ -246,6 +223,12 @@ class BusinessServiceProvider implements ServiceProviderInterface {
 				}
 			}
 		);
+
+		$recovery = wch( RecoveryService::class );
+		$recovery->init();
+
+		add_action( 'wch_schedule_recovery_reminders', [ $recovery, 'scheduleRecoveryReminders' ] );
+		add_action( 'wch_process_recovery_message', [ $recovery, 'processRecoveryMessage' ], 10, 1 );
 	}
 
 	/**
@@ -269,9 +252,6 @@ class BusinessServiceProvider implements ServiceProviderInterface {
 			CheckoutOrchestratorInterface::class,
 			CheckoutOrchestrator::class,
 			'wch.checkout',
-			BroadcastServiceInterface::class,
-			BroadcastService::class,
-			'wch.broadcasts',
 			CatalogSyncServiceInterface::class,
 			CatalogSyncService::class,
 			'wch.catalog_sync',

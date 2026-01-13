@@ -761,7 +761,7 @@ class ProductSyncService implements ProductSyncServiceInterface {
 		// Queue for sync.
 		if ( $this->queue_service ) {
 			$this->queue_service->dispatch(
-				'wch_sync_product',
+				'wch_sync_single_product',
 				[ 'product_id' => $product_id ],
 				'wch-normal'
 			);

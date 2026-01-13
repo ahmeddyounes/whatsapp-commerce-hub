@@ -267,7 +267,7 @@ class CampaignRepository implements CampaignRepositoryInterface {
 		$sanitized = [];
 
 		foreach ( $data as $key => $value ) {
-			$sanitizedKey = sanitize_key( $key );
+			$sanitizedKey = is_int( $key ) ? $key : sanitize_key( (string) $key );
 			if ( is_array( $value ) ) {
 				$sanitized[ $sanitizedKey ] = $this->sanitizeTemplateData( $value );
 			} else {
@@ -307,7 +307,17 @@ class CampaignRepository implements CampaignRepositoryInterface {
 		$sanitized = [];
 
 		foreach ( $data as $key => $value ) {
-			$sanitized[ sanitize_key( $key ) ] = sanitize_text_field( (string) $value );
+			$sanitizedKey = sanitize_key( (string) $key );
+
+			if ( is_array( $value ) ) {
+				$sanitized[ $sanitizedKey ] = [
+					'type'  => sanitize_key( (string) ( $value['type'] ?? '' ) ),
+					'value' => sanitize_text_field( (string) ( $value['value'] ?? '' ) ),
+				];
+				continue;
+			}
+
+			$sanitized[ $sanitizedKey ] = sanitize_text_field( (string) $value );
 		}
 
 		return $sanitized;

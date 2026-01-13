@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace WhatsAppCommerceHub\Checkout\Steps;
 
 use WhatsAppCommerceHub\Checkout\AbstractStep;
+use WhatsAppCommerceHub\Payments\PaymentGatewayRegistry;
 use WhatsAppCommerceHub\Support\Messaging\MessageBuilder;
 use WhatsAppCommerceHub\ValueObjects\CheckoutResponse;
 
@@ -206,67 +207,31 @@ class PaymentStep extends AbstractStep {
 	 * @return array
 	 */
 	private function getAvailablePaymentMethods( string $country ): array {
+		try {
+			$registry  = wch( PaymentGatewayRegistry::class );
+			$available = $registry->getAvailable( $country );
+		} catch ( \Throwable $e ) {
+			return [];
+		}
+
 		$methods = [];
 
-		// COD - Available everywhere.
-		$methods[] = [
-			'id'          => 'cod',
-			'label'       => __( 'Cash on Delivery', 'whatsapp-commerce-hub' ),
-			'description' => __( 'Pay when you receive', 'whatsapp-commerce-hub' ),
-			'fee'         => 0,
-		];
-
-		// UPI - India only.
-		if ( 'IN' === $country ) {
+		if ( isset( $available['cod'] ) ) {
+			$gateway     = $available['cod'];
 			$methods[] = [
-				'id'          => 'upi',
-				'label'       => __( 'UPI Payment', 'whatsapp-commerce-hub' ),
-				'description' => __( 'Google Pay, PhonePe, Paytm', 'whatsapp-commerce-hub' ),
+				'id'          => $gateway->getId(),
+				'label'       => $gateway->getTitle(),
+				'description' => $gateway->getDescription(),
 				'fee'         => 0,
 			];
+			unset( $available['cod'] );
 		}
 
-		// PIX - Brazil only.
-		if ( 'BR' === $country ) {
+		foreach ( $available as $gateway ) {
 			$methods[] = [
-				'id'          => 'pix',
-				'label'       => __( 'PIX', 'whatsapp-commerce-hub' ),
-				'description' => __( 'Instant bank transfer', 'whatsapp-commerce-hub' ),
-				'fee'         => 0,
-			];
-		}
-
-		// Credit/Debit Card - Available everywhere (if Stripe configured).
-		$stripe_settings = get_option( 'wch_stripe_settings', [] );
-		if ( ! empty( $stripe_settings['enabled'] ) ) {
-			$methods[] = [
-				'id'          => 'stripe',
-				'label'       => __( 'Credit/Debit Card', 'whatsapp-commerce-hub' ),
-				'description' => __( 'Visa, Mastercard, Amex', 'whatsapp-commerce-hub' ),
-				'fee'         => 0,
-			];
-		}
-
-		// Razorpay - India.
-		if ( 'IN' === $country ) {
-			$razorpay_settings = get_option( 'wch_razorpay_settings', [] );
-			if ( ! empty( $razorpay_settings['enabled'] ) ) {
-				$methods[] = [
-					'id'          => 'razorpay',
-					'label'       => __( 'Razorpay', 'whatsapp-commerce-hub' ),
-					'description' => __( 'Cards, UPI, Wallets, Net Banking', 'whatsapp-commerce-hub' ),
-					'fee'         => 0,
-				];
-			}
-		}
-
-		// WhatsApp Pay (if available).
-		$whatsapp_pay_settings = get_option( 'wch_whatsapp_pay_settings', [] );
-		if ( ! empty( $whatsapp_pay_settings['enabled'] ) ) {
-			$methods[] = [
-				'id'          => 'whatsapp_pay',
-				'label'       => __( 'WhatsApp Pay', 'whatsapp-commerce-hub' ),
-				'description' => __( 'Pay directly in WhatsApp', 'whatsapp-commerce-hub' ),
+				'id'          => $gateway->getId(),
+				'label'       => $gateway->getTitle(),
+				'description' => $gateway->getDescription(),
 				'fee'         => 0,
 			];
 		}

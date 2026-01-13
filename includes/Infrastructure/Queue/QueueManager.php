@@ -222,7 +222,7 @@ class QueueManager {
 	 */
 	private function resolveBulkItemKey( string $hook ): string {
 		return match ( $hook ) {
-			'wch_sync_product' => 'product_id',
+			'wch_sync_product', 'wch_sync_single_product' => 'product_id',
 			default => 'item',
 		};
 	}

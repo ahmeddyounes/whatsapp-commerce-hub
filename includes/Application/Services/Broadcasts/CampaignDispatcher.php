@@ -48,11 +48,13 @@ class CampaignDispatcher implements CampaignDispatcherInterface {
 	 * @param CampaignRepositoryInterface $repository         Campaign repository.
 	 * @param AudienceCalculatorInterface $audienceCalculator Audience calculator.
 	 * @param SettingsInterface           $settings           Settings service.
+	 * @param BroadcastTemplateBuilder    $templateBuilder    Template builder.
 	 */
 	public function __construct(
 		protected CampaignRepositoryInterface $repository,
 		protected AudienceCalculatorInterface $audienceCalculator,
-		protected SettingsInterface $settings
+		protected SettingsInterface $settings,
+		protected BroadcastTemplateBuilder $templateBuilder
 	) {
 	}
 
@@ -165,12 +167,19 @@ class CampaignDispatcher implements CampaignDispatcherInterface {
 			$api = wch( WhatsAppApiClient::class );
 
 			if ( ! empty( $message['template_name'] ) ) {
-				$api->sendTemplateMessage(
-					$testPhone,
-					$message['template_name'],
-					$message['template_data'] ?? [],
-					$message['variables'] ?? []
+				$templateData    = is_array( $message['template_data'] ?? null ) ? $message['template_data'] : [];
+				$personalization = is_array( $message['variables'] ?? null ) ? $message['variables'] : [];
+				$languageCode    = $this->templateBuilder->getLanguageCode( $templateData );
+				$components      = $this->templateBuilder->buildComponents(
+					$templateData,
+					$personalization,
+					[
+						'phone' => $testPhone,
+						'name'  => 'Test Customer',
+					]
 				);
+
+				$api->sendTemplate( $testPhone, $message['template_name'], $languageCode, $components );
 			}
 
 			$this->log(

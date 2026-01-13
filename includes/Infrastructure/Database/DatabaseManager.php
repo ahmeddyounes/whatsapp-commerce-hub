@@ -27,7 +27,7 @@ class DatabaseManager {
 	/**
 	 * Database schema version.
 	 */
-	public const DB_VERSION = '2.5.0';
+	public const DB_VERSION = '2.6.0';
 
 	/**
 	 * Option name for storing DB version.
@@ -168,7 +168,7 @@ class DatabaseManager {
 			$this->getMessagesTableSchema( $charsetCollate ),
 			$this->getCartsTableSchema( $charsetCollate ),
 			$this->getCustomerProfilesTableSchema( $charsetCollate ),
-			$this->getBroadcastCampaignsTableSchema( $charsetCollate ),
+			$this->getBroadcastRecipientsTableSchema( $charsetCollate ),
 			$this->getSyncQueueTableSchema( $charsetCollate ),
 			$this->getNotificationLogTableSchema( $charsetCollate ),
 			$this->getProductViewsTableSchema( $charsetCollate ),
@@ -307,27 +307,25 @@ class DatabaseManager {
 	}
 
 	/**
-	 * Get broadcast campaigns table schema.
+	 * Get broadcast recipients table schema.
 	 *
 	 * @param string $charsetCollate Charset collation.
 	 * @return string SQL statement.
 	 */
-	private function getBroadcastCampaignsTableSchema( string $charsetCollate ): string {
-		return 'CREATE TABLE ' . $this->getTableName( 'broadcast_campaigns' ) . " (
+	private function getBroadcastRecipientsTableSchema( string $charsetCollate ): string {
+		return 'CREATE TABLE ' . $this->getTableName( 'broadcast_recipients' ) . " (
 			id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-			name VARCHAR(200) NOT NULL,
-			template_name VARCHAR(100) NOT NULL,
-			audience_filter JSON NULL,
-			status ENUM('draft', 'scheduled', 'sending', 'completed', 'failed') NOT NULL DEFAULT 'draft',
-			scheduled_at DATETIME NULL,
-			sent_count INT(11) NOT NULL DEFAULT 0,
-			delivered_count INT(11) NOT NULL DEFAULT 0,
-			read_count INT(11) NOT NULL DEFAULT 0,
+			campaign_id BIGINT(20) UNSIGNED NOT NULL,
+			phone VARCHAR(20) NOT NULL,
+			wa_message_id VARCHAR(100) NULL,
+			status ENUM('sent', 'failed') NOT NULL DEFAULT 'sent',
+			sent_at DATETIME NOT NULL,
 			created_at DATETIME NOT NULL,
-			updated_at DATETIME NOT NULL,
 			PRIMARY KEY (id),
-			KEY status (status),
-			KEY scheduled_at (scheduled_at)
+			UNIQUE KEY campaign_phone (campaign_id, phone),
+			KEY phone (phone),
+			KEY sent_at (sent_at),
+			KEY campaign_id (campaign_id)
 		) $charsetCollate;";
 	}
 
@@ -455,7 +453,7 @@ class DatabaseManager {
 			'product_views',
 			'notification_log',
 			'sync_queue',
-			'broadcast_campaigns',
+			'broadcast_recipients',
 			'customer_profiles',
 			'carts',
 			'messages',

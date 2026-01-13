@@ -50,7 +50,7 @@ $cart = $cartRepo->find($cartId);
 use WhatsAppCommerceHub\Infrastructure\Api\Clients\WhatsAppApiClient;
 
 $client = wch(WhatsAppApiClient::class);
-$client->sendMessage($phone, $message);
+$client->sendTextMessage($phone, $message);
 ```
 
 ## Principles

@@ -283,15 +283,19 @@ class ConfirmOrderAction extends AbstractAction {
 	 * @return void
 	 */
 	private function setOrderAddresses( \WC_Order $order, array $address, ?object $customer ): void {
+		$addressLine1 = $address['street'] ?? $address['address_1'] ?? '';
+		$addressLine2 = $address['street_2'] ?? $address['address_2'] ?? $address['apartment'] ?? '';
+		$postcode     = $address['postal_code'] ?? $address['postcode'] ?? '';
+
 		$addressData = [
 			'first_name' => '',
 			'last_name'  => '',
 			'company'    => '',
-			'address_1'  => $address['street'] ?? '',
-			'address_2'  => $address['apartment'] ?? '',
+			'address_1'  => $addressLine1,
+			'address_2'  => $addressLine2,
 			'city'       => $address['city'] ?? '',
 			'state'      => $address['state'] ?? '',
-			'postcode'   => $address['postal_code'] ?? '',
+			'postcode'   => $postcode,
 			'country'    => $address['country'] ?? '',
 		];
 

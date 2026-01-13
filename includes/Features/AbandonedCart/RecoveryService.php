@@ -331,14 +331,14 @@ class RecoveryService {
 			$message = $this->templateManager->renderTemplate( $templateName, $variables );
 
 			// Send via WhatsApp API
-			$result = $this->apiClient->sendMessage( $phone, $message );
+			$result = $this->apiClient->sendTextMessage( $phone, $message );
 
 			// Mark reminder sent
 			$this->markReminderSent( (int) $cart['id'], $sequence, $couponCode );
 
 			return [
 				'success'    => true,
-				'message_id' => $result['id'] ?? null,
+				'message_id' => $result['message_id'] ?? null,
 			];
 		} catch ( \Exception $e ) {
 			return [

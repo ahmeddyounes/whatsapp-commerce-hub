@@ -22,7 +22,6 @@ use WhatsAppCommerceHub\Payments\Gateways\PixGateway;
 use WhatsAppCommerceHub\Payments\Gateways\WhatsAppPayGateway;
 use WhatsAppCommerceHub\Controllers\PaymentWebhookController;
 use WhatsAppCommerceHub\Application\Services\RefundService;
-use WhatsAppCommerceHub\Application\Services\NotificationService;
 use WhatsAppCommerceHub\Clients\WhatsAppApiClient;
 use WhatsAppCommerceHub\Core\Logger;
 use WhatsAppCommerceHub\Presentation\Templates\TemplateManager;
@@ -199,9 +198,6 @@ class PaymentServiceProvider implements ServiceProviderInterface {
 		$refundService = $container->get( RefundService::class );
 		$refundService->init();
 
-		// Initialize NotificationService hooks.
-		$notificationService = $container->get( NotificationService::class );
-		$notificationService->init();
 
 		// Register REST routes.
 		add_action(
@@ -209,15 +205,6 @@ class PaymentServiceProvider implements ServiceProviderInterface {
 			static function () use ( $container ) {
 				$controller = $container->get( PaymentWebhookController::class );
 				$controller->registerRoutes();
-			}
-		);
-
-		// Register notification job processor.
-		add_action(
-			'wch_send_order_notification',
-			static function ( $args ) use ( $container ) {
-				$notificationService = $container->get( NotificationService::class );
-				$notificationService->processNotificationJob( $args );
 			}
 		);
 

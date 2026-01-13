@@ -63,77 +63,18 @@ class NotificationServiceProvider implements ServiceProviderInterface {
 	 * @return void
 	 */
 	public function boot( ContainerInterface $container ): void {
-		// Register WooCommerce order status hooks.
-		$statusTransitions = [
-			'pending',
-			'processing',
-			'on-hold',
-			'completed',
-			'cancelled',
-			'refunded',
-			'failed',
-			'shipped',
-		];
+		$notificationService = $container->get( NotificationService::class );
+		$notificationService->init();
 
-		foreach ( $statusTransitions as $status ) {
-			add_action(
-				'woocommerce_order_status_' . $status,
-				function ( $orderId ) use ( $container, $status ) {
-					$this->handleOrderStatusChange( $container, $orderId, $status );
-				},
-				10,
-				1
-			);
-		}
-
-		// Hook for new orders.
 		add_action(
-			'woocommerce_new_order',
-			function ( $orderId ) use ( $container ) {
-				$this->handleNewOrder( $container, $orderId );
+			'wch_send_order_notification',
+			static function ( $args ) use ( $container ) {
+				$service = $container->get( NotificationService::class );
+				$service->processNotificationJob( $args );
 			},
 			10,
 			1
 		);
-	}
-
-	/**
-	 * Handle order status change.
-	 *
-	 * @param ContainerInterface $container The DI container.
-	 * @param int                $orderId   Order ID.
-	 * @param string             $status    New status.
-	 * @return void
-	 */
-	private function handleOrderStatusChange( ContainerInterface $container, int $orderId, string $status ): void {
-		if ( ! $container->has( NotificationService::class ) ) {
-			return;
-		}
-
-		$notificationService = $container->get( NotificationService::class );
-
-		if ( method_exists( $notificationService, 'sendOrderStatusNotification' ) ) {
-			$notificationService->sendOrderStatusNotification( $orderId, $status );
-		}
-	}
-
-	/**
-	 * Handle new order.
-	 *
-	 * @param ContainerInterface $container The DI container.
-	 * @param int                $orderId   Order ID.
-	 * @return void
-	 */
-	private function handleNewOrder( ContainerInterface $container, int $orderId ): void {
-		if ( ! $container->has( NotificationService::class ) ) {
-			return;
-		}
-
-		$notificationService = $container->get( NotificationService::class );
-
-		if ( method_exists( $notificationService, 'sendOrderConfirmation' ) ) {
-			$notificationService->sendOrderConfirmation( $orderId );
-		}
 	}
 
 	/**

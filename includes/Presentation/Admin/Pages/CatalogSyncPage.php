@@ -738,7 +738,7 @@ class CatalogSyncPage {
 				foreach ( $productIds as $productId ) {
 					update_post_meta( $productId, '_wch_sync_status', 'pending' );
 				}
-				wch( QueueManager::class )->schedule_bulk_action( 'wch_sync_product', $productIds );
+				wch( QueueManager::class )->schedule_bulk_action( 'wch_sync_single_product', $productIds );
 			}
 
 			$this->recordSyncHistory( count( $productIds ), 'manual' );
@@ -979,7 +979,7 @@ class CatalogSyncPage {
 			delete_post_meta( $productId, '_wch_sync_error' );
 		}
 
-		wch( QueueManager::class )->schedule_bulk_action( 'wch_sync_product', $productIds );
+		wch( QueueManager::class )->schedule_bulk_action( 'wch_sync_single_product', $productIds );
 
 		wp_send_json_success(
 			[

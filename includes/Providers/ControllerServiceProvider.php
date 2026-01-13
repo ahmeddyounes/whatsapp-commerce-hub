@@ -16,7 +16,9 @@ use WhatsAppCommerceHub\Container\ContainerInterface;
 use WhatsAppCommerceHub\Container\ServiceProviderInterface;
 use WhatsAppCommerceHub\Controllers\AnalyticsController;
 use WhatsAppCommerceHub\Controllers\ConversationsController;
+use WhatsAppCommerceHub\Controllers\WebhookController;
 use WhatsAppCommerceHub\Application\Services\SettingsService;
+use WhatsAppCommerceHub\Queue\PriorityQueue;
 use WhatsAppCommerceHub\Security\RateLimiter;
 
 // Exit if accessed directly.
@@ -60,6 +62,18 @@ class ControllerServiceProvider implements ServiceProviderInterface {
 			}
 		);
 
+		// Register Webhook Controller.
+		$container->singleton(
+			WebhookController::class,
+			static function ( ContainerInterface $c ) {
+				$settings      = $c->has( SettingsService::class ) ? $c->get( SettingsService::class ) : null;
+				$rateLimiter   = $c->get( RateLimiter::class );
+				$priorityQueue = $c->get( PriorityQueue::class );
+
+				return new WebhookController( $settings, $rateLimiter, $priorityQueue );
+			}
+		);
+
 		// Convenience aliases.
 		$container->singleton(
 			'wch.controller.analytics',
@@ -69,6 +83,11 @@ class ControllerServiceProvider implements ServiceProviderInterface {
 		$container->singleton(
 			'wch.controller.conversations',
 			static fn( ContainerInterface $c ) => $c->get( ConversationsController::class )
+		);
+
+		$container->singleton(
+			'wch.controller.webhook',
+			static fn( ContainerInterface $c ) => $c->get( WebhookController::class )
 		);
 	}
 
@@ -85,6 +104,7 @@ class ControllerServiceProvider implements ServiceProviderInterface {
 			function () use ( $container ) {
 				$container->get( AnalyticsController::class )->registerRoutes();
 				$container->get( ConversationsController::class )->registerRoutes();
+				$container->get( WebhookController::class )->registerRoutes();
 			}
 		);
 	}
@@ -98,8 +118,10 @@ class ControllerServiceProvider implements ServiceProviderInterface {
 		return [
 			AnalyticsController::class,
 			ConversationsController::class,
+			WebhookController::class,
 			'wch.controller.analytics',
 			'wch.controller.conversations',
+			'wch.controller.webhook',
 		];
 	}
 }
