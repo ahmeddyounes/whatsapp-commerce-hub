@@ -67,9 +67,7 @@ class BroadcastsServiceProvider extends AbstractServiceProvider {
 				return new CampaignDispatcher(
 					$container->get( CampaignRepositoryInterface::class ),
 					$container->get( AudienceCalculatorInterface::class ),
-					$container->has( SettingsInterface::class )
-						? $container->get( SettingsInterface::class )
-						: $this->getFallbackSettings()
+					$container->get( SettingsInterface::class )
 				);
 			}
 		);
@@ -118,14 +116,6 @@ class BroadcastsServiceProvider extends AbstractServiceProvider {
 			}
 		);
 
-		// Register aliases for backward compatibility.
-		$this->container->alias( 'campaign_repository', CampaignRepositoryInterface::class );
-		$this->container->alias( 'audience_calculator', AudienceCalculatorInterface::class );
-		$this->container->alias( 'campaign_dispatcher', CampaignDispatcherInterface::class );
-		$this->container->alias( 'broadcast_wizard_renderer', BroadcastWizardRenderer::class );
-		$this->container->alias( 'campaign_report_generator', CampaignReportGenerator::class );
-		$this->container->alias( 'broadcasts_ajax_handler', BroadcastsAjaxHandler::class );
-		$this->container->alias( 'admin_broadcasts_controller', AdminBroadcastsController::class );
 	}
 
 	/**
@@ -158,59 +148,4 @@ class BroadcastsServiceProvider extends AbstractServiceProvider {
 		];
 	}
 
-	/**
-	 * Get fallback settings instance.
-	 *
-	 * @return SettingsInterface
-	 */
-	protected function getFallbackSettings(): SettingsInterface {
-		if ( class_exists( 'WCH_Settings' ) ) {
-			return \WCH_Settings::getInstance();
-		}
-
-		// Return a minimal settings implementation.
-		return new class() implements SettingsInterface {
-			public function get( string $key, mixed $default = null ): mixed {
-				return get_option( 'wch_' . str_replace( '.', '_', $key ), $default );
-			}
-
-			public function set( string $key, $value ): bool {
-				return update_option( 'wch_' . str_replace( '.', '_', $key ), $value );
-			}
-
-			public function has( string $key ): bool {
-				return get_option( 'wch_' . str_replace( '.', '_', $key ), '__not_found__' ) !== '__not_found__';
-			}
-
-			public function delete( string $key ): bool {
-				return delete_option( 'wch_' . str_replace( '.', '_', $key ) );
-			}
-
-			public function all(): array {
-				return get_option( 'wch_settings', [] );
-			}
-
-			public function getGroup( string $group ): array {
-				$all = $this->all();
-				return $all[ $group ] ?? [];
-			}
-
-			public function isConfigured(): bool {
-				$creds = $this->getApiCredentials();
-				return ! empty( $creds['access_token'] ) && ! empty( $creds['phone_number_id'] );
-			}
-
-			public function getApiCredentials(): array {
-				return [
-					'access_token'        => $this->get( 'api.access_token', '' ),
-					'phone_number_id'     => $this->get( 'api.phone_number_id', '' ),
-					'business_account_id' => $this->get( 'api.business_account_id', '' ),
-				];
-			}
-
-			public function refresh(): void {
-				wp_cache_delete( 'wch_settings', 'options' );
-			}
-		};
-	}
 }

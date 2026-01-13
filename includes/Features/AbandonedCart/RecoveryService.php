@@ -206,19 +206,32 @@ class RecoveryService {
 		global $wpdb;
 		$tableName = $wpdb->prefix . 'wch_carts';
 
+		$reminderColumn = $this->getReminderColumn( $sequence );
+		if ( null === $reminderColumn ) {
+			return [];
+		}
+
+		$previousColumn = $sequence > 1 ? $this->getReminderColumn( $sequence - 1 ) : null;
 		$timeThreshold = gmdate( 'Y-m-d H:i:s', time() - ( $delayHours * HOUR_IN_SECONDS ) );
 
+		$whereClauses = [
+			"status = 'abandoned'",
+			'updated_at <= %s',
+			"{$reminderColumn} IS NULL",
+			'customer_phone IS NOT NULL',
+			"customer_phone != ''",
+		];
+
+		if ( $previousColumn ) {
+			$whereClauses[] = "{$previousColumn} IS NOT NULL";
+		}
+
 		$query = $wpdb->prepare(
-			"SELECT * FROM {$tableName} 
-            WHERE status = 'abandoned' 
-            AND updated_at <= %s 
-            AND (recovery_sequence < %d OR recovery_sequence IS NULL)
-            AND phone IS NOT NULL 
-            AND phone != ''
-            ORDER BY updated_at ASC 
-            LIMIT 50",
-			$timeThreshold,
-			$sequence
+			"SELECT * FROM {$tableName}
+            WHERE " . implode( ' AND ', $whereClauses ) . '
+            ORDER BY updated_at ASC
+            LIMIT 50',
+			$timeThreshold
 		);
 
 		return $wpdb->get_results( $query, ARRAY_A ) ?: [];
@@ -239,7 +252,20 @@ class RecoveryService {
 			ARRAY_A
 		);
 
-		return $cart ?: null;
+		if ( ! $cart ) {
+			return null;
+		}
+
+		if ( isset( $cart['items'] ) && is_string( $cart['items'] ) ) {
+			$decoded = json_decode( $cart['items'], true );
+			if ( JSON_ERROR_NONE === json_last_error() && is_array( $decoded ) ) {
+				$cart['items'] = $decoded;
+			} else {
+				$cart['items'] = [];
+			}
+		}
+
+		return $cart;
 	}
 
 	/**
@@ -256,18 +282,18 @@ class RecoveryService {
 		}
 
 		// Must have phone number
-		if ( empty( $cart['phone'] ) ) {
+		if ( empty( $cart['customer_phone'] ) ) {
 			return false;
 		}
 
 		// Must not have already received this sequence
-		$currentSequence = (int) ( $cart['recovery_sequence'] ?? 0 );
+		$currentSequence = $this->getSentSequence( $cart );
 		if ( $currentSequence >= $sequence ) {
 			return false;
 		}
 
 		// Check if user opted out
-		if ( $this->hasOptedOut( $cart['phone'] ) ) {
+		if ( $this->hasOptedOut( $cart['customer_phone'] ) ) {
 			return false;
 		}
 
@@ -283,7 +309,13 @@ class RecoveryService {
 	 */
 	public function sendRecoveryMessage( array $cart, int $sequence ): array {
 		try {
-			$phone        = $cart['phone'];
+			$phone        = $cart['customer_phone'] ?? '';
+			if ( '' === $phone ) {
+				return [
+					'success' => false,
+					'error'   => 'Missing customer phone number',
+				];
+			}
 			$templateName = $this->getTemplateNameForSequence( $sequence );
 
 			// Generate coupon if discount enabled and sequence 2 or 3
@@ -325,9 +357,10 @@ class RecoveryService {
 	 * @return array<string, string> Template variables
 	 */
 	private function buildTemplateVariables( array $cart, int $sequence, ?string $couponCode ): array {
-		$customerName = $this->getCustomerName( $cart['phone'] );
+		$phone        = $cart['customer_phone'] ?? '';
+		$customerName = $phone ? $this->getCustomerName( $phone ) : 'there';
 		$cartTotal    = number_format( (float) ( $cart['total'] ?? 0 ), 2 );
-		$itemCount    = (int) ( $cart['item_count'] ?? 0 );
+		$itemCount    = $this->getCartItemCount( $cart );
 
 		$variables = [
 			'1' => $customerName,
@@ -344,6 +377,62 @@ class RecoveryService {
 	}
 
 	/**
+	 * Get total item count from cart items.
+	 *
+	 * @param array $cart Cart data.
+	 * @return int Item count.
+	 */
+	private function getCartItemCount( array $cart ): int {
+		$items = $cart['items'] ?? [];
+		if ( is_string( $items ) ) {
+			$decoded = json_decode( $items, true );
+			$items   = JSON_ERROR_NONE === json_last_error() && is_array( $decoded ) ? $decoded : [];
+		}
+
+		$count = 0;
+		foreach ( $items as $item ) {
+			$count += (int) ( $item['quantity'] ?? 0 );
+		}
+
+		return $count;
+	}
+
+	/**
+	 * Get reminder column name by sequence.
+	 *
+	 * @param int $sequence Sequence number.
+	 * @return string|null Reminder column name or null if invalid.
+	 */
+	private function getReminderColumn( int $sequence ): ?string {
+		return match ( $sequence ) {
+			1 => 'reminder_1_sent_at',
+			2 => 'reminder_2_sent_at',
+			3 => 'reminder_3_sent_at',
+			default => null,
+		};
+	}
+
+	/**
+	 * Determine highest reminder sequence already sent.
+	 *
+	 * @param array $cart Cart data.
+	 * @return int Sent sequence number.
+	 */
+	private function getSentSequence( array $cart ): int {
+		if ( ! empty( $cart['reminder_3_sent_at'] ) ) {
+			return 3;
+		}
+		if ( ! empty( $cart['reminder_2_sent_at'] ) ) {
+			return 2;
+		}
+		if ( ! empty( $cart['reminder_1_sent_at'] ) ) {
+			return 1;
+		}
+
+		return 0;
+	}
+
+	/**
 	 * Get customer name from phone
 	 *
 	 * @param string $phone Phone number
@@ -351,7 +440,7 @@ class RecoveryService {
 	 */
 	private function getCustomerName( string $phone ): string {
 		global $wpdb;
-		$tableName = $wpdb->prefix . 'wch_customers';
+		$tableName = $wpdb->prefix . 'wch_customer_profiles';
 
 		$name = $wpdb->get_var(
 			$wpdb->prepare( "SELECT name FROM {$tableName} WHERE phone = %s", $phone )
@@ -397,20 +486,24 @@ class RecoveryService {
 		global $wpdb;
 		$tableName = $wpdb->prefix . 'wch_carts';
 
+		$reminderColumn = $this->getReminderColumn( $sequence );
+		if ( null === $reminderColumn ) {
+			return;
+		}
+
 		$updateData = [
-			'recovery_sequence' => $sequence,
-			'recovery_sent_at'  => current_time( 'mysql' ),
+			$reminderColumn => current_time( 'mysql' ),
 		];
 
 		if ( $couponCode ) {
-			$updateData['coupon_code'] = $couponCode;
+			$updateData['recovery_coupon_code'] = $couponCode;
 		}
 
 		$wpdb->update(
 			$tableName,
 			$updateData,
 			[ 'id' => $cartId ],
-			[ '%d', '%s', '%s' ],
+			array_fill( 0, count( $updateData ), '%s' ),
 			[ '%d' ]
 		);
 	}
@@ -429,13 +522,14 @@ class RecoveryService {
 		$wpdb->update(
 			$tableName,
 			[
-				'status'            => 'recovered',
-				'order_id'          => $orderId,
-				'recovered_at'      => current_time( 'mysql' ),
-				'recovered_revenue' => $revenue,
+				'status'             => 'converted',
+				'recovered'          => 1,
+				'recovered_order_id' => $orderId,
+				'recovered_at'       => current_time( 'mysql' ),
+				'recovered_revenue'  => $revenue,
 			],
 			[ 'id' => $cartId ],
-			[ '%s', '%d', '%s', '%f' ],
+			[ '%s', '%d', '%d', '%s', '%f' ],
 			[ '%d' ]
 		);
 
@@ -459,14 +553,19 @@ class RecoveryService {
 		global $wpdb;
 		$tableName = $wpdb->prefix . 'wch_carts';
 
+		$now = current_time( 'mysql' );
 		$wpdb->update(
 			$tableName,
-			[ 'status' => 'stopped' ],
 			[
-				'phone'  => $phone,
-				'status' => 'abandoned',
+				'reminder_1_sent_at' => $now,
+				'reminder_2_sent_at' => $now,
+				'reminder_3_sent_at' => $now,
 			],
-			[ '%s' ],
+			[
+				'customer_phone' => $phone,
+				'status'         => 'abandoned',
+			],
+			[ '%s', '%s', '%s' ],
 			[ '%s', '%s' ]
 		);
 
@@ -494,12 +593,23 @@ class RecoveryService {
 		$stats = $wpdb->get_row(
 			$wpdb->prepare(
 				"SELECT 
-                    COUNT(*) as total_abandoned,
-                    SUM(CASE WHEN status = 'recovered' THEN 1 ELSE 0 END) as recovered_count,
-                    SUM(CASE WHEN status = 'recovered' THEN recovered_revenue ELSE 0 END) as recovered_revenue,
-                    AVG(CASE WHEN status = 'recovered' THEN recovery_sequence ELSE NULL END) as avg_sequence
-                FROM {$tableName}
-                WHERE created_at >= %s",
+	                    COUNT(*) as total_abandoned,
+	                    SUM(CASE WHEN recovered = 1 THEN 1 ELSE 0 END) as recovered_count,
+	                    SUM(CASE WHEN recovered = 1 THEN recovered_revenue ELSE 0 END) as recovered_revenue,
+	                    AVG(
+							CASE
+								WHEN recovered = 1 THEN
+									CASE
+										WHEN reminder_3_sent_at IS NOT NULL THEN 3
+										WHEN reminder_2_sent_at IS NOT NULL THEN 2
+										WHEN reminder_1_sent_at IS NOT NULL THEN 1
+										ELSE NULL
+									END
+								ELSE NULL
+							END
+						) as avg_sequence
+	                FROM {$tableName}
+	                WHERE created_at >= %s",
 				$since
 			),
 			ARRAY_A
@@ -536,13 +646,13 @@ class RecoveryService {
 	 */
 	private function hasOptedOut( string $phone ): bool {
 		global $wpdb;
-		$tableName = $wpdb->prefix . 'wch_opt_outs';
+		$tableName = $wpdb->prefix . 'wch_customer_profiles';
 
 		$optOut = $wpdb->get_var(
-			$wpdb->prepare( "SELECT COUNT(*) FROM {$tableName} WHERE phone = %s", $phone )
+			$wpdb->prepare( "SELECT notification_opt_out FROM {$tableName} WHERE phone = %s", $phone )
 		);
 
-		return (int) $optOut > 0;
+		return (int) $optOut === 1;
 	}
 
 	/**

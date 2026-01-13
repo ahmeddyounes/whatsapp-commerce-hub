@@ -14,6 +14,7 @@ namespace WhatsAppCommerceHub\Clients;
 
 use WhatsAppCommerceHub\Contracts\Clients\WhatsAppClientInterface;
 use WhatsAppCommerceHub\Resilience\CircuitBreaker;
+use WhatsAppCommerceHub\Resilience\CircuitBreakerRegistry;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -103,6 +104,7 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 		$this->api_version     = $api_version;
 		$this->base_url        = 'https://graph.facebook.com/' . $this->api_version . '/';
 	}
+
 
 	/**
 	 * {@inheritdoc}
@@ -575,7 +577,7 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 	 * @param array $body Message body.
 	 * @return array Response with message_id and status.
 	 */
-	private function sendMessage( array $body ): array {
+	public function sendMessage( array $body ): array {
 		$response = $this->request( 'POST', $this->phone_number_id . '/messages', $body );
 
 		$message_id = null;

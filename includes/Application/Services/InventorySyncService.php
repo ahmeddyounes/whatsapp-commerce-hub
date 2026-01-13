@@ -12,8 +12,9 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Application\Services;
 
-use WhatsAppCommerceHub\Infrastructure\Configuration\SettingsManager;
+use WhatsAppCommerceHub\Clients\WhatsAppApiClient;
 use WhatsAppCommerceHub\Core\Logger;
+use WhatsAppCommerceHub\Infrastructure\Configuration\SettingsManager;
 use WC_Product;
 use WC_Product_Variation;
 
@@ -435,8 +436,6 @@ class InventorySyncService {
 	 * Get WhatsApp API client
 	 */
 	private function getApiClient(): object {
-		// This would be injected via constructor in production
-		// For backward compatibility, using legacy approach temporarily
-		return \WCH_WhatsApp_API_Client::instance();
+		return wch( WhatsAppApiClient::class );
 	}
 }

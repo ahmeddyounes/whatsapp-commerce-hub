@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Actions;
 
+use WhatsAppCommerceHub\Contracts\Services\CartServiceInterface;
 use WhatsAppCommerceHub\ValueObjects\ActionResult;
 use WhatsAppCommerceHub\ValueObjects\ConversationContext;
 
@@ -118,61 +119,26 @@ class AddToCartAction extends AbstractAction {
 	 * @return array{success: bool, cart: array|null, error: string|null}
 	 */
 	private function addToCart( string $phone, int $productId, ?int $variantId, int $quantity ): array {
-		if ( $this->cartService ) {
-			$result = $this->cartService->addItem( $phone, $productId, $variantId, $quantity );
+		$cartService = $this->cartService ?? wch( CartServiceInterface::class );
 
-			if ( $result ) {
-				$cart = $this->cartService->getCart( $phone );
-				return [
-					'success' => true,
-					'cart'    => [
-						'id'    => $cart->id ?? null,
-						'items' => $cart->items ?? [],
-						'total' => $cart->total ?? 0,
-					],
-					'error'   => null,
-				];
-			}
-
-			return [
-				'success' => false,
-				'cart'    => null,
-				'error'   => __( 'Failed to add item to cart.', 'whatsapp-commerce-hub' ),
-			];
-		}
-
-		// Fallback to legacy cart manager.
-		$cartManager = \WCH_Cart_Manager::instance();
-		$cart        = $cartManager->get_or_create_cart( $phone );
-
-		if ( ! $cart ) {
-			return [
-				'success' => false,
-				'cart'    => null,
-				'error'   => __( 'Failed to access cart.', 'whatsapp-commerce-hub' ),
-			];
-		}
-
-		$result = $cartManager->add_item( $phone, $productId, $quantity, $variantId );
-
-		if ( $result ) {
-			$updatedCart = $cartManager->get_cart( $phone );
+		try {
+			$cart = $cartService->addItem( $phone, $productId, $variantId, $quantity );
 			return [
 				'success' => true,
 				'cart'    => [
-					'id'    => $updatedCart->id ?? $cart['id'] ?? null,
-					'items' => $updatedCart->items ?? $cart['items'] ?? [],
-					'total' => $updatedCart->total ?? $this->calculateCartTotal( $cart['items'] ?? [] ),
+					'id'    => $cart->id ?? null,
+					'items' => $cart->items ?? [],
+					'total' => $cart->total ?? 0,
 				],
 				'error'   => null,
 			];
+		} catch ( \Throwable $e ) {
+			return [
+				'success' => false,
+				'cart'    => null,
+				'error'   => $e->getMessage(),
+			];
 		}
-
-		return [
-			'success' => false,
-			'cart'    => null,
-			'error'   => __( 'Failed to add item.', 'whatsapp-commerce-hub' ),
-		];
 	}
 
 	/**

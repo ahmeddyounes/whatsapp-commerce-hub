@@ -14,6 +14,7 @@ namespace WhatsAppCommerceHub\Application\Services\Reengagement;
 
 use WhatsAppCommerceHub\Contracts\Services\Reengagement\InactiveCustomerIdentifierInterface;
 use WhatsAppCommerceHub\Contracts\Services\SettingsInterface;
+use WhatsAppCommerceHub\Infrastructure\Database\DatabaseManager;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -54,17 +55,17 @@ class InactiveCustomerIdentifier implements InactiveCustomerIdentifierInterface 
 	/**
 	 * Database manager.
 	 *
-	 * @var \WCH_Database_Manager
+	 * @var DatabaseManager
 	 */
-	protected \WCH_Database_Manager $dbManager;
+	protected DatabaseManager $dbManager;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param SettingsInterface     $settings  Settings service.
-	 * @param \WCH_Database_Manager $dbManager Database manager.
+	 * @param SettingsInterface $settings  Settings service.
+	 * @param DatabaseManager   $dbManager Database manager.
 	 */
-	public function __construct( SettingsInterface $settings, \WCH_Database_Manager $dbManager ) {
+	public function __construct( SettingsInterface $settings, DatabaseManager $dbManager ) {
 		global $wpdb;
 		$this->wpdb      = $wpdb;
 		$this->settings  = $settings;
@@ -81,8 +82,8 @@ class InactiveCustomerIdentifier implements InactiveCustomerIdentifierInterface 
 		$thresholdDate     = gmdate( 'Y-m-d H:i:s', current_time( 'timestamp' ) - ( $threshold * DAY_IN_SECONDS ) );
 		$recentMessageDate = gmdate( 'Y-m-d H:i:s', current_time( 'timestamp' ) - ( self::RECENT_MESSAGE_DAYS * DAY_IN_SECONDS ) );
 
-		$profilesTable     = $this->dbManager->get_table_name( 'customer_profiles' );
-		$reengagementTable = $this->dbManager->get_table_name( 'reengagement_log' );
+		$profilesTable     = $this->dbManager->getTableName( 'customer_profiles' );
+		$reengagementTable = $this->dbManager->getTableName( 'reengagement_log' );
 
 		$query = "
 			SELECT p.*,
@@ -141,7 +142,7 @@ class InactiveCustomerIdentifier implements InactiveCustomerIdentifierInterface 
 	 * @return bool True if inactive.
 	 */
 	public function isInactive( string $customerPhone ): bool {
-		$profilesTable = $this->dbManager->get_table_name( 'customer_profiles' );
+		$profilesTable = $this->dbManager->getTableName( 'customer_profiles' );
 		$threshold     = $this->getInactivityThreshold();
 		$thresholdDate = gmdate( 'Y-m-d H:i:s', current_time( 'timestamp' ) - ( $threshold * DAY_IN_SECONDS ) );
 

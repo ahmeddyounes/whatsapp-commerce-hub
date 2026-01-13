@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Events\Handlers;
 
+use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
 use WhatsAppCommerceHub\Events\Event;
 use WhatsAppCommerceHub\Events\AsyncEventData;
 use WhatsAppCommerceHub\Events\EventHandlerInterface;
@@ -48,17 +49,22 @@ class MessageSentHandler implements EventHandlerInterface {
 		$payload = $event->getPayload();
 
 		// Log for analytics.
-		\WCH_Logger::debug(
-			'Message sent event handled',
-			[
-				'category'        => 'events',
-				'message_id'      => $payload['message_id'] ?? 0,
-				'conversation_id' => $payload['conversation_id'] ?? 0,
-				'to'              => $payload['to'] ?? '',
-				'type'            => $payload['type'] ?? '',
-				'event_id'        => $event->id,
-			]
-		);
+		try {
+			$logger = wch( LoggerInterface::class );
+			$logger->debug(
+				'Message sent event handled',
+				'events',
+				[
+					'message_id'      => $payload['message_id'] ?? 0,
+					'conversation_id' => $payload['conversation_id'] ?? 0,
+					'to'              => $payload['to'] ?? '',
+					'type'            => $payload['type'] ?? '',
+					'event_id'        => $event->id,
+				]
+			);
+		} catch ( \Throwable $e ) {
+			// Ignore logging failures.
+		}
 
 		// Track outgoing message metrics.
 		$this->trackMessageMetrics( $payload );

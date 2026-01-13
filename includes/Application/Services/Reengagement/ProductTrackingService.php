@@ -14,6 +14,8 @@ namespace WhatsAppCommerceHub\Application\Services\Reengagement;
 
 use WhatsAppCommerceHub\Contracts\Services\Reengagement\ProductTrackingServiceInterface;
 use WhatsAppCommerceHub\Contracts\Services\Reengagement\FrequencyCapManagerInterface;
+use WhatsAppCommerceHub\Infrastructure\Database\DatabaseManager;
+use WhatsAppCommerceHub\Infrastructure\Queue\JobDispatcher;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -47,9 +49,9 @@ class ProductTrackingService implements ProductTrackingServiceInterface {
 	/**
 	 * Database manager.
 	 *
-	 * @var \WCH_Database_Manager
+	 * @var DatabaseManager
 	 */
-	protected \WCH_Database_Manager $dbManager;
+	protected DatabaseManager $dbManager;
 
 	/**
 	 * Frequency cap manager.
@@ -61,11 +63,11 @@ class ProductTrackingService implements ProductTrackingServiceInterface {
 	/**
 	 * Constructor.
 	 *
-	 * @param \WCH_Database_Manager             $dbManager    Database manager.
+	 * @param DatabaseManager                   $dbManager    Database manager.
 	 * @param FrequencyCapManagerInterface|null $frequencyCap Frequency cap manager.
 	 */
 	public function __construct(
-		\WCH_Database_Manager $dbManager,
+		DatabaseManager $dbManager,
 		?FrequencyCapManagerInterface $frequencyCap = null
 	) {
 		global $wpdb;
@@ -97,7 +99,7 @@ class ProductTrackingService implements ProductTrackingServiceInterface {
 			return false;
 		}
 
-		$tableName = $this->dbManager->get_table_name( 'product_views' );
+		$tableName = $this->dbManager->getTableName( 'product_views' );
 
 		// Check if already tracked recently.
 		$existing = $this->wpdb->get_var(
@@ -138,7 +140,7 @@ class ProductTrackingService implements ProductTrackingServiceInterface {
 	 * @return array Array of product data.
 	 */
 	public function getBackInStockProducts( string $customerPhone ): array {
-		$tableName = $this->dbManager->get_table_name( 'product_views' );
+		$tableName = $this->dbManager->getTableName( 'product_views' );
 		$sinceDate = gmdate( 'Y-m-d H:i:s', current_time( 'timestamp' ) - ( self::VIEW_WINDOW_DAYS * DAY_IN_SECONDS ) );
 
 		$results = $this->wpdb->get_results(
@@ -179,7 +181,7 @@ class ProductTrackingService implements ProductTrackingServiceInterface {
 	 * @return array Array of product data with price info.
 	 */
 	public function getPriceDropProducts( string $customerPhone, float $minDropPercent = 10.0 ): array {
-		$tableName = $this->dbManager->get_table_name( 'product_views' );
+		$tableName = $this->dbManager->getTableName( 'product_views' );
 		$sinceDate = gmdate( 'Y-m-d H:i:s', current_time( 'timestamp' ) - ( self::VIEW_WINDOW_DAYS * DAY_IN_SECONDS ) );
 
 		$results = $this->wpdb->get_results(
@@ -252,7 +254,7 @@ class ProductTrackingService implements ProductTrackingServiceInterface {
 	 * @return int Number of notifications queued.
 	 */
 	public function processBackInStockNotifications(): int {
-		$tableName = $this->dbManager->get_table_name( 'product_views' );
+		$tableName = $this->dbManager->getTableName( 'product_views' );
 		$queued    = 0;
 
 		// Get distinct product IDs that were out of stock.
@@ -280,7 +282,7 @@ class ProductTrackingService implements ProductTrackingServiceInterface {
 	 * @return int Number of notifications queued.
 	 */
 	protected function notifyBackInStock( int $productId ): int {
-		$tableName = $this->dbManager->get_table_name( 'product_views' );
+		$tableName = $this->dbManager->getTableName( 'product_views' );
 		$queued    = 0;
 
 		$customers = $this->wpdb->get_results(
@@ -301,7 +303,7 @@ class ProductTrackingService implements ProductTrackingServiceInterface {
 			}
 
 			// Queue back-in-stock notification.
-			\WCH_Job_Dispatcher::dispatch(
+			wch( JobDispatcher::class )->dispatch(
 				'wch_send_reengagement_message',
 				[
 					'customer_phone' => $row['customer_phone'],
@@ -327,7 +329,7 @@ class ProductTrackingService implements ProductTrackingServiceInterface {
 	 * @return bool True if updated.
 	 */
 	public function updateStockStatus( int $productId, bool $inStock ): bool {
-		$tableName = $this->dbManager->get_table_name( 'product_views' );
+		$tableName = $this->dbManager->getTableName( 'product_views' );
 
 		$result = $this->wpdb->update(
 			$tableName,

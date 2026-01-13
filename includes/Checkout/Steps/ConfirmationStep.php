@@ -12,9 +12,11 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Checkout\Steps;
 
+use WhatsAppCommerceHub\Application\Services\MessageBuilderFactory;
+use WhatsAppCommerceHub\Application\Services\OrderSyncService;
 use WhatsAppCommerceHub\Checkout\AbstractStep;
 use WhatsAppCommerceHub\Contracts\Services\AddressServiceInterface;
-use WhatsAppCommerceHub\Application\Services\MessageBuilderFactory;
+use WhatsAppCommerceHub\Support\Messaging\MessageBuilder;
 use WhatsAppCommerceHub\ValueObjects\CheckoutResponse;
 
 // Exit if accessed directly.
@@ -32,21 +34,21 @@ class ConfirmationStep extends AbstractStep {
 	/**
 	 * Order sync service.
 	 *
-	 * @var \WCH_Order_Sync_Service|null
+	 * @var OrderSyncService|null
 	 */
-	private $order_sync_service;
+	private ?OrderSyncService $order_sync_service;
 
 	/**
 	 * Constructor.
 	 *
 	 * @param MessageBuilderFactory   $message_builder    Message builder factory.
 	 * @param AddressServiceInterface $address_service    Address service.
-	 * @param mixed                   $order_sync_service Order sync service (optional).
+	 * @param OrderSyncService|null   $order_sync_service Order sync service (optional).
 	 */
 	public function __construct(
 		MessageBuilderFactory $message_builder,
 		AddressServiceInterface $address_service,
-		$order_sync_service = null
+		?OrderSyncService $order_sync_service = null
 	) {
 		parent::__construct( $message_builder, $address_service );
 		$this->order_sync_service = $order_sync_service;
@@ -327,9 +329,9 @@ class ConfirmationStep extends AbstractStep {
 	 * @param int    $order_id     Order ID.
 	 * @param string $order_number Order number.
 	 * @param array  $checkout_data Checkout data.
-	 * @return \WCH_Message_Builder
+	 * @return MessageBuilder
 	 */
-	private function buildConfirmationMessage( int $order_id, string $order_number, array $checkout_data ): \WCH_Message_Builder {
+	private function buildConfirmationMessage( int $order_id, string $order_number, array $checkout_data ): MessageBuilder {
 		$payment_method = $checkout_data['payment_method']['id'] ?? 'cod';
 
 		$text = sprintf(

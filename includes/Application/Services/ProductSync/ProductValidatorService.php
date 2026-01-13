@@ -153,11 +153,6 @@ class ProductValidatorService implements ProductValidatorInterface {
 			return $this->settings->get( $key, $default );
 		}
 
-		// Fallback to legacy settings.
-		if ( class_exists( 'WCH_Settings' ) ) {
-			return \WCH_Settings::instance()->get( $key, $default );
-		}
-
 		return $default;
 	}
 }

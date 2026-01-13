@@ -18,6 +18,7 @@ use WhatsAppCommerceHub\Contracts\Services\AddressServiceInterface;
 use WhatsAppCommerceHub\Contracts\Services\CartServiceInterface;
 use WhatsAppCommerceHub\Contracts\Services\CustomerServiceInterface;
 use WhatsAppCommerceHub\Application\Services\MessageBuilderFactory;
+use WhatsAppCommerceHub\Core\Logger;
 use WhatsAppCommerceHub\ValueObjects\CheckoutResponse;
 use WhatsAppCommerceHub\Checkout\Steps\AddressStep;
 use WhatsAppCommerceHub\Checkout\Steps\ShippingStep;
@@ -408,7 +409,7 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 	 */
 	private function buildContext( string $customer_phone, array $state_data ): array {
 		$cart     = $this->cart_service->getCart( $customer_phone );
-		$customer = $this->customer_service->getProfile( $customer_phone );
+		$customer = $this->customer_service->getOrCreateProfile( $customer_phone );
 
 		return [
 			'customer_phone' => $customer_phone,
@@ -452,9 +453,7 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 	 * @return void
 	 */
 	private function log( string $message, array $data = [] ): void {
-		if ( class_exists( '\WCH_Logger' ) ) {
-			\WCH_Logger::info( $message, 'checkout', $data );
-		}
+		Logger::instance()->info( $message, 'checkout', $data );
 	}
 
 	/**
@@ -465,8 +464,6 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 	 * @return void
 	 */
 	private function logError( string $message, array $data = [] ): void {
-		if ( class_exists( '\WCH_Logger' ) ) {
-			\WCH_Logger::error( $message, 'checkout', $data );
-		}
+		Logger::instance()->error( $message, 'checkout', $data );
 	}
 }

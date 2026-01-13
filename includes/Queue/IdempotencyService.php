@@ -182,34 +182,18 @@ class IdempotencyService {
 	 *
 	 * Should be called periodically via cron.
 	 *
-	 * @param int|null $olderThanDays Delete entries older than this many days.
-	 *                                If null, uses expires_at column.
 	 * @return int Number of rows deleted.
 	 */
-	public function cleanup( ?int $olderThanDays = null ): int {
+	public function cleanup(): int {
 		$table = $this->getTableName();
+		$now = current_time( 'mysql', true );
 
-		if ( null !== $olderThanDays ) {
-			// Legacy cleanup based on age.
-			$cutoff = gmdate( 'Y-m-d H:i:s', strtotime( "-{$olderThanDays} days" ) );
-
-			$result = $this->wpdb->query(
-				$this->wpdb->prepare(
-					"DELETE FROM {$table} WHERE processed_at < %s",
-					$cutoff
-				)
-			);
-		} else {
-			// Modern cleanup based on expires_at.
-			$now = current_time( 'mysql', true );
-
-			$result = $this->wpdb->query(
-				$this->wpdb->prepare(
-					"DELETE FROM {$table} WHERE expires_at IS NOT NULL AND expires_at < %s",
-					$now
-				)
-			);
-		}
+		$result = $this->wpdb->query(
+			$this->wpdb->prepare(
+				"DELETE FROM {$table} WHERE expires_at IS NOT NULL AND expires_at < %s",
+				$now
+			)
+		);
 
 		$deleted = false === $result ? 0 : (int) $result;
 

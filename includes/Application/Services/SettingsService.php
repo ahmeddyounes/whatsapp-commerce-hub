@@ -2,7 +2,7 @@
 /**
  * Settings Service
  *
- * Instance-based settings service that wraps WCH_Settings.
+ * Instance-based settings service that wraps SettingsManager.
  *
  * @package WhatsApp_Commerce_Hub
  * @since 3.0.0
@@ -23,14 +23,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Class SettingsService
  *
  * Implements settings management with encryption and validation.
- * Wraps the legacy WCH_Settings class for backward compatibility.
+ * Wraps SettingsManager for interface compatibility.
  */
 class SettingsService implements SettingsInterface {
 
 	/**
 	 * The settings manager instance.
 	 *
-	 * @var \WhatsAppCommerceHub\Infrastructure\Configuration\SettingsManager|\WCH_Settings
+	 * @var \WhatsAppCommerceHub\Infrastructure\Configuration\SettingsManager
 	 */
 	protected $settingsManager;
 
@@ -53,13 +53,13 @@ class SettingsService implements SettingsInterface {
 	/**
 	 * Constructor.
 	 *
-	 * @param \WhatsAppCommerceHub\Infrastructure\Configuration\SettingsManager|\WCH_Settings $settingsManager The settings manager instance.
+	 * @param \WhatsAppCommerceHub\Infrastructure\Configuration\SettingsManager $settingsManager The settings manager instance.
 	 */
 	public function __construct( $settingsManager ) {
 		$this->settingsManager = $settingsManager;
 
 		// Create and store callback closure to ensure exact reference for removal.
-		// This ensures cache coherence even if settings are modified via legacy code.
+		// This ensures cache coherence even if settings are modified externally.
 		$this->updateCallback = function (): void {
 			$this->cache = null;
 		};
@@ -133,10 +133,7 @@ class SettingsService implements SettingsInterface {
 			return $this->deepCopy( $this->cache );
 		}
 
-		// Use getAll() for SettingsManager, get_all() for legacy WCH_Settings.
-		$this->cache = method_exists( $this->settingsManager, 'getAll' )
-			? $this->settingsManager->getAll()
-			: $this->settingsManager->get_all();
+		$this->cache = $this->settingsManager->getAll();
 
 		return $this->deepCopy( $this->cache );
 	}
@@ -159,10 +156,7 @@ class SettingsService implements SettingsInterface {
 	 * {@inheritdoc}
 	 */
 	public function getGroup( string $group ): array {
-		// Use getSection() for SettingsManager, get_section() for legacy WCH_Settings.
-		return method_exists( $this->settingsManager, 'getSection' )
-			? $this->settingsManager->getSection( $group )
-			: $this->settingsManager->get_section( $group );
+		return $this->settingsManager->getSection( $group );
 	}
 
 	/**
@@ -191,15 +185,6 @@ class SettingsService implements SettingsInterface {
 	 */
 	public function refresh(): void {
 		$this->cache = null;
-	}
-
-	/**
-	 * Get the settings manager instance.
-	 *
-	 * @return \WhatsAppCommerceHub\Infrastructure\Configuration\SettingsManager|\WCH_Settings
-	 */
-	public function getLegacyInstance() {
-		return $this->settingsManager;
 	}
 
 	/**

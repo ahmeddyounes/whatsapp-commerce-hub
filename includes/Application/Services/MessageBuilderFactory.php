@@ -2,7 +2,7 @@
 /**
  * Message Builder Factory
  *
- * Factory for creating WCH_Message_Builder instances.
+ * Factory for creating MessageBuilder instances.
  * Enables dependency injection and testability.
  *
  * @package WhatsApp_Commerce_Hub
@@ -12,6 +12,8 @@
 declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Application\Services;
+
+use WhatsAppCommerceHub\Support\Messaging\MessageBuilder;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -49,10 +51,10 @@ class MessageBuilderFactory {
 	/**
 	 * Create a new message builder instance.
 	 *
-	 * @return \WCH_Message_Builder
+	 * @return MessageBuilder
 	 */
-	public function create(): \WCH_Message_Builder {
-		$builder = new \WCH_Message_Builder();
+	public function create(): MessageBuilder {
+		$builder = new MessageBuilder();
 
 		// Apply default footer if configured.
 		if ( ! empty( $this->defaults['footer'] ) ) {
@@ -66,9 +68,9 @@ class MessageBuilderFactory {
 	 * Create a text message builder.
 	 *
 	 * @param string $text The text content.
-	 * @return \WCH_Message_Builder
+	 * @return MessageBuilder
 	 */
-	public function text( string $text ): \WCH_Message_Builder {
+	public function text( string $text ): MessageBuilder {
 		return $this->create()->text( $text );
 	}
 
@@ -76,9 +78,9 @@ class MessageBuilderFactory {
 	 * Create an interactive message builder with body.
 	 *
 	 * @param string $body The body text.
-	 * @return \WCH_Message_Builder
+	 * @return MessageBuilder
 	 */
-	public function interactive( string $body ): \WCH_Message_Builder {
+	public function interactive( string $body ): MessageBuilder {
 		return $this->create()->body( $body );
 	}
 
@@ -88,9 +90,9 @@ class MessageBuilderFactory {
 	 * @param string $header_type    Header type (text|image|document|video).
 	 * @param mixed  $header_content Header content.
 	 * @param string $body           Body text.
-	 * @return \WCH_Message_Builder
+	 * @return MessageBuilder
 	 */
-	public function withHeader( string $header_type, $header_content, string $body ): \WCH_Message_Builder {
+	public function withHeader( string $header_type, $header_content, string $body ): MessageBuilder {
 		return $this->create()
 			->header( $header_type, $header_content )
 			->body( $body );
@@ -101,9 +103,9 @@ class MessageBuilderFactory {
 	 *
 	 * @param string $body        Body text.
 	 * @param string $button_text Button text for the list.
-	 * @return \WCH_Message_Builder
+	 * @return MessageBuilder
 	 */
-	public function list( string $body, string $button_text ): \WCH_Message_Builder {
+	public function list( string $body, string $button_text ): MessageBuilder {
 		return $this->create()
 			->body( $body )
 			->button( 'list', [ 'text' => $button_text ] );
@@ -113,9 +115,9 @@ class MessageBuilderFactory {
 	 * Create a button message builder.
 	 *
 	 * @param string $body Body text.
-	 * @return \WCH_Message_Builder
+	 * @return MessageBuilder
 	 */
-	public function buttons( string $body ): \WCH_Message_Builder {
+	public function buttons( string $body ): MessageBuilder {
 		return $this->create()->body( $body );
 	}
 
@@ -124,9 +126,9 @@ class MessageBuilderFactory {
 	 *
 	 * @param string $body        Body text.
 	 * @param array  $product_ids Product IDs to display.
-	 * @return \WCH_Message_Builder
+	 * @return MessageBuilder
 	 */
-	public function products( string $body, array $product_ids ): \WCH_Message_Builder {
+	public function products( string $body, array $product_ids ): MessageBuilder {
 		$builder = $this->create()->body( $body );
 
 		foreach ( $product_ids as $product_id ) {

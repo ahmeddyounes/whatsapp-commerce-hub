@@ -12,6 +12,8 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Controllers;
 
+use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
+use WhatsAppCommerceHub\Payments\PaymentGatewayRegistry;
 use WhatsAppCommerceHub\Payments\Contracts\PaymentGatewayInterface;
 use WP_REST_Server;
 use WP_REST_Request;
@@ -376,23 +378,11 @@ class PaymentWebhookController {
 			return $this->gateways[ $gatewayId ];
 		}
 
-		// Try to get from container.
 		try {
-			$container = \WhatsAppCommerceHub\Container\Container::getInstance();
-			if ( $container->has( "payment.gateway.{$gatewayId}" ) ) {
-				return $container->get( "payment.gateway.{$gatewayId}" );
-			}
+			return wch( PaymentGatewayRegistry::class )->get( $gatewayId );
 		} catch ( \Exception $e ) {
-			// Fall back to legacy.
+			return null;
 		}
-
-		// Fall back to legacy payment manager.
-		if ( class_exists( 'WCH_Payment_Manager' ) ) {
-			$manager = \WCH_Payment_Manager::instance();
-			return $manager->get_gateway( $gatewayId );
-		}
-
-		return null;
 	}
 
 	/**
@@ -641,9 +631,16 @@ class PaymentWebhookController {
 	 * @return void
 	 */
 	private function log( string $message, array $context = [], string $level = 'info' ): void {
-		if ( class_exists( 'WCH_Logger' ) ) {
-			\WCH_Logger::{ $level }( $message, $context );
+		try {
+			$logger = wch( LoggerInterface::class );
+		} catch ( \Throwable $e ) {
+			return;
 		}
+
+		$contextStr = $context['category'] ?? 'payments';
+		unset( $context['category'] );
+
+		$logger->log( $level, $message, $contextStr, $context );
 	}
 
 	/**

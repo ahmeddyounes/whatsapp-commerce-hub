@@ -179,7 +179,7 @@ final class PaymentStatus {
 	}
 
 	/**
-	 * Convert to array (for backward compatibility).
+	 * Convert to array.
 	 *
 	 * @return array
 	 */

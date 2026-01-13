@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace WhatsAppCommerceHub\Application\Services\ProductSync;
 
 use WhatsAppCommerceHub\Contracts\Services\ProductSync\SyncProgressTrackerInterface;
+use WhatsAppCommerceHub\Core\Logger;
 use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
 
 // Exit if accessed directly.
@@ -385,8 +386,6 @@ class SyncProgressTracker implements SyncProgressTrackerInterface {
 			return;
 		}
 
-		if ( class_exists( 'WCH_Logger' ) ) {
-			\WCH_Logger::log( $message, $context, $level );
-		}
+		Logger::instance()->log( $level, $message, 'product_sync', $context );
 	}
 }

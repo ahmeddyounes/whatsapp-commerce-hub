@@ -195,7 +195,7 @@ class WCH_Webhook_Integration_Test extends WCH_Integration_Test_Case {
 		$this->assertDatabaseHas(
 			'wch_messages',
 			[
-				'message_type' => 'text',
+				'type' => 'text',
 				'direction'    => 'incoming',
 			]
 		);
@@ -225,7 +225,7 @@ class WCH_Webhook_Integration_Test extends WCH_Integration_Test_Case {
 		$this->assertDatabaseHas(
 			'wch_messages',
 			[
-				'message_type' => 'interactive',
+				'type' => 'interactive',
 				'direction'    => 'incoming',
 			]
 		);
@@ -245,7 +245,7 @@ class WCH_Webhook_Integration_Test extends WCH_Integration_Test_Case {
 				'conversation_id' => 1,
 				'message_id'      => $message_id,
 				'phone_number'    => '+1234567890',
-				'message_type'    => 'text',
+				'type'    => 'text',
 				'direction'       => 'outgoing',
 				'status'          => 'sent',
 				'content'         => wp_json_encode( [ 'text' => 'Test' ] ),

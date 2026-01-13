@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace WhatsAppCommerceHub\Application\Services\Reengagement;
 
 use WhatsAppCommerceHub\Contracts\Services\Reengagement\FrequencyCapManagerInterface;
+use WhatsAppCommerceHub\Infrastructure\Database\DatabaseManager;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -36,16 +37,16 @@ class FrequencyCapManager implements FrequencyCapManagerInterface {
 	/**
 	 * Database manager.
 	 *
-	 * @var \WCH_Database_Manager
+	 * @var DatabaseManager
 	 */
-	protected \WCH_Database_Manager $dbManager;
+	protected DatabaseManager $dbManager;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param \WCH_Database_Manager $dbManager Database manager.
+	 * @param DatabaseManager $dbManager Database manager.
 	 */
-	public function __construct( \WCH_Database_Manager $dbManager ) {
+	public function __construct( DatabaseManager $dbManager ) {
 		global $wpdb;
 		$this->wpdb      = $wpdb;
 		$this->dbManager = $dbManager;
@@ -82,7 +83,7 @@ class FrequencyCapManager implements FrequencyCapManagerInterface {
 	 * @return bool True if logged.
 	 */
 	public function logMessage( string $customerPhone, string $campaignType, ?string $messageId = null ): bool {
-		$tableName = $this->dbManager->get_table_name( 'reengagement_log' );
+		$tableName = $this->dbManager->getTableName( 'reengagement_log' );
 
 		$result = $this->wpdb->insert(
 			$tableName,
@@ -107,7 +108,7 @@ class FrequencyCapManager implements FrequencyCapManagerInterface {
 	 * @return int Message count.
 	 */
 	public function getMessageCount( string $customerPhone, int $days ): int {
-		$tableName = $this->dbManager->get_table_name( 'reengagement_log' );
+		$tableName = $this->dbManager->getTableName( 'reengagement_log' );
 		$sinceDate = gmdate( 'Y-m-d H:i:s', current_time( 'timestamp' ) - ( $days * DAY_IN_SECONDS ) );
 
 		$count = $this->wpdb->get_var(
@@ -130,7 +131,7 @@ class FrequencyCapManager implements FrequencyCapManagerInterface {
 	 * @return array|null Message data or null.
 	 */
 	public function getLastMessage( string $customerPhone ): ?array {
-		$tableName = $this->dbManager->get_table_name( 'reengagement_log' );
+		$tableName = $this->dbManager->getTableName( 'reengagement_log' );
 
 		$result = $this->wpdb->get_row(
 			$this->wpdb->prepare(

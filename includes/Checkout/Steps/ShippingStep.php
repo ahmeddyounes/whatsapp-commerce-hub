@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace WhatsAppCommerceHub\Checkout\Steps;
 
 use WhatsAppCommerceHub\Checkout\AbstractStep;
+use WhatsAppCommerceHub\Support\Messaging\MessageBuilder;
 use WhatsAppCommerceHub\ValueObjects\CheckoutResponse;
 
 // Exit if accessed directly.
@@ -297,9 +298,9 @@ class ShippingStep extends AbstractStep {
 	 * Build shipping options message.
 	 *
 	 * @param array $methods Available shipping methods.
-	 * @return \WCH_Message_Builder
+	 * @return MessageBuilder
 	 */
-	private function buildShippingOptionsMessage( array $methods ): \WCH_Message_Builder {
+	private function buildShippingOptionsMessage( array $methods ): MessageBuilder {
 		$message = $this->message_builder->create();
 		$message->header( 'text', __( '🚚 Shipping Method', 'whatsapp-commerce-hub' ) );
 		$message->body( __( 'Choose your preferred shipping method:', 'whatsapp-commerce-hub' ) );

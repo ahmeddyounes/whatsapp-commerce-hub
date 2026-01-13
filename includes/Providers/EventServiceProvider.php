@@ -23,6 +23,7 @@ use WhatsAppCommerceHub\Events\Handlers\MessageReceivedHandler;
 use WhatsAppCommerceHub\Events\Handlers\MessageSentHandler;
 use WhatsAppCommerceHub\Events\Handlers\OrderCreatedHandler;
 use WhatsAppCommerceHub\Queue\PriorityQueue;
+use WhatsAppCommerceHub\Core\Logger;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -81,27 +82,27 @@ class EventServiceProvider implements ServiceProviderInterface {
 			function ( ContainerInterface $c ): EventBus {
 				$queue = $c->has( PriorityQueue::class ) ? $c->get( PriorityQueue::class ) : null;
 
-				// Create a logger adapter that wraps WCH_Logger static methods.
-				$logger = null;
-				if ( class_exists( 'WCH_Logger' ) ) {
-					$logger = new class() {
-						public function info( string $message, array $context = [] ): void {
-							\WCH_Logger::info( $message, array_merge( [ 'category' => 'events' ], $context ) );
-						}
+				$loggerService = $c->has( Logger::class ) ? $c->get( Logger::class ) : Logger::instance();
+				$logger        = new class( $loggerService ) {
+					public function __construct( private Logger $logger ) {
+					}
 
-						public function error( string $message, array $context = [] ): void {
-							\WCH_Logger::error( $message, array_merge( [ 'category' => 'events' ], $context ) );
-						}
+					public function info( string $message, array $context = [] ): void {
+						$this->logger->info( $message, 'events', $context );
+					}
 
-						public function warning( string $message, array $context = [] ): void {
-							\WCH_Logger::warning( $message, array_merge( [ 'category' => 'events' ], $context ) );
-						}
+					public function error( string $message, array $context = [] ): void {
+						$this->logger->error( $message, 'events', $context );
+					}
 
-						public function debug( string $message, array $context = [] ): void {
-							\WCH_Logger::debug( $message, array_merge( [ 'category' => 'events' ], $context ) );
-						}
-					};
-				}
+					public function warning( string $message, array $context = [] ): void {
+						$this->logger->warning( $message, 'events', $context );
+					}
+
+					public function debug( string $message, array $context = [] ): void {
+						$this->logger->debug( $message, 'events', $context );
+					}
+				};
 
 				return new EventBus( $queue, $logger );
 			}

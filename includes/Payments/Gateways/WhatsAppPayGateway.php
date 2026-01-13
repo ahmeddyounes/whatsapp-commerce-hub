@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Payments\Gateways;
 
+use WhatsAppCommerceHub\Clients\WhatsAppApiClient;
 use WhatsAppCommerceHub\Payments\Contracts\PaymentResult;
 use WhatsAppCommerceHub\Payments\Contracts\PaymentStatus;
 use WhatsAppCommerceHub\Payments\Contracts\WebhookResult;
@@ -56,17 +57,17 @@ class WhatsAppPayGateway extends AbstractGateway {
 	/**
 	 * WhatsApp API client.
 	 *
-	 * @var \WCH_WhatsApp_API_Client
+	 * @var WhatsAppApiClient|null
 	 */
-	private \WCH_WhatsApp_API_Client $apiClient;
+	private ?WhatsAppApiClient $apiClient;
 
 	/**
 	 * Constructor.
 	 */
-	public function __construct() {
+	public function __construct( ?WhatsAppApiClient $apiClient = null ) {
 		$this->title       = __( 'WhatsApp Pay', 'whatsapp-commerce-hub' );
 		$this->description = __( 'Pay directly in WhatsApp', 'whatsapp-commerce-hub' );
-		$this->apiClient   = new \WCH_WhatsApp_API_Client();
+		$this->apiClient   = $apiClient;
 	}
 
 	/**
@@ -128,6 +129,11 @@ class WhatsAppPayGateway extends AbstractGateway {
 	 * @return array|null
 	 */
 	private function createPaymentRequest( \WC_Order $order, array $conversation ): ?array {
+		if ( ! $this->apiClient ) {
+			$this->log( 'WhatsApp API client not configured for WhatsApp Pay', [], 'warning' );
+			return null;
+		}
+
 		$customerPhone = $this->getCustomerPhone( $conversation );
 		if ( empty( $customerPhone ) ) {
 			return null;
@@ -198,13 +204,14 @@ class WhatsAppPayGateway extends AbstractGateway {
 			],
 		];
 
-		$response = $this->apiClient->send_message( $message );
+		$response = $this->apiClient->sendMessage( $message );
 
-		if ( $response && isset( $response['messages'][0]['id'] ) ) {
+		$messageId = $response['message_id'] ?? $response['messages'][0]['id'] ?? null;
+		if ( $response && $messageId ) {
 			return [
 				'success'      => true,
 				'reference_id' => $referenceId,
-				'message_id'   => $response['messages'][0]['id'],
+				'message_id'   => $messageId,
 			];
 		}
 

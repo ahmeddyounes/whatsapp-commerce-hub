@@ -19,6 +19,8 @@ use WhatsAppCommerceHub\Contracts\Services\ProductSync\CatalogApiInterface;
 use WhatsAppCommerceHub\Contracts\Services\ProductSync\SyncProgressTrackerInterface;
 use WhatsAppCommerceHub\Contracts\Services\SettingsInterface;
 use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
+use WhatsAppCommerceHub\Core\Logger;
+use WhatsAppCommerceHub\Infrastructure\Queue\JobDispatcher;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -496,18 +498,16 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 	 * @return void
 	 */
 	protected function dispatchBatch( array $productIds, int $batchIndex, int $totalBatches, string $syncId, bool $isRetry = false ): void {
-		if ( class_exists( 'WCH_Job_Dispatcher' ) ) {
-			\WCH_Job_Dispatcher::dispatch(
-				'wch_sync_product_batch',
-				[
-					'product_ids'   => $productIds,
-					'batch_index'   => $batchIndex,
-					'total_batches' => $totalBatches,
-					'sync_id'       => $syncId,
-					'is_retry'      => $isRetry,
-				]
-			);
-		}
+		wch( JobDispatcher::class )->dispatch(
+			'wch_sync_product_batch',
+			[
+				'product_ids'   => $productIds,
+				'batch_index'   => $batchIndex,
+				'total_batches' => $totalBatches,
+				'sync_id'       => $syncId,
+				'is_retry'      => $isRetry,
+			]
+		);
 	}
 
 	/**
@@ -517,12 +517,10 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 	 * @return void
 	 */
 	protected function dispatchSingleSync( int $productId ): void {
-		if ( class_exists( 'WCH_Job_Dispatcher' ) ) {
-			\WCH_Job_Dispatcher::dispatch(
-				'wch_sync_single_product',
-				[ 'product_id' => $productId ]
-			);
-		}
+		wch( JobDispatcher::class )->dispatch(
+			'wch_sync_single_product',
+			[ 'product_id' => $productId ]
+		);
 	}
 
 	/**
@@ -535,10 +533,6 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 	protected function getSetting( string $key, mixed $default = null ): mixed {
 		if ( null !== $this->settings ) {
 			return $this->settings->get( $key, $default );
-		}
-
-		if ( class_exists( 'WCH_Settings' ) ) {
-			return \WCH_Settings::instance()->get( $key, $default );
 		}
 
 		return $default;
@@ -560,8 +554,6 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 			return;
 		}
 
-		if ( class_exists( 'WCH_Logger' ) ) {
-			\WCH_Logger::log( $message, $context, $level );
-		}
+		Logger::instance()->log( $level, $message, 'product_sync', $context );
 	}
 }

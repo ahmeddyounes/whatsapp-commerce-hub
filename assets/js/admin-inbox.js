@@ -198,7 +198,7 @@
 
             let html = '';
             messages.forEach(function(msg) {
-                const isSystem = msg.message_type === 'system';
+                const isSystem = msg.type === 'system';
                 const direction = isSystem ? 'system' : msg.direction;
 
                 html += '<div class="wch-message ' + direction + '">';
@@ -223,7 +223,7 @@
         formatMessageContent: function(msg) {
             if (!msg.content) return '';
 
-            switch (msg.message_type) {
+            switch (msg.type) {
                 case 'text':
                     return this.escapeHtml(msg.content.text || '').replace(/\n/g, '<br>');
                 case 'image':

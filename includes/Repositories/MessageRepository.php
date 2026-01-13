@@ -50,9 +50,14 @@ class MessageRepository extends AbstractRepository implements MessageRepositoryI
 			$data['content'] = wp_json_encode( $data['content'] );
 		}
 
+		if ( isset( $data['raw_payload'] ) && is_array( $data['raw_payload'] ) ) {
+			$data['raw_payload'] = wp_json_encode( $data['raw_payload'] );
+		}
+
 		// Convert DateTimeImmutable objects.
 		$date_fields = [
 			'created_at',
+			'updated_at',
 			'sent_at',
 			'delivered_at',
 			'read_at',
@@ -286,6 +291,7 @@ class MessageRepository extends AbstractRepository implements MessageRepositoryI
 		Message::TYPE_VIDEO,
 		Message::TYPE_LOCATION,
 		Message::TYPE_INTERACTIVE,
+		Message::TYPE_BUTTON,
 		Message::TYPE_TEMPLATE,
 		Message::TYPE_REACTION,
 	];

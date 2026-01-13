@@ -14,6 +14,7 @@ namespace WhatsAppCommerceHub\Admin\Settings;
 
 use WhatsAppCommerceHub\Contracts\Admin\Settings\SettingsTabRendererInterface;
 use WhatsAppCommerceHub\Contracts\Services\SettingsInterface;
+use WhatsAppCommerceHub\Payments\PaymentGatewayRegistry;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -709,13 +710,11 @@ class SettingsTabRenderer implements SettingsTabRendererInterface {
 	protected function getAvailablePaymentGateways(): array {
 		$gateways = [];
 
-		if ( class_exists( 'WCH_Payment_Manager' ) ) {
-			$paymentManager    = \WCH_Payment_Manager::getInstance();
-			$availableGateways = $paymentManager->get_available_gateways();
+		$paymentManager    = wch( PaymentGatewayRegistry::class );
+		$availableGateways = $paymentManager->getAvailable();
 
-			foreach ( $availableGateways as $gatewayId => $gateway ) {
-				$gateways[ $gatewayId ] = $gateway->get_title();
-			}
+		foreach ( $availableGateways as $gatewayId => $gateway ) {
+			$gateways[ $gatewayId ] = $gateway->get_title();
 		}
 
 		return $gateways;

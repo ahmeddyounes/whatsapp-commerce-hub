@@ -12,6 +12,10 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Domain\Catalog;
 
+use WhatsAppCommerceHub\Actions\ActionRegistry;
+use WhatsAppCommerceHub\Support\Messaging\MessageBuilder;
+use WhatsAppCommerceHub\ValueObjects\ConversationContext;
+
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -60,14 +64,7 @@ class CatalogBrowser {
 	 * @return array Array of message builder instances.
 	 */
 	public function showMainMenu( $conversation ): array {
-		// Delegate to legacy implementation for now.
-		// TODO: Implement with proper domain models in future phase.
-		if ( class_exists( 'WCH_Catalog_Browser' ) ) {
-			$legacy = new \WCH_Catalog_Browser();
-			return $legacy->show_main_menu( $conversation );
-		}
-
-		return [];
+		return $this->executeAction( 'show_main_menu', $conversation, [] );
 	}
 
 	/**
@@ -79,13 +76,14 @@ class CatalogBrowser {
 	 * @return array Array of message builder instances.
 	 */
 	public function showCategory( int $categoryId, int $page, $conversation ): array {
-		// Delegate to legacy implementation for now.
-		if ( class_exists( 'WCH_Catalog_Browser' ) ) {
-			$legacy = new \WCH_Catalog_Browser();
-			return $legacy->show_category( $categoryId, $page, $conversation );
-		}
-
-		return [];
+		return $this->executeAction(
+			'show_category',
+			$conversation,
+			[
+				'category_id' => $categoryId,
+				'page'        => $page,
+			]
+		);
 	}
 
 	/**
@@ -96,13 +94,11 @@ class CatalogBrowser {
 	 * @return array Array of message builder instances.
 	 */
 	public function showProduct( int $productId, $conversation ): array {
-		// Delegate to legacy implementation for now.
-		if ( class_exists( 'WCH_Catalog_Browser' ) ) {
-			$legacy = new \WCH_Catalog_Browser();
-			return $legacy->show_product( $productId, $conversation );
-		}
-
-		return [];
+		return $this->executeAction(
+			'show_product',
+			$conversation,
+			[ 'product_id' => $productId ]
+		);
 	}
 
 	/**
@@ -114,13 +110,22 @@ class CatalogBrowser {
 	 * @return array Array of message builder instances.
 	 */
 	public function searchProducts( string $query, int $page, $conversation ): array {
-		// Delegate to legacy implementation for now.
-		if ( class_exists( 'WCH_Catalog_Browser' ) ) {
-			$legacy = new \WCH_Catalog_Browser();
-			return $legacy->search_products( $query, $page, $conversation );
-		}
+		$products = wc_get_products(
+			[
+				'status' => 'publish',
+				'limit'  => self::PRODUCTS_PER_PAGE,
+				'page'   => max( 1, $page ),
+				's'      => $query,
+			]
+		);
 
-		return [];
+		return $this->buildProductList(
+			$products,
+			empty( $query )
+				? __( 'Please enter a search term to find products.', 'whatsapp-commerce-hub' )
+				: __( 'No products found for your search.', 'whatsapp-commerce-hub' ),
+			__( 'Search Results', 'whatsapp-commerce-hub' )
+		);
 	}
 
 	/**
@@ -131,13 +136,20 @@ class CatalogBrowser {
 	 * @return array Array of message builder instances.
 	 */
 	public function showFeaturedProducts( int $page, $conversation ): array {
-		// Delegate to legacy implementation for now.
-		if ( class_exists( 'WCH_Catalog_Browser' ) ) {
-			$legacy = new \WCH_Catalog_Browser();
-			return $legacy->show_featured_products( $page, $conversation );
-		}
+		$products = wc_get_products(
+			[
+				'status'   => 'publish',
+				'limit'    => self::PRODUCTS_PER_PAGE,
+				'page'     => max( 1, $page ),
+				'featured' => true,
+			]
+		);
 
-		return [];
+		return $this->buildProductList(
+			$products,
+			__( 'No featured products available right now.', 'whatsapp-commerce-hub' ),
+			__( 'Featured Products', 'whatsapp-commerce-hub' )
+		);
 	}
 
 	/**
@@ -147,5 +159,99 @@ class CatalogBrowser {
 	 */
 	public function getProductsPerPage(): int {
 		return self::PRODUCTS_PER_PAGE;
+	}
+
+	/**
+	 * Execute a registered action handler and return message builders.
+	 *
+	 * @param string $actionName Action name.
+	 * @param mixed  $conversation Conversation context.
+	 * @param array  $params Action parameters.
+	 * @return array
+	 */
+	private function executeAction( string $actionName, $conversation, array $params ): array {
+		$phone = $this->getConversationPhone( $conversation );
+		if ( '' === $phone ) {
+			return [];
+		}
+
+		$context   = $this->buildConversationContext( $conversation );
+		$registry  = wch( ActionRegistry::class );
+		$actionRes = $registry->execute( $actionName, $phone, $params, $context );
+
+		return $actionRes ? $actionRes->getMessages() : [];
+	}
+
+	/**
+	 * Build a conversation context value object from stored context data.
+	 *
+	 * @param mixed $conversation Conversation context.
+	 * @return ConversationContext
+	 */
+	private function buildConversationContext( $conversation ): ConversationContext {
+		$contextData = [];
+
+		if ( is_array( $conversation ) ) {
+			$contextData = $conversation['context'] ?? $conversation['conversation_context'] ?? [];
+		} elseif ( is_object( $conversation ) ) {
+			$contextData = $conversation->context ?? $conversation->conversation_context ?? [];
+		}
+
+		if ( is_string( $contextData ) ) {
+			$decoded = json_decode( $contextData, true );
+			$contextData = is_array( $decoded ) ? $decoded : [];
+		}
+
+		return new ConversationContext( is_array( $contextData ) ? $contextData : [] );
+	}
+
+	/**
+	 * Extract a phone number from the conversation object/array.
+	 *
+	 * @param mixed $conversation Conversation context.
+	 * @return string
+	 */
+	private function getConversationPhone( $conversation ): string {
+		if ( is_array( $conversation ) ) {
+			return (string) ( $conversation['customer_phone'] ?? $conversation['phone'] ?? '' );
+		}
+
+		if ( is_object( $conversation ) ) {
+			return (string) ( $conversation->customer_phone ?? $conversation->phone ?? '' );
+		}
+
+		return '';
+	}
+
+	/**
+	 * Build a simple product list message.
+	 *
+	 * @param array  $products Product list.
+	 * @param string $emptyMessage Message when empty.
+	 * @param string $title List title.
+	 * @return array
+	 */
+	private function buildProductList( array $products, string $emptyMessage, string $title ): array {
+		if ( empty( $products ) ) {
+			return [ ( new MessageBuilder() )->text( $emptyMessage ) ];
+		}
+
+		$lines = [];
+		foreach ( $products as $product ) {
+			if ( ! $product instanceof \WC_Product ) {
+				continue;
+			}
+
+			$lines[] = sprintf(
+				'%s - %s',
+				$product->get_name(),
+				wc_price( (float) $product->get_price() )
+			);
+		}
+
+		$message = new MessageBuilder();
+		$message->text( $title . "\n\n" . implode( "\n", $lines ) );
+
+		return [ $message ];
 	}
 }

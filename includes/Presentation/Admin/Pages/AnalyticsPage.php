@@ -12,6 +12,8 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Presentation\Admin\Pages;
 
+use WhatsAppCommerceHub\Features\Analytics\AnalyticsData;
+
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -482,9 +484,7 @@ class AnalyticsPage {
 			wp_send_json_error( [ 'message' => __( 'Permission denied', 'whatsapp-commerce-hub' ) ] );
 		}
 
-		if ( class_exists( 'WCH_Analytics_Data' ) ) {
-			\WCH_Analytics_Data::clear_caches();
-		}
+		wch( AnalyticsData::class )->clearCache();
 
 		wp_send_json_success( [ 'message' => __( 'Analytics cache cleared', 'whatsapp-commerce-hub' ) ] );
 	}

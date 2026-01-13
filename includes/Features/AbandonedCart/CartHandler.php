@@ -102,7 +102,7 @@ class CartHandler {
 				'Abandoned cart reminder sent successfully',
 				[
 					'cart_id' => $cartId,
-					'phone'   => $cart['phone'],
+					'phone'   => $cart['customer_phone'] ?? '',
 				]
 			);
 		} else {
@@ -131,7 +131,20 @@ class CartHandler {
 			ARRAY_A
 		);
 
-		return $cart ?: null;
+		if ( ! $cart ) {
+			return null;
+		}
+
+		if ( isset( $cart['items'] ) && is_string( $cart['items'] ) ) {
+			$decoded = json_decode( $cart['items'], true );
+			if ( JSON_ERROR_NONE === json_last_error() && is_array( $decoded ) ) {
+				$cart['items'] = $decoded;
+			} else {
+				$cart['items'] = [];
+			}
+		}
+
+		return $cart;
 	}
 
 	/**
@@ -142,7 +155,13 @@ class CartHandler {
 	 */
 	private function sendReminder( array $cart ): array {
 		try {
-			$phone   = $cart['phone'];
+			$phone = $cart['customer_phone'] ?? '';
+			if ( '' === $phone ) {
+				return [
+					'success' => false,
+					'error'   => 'Missing customer phone number',
+				];
+			}
 			$message = $this->buildReminderMessage( $cart );
 
 			$result = $this->apiClient->sendMessage( $phone, $message );
@@ -166,8 +185,9 @@ class CartHandler {
 	 * @return string Reminder message
 	 */
 	private function buildReminderMessage( array $cart ): string {
-		$customerName = $cart['customer_name'] ?? 'there';
-		$itemCount    = (int) ( $cart['item_count'] ?? 0 );
+		$phone        = $cart['customer_phone'] ?? '';
+		$customerName = $phone ? $this->getCustomerName( $phone ) : 'there';
+		$itemCount    = $this->getCartItemCount( $cart );
 		$total        = number_format( (float) ( $cart['total'] ?? 0 ), 2 );
 
 		return sprintf(
@@ -175,8 +195,46 @@ class CartHandler {
 			"Complete your order now! Reply 'CART' to continue.",
 			$customerName,
 			$itemCount,
-			$total
+				$total
+			);
+	}
+
+	/**
+	 * Get cart item count from items array.
+	 *
+	 * @param array $cart Cart data.
+	 * @return int Item count.
+	 */
+	private function getCartItemCount( array $cart ): int {
+		$items = $cart['items'] ?? [];
+		if ( is_string( $items ) ) {
+			$decoded = json_decode( $items, true );
+			$items   = JSON_ERROR_NONE === json_last_error() && is_array( $decoded ) ? $decoded : [];
+		}
+
+		$count = 0;
+		foreach ( $items as $item ) {
+			$count += (int) ( $item['quantity'] ?? 0 );
+		}
+
+		return $count;
+	}
+
+	/**
+	 * Get customer name from profiles.
+	 *
+	 * @param string $phone Customer phone.
+	 * @return string Customer name or fallback.
+	 */
+	private function getCustomerName( string $phone ): string {
+		global $wpdb;
+		$tableName = $wpdb->prefix . 'wch_customer_profiles';
+
+		$name = $wpdb->get_var(
+			$wpdb->prepare( "SELECT name FROM {$tableName} WHERE phone = %s", $phone )
 		);
+
+		return $name ?: 'there';
 	}
 
 	/**
@@ -188,23 +246,16 @@ class CartHandler {
 		global $wpdb;
 		$tableName = $wpdb->prefix . 'wch_carts';
 
+		$now = current_time( 'mysql' );
 		$wpdb->update(
 			$tableName,
 			[
-				'reminder_sent_at' => current_time( 'mysql' ),
-				'reminder_count'   => new \stdClass(), // Will be incremented by DB
+				'reminder_sent_at'  => $now,
+				'reminder_1_sent_at' => $now,
 			],
 			[ 'id' => $cartId ],
-			[ '%s' ],
+			[ '%s', '%s' ],
 			[ '%d' ]
-		);
-
-		// Increment reminder count
-		$wpdb->query(
-			$wpdb->prepare(
-				"UPDATE {$tableName} SET reminder_count = reminder_count + 1 WHERE id = %d",
-				$cartId
-			)
 		);
 	}
 
@@ -240,9 +291,9 @@ class CartHandler {
 		$wpdb->update(
 			$tableName,
 			[
-				'status'       => 'abandoned',
-				'abandoned_at' => current_time( 'mysql' ),
-			],
+					'status'       => 'abandoned',
+					'abandoned_at' => current_time( 'mysql' ),
+				],
 			[ 'id' => $cartId ],
 			[ '%s', '%s' ],
 			[ '%d' ]

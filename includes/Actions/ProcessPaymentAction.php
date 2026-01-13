@@ -12,6 +12,9 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Actions;
 
+use WhatsAppCommerceHub\Actions\ActionRegistry;
+use WhatsAppCommerceHub\Infrastructure\Configuration\SettingsManager;
+use WhatsAppCommerceHub\Payments\PaymentGatewayRegistry;
 use WhatsAppCommerceHub\ValueObjects\ActionResult;
 use WhatsAppCommerceHub\ValueObjects\ConversationContext;
 
@@ -53,6 +56,17 @@ class ProcessPaymentAction extends AbstractAction {
 	public function handle( string $phone, array $params, ConversationContext $context ): ActionResult {
 		try {
 			$paymentMethod = $params['payment_method'] ?? null;
+			$contextData   = $context->getData();
+
+			if ( empty( $contextData['shipping_address'] ) ) {
+				$registry = wch( ActionRegistry::class );
+				$result   = $registry->execute( 'request_address', $phone, [], $context );
+				if ( $result instanceof ActionResult ) {
+					return $result;
+				}
+
+				return $this->error( __( 'Shipping address is required. Please provide your address.', 'whatsapp-commerce-hub' ) );
+			}
 
 			// If no payment method provided, show selection.
 			if ( ! $paymentMethod ) {
@@ -119,9 +133,9 @@ class ProcessPaymentAction extends AbstractAction {
 		$message->body( __( 'How would you like to pay?', 'whatsapp-commerce-hub' ) );
 
 		// Get available payment gateways.
-		$paymentManager = \WCH_Payment_Manager::instance();
+		$paymentManager = wch( PaymentGatewayRegistry::class );
 		$country        = WC()->countries->get_base_country();
-		$gateways       = $paymentManager->get_available_gateways( $country );
+		$gateways       = $paymentManager->getAvailable( $country );
 
 		// Build payment options.
 		$options = [];
@@ -333,7 +347,7 @@ class ProcessPaymentAction extends AbstractAction {
 	 * @return string|null Payment link or null on failure.
 	 */
 	private function generatePaymentLink( array $cart, string $method ): ?string {
-		$settings = \WCH_Settings::getInstance();
+		$settings = wch( SettingsManager::class );
 		$baseUrl  = $settings->get( 'payment.gateway_url', site_url( '/payment' ) );
 
 		$paymentData = [
@@ -365,7 +379,7 @@ class ProcessPaymentAction extends AbstractAction {
 	 * @return string|null UPI link or null on failure.
 	 */
 	private function generateUpiLink( array $cart ): ?string {
-		$settings = \WCH_Settings::getInstance();
+		$settings = wch( SettingsManager::class );
 		$upiId    = $settings->get( 'payment.upi_id', 'merchant@upi' );
 
 		$params = [

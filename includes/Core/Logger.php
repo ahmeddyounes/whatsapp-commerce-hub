@@ -116,20 +116,6 @@ class Logger implements LoggerInterface {
 	}
 
 	/**
-	 * Static log method for backwards compatibility.
-	 *
-	 * @param string $message Message to log.
-	 * @param array  $context Context data (first element used as context string if available).
-	 * @param string $level   Log level.
-	 * @return void
-	 */
-	public static function logStatic( string $message, array $context = [], string $level = self::LEVEL_INFO ): void {
-		$contextStr = $context['category'] ?? 'general';
-		unset( $context['category'] );
-		self::instance()->log( $level, $message, $contextStr, $context );
-	}
-
-	/**
 	 * {@inheritdoc}
 	 */
 	public function debug( string $message, string $context = 'general', array $data = [] ): void {

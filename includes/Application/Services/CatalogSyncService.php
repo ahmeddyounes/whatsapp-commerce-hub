@@ -13,6 +13,10 @@ declare(strict_types=1);
 namespace WhatsAppCommerceHub\Application\Services;
 
 use WhatsAppCommerceHub\Contracts\Services\CatalogSyncServiceInterface;
+use WhatsAppCommerceHub\Contracts\Services\ProductSync\ProductSyncOrchestratorInterface;
+use WhatsAppCommerceHub\Contracts\Services\ProductSync\SyncProgressTrackerInterface;
+use WhatsAppCommerceHub\Contracts\Services\SettingsInterface;
+use WhatsAppCommerceHub\Infrastructure\Queue\QueueManager;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -36,16 +40,16 @@ class CatalogSyncService implements CatalogSyncServiceInterface {
 	/**
 	 * Settings manager.
 	 *
-	 * @var \WCH_Settings|null
+	 * @var SettingsInterface|null
 	 */
-	private ?\WCH_Settings $settings;
+	private ?SettingsInterface $settings;
 
 	/**
 	 * Queue manager.
 	 *
-	 * @var \WCH_Queue|null
+	 * @var QueueManager|null
 	 */
-	private ?\WCH_Queue $queue;
+	private ?QueueManager $queue;
 
 	/**
 	 * History storage limit.
@@ -57,11 +61,11 @@ class CatalogSyncService implements CatalogSyncServiceInterface {
 	/**
 	 * Constructor.
 	 *
-	 * @param \wpdb|null         $wpdb_instance WordPress database instance.
-	 * @param \WCH_Settings|null $settings Settings manager.
-	 * @param \WCH_Queue|null    $queue Queue manager.
+	 * @param \wpdb|null          $wpdb_instance WordPress database instance.
+	 * @param SettingsInterface|null $settings Settings manager.
+	 * @param QueueManager|null   $queue Queue manager.
 	 */
-	public function __construct( ?\wpdb $wpdb_instance = null, ?\WCH_Settings $settings = null, ?\WCH_Queue $queue = null ) {
+	public function __construct( ?\wpdb $wpdb_instance = null, ?SettingsInterface $settings = null, ?QueueManager $queue = null ) {
 		if ( null === $wpdb_instance ) {
 			global $wpdb;
 			$this->wpdb = $wpdb;
@@ -209,10 +213,10 @@ class CatalogSyncService implements CatalogSyncServiceInterface {
 			];
 		}
 
-		$sync_service = \WCH_Product_Sync_Service::instance();
+		$sync_service = wch( ProductSyncOrchestratorInterface::class );
 
 		if ( $sync_all ) {
-			$sync_service->sync_all_products();
+			$sync_service->syncAllProducts();
 			$count = 'all';
 		} else {
 			foreach ( $product_ids as $product_id ) {
@@ -220,11 +224,8 @@ class CatalogSyncService implements CatalogSyncServiceInterface {
 			}
 
 			// Queue sync jobs.
-			if ( $this->queue ) {
-				$this->queue->schedule_bulk_action( 'wch_sync_product', $product_ids );
-			} elseif ( class_exists( 'WCH_Queue' ) ) {
-				\WCH_Queue::getInstance()->schedule_bulk_action( 'wch_sync_product', $product_ids );
-			}
+			$queue = $this->queue ?? wch( QueueManager::class );
+			$queue->schedule_bulk_action( 'wch_sync_product', $product_ids );
 
 			$count = count( $product_ids );
 		}
@@ -254,10 +255,10 @@ class CatalogSyncService implements CatalogSyncServiceInterface {
 		}
 
 		try {
-			$sync_service = \WCH_Product_Sync_Service::instance();
-			$result       = $sync_service->sync_product( $product_id );
+			$sync_service = wch( ProductSyncOrchestratorInterface::class );
+			$result       = $sync_service->syncProduct( $product_id );
 
-			if ( $result ) {
+			if ( ! empty( $result['success'] ) ) {
 				update_post_meta( $product_id, '_wch_sync_status', 'synced' );
 				update_post_meta( $product_id, '_wch_last_synced', current_time( 'mysql' ) );
 				delete_post_meta( $product_id, '_wch_sync_error' );
@@ -480,11 +481,8 @@ class CatalogSyncService implements CatalogSyncServiceInterface {
 		}
 
 		// Queue sync jobs.
-		if ( $this->queue ) {
-			$this->queue->schedule_bulk_action( 'wch_sync_product', $product_ids );
-		} elseif ( class_exists( 'WCH_Queue' ) ) {
-			\WCH_Queue::getInstance()->schedule_bulk_action( 'wch_sync_product', $product_ids );
-		}
+		$queue = $this->queue ?? wch( QueueManager::class );
+		$queue->schedule_bulk_action( 'wch_sync_product', $product_ids );
 
 		return [
 			'success' => true,
@@ -499,8 +497,8 @@ class CatalogSyncService implements CatalogSyncServiceInterface {
 	 * @return array|null Progress data or null if no sync in progress.
 	 */
 	public function getBulkSyncProgress(): ?array {
-		$sync_service = \WCH_Product_Sync_Service::instance();
-		$progress     = $sync_service->get_sync_progress();
+		$progressTracker = wch( SyncProgressTrackerInterface::class );
+		$progress        = $progressTracker->getProgress();
 
 		if ( ! $progress ) {
 			return null;
@@ -534,8 +532,8 @@ class CatalogSyncService implements CatalogSyncServiceInterface {
 	 * @return bool True if cleared, false if sync in progress.
 	 */
 	public function clearSyncProgress(): bool {
-		$sync_service = \WCH_Product_Sync_Service::instance();
-		return $sync_service->clear_sync_progress();
+		$progressTracker = wch( SyncProgressTrackerInterface::class );
+		return $progressTracker->clearProgress();
 	}
 
 	/**

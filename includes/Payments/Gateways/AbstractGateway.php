@@ -12,9 +12,10 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Payments\Gateways;
 
-use WhatsAppCommerceHub\Payments\Contracts\PaymentGatewayInterface;
+use WhatsAppCommerceHub\Core\Logger;
 use WhatsAppCommerceHub\Payments\Contracts\PaymentResult;
 use WhatsAppCommerceHub\Payments\Contracts\PaymentStatus;
+use WhatsAppCommerceHub\Payments\Contracts\PaymentGatewayInterface;
 use WhatsAppCommerceHub\Payments\Contracts\RefundResult;
 use WhatsAppCommerceHub\Payments\Contracts\WebhookResult;
 
@@ -206,7 +207,7 @@ abstract class AbstractGateway implements PaymentGatewayInterface {
 	 */
 	protected function log( string $message, array $context = [], string $level = 'info' ): void {
 		$context['gateway'] = $this->getId();
-		\WCH_Logger::log( $message, $context, $level );
+		Logger::instance()->log( $level, $message, 'payments', $context );
 	}
 
 	/**

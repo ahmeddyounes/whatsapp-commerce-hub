@@ -132,29 +132,20 @@ class PriorityQueue {
 	/**
 	 * Unwrap job payload to extract user args.
 	 *
-	 * Handles both v2 wrapped format and legacy v1 inline format.
+	 * Requires v2 wrapped payload format.
 	 *
 	 * @param array $payload The job payload from Action Scheduler.
 	 *
 	 * @return array{args: array, meta: array} User args and metadata.
 	 */
 	public static function unwrapPayload( array $payload ): array {
-		// v2 format: separate args and metadata.
-		if ( isset( $payload['_wch_version'] ) && 2 === $payload['_wch_version'] ) {
-			return [
-				'args' => $payload['args'] ?? [],
-				'meta' => $payload['_wch_meta'] ?? [],
-			];
+		if ( ! isset( $payload['_wch_version'] ) || 2 !== (int) $payload['_wch_version'] ) {
+			throw new \InvalidArgumentException( 'Unsupported queue payload format.' );
 		}
 
-		// v1 format (legacy): metadata was inline with args.
-		$meta = $payload['_wch_job_meta'] ?? [];
-		$args = $payload;
-		unset( $args['_wch_job_meta'] );
-
 		return [
-			'args' => $args,
-			'meta' => $meta,
+			'args' => $payload['args'] ?? [],
+			'meta' => $payload['_wch_meta'] ?? [],
 		];
 	}
 
@@ -423,13 +414,12 @@ class PriorityQueue {
 	/**
 	 * Retry a failed job.
 	 *
-	 * Handles both v1 (legacy) and v2 (wrapped) payload formats.
 	 * Uses atomic locking to prevent race conditions where multiple
 	 * concurrent retry calls could result in duplicate DLQ entries
 	 * or duplicate retry jobs.
 	 *
 	 * @param string $hook       The action hook name.
-	 * @param array  $payload    Original payload (may be v1 or v2 format).
+	 * @param array  $payload    Original payload (wrapped format).
 	 * @param int    $attempt    Current attempt number.
 	 * @param int    $max_retries Maximum retry attempts.
 	 *
@@ -503,12 +493,9 @@ class PriorityQueue {
 			}
 
 			if ( $attempt >= $max_retries ) {
-				// Move to dead letter queue with original user args.
+				// Move to dead letter queue with original wrapped payload.
 				if ( $this->dead_letter_queue ) {
-					// Reconstruct for DLQ (include meta for debugging).
-					$dlq_args                  = $user_args;
-					$dlq_args['_wch_job_meta'] = $meta;
-					$dlq_result                = $this->dead_letter_queue->push( $hook, $dlq_args, DeadLetterQueue::REASON_MAX_RETRIES );
+					$dlq_result = $this->dead_letter_queue->push( $hook, $payload, DeadLetterQueue::REASON_MAX_RETRIES );
 
 					// If DLQ push fails, log critical error - job data may be lost.
 					if ( false === $dlq_result ) {

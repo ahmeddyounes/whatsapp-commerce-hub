@@ -596,11 +596,6 @@ class MessageBuilderService implements MessageBuilderInterface {
 			return $this->settings->get( 'api.catalog_id', '' );
 		}
 
-		// Fallback to legacy settings.
-		if ( class_exists( 'WCH_Settings' ) ) {
-			return \WCH_Settings::getInstance()->get( 'api.catalog_id', '' );
-		}
-
 		return '';
 	}
 

@@ -139,8 +139,8 @@ class DeadLetterQueue {
 	): int|false {
 		$table = $this->getTableName();
 
-		// Extract job meta if present (check both v1 and v2 formats).
-		$job_meta = $args['_wch_job_meta'] ?? $args['_wch_meta'] ?? [];
+		// Extract job meta if present.
+		$job_meta = $args['_wch_meta'] ?? [];
 
 		// Encode JSON with strict error handling - fail instead of losing data.
 		$args_json = wp_json_encode( $args );
@@ -300,13 +300,16 @@ class DeadLetterQueue {
 
 		$priority = $new_priority ?? $entry->priority;
 
-		// Ensure _wch_job_meta exists and reset attempt counter for replay.
-		if ( ! isset( $args['_wch_job_meta'] ) || ! is_array( $args['_wch_job_meta'] ) ) {
-			$args['_wch_job_meta'] = [];
+		// Ensure _wch_meta exists and reset attempt counter for replay.
+		if ( ! isset( $args['_wch_meta'] ) || ! is_array( $args['_wch_meta'] ) ) {
+			$args['_wch_meta'] = [];
 		}
-		$args['_wch_job_meta']['attempt']           = 1;
-		$args['_wch_job_meta']['replayed_from_dlq'] = $id;
-		$args['_wch_job_meta']['replayed_at']       = time();
+		if ( ! isset( $args['_wch_version'] ) ) {
+			$args['_wch_version'] = 2;
+		}
+		$args['_wch_meta']['attempt']           = 1;
+		$args['_wch_meta']['replayed_from_dlq'] = $id;
+		$args['_wch_meta']['replayed_at']       = time();
 
 		// Schedule the job again.
 		if ( function_exists( 'as_schedule_single_action' ) ) {

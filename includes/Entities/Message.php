@@ -40,6 +40,7 @@ final class Message {
 	public const TYPE_VIDEO       = 'video';
 	public const TYPE_LOCATION    = 'location';
 	public const TYPE_INTERACTIVE = 'interactive';
+	public const TYPE_BUTTON      = 'button';
 	public const TYPE_TEMPLATE    = 'template';
 	public const TYPE_REACTION    = 'reaction';
 

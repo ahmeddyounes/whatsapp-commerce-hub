@@ -12,10 +12,13 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Admin\Settings;
 
+use WhatsAppCommerceHub\Clients\WhatsAppApiClient;
 use WhatsAppCommerceHub\Contracts\Admin\Settings\SettingsSanitizerInterface;
 use WhatsAppCommerceHub\Contracts\Admin\Settings\SettingsImportExporterInterface;
+use WhatsAppCommerceHub\Contracts\Services\ProductSync\ProductSyncOrchestratorInterface;
 use WhatsAppCommerceHub\Contracts\Services\SettingsInterface;
 use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
+use WhatsAppCommerceHub\Core\Logger;
 use Exception;
 
 // Exit if accessed directly.
@@ -121,13 +124,8 @@ class SettingsAjaxHandler {
 		$this->verifyRequest();
 
 		try {
-			if ( ! class_exists( 'WCH_WhatsApp_API_Client' ) ) {
-				wp_send_json_error( [ 'message' => __( 'API client not available', 'whatsapp-commerce-hub' ) ] );
-				return;
-			}
-
-			$api      = new \WCH_WhatsApp_API_Client();
-			$response = $api->get_business_profile();
+			$api      = wch( WhatsAppApiClient::class );
+			$response = $api->getBusinessProfile();
 
 			if ( $response && isset( $response['data'] ) ) {
 				wp_send_json_success(
@@ -170,46 +168,20 @@ class SettingsAjaxHandler {
 		$this->verifyRequest();
 
 		try {
-			// Try new DI-based orchestrator first.
-			if ( function_exists( 'wch_container' ) ) {
-				$container = wch_container();
-				if ( $container->has( \WhatsAppCommerceHub\Contracts\Services\ProductSync\ProductSyncOrchestratorInterface::class ) ) {
-					$orchestrator = $container->get( \WhatsAppCommerceHub\Contracts\Services\ProductSync\ProductSyncOrchestratorInterface::class );
-					$syncId       = $orchestrator->syncAllProducts();
+			$orchestrator = wch( ProductSyncOrchestratorInterface::class );
+			$syncId       = $orchestrator->syncAllProducts();
 
-					$this->settings->set( 'catalog.last_sync', current_time( 'mysql' ) );
+			$this->settings->set( 'catalog.last_sync', current_time( 'mysql' ) );
 
-					wp_send_json_success(
-						[
-							'message' => __( 'Product sync has been queued for processing', 'whatsapp-commerce-hub' ),
-							'sync_id' => $syncId,
-							'result'  => [
-								'timestamp' => current_time( 'mysql' ),
-							],
-						]
-					);
-					return;
-				}
-			}
-
-			// Fallback to legacy service.
-			if ( class_exists( 'WCH_Product_Sync_Service' ) ) {
-				$catalogSync = \WCH_Product_Sync_Service::instance();
-				$catalogSync->sync_all_products();
-
-				$this->settings->set( 'catalog.last_sync', current_time( 'mysql' ) );
-
-				wp_send_json_success(
-					[
-						'message' => __( 'Product sync has been queued for processing', 'whatsapp-commerce-hub' ),
-						'result'  => [
-							'timestamp' => current_time( 'mysql' ),
-						],
-					]
-				);
-			} else {
-				wp_send_json_error( [ 'message' => __( 'Product sync service not available', 'whatsapp-commerce-hub' ) ] );
-			}
+			wp_send_json_success(
+				[
+					'message' => __( 'Product sync has been queued for processing', 'whatsapp-commerce-hub' ),
+					'sync_id' => $syncId,
+					'result'  => [
+						'timestamp' => current_time( 'mysql' ),
+					],
+				]
+			);
 		} catch ( Exception $e ) {
 			$this->log( 'error', 'Catalog sync failed', [ 'error' => $e->getMessage() ] );
 			wp_send_json_error( [ 'message' => $e->getMessage() ] );
@@ -283,18 +255,14 @@ class SettingsAjaxHandler {
 				wp_send_json_error( [ 'message' => __( 'No phone number found for current user', 'whatsapp-commerce-hub' ) ] );
 			}
 
-			if ( ! class_exists( 'WCH_WhatsApp_API_Client' ) ) {
-				wp_send_json_error( [ 'message' => __( 'API client not available', 'whatsapp-commerce-hub' ) ] );
-			}
-
-			$api     = new \WCH_WhatsApp_API_Client();
+			$api     = wch( WhatsAppApiClient::class );
 			$message = sprintf(
 				/* translators: %s: notification type */
 				__( 'This is a test %s notification from WhatsApp Commerce Hub.', 'whatsapp-commerce-hub' ),
 				str_replace( '_', ' ', $type )
 			);
 
-			$api->send_text_message( $phone, $message );
+			$api->sendTextMessage( $phone, $message );
 
 			$this->log( 'info', 'Test notification sent', [ 'type' => $type ] );
 
@@ -321,8 +289,9 @@ class SettingsAjaxHandler {
 		$this->verifyRequest();
 
 		try {
-			if ( class_exists( 'WCH_Logger' ) ) {
-				\WCH_Logger::clear_all_logs();
+			$logger = Logger::instance();
+			foreach ( $logger->getLogFiles() as $file ) {
+				$logger->clearLog( $file['filename'] );
 			}
 
 			$this->log( 'info', 'Logs cleared', [] );
@@ -435,8 +404,6 @@ class SettingsAjaxHandler {
 			return;
 		}
 
-		if ( class_exists( 'WCH_Logger' ) ) {
-			\WCH_Logger::log( $message, $context, $level );
-		}
+		Logger::instance()->log( $level, $message, 'admin', $context );
 	}
 }

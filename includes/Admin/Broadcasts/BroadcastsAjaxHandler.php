@@ -337,15 +337,13 @@ class BroadcastsAjaxHandler {
 
 		$approvedTemplates = [];
 
-		if ( class_exists( 'WCH_Template_Manager' ) ) {
-			$templateManager = \WCH_Template_Manager::getInstance();
-			$allTemplates    = $templateManager->get_templates();
+		$templateManager = wch( \WhatsAppCommerceHub\Presentation\Templates\TemplateManager::class );
+		$allTemplates    = $templateManager->getTemplates();
 
-			if ( is_array( $allTemplates ) ) {
-				foreach ( $allTemplates as $template ) {
-					if ( isset( $template['status'] ) && 'APPROVED' === $template['status'] ) {
-						$approvedTemplates[] = $template;
-					}
+		if ( is_array( $allTemplates ) ) {
+			foreach ( $allTemplates as $template ) {
+				if ( isset( $template['status'] ) && 'APPROVED' === $template['status'] ) {
+					$approvedTemplates[] = $template;
 				}
 			}
 		}

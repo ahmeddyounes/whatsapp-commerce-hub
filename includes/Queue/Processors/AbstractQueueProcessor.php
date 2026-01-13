@@ -74,9 +74,22 @@ abstract class AbstractQueueProcessor implements QueueProcessorInterface {
 	 */
 	public function execute( array $rawPayload ): void {
 		// Unwrap the payload to extract user args and metadata.
-		$unwrapped = PriorityQueue::unwrapPayload( $rawPayload );
-		$payload   = $unwrapped['args'];
-		$meta      = $unwrapped['meta'];
+		try {
+			$unwrapped = PriorityQueue::unwrapPayload( $rawPayload );
+		} catch ( \Throwable $e ) {
+			$this->logError(
+				'Invalid queue payload',
+				[
+					'error'        => $e->getMessage(),
+					'payload_keys' => array_keys( $rawPayload ),
+				]
+			);
+			$this->moveToDeadLetterQueue( $rawPayload, DeadLetterQueue::REASON_EXCEPTION, $e->getMessage(), [] );
+			return;
+		}
+
+		$payload = $unwrapped['args'];
+		$meta    = $unwrapped['meta'];
 
 		$attempt = $meta['attempt'] ?? 1;
 
@@ -91,7 +104,7 @@ abstract class AbstractQueueProcessor implements QueueProcessorInterface {
 		try {
 			// Check circuit breaker before processing.
 			if ( $this->isCircuitOpen() ) {
-				$this->handleCircuitOpen( $rawPayload, $meta );
+				$this->handleCircuitOpen( $payload, $meta );
 				return;
 			}
 
@@ -147,17 +160,17 @@ abstract class AbstractQueueProcessor implements QueueProcessorInterface {
 			? DeadLetterQueue::REASON_MAX_RETRIES
 			: DeadLetterQueue::REASON_EXCEPTION;
 
-		$this->moveToDeadLetterQueue( $payload, $reason, $exception->getMessage(), $meta );
+		$this->moveToDeadLetterQueue( $rawPayload, $reason, $exception->getMessage(), $meta );
 	}
 
 	/**
 	 * Handle circuit breaker being open.
 	 *
-	 * @param array<string, mixed> $rawPayload Original raw payload.
+	 * @param array<string, mixed> $payload User payload.
 	 * @param array<string, mixed> $meta       Job metadata.
 	 * @return void
 	 */
-	protected function handleCircuitOpen( array $rawPayload, array $meta ): void {
+	protected function handleCircuitOpen( array $payload, array $meta ): void {
 		$this->logWarning(
 			'Circuit breaker is open, rescheduling job',
 			[
@@ -170,7 +183,7 @@ abstract class AbstractQueueProcessor implements QueueProcessorInterface {
 
 		$this->priorityQueue->schedule(
 			$this->getHookName(),
-			$rawPayload,
+			$payload,
 			$priority,
 			60 // 1 minute delay
 		);
@@ -206,14 +219,14 @@ abstract class AbstractQueueProcessor implements QueueProcessorInterface {
 	/**
 	 * Move a failed job to the dead letter queue.
 	 *
-	 * @param array<string, mixed> $payload User payload.
+	 * @param array<string, mixed> $rawPayload Original raw payload.
 	 * @param string               $reason  Failure reason.
 	 * @param string|null          $error   Error message.
 	 * @param array<string, mixed> $meta    Job metadata.
 	 * @return void
 	 */
 	protected function moveToDeadLetterQueue(
-		array $payload,
+		array $rawPayload,
 		string $reason,
 		?string $error,
 		array $meta
@@ -227,8 +240,11 @@ abstract class AbstractQueueProcessor implements QueueProcessorInterface {
 		);
 
 		// Add metadata for DLQ.
-		$dlqPayload                  = $payload;
-		$dlqPayload['_wch_job_meta'] = $meta;
+		$dlqPayload = $rawPayload;
+		if ( ! isset( $dlqPayload['_wch_meta'] ) || ! is_array( $dlqPayload['_wch_meta'] ) ) {
+			$dlqPayload['_wch_meta'] = $meta;
+			$dlqPayload['_wch_version'] = 2;
+		}
 
 		$result = $this->deadLetterQueue->push(
 			$this->getHookName(),

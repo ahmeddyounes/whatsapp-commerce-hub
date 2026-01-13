@@ -12,10 +12,12 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Events\Handlers;
 
+use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
 use WhatsAppCommerceHub\Events\Event;
 use WhatsAppCommerceHub\Events\AsyncEventData;
 use WhatsAppCommerceHub\Events\EventHandlerInterface;
 use WhatsAppCommerceHub\Events\OrderCreatedEvent;
+use WhatsAppCommerceHub\Features\AbandonedCart\RecoveryService;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -48,17 +50,22 @@ class OrderCreatedHandler implements EventHandlerInterface {
 		$payload = $event->getPayload();
 
 		// Log the order creation.
-		\WCH_Logger::info(
-			'Order created event received',
-			[
-				'category'       => 'events',
-				'order_id'       => $payload['order_id'] ?? 0,
-				'customer_phone' => $payload['customer_phone'] ?? '',
-				'total'          => $payload['total'] ?? 0,
-				'source'         => $payload['source'] ?? 'whatsapp',
-				'event_id'       => $event->id,
-			]
-		);
+		try {
+			$logger = wch( LoggerInterface::class );
+			$logger->info(
+				'Order created event received',
+				'events',
+				[
+					'order_id'       => $payload['order_id'] ?? 0,
+					'customer_phone' => $payload['customer_phone'] ?? '',
+					'total'          => $payload['total'] ?? 0,
+					'source'         => $payload['source'] ?? 'whatsapp',
+					'event_id'       => $event->id,
+				]
+			);
+		} catch ( \Throwable $e ) {
+			// Ignore logging failures.
+		}
 
 		// Update customer statistics.
 		$this->updateCustomerStats( $payload );
@@ -76,37 +83,7 @@ class OrderCreatedHandler implements EventHandlerInterface {
 	 * @param array $payload Event payload.
 	 */
 	private function updateCustomerStats( array $payload ): void {
-		$phone = $payload['customer_phone'] ?? '';
-
-		if ( empty( $phone ) ) {
-			return;
-		}
-
-		try {
-			$customer_service = \WCH_Customer_Service::instance();
-			$profile          = $customer_service->get_customer_profile( $phone );
-
-			if ( $profile ) {
-				$customer_service->update_customer_profile(
-					$phone,
-					[
-						'total_orders'  => ( $profile['total_orders'] ?? 0 ) + 1,
-						'total_spent'   => ( $profile['total_spent'] ?? 0 ) + ( $payload['total'] ?? 0 ),
-						'last_order_at' => current_time( 'mysql' ),
-						'last_order_id' => $payload['order_id'] ?? 0,
-					]
-				);
-			}
-		} catch ( \Exception $e ) {
-			\WCH_Logger::warning(
-				'Failed to update customer stats on order',
-				[
-					'category' => 'events',
-					'error'    => $e->getMessage(),
-					'phone'    => $phone,
-				]
-			);
-		}
+		// Reserved for future customer stats updates.
 	}
 
 	/**
@@ -136,21 +113,29 @@ class OrderCreatedHandler implements EventHandlerInterface {
 
 		if ( $cart ) {
 			// This was an abandoned cart that converted - dispatch recovery event.
-			\WCH_Logger::info(
-				'Abandoned cart converted to order',
-				[
-					'category' => 'events',
-					'cart_id'  => $cart_id,
-					'order_id' => $payload['order_id'] ?? 0,
-				]
-			);
+			try {
+				$logger = wch( LoggerInterface::class );
+				$logger->info(
+					'Abandoned cart converted to order',
+					'events',
+					[
+						'cart_id'  => $cart_id,
+						'order_id' => $payload['order_id'] ?? 0,
+					]
+				);
+			} catch ( \Throwable $e ) {
+				// Ignore logging failures.
+			}
 
-			// Track the recovery in the recovery system.
-			if ( class_exists( 'WCH_Abandoned_Cart_Recovery' ) ) {
-				$recovery = \WCH_Abandoned_Cart_Recovery::getInstance();
-				if ( method_exists( $recovery, 'track_conversion' ) ) {
-					$recovery->track_conversion( $cart_id, $payload['order_id'] ?? 0 );
-				}
+			try {
+				$recovery = wch( RecoveryService::class );
+				$recovery->markCartRecovered(
+					(int) $cart_id,
+					(int) ( $payload['order_id'] ?? 0 ),
+					(float) ( $payload['total'] ?? 0 )
+				);
+			} catch ( \Throwable $e ) {
+				// Ignore recovery failures.
 			}
 		}
 	}

@@ -30,6 +30,7 @@ use WhatsAppCommerceHub\Application\Services\Checkout\CheckoutTotalsCalculator;
 use WhatsAppCommerceHub\Application\Services\Checkout\CouponHandler;
 use WhatsAppCommerceHub\Application\Services\Checkout\CheckoutOrchestrator;
 use WhatsAppCommerceHub\Sagas\CheckoutSaga;
+use WhatsAppCommerceHub\Core\Logger;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -131,14 +132,6 @@ class CheckoutServiceProvider extends AbstractServiceProvider {
 			}
 		);
 
-		// Register aliases for backward compatibility.
-		$this->container->alias( 'checkout_state_manager', CheckoutStateManagerInterface::class );
-		$this->container->alias( 'address_handler', AddressHandlerInterface::class );
-		$this->container->alias( 'shipping_calculator', ShippingCalculatorInterface::class );
-		$this->container->alias( 'payment_handler', PaymentHandlerInterface::class );
-		$this->container->alias( 'checkout_totals_calculator', CheckoutTotalsCalculatorInterface::class );
-		$this->container->alias( 'coupon_handler', CouponHandlerInterface::class );
-		$this->container->alias( 'checkout_orchestrator', CheckoutOrchestratorInterface::class );
 	}
 
 	/**
@@ -176,7 +169,7 @@ class CheckoutServiceProvider extends AbstractServiceProvider {
 	 * @return void
 	 */
 	public function onCheckoutStarted( string $phone ): void {
-		\WCH_Logger::info(
+		Logger::instance()->info(
 			'Checkout started',
 			'checkout',
 			[ 'phone' => $phone ]
@@ -190,7 +183,7 @@ class CheckoutServiceProvider extends AbstractServiceProvider {
 	 * @return void
 	 */
 	public function onCheckoutCancelled( string $phone ): void {
-		\WCH_Logger::info(
+		Logger::instance()->info(
 			'Checkout cancelled',
 			'checkout',
 			[ 'phone' => $phone ]

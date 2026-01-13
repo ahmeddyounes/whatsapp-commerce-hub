@@ -22,8 +22,10 @@ use WhatsAppCommerceHub\Infrastructure\Security\Encryption;
 use WhatsAppCommerceHub\Infrastructure\Database\DatabaseManager;
 use WhatsAppCommerceHub\Infrastructure\Configuration\SettingsManager;
 use WhatsAppCommerceHub\Application\Services\LoggerService;
+use WhatsAppCommerceHub\Application\Services\OrderSyncService;
 use WhatsAppCommerceHub\Application\Services\SettingsService;
 use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
+use WhatsAppCommerceHub\Contracts\Services\OrderSyncServiceInterface;
 use WhatsAppCommerceHub\Contracts\Services\SettingsInterface;
 
 // Exit if accessed directly.
@@ -231,56 +233,8 @@ class CoreServiceProvider implements ServiceProviderInterface {
 			}
 		);
 
-		// Register encryption service placeholder.
-		// This will be replaced by the Security layer.
-		$container->singleton(
-			'wch.encryption',
-			static function () {
-				if ( class_exists( 'WCH_Encryption' ) ) {
-					return new \WCH_Encryption();
-				}
-
-				return null;
-			}
-		);
-
-		// Register WCH_Encryption class.
-		$container->singleton(
-			\WCH_Encryption::class,
-			static fn( ContainerInterface $c ) => $c->get( 'wch.encryption' )
-		);
-
-		// Register database manager.
-		$container->singleton(
-			\WCH_Database_Manager::class,
-			static function ( ContainerInterface $c ) {
-				return new \WCH_Database_Manager();
-			}
-		);
-
-		// Convenience alias for database manager.
-		$container->singleton(
-			'wch.database',
-			static fn( ContainerInterface $c ) => $c->get( \WCH_Database_Manager::class )
-		);
-
-		// Register settings manager.
-		$container->singleton(
-			\WCH_Settings::class,
-			static function ( ContainerInterface $c ) {
-				$encryption = $c->has( 'wch.encryption' ) ? $c->get( 'wch.encryption' ) : null;
-				return new \WCH_Settings( $encryption );
-			}
-		);
-
-		// Alias for settings class.
-		$container->singleton(
-			'wch.settings.manager',
-			static fn( ContainerInterface $c ) => $c->get( \WCH_Settings::class )
-		);
-
 		// ===================================================================
-		// Phase 2: Core Infrastructure - PSR-4 Modern Classes
+		// Core Infrastructure - PSR-4 Modern Classes
 		// ===================================================================
 
 		// Register Core Logger (new PSR-4 location).
@@ -315,24 +269,12 @@ class CoreServiceProvider implements ServiceProviderInterface {
 			}
 		);
 
-		// BC alias: WCH_Error_Handler points to ErrorHandler.
-		$container->singleton(
-			\WCH_Error_Handler::class,
-			static fn( ContainerInterface $c ) => $c->get( ErrorHandler::class )
-		);
-
 		// Register Encryption (new PSR-4 location).
 		$container->singleton(
 			Encryption::class,
 			static function () {
 				return new Encryption();
 			}
-		);
-
-		// BC alias: WCH_Encryption points to Encryption.
-		$container->singleton(
-			\WCH_Encryption::class,
-			static fn( ContainerInterface $c ) => $c->get( Encryption::class )
 		);
 
 		// Convenience alias for encryption.
@@ -350,12 +292,6 @@ class CoreServiceProvider implements ServiceProviderInterface {
 			}
 		);
 
-		// BC alias: WCH_Database_Manager points to DatabaseManager.
-		$container->singleton(
-			\WCH_Database_Manager::class,
-			static fn( ContainerInterface $c ) => $c->get( DatabaseManager::class )
-		);
-
 		// Convenience alias for database manager.
 		$container->singleton(
 			'wch.database',
@@ -371,20 +307,7 @@ class CoreServiceProvider implements ServiceProviderInterface {
 			}
 		);
 
-		// BC alias: WCH_Settings points to SettingsManager.
-		$container->singleton(
-			\WCH_Settings::class,
-			static fn( ContainerInterface $c ) => $c->get( SettingsManager::class )
-		);
-
-		// Convenience alias for settings manager.
-		$container->singleton(
-			'wch.settings.manager',
-			static fn( ContainerInterface $c ) => $c->get( SettingsManager::class )
-		);
-
-		// Register SettingsService (BC wrapper - points to SettingsManager).
-		// Note: SettingsService wraps SettingsManager for interface compatibility.
+		// Register SettingsService for SettingsInterface consumers.
 		$container->singleton(
 			SettingsService::class,
 			static function ( ContainerInterface $c ) {
@@ -401,56 +324,14 @@ class CoreServiceProvider implements ServiceProviderInterface {
 
 		// Register order sync service.
 		$container->singleton(
-			\WCH_Order_Sync_Service::class,
-			static function ( ContainerInterface $c ) {
-				$settings = $c->has( \WCH_Settings::class ) ? $c->get( \WCH_Settings::class ) : null;
-				return new \WCH_Order_Sync_Service( $settings );
-			}
+			OrderSyncServiceInterface::class,
+			static fn( ContainerInterface $c ) => $c->make( OrderSyncService::class )
 		);
 
 		// Convenience alias for order sync.
 		$container->singleton(
-			'wch.order_sync',
-			static fn( ContainerInterface $c ) => $c->get( \WCH_Order_Sync_Service::class )
-		);
-
-		// Register template manager.
-		$container->singleton(
-			\WCH_Template_Manager::class,
-			static function ( ContainerInterface $c ) {
-				$settings = $c->has( \WCH_Settings::class ) ? $c->get( \WCH_Settings::class ) : null;
-				return new \WCH_Template_Manager( $settings );
-			}
-		);
-
-		// Convenience alias for template manager.
-		$container->singleton(
-			'wch.templates',
-			static fn( ContainerInterface $c ) => $c->get( \WCH_Template_Manager::class )
-		);
-
-		// Register payment manager.
-		$container->singleton(
-			\WCH_Payment_Manager::class,
-			static fn() => new \WCH_Payment_Manager()
-		);
-
-		// Convenience alias for payments.
-		$container->singleton(
-			'wch.payments',
-			static fn( ContainerInterface $c ) => $c->get( \WCH_Payment_Manager::class )
-		);
-
-		// Register queue manager.
-		$container->singleton(
-			\WCH_Queue::class,
-			static fn() => new \WCH_Queue()
-		);
-
-		// Convenience alias for queue.
-		$container->singleton(
-			'wch.queue',
-			static fn( ContainerInterface $c ) => $c->get( \WCH_Queue::class )
+			OrderSyncService::class,
+			static fn( ContainerInterface $c ) => $c->get( OrderSyncServiceInterface::class )
 		);
 	}
 
@@ -480,24 +361,17 @@ class CoreServiceProvider implements ServiceProviderInterface {
 			'wch.hooks',
 			'wch.cache',
 			'wch.encryption',
-			\WCH_Encryption::class,
-			\WCH_Database_Manager::class,
+			Encryption::class,
+			DatabaseManager::class,
 			'wch.database',
-			\WCH_Settings::class,
-			'wch.settings.manager',
+			SettingsManager::class,
 			Logger::class,
 			LoggerService::class,
 			LoggerInterface::class,
 			SettingsService::class,
 			SettingsInterface::class,
-			\WCH_Order_Sync_Service::class,
-			'wch.order_sync',
-			\WCH_Template_Manager::class,
-			'wch.templates',
-			\WCH_Payment_Manager::class,
-			'wch.payments',
-			\WCH_Queue::class,
-			'wch.queue',
+			OrderSyncServiceInterface::class,
+			OrderSyncService::class,
 		];
 	}
 }

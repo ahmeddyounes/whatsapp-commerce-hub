@@ -78,6 +78,8 @@ class CartRepository extends AbstractRepository implements CartRepositoryInterfa
 			'reminder_1_sent_at',
 			'reminder_2_sent_at',
 			'reminder_3_sent_at',
+			'abandoned_at',
+			'recovered_at',
 		];
 
 		foreach ( $date_fields as $field ) {
@@ -174,7 +176,10 @@ class CartRepository extends AbstractRepository implements CartRepositoryInterfa
 	public function markAsAbandoned( int $cart_id ): bool {
 		return $this->update(
 			$cart_id,
-			[ 'status' => Cart::STATUS_ABANDONED ]
+			[
+				'status'       => Cart::STATUS_ABANDONED,
+				'abandoned_at' => current_time( 'mysql' ),
+			]
 		);
 	}
 
@@ -249,19 +254,20 @@ class CartRepository extends AbstractRepository implements CartRepositoryInterfa
 			// Use direct wpdb->update instead of $this->update() to avoid
 			// redundant exists() check - we already verified row exists via FOR UPDATE.
 			// This also ensures we stay within the same transaction context.
-			$result = $this->wpdb->update(
-				$this->table,
-				[
-					'status'             => Cart::STATUS_CONVERTED,
-					'recovered'          => 1,
-					'recovered_order_id' => $order_id,
-					'recovered_revenue'  => (float) $row['total'],
-					'updated_at'         => current_time( 'mysql' ),
-				],
-				[ 'id' => $cart_id ],
-				[ '%s', '%d', '%d', '%f', '%s' ],
-				[ '%d' ]
-			);
+				$result = $this->wpdb->update(
+					$this->table,
+					[
+						'status'             => Cart::STATUS_CONVERTED,
+						'recovered'          => 1,
+						'recovered_order_id' => $order_id,
+						'recovered_revenue'  => (float) $row['total'],
+						'recovered_at'       => current_time( 'mysql' ),
+						'updated_at'         => current_time( 'mysql' ),
+					],
+					[ 'id' => $cart_id ],
+					[ '%s', '%d', '%d', '%f', '%s', '%s' ],
+					[ '%d' ]
+				);
 
 			if ( false !== $result ) {
 				$this->commit();

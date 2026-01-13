@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Application\Services\Reengagement;
 
+use WhatsAppCommerceHub\Contracts\Services\CustomerServiceInterface;
 use WhatsAppCommerceHub\Contracts\Services\Reengagement\CampaignTypeResolverInterface;
 use WhatsAppCommerceHub\Contracts\Services\Reengagement\ProductTrackingServiceInterface;
 use WhatsAppCommerceHub\Contracts\Services\Reengagement\LoyaltyCouponGeneratorInterface;
@@ -53,9 +54,9 @@ class CampaignTypeResolver implements CampaignTypeResolverInterface {
 	/**
 	 * Customer service.
 	 *
-	 * @var \WCH_Customer_Service
+	 * @var CustomerServiceInterface
 	 */
-	protected \WCH_Customer_Service $customerService;
+	protected CustomerServiceInterface $customerService;
 
 	/**
 	 * Constructor.
@@ -72,7 +73,7 @@ class CampaignTypeResolver implements CampaignTypeResolverInterface {
 		$this->productTracking  = $productTracking;
 		$this->loyaltyGenerator = $loyaltyGenerator;
 		$this->messageBuilder   = $messageBuilder;
-		$this->customerService  = \WCH_Customer_Service::instance();
+		$this->customerService  = wch( CustomerServiceInterface::class );
 	}
 
 	/**
@@ -146,7 +147,7 @@ class CampaignTypeResolver implements CampaignTypeResolverInterface {
 				return $this->loyaltyGenerator->qualifiesForLoyaltyDiscount( $customerPhone );
 
 			case self::TYPE_NEW_ARRIVALS:
-				$customer = $this->customerService->get_or_create_profile( $customerPhone );
+				$customer = $this->customerService->getOrCreateProfile( $customerPhone );
 				if ( ! $customer ) {
 					return false;
 				}
@@ -168,7 +169,7 @@ class CampaignTypeResolver implements CampaignTypeResolverInterface {
 	 * @return bool True if has new arrivals.
 	 */
 	protected function hasNewArrivalsForCustomer( array $customer ): bool {
-		$profile = $this->customerService->get_or_create_profile( $customer['phone'] ?? '' );
+		$profile = $this->customerService->getOrCreateProfile( $customer['phone'] ?? '' );
 		if ( ! $profile ) {
 			return false;
 		}

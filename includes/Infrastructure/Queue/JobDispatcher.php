@@ -48,11 +48,31 @@ class JobDispatcher {
 		private readonly Logger $logger
 	) {
 	}
+	/**
+	 * Dispatch a single job immediately or after a delay.
+	 */
+	public function dispatch( string $hook, array $args = [], int $delay = 0 ): int {
+		return $this->dispatchInternal( $hook, $args, $delay );
+	}
 
 	/**
-	 * Dispatch a single job immediately
+	 * Dispatch a single job immediately or after a delay.
 	 */
-	public function dispatch( string $hook, array $args = [], int $priority = 10 ): int {
+	private function dispatchInternal( string $hook, array $args = [], int $delay = 0, int $priority = 10 ): int {
+		if ( $delay > 0 ) {
+			if ( function_exists( 'as_schedule_single_action' ) ) {
+				return $this->schedule( $hook, time() + $delay, $args );
+			}
+
+			$this->logger->warning(
+				'Action Scheduler single action API unavailable; dispatching immediately',
+				[
+					'hook'  => $hook,
+					'delay' => $delay,
+				]
+			);
+		}
+
 		// Security check
 		if ( ! $this->canDispatchJobs( $hook ) ) {
 			$this->logger->warning(
@@ -63,6 +83,16 @@ class JobDispatcher {
 				]
 			);
 
+			return 0;
+		}
+
+		if ( ! function_exists( 'as_enqueue_async_action' ) ) {
+			$this->logger->warning(
+				'Action Scheduler async API unavailable; job dispatch skipped',
+				[
+					'hook' => $hook,
+				]
+			);
 			return 0;
 		}
 
@@ -81,6 +111,7 @@ class JobDispatcher {
 				'hook'      => $hook,
 				'action_id' => $actionId,
 				'args'      => $args,
+				'delay'     => 0,
 			]
 		);
 
@@ -101,6 +132,17 @@ class JobDispatcher {
 				]
 			);
 
+			return 0;
+		}
+
+		if ( ! function_exists( 'as_schedule_single_action' ) ) {
+			$this->logger->warning(
+				'Action Scheduler single action API unavailable; job schedule skipped',
+				[
+					'hook'      => $hook,
+					'timestamp' => $timestamp,
+				]
+			);
 			return 0;
 		}
 
@@ -138,6 +180,17 @@ class JobDispatcher {
 				]
 			);
 
+			return 0;
+		}
+
+		if ( ! function_exists( 'as_schedule_recurring_action' ) ) {
+			$this->logger->warning(
+				'Action Scheduler recurring API unavailable; recurring schedule skipped',
+				[
+					'hook'     => $hook,
+					'interval' => $interval,
+				]
+			);
 			return 0;
 		}
 
@@ -202,6 +255,149 @@ class JobDispatcher {
 		);
 
 		return $count;
+	}
+
+	/**
+	 * Get pending job counts grouped by hook.
+	 *
+	 * @return array<string, int>
+	 */
+	public function getAllPendingCounts(): array {
+		if ( ! function_exists( 'as_get_scheduled_actions' ) ) {
+			return [];
+		}
+
+		global $wpdb;
+
+		$table       = $wpdb->prefix . 'actionscheduler_actions';
+		$group_table = $wpdb->prefix . 'actionscheduler_groups';
+		$group_like  = $wpdb->esc_like( self::GROUP_NAME ) . '%';
+
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT a.hook, COUNT(*) as count
+				 FROM {$table} a
+				 INNER JOIN {$group_table} g ON a.group_id = g.group_id
+				 WHERE a.status = %s AND g.slug LIKE %s
+				 GROUP BY a.hook",
+				'pending',
+				$group_like
+			),
+			ARRAY_A
+		);
+
+		$counts = [];
+		foreach ( $rows as $row ) {
+			$counts[ $row['hook'] ] = (int) $row['count'];
+		}
+
+		return $counts;
+	}
+
+	/**
+	 * Get failed jobs for display.
+	 *
+	 * @param int $limit Maximum jobs to return.
+	 * @return array<int, array<string, mixed>>
+	 */
+	public function getFailedJobs( int $limit = 20 ): array {
+		if ( ! function_exists( 'as_get_scheduled_actions' ) ) {
+			return [];
+		}
+
+		global $wpdb;
+
+		$table       = $wpdb->prefix . 'actionscheduler_actions';
+		$group_table = $wpdb->prefix . 'actionscheduler_groups';
+		$limit       = max( 1, min( 1000, $limit ) );
+		$group_like  = $wpdb->esc_like( self::GROUP_NAME ) . '%';
+
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT a.action_id, a.hook, a.args, a.scheduled_date_gmt
+				 FROM {$table} a
+				 INNER JOIN {$group_table} g ON a.group_id = g.group_id
+				 WHERE a.status = 'failed' AND g.slug LIKE %s
+				 ORDER BY a.scheduled_date_gmt DESC
+				 LIMIT %d",
+				$group_like,
+				$limit
+			),
+			ARRAY_A
+		);
+
+		$jobs = [];
+		foreach ( $rows as $row ) {
+			$payload = json_decode( $row['args'], true );
+			$payload = $payload[0] ?? $payload;
+
+			$args = is_array( $payload ) ? $payload : [];
+			if ( isset( $args['_wch_version'] ) && class_exists( \WhatsAppCommerceHub\Queue\PriorityQueue::class ) ) {
+				$unwrapped = \WhatsAppCommerceHub\Queue\PriorityQueue::unwrapPayload( $args );
+				$args      = $unwrapped['args'];
+			}
+
+			$jobs[] = [
+				'id'        => (int) $row['action_id'],
+				'hook'      => $row['hook'],
+				'scheduled' => gmdate( 'Y-m-d H:i:s', strtotime( $row['scheduled_date_gmt'] . ' UTC' ) ),
+				'args'      => $args,
+			];
+		}
+
+		return $jobs;
+	}
+
+	/**
+	 * Retry a failed job by action ID.
+	 *
+	 * @param int $jobId Action Scheduler ID.
+	 * @param int $delay Delay in seconds before retry.
+	 * @return int New action ID or 0 on failure.
+	 */
+	public function retryFailedJob( int $jobId, int $delay = 60 ): int {
+		return $this->retry( $jobId, $delay );
+	}
+
+	/**
+	 * Cancel scheduled jobs with a matching job_id prefix.
+	 *
+	 * @param string $prefix Job ID prefix.
+	 * @return int Number of actions cancelled.
+	 */
+	public function cancelByPrefix( string $prefix ): int {
+		if ( empty( $prefix ) || ! function_exists( 'as_get_scheduled_actions' ) ) {
+			return 0;
+		}
+
+		$actions = as_get_scheduled_actions(
+			[
+				'status'   => 'pending',
+				'group'    => self::GROUP_NAME,
+				'per_page' => -1,
+			]
+		);
+
+		if ( empty( $actions ) || ! function_exists( 'as_unschedule_action' ) ) {
+			return 0;
+		}
+
+		$cancelled = 0;
+		foreach ( $actions as $action ) {
+			$args  = $action->get_args();
+			$jobId = null;
+
+			if ( is_array( $args ) ) {
+				$jobId = $args['job_id'] ?? ( is_array( $args[0] ?? null ) ? ( $args[0]['job_id'] ?? null ) : null );
+			}
+
+			if ( is_string( $jobId ) && str_starts_with( $jobId, $prefix ) ) {
+				as_unschedule_action( $action->get_hook(), $action->get_args(), $action->get_group() );
+				++$cancelled;
+			}
+		}
+
+		return $cancelled;
 	}
 
 	/**
@@ -293,15 +489,23 @@ class JobDispatcher {
 			return 0;
 		}
 
+		$args = $action->get_args();
+		if ( ! is_array( $args ) ) {
+			$args = [];
+		}
+
+		$retryCount = $args['retry_count'] ?? 0;
+		$group      = method_exists( $action, 'get_group' ) ? $action->get_group() : self::GROUP_NAME;
+
 		// Schedule retry with delay
 		$newActionId = as_schedule_single_action(
 			time() + $delay,
 			$action->get_hook(),
 			array_merge(
-				$action->get_args(),
-				[ 'retry_count' => ( $action->get_args()['retry_count'] ?? 0 ) + 1 ]
+				$args,
+				[ 'retry_count' => $retryCount + 1 ]
 			),
-			self::GROUP_NAME
+			$group
 		);
 
 		$this->logger->info(

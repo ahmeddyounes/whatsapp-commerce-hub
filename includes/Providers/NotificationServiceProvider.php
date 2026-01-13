@@ -15,6 +15,8 @@ namespace WhatsAppCommerceHub\Providers;
 use WhatsAppCommerceHub\Container\ContainerInterface;
 use WhatsAppCommerceHub\Container\ServiceProviderInterface;
 use WhatsAppCommerceHub\Application\Services\NotificationService;
+use WhatsAppCommerceHub\Clients\WhatsAppApiClient;
+use WhatsAppCommerceHub\Presentation\Templates\TemplateManager;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -39,8 +41,8 @@ class NotificationServiceProvider implements ServiceProviderInterface {
 		$container->singleton(
 			NotificationService::class,
 			static function ( ContainerInterface $c ) {
-				$apiClient       = $c->has( \WCH_WhatsApp_API_Client::class ) ? $c->get( \WCH_WhatsApp_API_Client::class ) : null;
-				$templateManager = $c->has( \WCH_Template_Manager::class ) ? $c->get( \WCH_Template_Manager::class ) : null;
+				$apiClient       = $c->has( WhatsAppApiClient::class ) ? $c->get( WhatsAppApiClient::class ) : null;
+				$templateManager = $c->has( TemplateManager::class ) ? $c->get( TemplateManager::class ) : null;
 
 				return new NotificationService( $apiClient, $templateManager );
 			}
@@ -52,22 +54,6 @@ class NotificationServiceProvider implements ServiceProviderInterface {
 			static fn( ContainerInterface $c ) => $c->get( NotificationService::class )
 		);
 
-		// Register legacy notification handler for backward compatibility.
-		$container->singleton(
-			\WCH_Order_Notifications::class,
-			static function ( ContainerInterface $c ) {
-				if ( class_exists( 'WCH_Order_Notifications' ) ) {
-					return \WCH_Order_Notifications::getInstance();
-				}
-				return null;
-			}
-		);
-
-		// Convenience alias for legacy handler.
-		$container->singleton(
-			'wch.order_notifications',
-			static fn( ContainerInterface $c ) => $c->get( \WCH_Order_Notifications::class )
-		);
 	}
 
 	/**
@@ -159,8 +145,6 @@ class NotificationServiceProvider implements ServiceProviderInterface {
 		return [
 			NotificationService::class,
 			'wch.notification',
-			\WCH_Order_Notifications::class,
-			'wch.order_notifications',
 		];
 	}
 }

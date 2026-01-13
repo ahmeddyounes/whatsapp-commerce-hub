@@ -64,9 +64,7 @@ class AdminSettingsServiceProvider extends AbstractServiceProvider {
 			SettingsImportExporterInterface::class,
 			function ( $container ) {
 				return new SettingsImportExporter(
-					$container->has( SettingsInterface::class )
-						? $container->get( SettingsInterface::class )
-						: $this->getFallbackSettings(),
+					$container->get( SettingsInterface::class ),
 					$container->get( SettingsSanitizerInterface::class )
 				);
 			}
@@ -77,9 +75,7 @@ class AdminSettingsServiceProvider extends AbstractServiceProvider {
 			SettingsAjaxHandler::class,
 			function ( $container ) {
 				return new SettingsAjaxHandler(
-					$container->has( SettingsInterface::class )
-						? $container->get( SettingsInterface::class )
-						: $this->getFallbackSettings(),
+					$container->get( SettingsInterface::class ),
 					$container->get( SettingsSanitizerInterface::class ),
 					$container->get( SettingsImportExporterInterface::class ),
 					$container->has( LoggerInterface::class )
@@ -94,9 +90,7 @@ class AdminSettingsServiceProvider extends AbstractServiceProvider {
 			AdminSettingsController::class,
 			function ( $container ) {
 				return new AdminSettingsController(
-					$container->has( SettingsInterface::class )
-						? $container->get( SettingsInterface::class )
-						: $this->getFallbackSettings(),
+					$container->get( SettingsInterface::class ),
 					$container->get( SettingsTabRendererInterface::class ),
 					$container->get( SettingsSanitizerInterface::class ),
 					$container->get( SettingsAjaxHandler::class )
@@ -104,12 +98,6 @@ class AdminSettingsServiceProvider extends AbstractServiceProvider {
 			}
 		);
 
-		// Register aliases for backward compatibility.
-		$this->container->alias( 'settings_tab_renderer', SettingsTabRendererInterface::class );
-		$this->container->alias( 'settings_sanitizer', SettingsSanitizerInterface::class );
-		$this->container->alias( 'settings_import_exporter', SettingsImportExporterInterface::class );
-		$this->container->alias( 'settings_ajax_handler', SettingsAjaxHandler::class );
-		$this->container->alias( 'admin_settings_controller', AdminSettingsController::class );
 	}
 
 	/**
@@ -140,59 +128,4 @@ class AdminSettingsServiceProvider extends AbstractServiceProvider {
 		];
 	}
 
-	/**
-	 * Get fallback settings instance.
-	 *
-	 * @return SettingsInterface
-	 */
-	protected function getFallbackSettings(): SettingsInterface {
-		if ( class_exists( 'WCH_Settings' ) ) {
-			return \WCH_Settings::getInstance();
-		}
-
-		// Return a minimal settings implementation.
-		return new class() implements SettingsInterface {
-			public function get( string $key, mixed $default = null ): mixed {
-				return get_option( 'wch_' . str_replace( '.', '_', $key ), $default );
-			}
-
-			public function set( string $key, $value ): bool {
-				return update_option( 'wch_' . str_replace( '.', '_', $key ), $value );
-			}
-
-			public function has( string $key ): bool {
-				return get_option( 'wch_' . str_replace( '.', '_', $key ), '__not_found__' ) !== '__not_found__';
-			}
-
-			public function delete( string $key ): bool {
-				return delete_option( 'wch_' . str_replace( '.', '_', $key ) );
-			}
-
-			public function all(): array {
-				return get_option( 'wch_settings', [] );
-			}
-
-			public function getGroup( string $group ): array {
-				$all = $this->all();
-				return $all[ $group ] ?? [];
-			}
-
-			public function isConfigured(): bool {
-				$creds = $this->getApiCredentials();
-				return ! empty( $creds['access_token'] ) && ! empty( $creds['phone_number_id'] );
-			}
-
-			public function getApiCredentials(): array {
-				return [
-					'access_token'        => $this->get( 'api.access_token', '' ),
-					'phone_number_id'     => $this->get( 'api.phone_number_id', '' ),
-					'business_account_id' => $this->get( 'api.business_account_id', '' ),
-				];
-			}
-
-			public function refresh(): void {
-				wp_cache_delete( 'wch_settings', 'options' );
-			}
-		};
-	}
 }

@@ -29,7 +29,10 @@ use WhatsAppCommerceHub\Application\Services\AddressService;
 use WhatsAppCommerceHub\Application\Services\BroadcastService;
 use WhatsAppCommerceHub\Application\Services\CatalogSyncService;
 use WhatsAppCommerceHub\Application\Services\MessageBuilderFactory;
+use WhatsAppCommerceHub\Infrastructure\Configuration\SettingsManager;
+use WhatsAppCommerceHub\Infrastructure\Queue\QueueManager;
 use WhatsAppCommerceHub\Payments\PaymentGatewayRegistry;
+use WhatsAppCommerceHub\Presentation\Templates\TemplateManager;
 use WhatsAppCommerceHub\Checkout\CheckoutOrchestrator;
 
 // Exit if accessed directly.
@@ -130,7 +133,9 @@ class BusinessServiceProvider implements ServiceProviderInterface {
 				$c->get( MessageBuilderFactory::class ),
 				$c->get( AddressServiceInterface::class ),
 				$c->has( CartRepositoryInterface::class ) ? $c->get( CartRepositoryInterface::class ) : null,
-				$c->has( 'wch.order_sync' ) ? $c->get( 'wch.order_sync' ) : null
+				$c->has( \WhatsAppCommerceHub\Contracts\Services\OrderSyncServiceInterface::class )
+					? $c->get( \WhatsAppCommerceHub\Contracts\Services\OrderSyncServiceInterface::class )
+					: null
 			)
 		);
 
@@ -151,7 +156,7 @@ class BusinessServiceProvider implements ServiceProviderInterface {
 			BroadcastServiceInterface::class,
 			static fn( ContainerInterface $c ) => new BroadcastService(
 				$c->get( \wpdb::class ),
-				$c->has( \WCH_Template_Manager::class ) ? $c->get( \WCH_Template_Manager::class ) : null
+				$c->has( TemplateManager::class ) ? $c->get( TemplateManager::class ) : null
 			)
 		);
 
@@ -172,8 +177,8 @@ class BusinessServiceProvider implements ServiceProviderInterface {
 			CatalogSyncServiceInterface::class,
 			static fn( ContainerInterface $c ) => new CatalogSyncService(
 				$c->get( \wpdb::class ),
-				$c->has( \WCH_Settings::class ) ? $c->get( \WCH_Settings::class ) : null,
-				$c->has( \WCH_Queue::class ) ? $c->get( \WCH_Queue::class ) : null
+				$c->has( SettingsManager::class ) ? $c->get( SettingsManager::class ) : null,
+				$c->has( QueueManager::class ) ? $c->get( QueueManager::class ) : null
 			)
 		);
 

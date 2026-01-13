@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Actions;
 
+use WhatsAppCommerceHub\Support\Messaging\MessageBuilder;
 use WhatsAppCommerceHub\ValueObjects\ActionResult;
 use WhatsAppCommerceHub\ValueObjects\ConversationContext;
 
@@ -52,7 +53,7 @@ class ShowCategoryAction extends AbstractAction {
 	public function handle( string $phone, array $params, ConversationContext $context ): ActionResult {
 		try {
 			if ( empty( $params['category_id'] ) ) {
-				return $this->error( __( 'Category not specified. Please select a category from the menu.', 'whatsapp-commerce-hub' ) );
+				return $this->showCategoryList();
 			}
 
 			$categoryId = (int) $params['category_id'];
@@ -99,6 +100,46 @@ class ShowCategoryAction extends AbstractAction {
 	}
 
 	/**
+	 * Show a category selection list.
+	 *
+	 * @return ActionResult
+	 */
+	private function showCategoryList(): ActionResult {
+		$categories = get_terms(
+			[
+				'taxonomy'   => 'product_cat',
+				'hide_empty' => true,
+				'number'     => 10,
+				'orderby'    => 'name',
+			]
+		);
+
+		if ( empty( $categories ) || is_wp_error( $categories ) ) {
+			return $this->error( __( 'No categories available at the moment.', 'whatsapp-commerce-hub' ) );
+		}
+
+		$message = $this->createMessageBuilder();
+		$message->body( __( 'Select a category to browse products:', 'whatsapp-commerce-hub' ) );
+
+		$rows = [];
+		foreach ( $categories as $category ) {
+			$rows[] = [
+				'id'          => 'category_' . $category->term_id,
+				'title'       => wp_trim_words( $category->name, 3, '...' ),
+				'description' => sprintf(
+					/* translators: %d: product count */
+					_n( '%d product', '%d products', (int) $category->count, 'whatsapp-commerce-hub' ),
+					(int) $category->count
+				),
+			];
+		}
+
+		$message->section( __( 'Categories', 'whatsapp-commerce-hub' ), $rows );
+
+		return ActionResult::success( [ $message ] );
+	}
+
+	/**
 	 * Get products in category with pagination.
 	 *
 	 * @param int $categoryId Category ID.
@@ -137,9 +178,9 @@ class ShowCategoryAction extends AbstractAction {
 	 * @param \WP_Term $category Category term.
 	 * @param array    $products Products data.
 	 * @param int      $page     Current page.
-	 * @return \WCH_Message_Builder
+	 * @return MessageBuilder
 	 */
-	private function buildProductList( \WP_Term $category, array $products, int $page ): \WCH_Message_Builder {
+	private function buildProductList( \WP_Term $category, array $products, int $page ): MessageBuilder {
 		$message = $this->createMessageBuilder();
 
 		// Header with category name.

@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace WhatsAppCommerceHub\Checkout\Steps;
 
 use WhatsAppCommerceHub\Checkout\AbstractStep;
+use WhatsAppCommerceHub\Support\Messaging\MessageBuilder;
 use WhatsAppCommerceHub\ValueObjects\CheckoutResponse;
 
 // Exit if accessed directly.
@@ -277,9 +278,9 @@ class PaymentStep extends AbstractStep {
 	 * Build payment options message.
 	 *
 	 * @param array $methods Available payment methods.
-	 * @return \WCH_Message_Builder
+	 * @return MessageBuilder
 	 */
-	private function buildPaymentOptionsMessage( array $methods ): \WCH_Message_Builder {
+	private function buildPaymentOptionsMessage( array $methods ): MessageBuilder {
 		$message = $this->message_builder->create();
 		$message->header( 'text', __( '💳 Payment Method', 'whatsapp-commerce-hub' ) );
 		$message->body( __( 'Choose how you would like to pay:', 'whatsapp-commerce-hub' ) );

@@ -12,6 +12,11 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Controllers;
 
+use WhatsAppCommerceHub\Clients\WhatsAppApiClient;
+use WhatsAppCommerceHub\Core\Logger;
+use WhatsAppCommerceHub\Infrastructure\Configuration\SettingsManager;
+use WhatsAppCommerceHub\Support\AI\AiAssistant;
+use WhatsAppCommerceHub\Support\AI\ResponseParser;
 use WP_REST_Request;
 use WP_REST_Response;
 use WP_REST_Server;
@@ -303,7 +308,7 @@ class ConversationsController extends AbstractController {
 				u.display_name as agent_name,
 				(SELECT COUNT(*) FROM {$tableMessages} WHERE conversation_id = c.id AND direction = 'inbound' AND status != 'read') as unread_count,
 				(SELECT content FROM {$tableMessages} WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1) as last_message_content,
-				(SELECT message_type FROM {$tableMessages} WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1) as last_message_type
+				(SELECT type FROM {$tableMessages} WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1) as last_message_type
 			FROM {$tableConversations} c
 			LEFT JOIN {$tableProfiles} p ON c.customer_phone = p.phone
 			LEFT JOIN {$wpdb->users} u ON c.assigned_agent_id = u.ID
@@ -499,21 +504,38 @@ class ConversationsController extends AbstractController {
 			);
 		}
 
-		$whatsappApi = \WCH_WhatsApp_API::getInstance();
-		$result      = $whatsappApi->send_text_message( $conversation['customer_phone'], $messageText );
+		try {
+			$whatsappApi = wch( WhatsAppApiClient::class );
+		} catch ( \Throwable $e ) {
+			return $this->prepareError(
+				'whatsapp_client_unavailable',
+				$e->getMessage(),
+				[],
+				500
+			);
+		}
 
-		if ( is_wp_error( $result ) ) {
-			return $result;
+		$result = $whatsappApi->sendTextMessage( $conversation['customer_phone'], $messageText );
+
+		$messageId = $result['messages'][0]['id'] ?? $result['message_id'] ?? null;
+		if ( ! $messageId ) {
+			return $this->prepareError(
+				'whatsapp_message_failed',
+				__( 'Failed to send WhatsApp message', 'whatsapp-commerce-hub' ),
+				[],
+				500
+			);
 		}
 
 		$messageData = [
 			'conversation_id' => $conversationId,
 			'direction'       => 'outbound',
-			'message_type'    => 'text',
-			'wa_message_id'   => $result['message_id'],
+			'type'            => 'text',
+			'wa_message_id'   => $messageId,
 			'content'         => wp_json_encode( [ 'text' => $messageText ] ),
 			'status'          => 'sent',
 			'created_at'      => current_time( 'mysql' ),
+			'updated_at'      => current_time( 'mysql' ),
 		];
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
@@ -781,19 +803,28 @@ class ConversationsController extends AbstractController {
 
 		foreach ( array_reverse( $messages ) as $msg ) {
 			$content               = json_decode( $msg['content'] ?? '{}', true );
+			$type                  = $msg['type'] ?? 'text';
 			$conversationHistory[] = [
 				'role'      => 'inbound' === $msg['direction'] ? 'customer' : 'agent',
-				'message'   => $this->getMessageText( $content, $msg['message_type'] ),
+				'message'   => $this->getMessageText( $content, $type ),
 				'timestamp' => $msg['created_at'],
 			];
 		}
 
-		$aiService      = \WCH_AI_Service::getInstance();
-		$suggestedReply = $aiService->suggest_agent_reply( $conversationHistory, $context );
-
-		if ( is_wp_error( $suggestedReply ) ) {
-			return $suggestedReply;
+		$lastCustomerMessage = '';
+		for ( $i = count( $conversationHistory ) - 1; $i >= 0; $i-- ) {
+			if ( 'customer' === ( $conversationHistory[ $i ]['role'] ?? '' ) ) {
+				$lastCustomerMessage = (string) ( $conversationHistory[ $i ]['message'] ?? '' );
+				break;
+			}
 		}
+
+		$assistant      = new AiAssistant(
+			wch( SettingsManager::class ),
+			wch( Logger::class ),
+			new ResponseParser()
+		);
+		$suggestedReply = $assistant->generateResponse( $lastCustomerMessage, $context );
 
 		return $this->prepareResponse(
 			[ 'suggestion' => $suggestedReply ],
@@ -893,9 +924,14 @@ class ConversationsController extends AbstractController {
 
 		switch ( $type ) {
 			case 'text':
+				if ( isset( $content['text'] ) && is_array( $content['text'] ) ) {
+					return $content['text']['body'] ?? '';
+				}
 				return $content['text'] ?? '';
 			case 'interactive':
 				return $content['interactive']['body']['text'] ?? '[Interactive message]';
+			case 'button':
+				return $content['button']['text'] ?? '[Button message]';
 			case 'image':
 				return '[Image]';
 			case 'document':

@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace WhatsAppCommerceHub\Checkout\Steps;
 
 use WhatsAppCommerceHub\Checkout\AbstractStep;
+use WhatsAppCommerceHub\Support\Messaging\MessageBuilder;
 use WhatsAppCommerceHub\ValueObjects\CheckoutResponse;
 
 // Exit if accessed directly.
@@ -216,9 +217,9 @@ class AddressStep extends AbstractStep {
 	 * Build message showing saved addresses.
 	 *
 	 * @param array $addresses Saved addresses.
-	 * @return \WCH_Message_Builder
+	 * @return MessageBuilder
 	 */
-	private function buildSavedAddressesMessage( array $addresses ): \WCH_Message_Builder {
+	private function buildSavedAddressesMessage( array $addresses ): MessageBuilder {
 		$message = $this->message_builder->create();
 		$message->body( __( '📍 Select a shipping address or add a new one:', 'whatsapp-commerce-hub' ) );
 
@@ -248,9 +249,9 @@ class AddressStep extends AbstractStep {
 	/**
 	 * Build prompt for new address entry.
 	 *
-	 * @return \WCH_Message_Builder
+	 * @return MessageBuilder
 	 */
-	private function buildNewAddressPrompt(): \WCH_Message_Builder {
+	private function buildNewAddressPrompt(): MessageBuilder {
 		$prompt = __(
 			"📍 Please provide your shipping address:\n\n" .
 			"Include:\n" .

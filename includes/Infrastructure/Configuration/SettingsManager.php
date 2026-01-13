@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Infrastructure\Configuration;
 
+use WhatsAppCommerceHub\Core\Logger;
 use WhatsAppCommerceHub\Infrastructure\Security\Encryption;
 
 // Exit if accessed directly.
@@ -25,7 +26,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Manages plugin settings with encryption, validation, and caching.
  */
 class SettingsManager {
-
 	/**
 	 * Option name for storing all settings.
 	 */
@@ -98,13 +98,14 @@ class SettingsManager {
 			if ( false === $decrypted ) {
 				// Decryption failed - likely key rotation or data corruption.
 				// Return false instead of ciphertext to prevent using encrypted data as credentials.
-				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Critical security logging when Logger unavailable.
-				if ( class_exists( 'WCH_Logger' ) ) {
-					\WCH_Logger::error(
+				try {
+					Logger::instance()->error(
 						sprintf( 'Failed to decrypt field %s - possible key rotation or data corruption', $key ),
+						'settings',
 						[ 'component' => 'SettingsManager' ]
 					);
-				} else {
+				} catch ( \Throwable ) {
+					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Fallback logging.
 					error_log(
 						sprintf(
 							'SettingsManager: Failed to decrypt field %s - possible key rotation or data corruption',
@@ -154,13 +155,14 @@ class SettingsManager {
 			$encrypted = $this->encryption->encrypt( $value );
 			if ( false === $encrypted ) {
 				// Encryption failed - reject the write to prevent storing plaintext credentials.
-				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Critical security logging when Logger unavailable.
-				if ( class_exists( 'WCH_Logger' ) ) {
-					\WCH_Logger::error(
+				try {
+					Logger::instance()->error(
 						sprintf( 'CRITICAL - Failed to encrypt sensitive field %s, rejecting write', $key ),
+						'settings',
 						[ 'component' => 'SettingsManager' ]
 					);
-				} else {
+				} catch ( \Throwable ) {
+					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Fallback logging.
 					error_log(
 						sprintf(
 							'SettingsManager: CRITICAL - Failed to encrypt sensitive field %s, rejecting write',
@@ -183,13 +185,14 @@ class SettingsManager {
 		$result = update_option( self::OPTION_NAME, $settings );
 
 		if ( ! $result ) {
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Critical database logging when Logger unavailable.
-			if ( class_exists( 'WCH_Logger' ) ) {
-				\WCH_Logger::warning(
+			try {
+				Logger::instance()->warning(
 					sprintf( 'Failed to update setting %s - check database permissions', $key ),
+					'settings',
 					[ 'component' => 'SettingsManager' ]
 				);
-			} else {
+			} catch ( \Throwable ) {
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Fallback logging.
 				error_log(
 					sprintf(
 						'SettingsManager: Failed to update setting %s - check database permissions',

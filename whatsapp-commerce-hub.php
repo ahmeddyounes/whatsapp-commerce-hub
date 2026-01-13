@@ -60,40 +60,6 @@ function wch_psr4_autoloader( $class_name ) {
 spl_autoload_register( 'wch_psr4_autoloader' );
 
 /**
- * Legacy Autoloader for WCH_ prefixed classes.
- *
- * Maps old WCH_ class names to new PSR-4 namespaced classes
- * using class_alias for backwards compatibility.
- *
- * @since 3.0.0
- * @param string $class_name The class name to autoload.
- * @return void
- */
-function wch_legacy_autoloader( $class_name ) {
-	// Only handle WCH_ prefixed classes.
-	if ( strpos( $class_name, 'WCH_' ) !== 0 ) {
-		return;
-	}
-
-	// Get the mapping from LegacyClassMapper.
-	$mapping = \WhatsAppCommerceHub\Core\LegacyClassMapper::getMapping();
-
-	if ( isset( $mapping[ $class_name ] ) ) {
-		$new_class = $mapping[ $class_name ];
-
-		// Ensure the new class is loaded.
-		if ( ! class_exists( $new_class, true ) ) {
-			return;
-		}
-
-		// Create an alias from the old name to the new class.
-		class_alias( $new_class, $class_name );
-	}
-}
-
-spl_autoload_register( 'wch_legacy_autoloader' );
-
-/**
  * Get the DI container instance.
  *
  * Initializes the container on first call and registers all service providers.
@@ -188,7 +154,7 @@ function wch_is_woocommerce_active(): bool {
 }
 
 // Initialize error handler early.
-WCH_Error_Handler::init();
+\WhatsAppCommerceHub\Core\ErrorHandler::init();
 
 /**
  * Main plugin class using singleton pattern.
@@ -205,11 +171,11 @@ WCH_Error_Handler::init();
  * @since 1.0.0
  * @package WhatsApp_Commerce_Hub
  */
-class WCH_Plugin {
+class WhatsAppCommerceHubPlugin {
 	/**
 	 * The single instance of the class.
 	 *
-	 * @var WCH_Plugin
+	 * @var WhatsAppCommerceHubPlugin
 	 */
 	private static $instance = null;
 
@@ -217,7 +183,7 @@ class WCH_Plugin {
 	 * Get the singleton instance.
 	 *
 	 * @since 1.0.0
-	 * @return WCH_Plugin The singleton instance.
+	 * @return WhatsAppCommerceHubPlugin The singleton instance.
 	 */
 	public static function getInstance() {
 		if ( null === self::$instance ) {
@@ -250,51 +216,38 @@ class WCH_Plugin {
 
 		// Initialize admin pages.
 		if ( is_admin() ) {
-			WCH_Admin_Inbox::init();
-			WCH_Admin_Logs::init();
-			WCH_Admin_Jobs::init();
-			WCH_Admin_Templates::init();
-			WCH_Admin_Settings::init();
-			WCH_Admin_Analytics::init();
-			WCH_Admin_Catalog_Sync::init();
-			WCH_Admin_Broadcasts::init();
-			WCH_Dashboard_Widgets::init();
+			wch( \WhatsAppCommerceHub\Presentation\Admin\Pages\InboxPage::class )->init();
+			wch( \WhatsAppCommerceHub\Presentation\Admin\Pages\LogsPage::class )->init();
+			wch( \WhatsAppCommerceHub\Presentation\Admin\Pages\JobsPage::class )->init();
+			wch( \WhatsAppCommerceHub\Presentation\Admin\Pages\TemplatesPage::class )->init();
+			wch( \WhatsAppCommerceHub\Presentation\Admin\Pages\SettingsPage::class )->init();
+			wch( \WhatsAppCommerceHub\Presentation\Admin\Pages\AnalyticsPage::class )->init();
+			wch( \WhatsAppCommerceHub\Presentation\Admin\Pages\CatalogSyncPage::class )->init();
+			wch( \WhatsAppCommerceHub\Presentation\Admin\Pages\BroadcastsPage::class )->init();
+			wch( \WhatsAppCommerceHub\Presentation\Admin\Widgets\DashboardWidgets::class )->init();
 		}
 
-		// Initialize REST API.
-		WCH_REST_API::getInstance();
-
 		// Initialize background job queue.
-		WCH_Queue::getInstance();
-
-		// Initialize product sync service.
-		WCH_Product_Sync_Service::instance();
-
-		// Initialize order sync service.
-		WCH_Order_Sync_Service::instance();
-
-		// Initialize inventory sync handler.
-		WCH_Inventory_Sync_Handler::instance();
+		wch( \WhatsAppCommerceHub\Infrastructure\Queue\QueueManager::class );
 
 		// Schedule inventory discrepancy check.
-		WCH_Inventory_Sync_Handler::schedule_discrepancy_check();
+		wch( \WhatsAppCommerceHub\Application\Services\InventorySyncService::class )
+			->schedule_discrepancy_check();
 
 		// Initialize payment system.
-		WCH_Payment_Manager::instance();
+		wch( \WhatsAppCommerceHub\Payments\PaymentGatewayRegistry::class );
 
 		// Initialize refund handler.
-		WCH_Refund_Handler::instance();
+		wch( \WhatsAppCommerceHub\Features\Payments\RefundService::class );
 
 		// Initialize order notifications.
-		WCH_Order_Notifications::instance();
+		wch( \WhatsAppCommerceHub\Features\Notifications\OrderNotifications::class );
 
 		// Initialize abandoned cart recovery system.
-		$recovery = WCH_Abandoned_Cart_Recovery::getInstance();
-		$recovery->init();
+		wch( \WhatsAppCommerceHub\Features\AbandonedCart\RecoveryService::class )->init();
 
 		// Initialize re-engagement service.
-		$reengagement = WCH_Reengagement_Service::instance();
-		$reengagement->init();
+		wch( \WhatsAppCommerceHub\Features\Reengagement\ReengagementService::class )->init();
 
 		// Hook into WooCommerce order creation for conversion tracking.
 		add_action( 'woocommerce_checkout_order_created', [ $this, 'track_order_conversion' ], 10, 1 );
@@ -313,8 +266,8 @@ class WCH_Plugin {
 		$customer_phone = $order->get_billing_phone();
 
 		if ( $customer_phone ) {
-			$reengagement = WCH_Reengagement_Service::instance();
-			$reengagement->track_conversion( $customer_phone, $order->get_id() );
+			wch( \WhatsAppCommerceHub\Features\Reengagement\ReengagementService::class )
+				->track_conversion( $customer_phone, $order->get_id() );
 		}
 	}
 
@@ -322,8 +275,7 @@ class WCH_Plugin {
 	 * Check and run database migrations if needed.
 	 */
 	public function check_database_migrations() {
-		$db_manager = new WCH_Database_Manager();
-		$db_manager->run_migrations();
+		wch( \WhatsAppCommerceHub\Infrastructure\Database\DatabaseManager::class )->run_migrations();
 	}
 
 	/**
@@ -428,7 +380,7 @@ function wch_activate_plugin() {
 	}
 
 	// Run database installation.
-	$db_manager = new WCH_Database_Manager();
+	$db_manager = new \WhatsAppCommerceHub\Infrastructure\Database\DatabaseManager();
 	$db_manager->install();
 }
 
@@ -479,8 +431,8 @@ function wch_init_plugin() {
 	// This sets up all services, repositories, and providers.
 	wch_get_container();
 
-	// Initialize the main plugin class (legacy support).
-	WCH_Plugin::getInstance();
+	// Initialize the main plugin class.
+	WhatsAppCommerceHubPlugin::getInstance();
 }
 
 add_action( 'plugins_loaded', 'wch_init_plugin', 20 );

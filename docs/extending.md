@@ -848,8 +848,8 @@ Override default message templates and conversation flows.
 /**
  * Customize welcome message template
  */
-add_filter('wch_message_content', function($content, $message_type, $conversation) {
-    if ($message_type === 'welcome') {
+add_filter('wch_message_content', function($content, $type, $conversation) {
+    if ($type === 'welcome') {
         $customer_name = $conversation->customer_name ?? 'there';
         $hour = (int) date('H');
 

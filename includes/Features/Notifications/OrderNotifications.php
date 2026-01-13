@@ -448,13 +448,13 @@ class OrderNotifications {
 	 */
 	private function isCustomerOptedOut( string $customerPhone ): bool {
 		global $wpdb;
-		$tableName = $wpdb->prefix . 'wch_opt_outs';
+		$tableName = $wpdb->prefix . 'wch_customer_profiles';
 
 		$optOut = $wpdb->get_var(
-			$wpdb->prepare( "SELECT COUNT(*) FROM {$tableName} WHERE phone = %s", $customerPhone )
+			$wpdb->prepare( "SELECT notification_opt_out FROM {$tableName} WHERE phone = %s", $customerPhone )
 		);
 
-		return (int) $optOut > 0;
+		return (int) $optOut === 1;
 	}
 
 	/**

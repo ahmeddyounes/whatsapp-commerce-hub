@@ -32,7 +32,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  * - Tracking template usage statistics
  */
 class TemplateManager {
-
 	/**
 	 * Option name for storing templates
 	 */

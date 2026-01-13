@@ -1,12 +1,11 @@
 # Presentation
 
-User interface layer including admin pages, user actions, and templates.
+User interface layer including admin pages and templates.
 
 ## Purpose
 
 Presentation layer handles:
 - **Admin UI** - WordPress admin pages and widgets
-- **User Actions** - WhatsApp conversation actions
 - **Templates** - Message templates and rendering
 - **Input Validation** - User input handling
 - **Output Formatting** - Response formatting
@@ -19,7 +18,6 @@ Presentation/
 │   ├── Pages/      # Admin dashboard pages
 │   ├── Widgets/    # Dashboard widgets
 │   └── Settings/   # Settings pages
-├── Actions/        # WhatsApp user actions
 └── Templates/      # Template management
 ```
 
@@ -39,14 +37,6 @@ $page = wch(AnalyticsPage::class);
 $page->render();
 ```
 
-### User Action
-```php
-use WhatsAppCommerceHub\Presentation\Actions\AddToCartAction;
-
-$action = wch(AddToCartAction::class);
-$result = $action->execute($context);
-```
-
 ## Principles
 
 1. **User Interface Only** - No business logic
@@ -60,5 +50,4 @@ $result = $action->execute($context);
 Phase 6 - Not Started
 - 🔴 Admin pages
 - 🔴 Dashboard widgets
-- 🔴 User actions
 - 🔴 Template system

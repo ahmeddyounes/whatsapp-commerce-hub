@@ -14,6 +14,7 @@ namespace WhatsAppCommerceHub\Application\Services;
 
 use WhatsAppCommerceHub\Contracts\Services\ContextManagerInterface;
 use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
+use WhatsAppCommerceHub\Core\Logger;
 use WhatsAppCommerceHub\ValueObjects\ConversationContext;
 
 // Exit if accessed directly.
@@ -360,9 +361,6 @@ class ContextManagerService implements ContextManagerInterface {
 			return;
 		}
 
-		// Fallback to legacy logger.
-		if ( class_exists( 'WCH_Logger' ) ) {
-			\WCH_Logger::log( $message, $context, $level );
-		}
+		Logger::instance()->log( $level, $message, 'context_manager', $context );
 	}
 }

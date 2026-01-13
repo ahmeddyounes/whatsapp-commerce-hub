@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Actions;
 
+use WhatsAppCommerceHub\Support\Messaging\MessageBuilder;
 use WhatsAppCommerceHub\ValueObjects\ActionResult;
 use WhatsAppCommerceHub\ValueObjects\ConversationContext;
 
@@ -78,9 +79,9 @@ class RequestAddressAction extends AbstractAction {
 	 * Build message with saved addresses.
 	 *
 	 * @param array $addresses Saved addresses.
-	 * @return \WCH_Message_Builder
+	 * @return MessageBuilder
 	 */
-	private function buildSavedAddressesMessage( array $addresses ): \WCH_Message_Builder {
+	private function buildSavedAddressesMessage( array $addresses ): MessageBuilder {
 		$message = $this->createMessageBuilder();
 
 		$message->header( __( 'Shipping Address', 'whatsapp-commerce-hub' ) );
@@ -122,9 +123,9 @@ class RequestAddressAction extends AbstractAction {
 	/**
 	 * Build new address prompt.
 	 *
-	 * @return \WCH_Message_Builder
+	 * @return MessageBuilder
 	 */
-	private function buildNewAddressPrompt(): \WCH_Message_Builder {
+	private function buildNewAddressPrompt(): MessageBuilder {
 		$message = $this->createMessageBuilder();
 
 		$text = sprintf(
@@ -154,8 +155,15 @@ class RequestAddressAction extends AbstractAction {
 	private function formatAddressSummary( array $address ): string {
 		$parts = [];
 
-		if ( ! empty( $address['street'] ) ) {
-			$parts[] = $address['street'];
+		$street = $address['street'] ?? $address['address_1'] ?? '';
+		if ( '' !== $street ) {
+			$parts[] = $street;
+		}
+
+		if ( ! empty( $address['street_2'] ) ) {
+			$parts[] = $address['street_2'];
+		} elseif ( ! empty( $address['address_2'] ) ) {
+			$parts[] = $address['address_2'];
 		}
 
 		if ( ! empty( $address['city'] ) ) {
@@ -166,8 +174,9 @@ class RequestAddressAction extends AbstractAction {
 			$parts[] = $address['state'];
 		}
 
-		if ( ! empty( $address['postal_code'] ) ) {
-			$parts[] = $address['postal_code'];
+		$postalCode = $address['postal_code'] ?? $address['postcode'] ?? '';
+		if ( '' !== $postalCode ) {
+			$parts[] = $postalCode;
 		}
 
 		if ( ! empty( $address['country'] ) ) {
@@ -187,7 +196,15 @@ class RequestAddressAction extends AbstractAction {
 		$requiredFields = [ 'street', 'city', 'postal_code', 'country' ];
 
 		foreach ( $requiredFields as $field ) {
-			if ( empty( $address[ $field ] ) ) {
+			$value = $address[ $field ] ?? null;
+			if ( 'street' === $field ) {
+				$value = $address['street'] ?? $address['address_1'] ?? null;
+			}
+			if ( 'postal_code' === $field ) {
+				$value = $address['postal_code'] ?? $address['postcode'] ?? null;
+			}
+
+			if ( empty( $value ) ) {
 				return [
 					'valid'   => false,
 					'message' => sprintf(

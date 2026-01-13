@@ -22,8 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * Manages conversation context including state, variables, and history.
  *
- * Note: This is a transitional class. Full migration will refactor
- * the legacy implementation in a future phase.
+ * Note: This is a transitional class.
  */
 class Context {
 	/**

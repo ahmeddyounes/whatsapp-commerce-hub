@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Security;
 
+use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
+
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -260,8 +262,7 @@ class SecureVault {
 			return $this->decryptV2( substr( $encrypted, 3 ), $field );
 		}
 
-		// Try legacy decryption (v1 - CBC mode).
-		return $this->decryptLegacy( $encrypted );
+		throw new \RuntimeException( 'Unsupported encryption format' );
 	}
 
 	/**
@@ -309,29 +310,6 @@ class SecureVault {
 		}
 
 		return $plaintext;
-	}
-
-	/**
-	 * Decrypt legacy format (CBC mode from v1).
-	 *
-	 * @param string $encrypted The encrypted data.
-	 * @return string The decrypted data.
-	 * @throws \RuntimeException If decryption fails.
-	 */
-	private function decryptLegacy( string $encrypted ): string {
-		// Use legacy encryption class if available.
-		if ( class_exists( 'WCH_Encryption' ) ) {
-			try {
-				$decrypted = \WCH_Encryption::instance()->decrypt( $encrypted );
-				if ( $decrypted ) {
-					return $decrypted;
-				}
-			} catch ( \Exception $e ) {
-				// Fall through to error.
-			}
-		}
-
-		throw new \RuntimeException( 'Unable to decrypt legacy format' );
 	}
 
 	/**
@@ -456,7 +434,7 @@ class SecureVault {
 			return false;
 		}
 
-		// Legacy format always needs re-encryption.
+		// Non-v2 format always needs re-encryption.
 		if ( ! str_starts_with( $encrypted, 'v2:' ) ) {
 			return true;
 		}
@@ -515,16 +493,17 @@ class SecureVault {
 	 * @param string|null $detailed_error The detailed error (e.g., from openssl_error_string()).
 	 */
 	private function logSecurityError( string $message, ?string $detailed_error ): void {
-		if ( class_exists( 'WCH_Logger' ) ) {
-			\WCH_Logger::error(
+		$logger = $this->getLogger();
+		if ( $logger ) {
+			$logger->error(
 				$message,
+				'security',
 				[
-					'category'      => 'security',
 					'openssl_error' => $detailed_error ?: 'No additional details',
 				]
 			);
 		} elseif ( function_exists( 'error_log' ) ) {
-			// Fallback to PHP error log if WCH_Logger is not available.
+			// Fallback to PHP error log if logger is not available.
 			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			error_log( sprintf( '[WCH SecureVault] %s: %s', $message, $detailed_error ?: 'No details' ) );
 		}
@@ -549,18 +528,32 @@ class SecureVault {
 		}
 		$logged[ $key ] = true;
 
-		if ( class_exists( 'WCH_Logger' ) ) {
-			\WCH_Logger::warning(
+		$logger = $this->getLogger();
+		if ( $logger ) {
+			$logger->warning(
 				$message,
+				'security',
 				[
-					'category' => 'security',
-					'details'  => $details,
+					'details' => $details,
 				]
 			);
 		} elseif ( function_exists( 'error_log' ) && defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			// Only log to PHP error log in debug mode for warnings.
 			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			error_log( sprintf( '[WCH SecureVault Warning] %s: %s', $message, $details ) );
+		}
+	}
+
+	/**
+	 * Resolve logger if available.
+	 *
+	 * @return LoggerInterface|null
+	 */
+	private function getLogger(): ?LoggerInterface {
+		try {
+			return wch( LoggerInterface::class );
+		} catch ( \Throwable $e ) {
+			return null;
 		}
 	}
 

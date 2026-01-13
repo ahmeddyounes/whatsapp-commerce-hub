@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Actions;
 
+use WhatsAppCommerceHub\Support\Messaging\MessageBuilder;
 use WhatsAppCommerceHub\ValueObjects\ActionResult;
 use WhatsAppCommerceHub\ValueObjects\ConversationContext;
 
@@ -71,9 +72,9 @@ class ShowMainMenuAction extends AbstractAction {
 	 * Build personalized greeting.
 	 *
 	 * @param object|null $customer Customer profile.
-	 * @return \WCH_Message_Builder
+	 * @return MessageBuilder
 	 */
-	private function buildGreeting( ?object $customer ): \WCH_Message_Builder {
+	private function buildGreeting( ?object $customer ): MessageBuilder {
 		$message = $this->createMessageBuilder();
 
 		if ( $customer && ! empty( $customer->name ) ) {
@@ -92,15 +93,16 @@ class ShowMainMenuAction extends AbstractAction {
 			);
 		}
 
-		return $message->text( $greetingText );
+		$message->text( $greetingText );
+		return $message;
 	}
 
 	/**
 	 * Build main menu interactive list.
 	 *
-	 * @return \WCH_Message_Builder
+	 * @return MessageBuilder
 	 */
-	private function buildMenu(): \WCH_Message_Builder {
+	private function buildMenu(): MessageBuilder {
 		$message = $this->createMessageBuilder();
 
 		$message->body( __( 'Please select an option from the menu below:', 'whatsapp-commerce-hub' ) );

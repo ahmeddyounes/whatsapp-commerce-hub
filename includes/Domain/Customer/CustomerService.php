@@ -27,7 +27,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Handles customer profile business logic with repository pattern.
  */
 class CustomerService implements CustomerServiceInterface {
-
 	/**
 	 * Constructor.
 	 *

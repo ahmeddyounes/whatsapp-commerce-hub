@@ -12,6 +12,10 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Actions;
 
+use WhatsAppCommerceHub\Domain\Cart\CartService;
+use WhatsAppCommerceHub\Features\AbandonedCart\RecoveryService;
+use WhatsAppCommerceHub\Payments\PaymentGatewayRegistry;
+use WhatsAppCommerceHub\Support\Messaging\MessageBuilder;
 use WhatsAppCommerceHub\ValueObjects\ActionResult;
 use WhatsAppCommerceHub\ValueObjects\ConversationContext;
 
@@ -227,9 +231,9 @@ class ConfirmOrderAction extends AbstractAction {
 
 			// Process payment through gateway manager.
 			$paymentMethod  = $contextData['payment_method'];
-			$paymentManager = \WCH_Payment_Manager::instance();
+			$paymentManager = wch( PaymentGatewayRegistry::class );
 
-			$paymentResult = $paymentManager->process_order_payment(
+			$paymentResult = $paymentManager->processOrderPayment(
 				$order->get_id(),
 				$paymentMethod,
 				[
@@ -307,9 +311,9 @@ class ConfirmOrderAction extends AbstractAction {
 	 * Build order confirmation message.
 	 *
 	 * @param int $orderId Order ID.
-	 * @return \WCH_Message_Builder
+	 * @return MessageBuilder
 	 */
-	private function buildConfirmationMessage( int $orderId ): \WCH_Message_Builder {
+	private function buildConfirmationMessage( int $orderId ): MessageBuilder {
 		$order = wc_get_order( $orderId );
 
 		$message = $this->createMessageBuilder();
@@ -396,7 +400,7 @@ class ConfirmOrderAction extends AbstractAction {
 		if ( $this->cartService ) {
 			$this->cartService->updateCartStatus( (string) $cartId, $status );
 		} else {
-			\WCH_Cart_Manager::instance()->update_cart( $cartId, [ 'status' => $status ] );
+			wch( CartService::class )->updateCartStatus( (string) $cartId, $status );
 		}
 	}
 
@@ -425,20 +429,17 @@ class ConfirmOrderAction extends AbstractAction {
 		$revenue = (float) $order->get_total();
 
 		// Mark cart as recovered.
-		if ( class_exists( 'WCH_Abandoned_Cart_Recovery' ) ) {
-			$recovery = \WCH_Abandoned_Cart_Recovery::getInstance();
-			$recovery->mark_cart_recovered( $cart['id'], $orderId, $revenue );
+		wch( RecoveryService::class )->markCartRecovered( (int) $cart['id'], $orderId, $revenue );
 
-			$this->log(
-				'Cart recovery tracked',
-				[
-					'cart_id'  => $cart['id'],
-					'order_id' => $orderId,
-					'revenue'  => $revenue,
-				],
-				'info'
-			);
-		}
+		$this->log(
+			'Cart recovery tracked',
+			[
+				'cart_id'  => $cart['id'],
+				'order_id' => $orderId,
+				'revenue'  => $revenue,
+			],
+			'info'
+		);
 	}
 
 	/**

@@ -8,12 +8,8 @@ This directory contains the essential building blocks and utilities that the res
 
 ## Contents
 
-- **Bootstrap/** - Plugin initialization and bootstrapping logic
-- **Deprecation.php** - Handles deprecation warnings during PSR-4 migration
-- **LegacyClassMapper.php** - Maps legacy WCH_ classes to new PSR-4 classes
-- **CompatibilityLayer.php** - Provides backward compatibility wrappers
-- **Logger.php** - Logging functionality (to be migrated)
-- **ErrorHandler.php** - Global error and exception handling (to be migrated)
+- **Logger.php** - Logging functionality
+- **ErrorHandler.php** - Global error and exception handling
 
 ## Namespace
 
@@ -31,17 +27,6 @@ $logger = wch(Logger::class);
 $logger->info('Order processed successfully', ['order_id' => 123]);
 ```
 
-### Triggering Deprecation
-```php
-use WhatsAppCommerceHub\Core\Deprecation;
-
-Deprecation::trigger(
-    'WCH_Old_Class',
-    'WhatsAppCommerceHub\New\NewClass',
-    '2.0.0'
-);
-```
-
 ## Principles
 
 1. **Foundation First** - Core components have no dependencies on other layers
@@ -51,8 +36,5 @@ Deprecation::trigger(
 
 ## Migration Status
 
-- ✅ Deprecation system implemented
-- ✅ Legacy class mapper implemented
-- ✅ Compatibility layer implemented
-- 🔴 Logger migration pending
-- 🔴 ErrorHandler migration pending
+- ✅ Logger
+- ✅ ErrorHandler

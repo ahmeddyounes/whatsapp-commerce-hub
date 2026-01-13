@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Actions;
 
+use WhatsAppCommerceHub\Support\Messaging\MessageBuilder;
 use WhatsAppCommerceHub\ValueObjects\ActionResult;
 use WhatsAppCommerceHub\ValueObjects\ConversationContext;
 
@@ -111,9 +112,9 @@ class ShowProductAction extends AbstractAction {
 	 * Build product image message.
 	 *
 	 * @param \WC_Product $product Product object.
-	 * @return \WCH_Message_Builder
+	 * @return MessageBuilder
 	 */
-	private function buildImageMessage( \WC_Product $product ): \WCH_Message_Builder {
+	private function buildImageMessage( \WC_Product $product ): MessageBuilder {
 		$message = $this->createMessageBuilder();
 
 		$imageUrl = $this->getProductImageUrl( $product );
@@ -129,9 +130,9 @@ class ShowProductAction extends AbstractAction {
 	 * Build product details message.
 	 *
 	 * @param \WC_Product $product Product object.
-	 * @return \WCH_Message_Builder
+	 * @return MessageBuilder
 	 */
-	private function buildDetailsMessage( \WC_Product $product ): \WCH_Message_Builder {
+	private function buildDetailsMessage( \WC_Product $product ): MessageBuilder {
 		$message = $this->createMessageBuilder();
 
 		// Product name.
@@ -172,9 +173,9 @@ class ShowProductAction extends AbstractAction {
 	 * Build variant selector message.
 	 *
 	 * @param \WC_Product $product Variable product.
-	 * @return \WCH_Message_Builder|null
+	 * @return MessageBuilder|null
 	 */
-	private function buildVariantSelector( \WC_Product $product ): ?\WCH_Message_Builder {
+	private function buildVariantSelector( \WC_Product $product ): ?MessageBuilder {
 		if ( ! $product instanceof \WC_Product_Variable ) {
 			return null;
 		}

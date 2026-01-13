@@ -125,13 +125,6 @@ class ProductSyncServiceProvider extends AbstractServiceProvider {
 			}
 		);
 
-		// Register aliases for backward compatibility.
-		$this->container->alias( 'product_validator', ProductValidatorInterface::class );
-		$this->container->alias( 'catalog_transformer', CatalogTransformerInterface::class );
-		$this->container->alias( 'catalog_api', CatalogApiInterface::class );
-		$this->container->alias( 'sync_progress_tracker', SyncProgressTrackerInterface::class );
-		$this->container->alias( 'product_sync_orchestrator', ProductSyncOrchestratorInterface::class );
-		$this->container->alias( 'product_sync_admin_ui', ProductSyncAdminUI::class );
 	}
 
 	/**

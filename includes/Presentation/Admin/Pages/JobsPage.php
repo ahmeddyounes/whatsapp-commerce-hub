@@ -12,6 +12,8 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Presentation\Admin\Pages;
 
+use WhatsAppCommerceHub\Features\AbandonedCart\CleanupHandler;
+use WhatsAppCommerceHub\Infrastructure\Queue\JobDispatcher;
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -92,11 +94,14 @@ class JobsPage {
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'whatsapp-commerce-hub' ) );
 		}
 
-		$pendingCounts = \WCH_Job_Dispatcher::get_all_pending_counts();
-		$failedJobs    = \WCH_Job_Dispatcher::get_failed_jobs( 20 );
-		$cleanupResult = \WCH_Cart_Cleanup_Handler::get_last_cleanup_result();
-		$activeCarts   = \WCH_Cart_Cleanup_Handler::get_active_carts_count();
-		$expiredCarts  = \WCH_Cart_Cleanup_Handler::get_expired_carts_count();
+		$dispatcher     = wch( JobDispatcher::class );
+		$cleanupHandler = wch( CleanupHandler::class );
+
+		$pendingCounts = $dispatcher->getAllPendingCounts();
+		$failedJobs    = $dispatcher->getFailedJobs( 20 );
+		$cleanupResult = $cleanupHandler->getLastCleanupResult();
+		$activeCarts   = $cleanupHandler->getActiveCartsCount();
+		$expiredCarts  = $cleanupHandler->getExpiredCartsCount();
 
 		$this->renderPageHtml( $pendingCounts, $failedJobs, $cleanupResult, $activeCarts, $expiredCarts );
 	}
@@ -348,7 +353,7 @@ class JobsPage {
 			exit;
 		}
 
-		$newActionId = \WCH_Job_Dispatcher::retry_failed_job( $jobId );
+		$newActionId = wch( JobDispatcher::class )->retryFailedJob( $jobId );
 
 		if ( $newActionId ) {
 			wp_safe_redirect( add_query_arg( 'job_retried', '1', admin_url( 'admin.php?page=wch-jobs' ) ) );
@@ -372,7 +377,7 @@ class JobsPage {
 			wp_die( esc_html__( 'Invalid nonce.', 'whatsapp-commerce-hub' ) );
 		}
 
-		\WCH_Cart_Cleanup_Handler::trigger_cleanup();
+		wch( CleanupHandler::class )->triggerCleanup();
 
 		wp_safe_redirect( add_query_arg( 'cleanup_triggered', '1', admin_url( 'admin.php?page=wch-jobs' ) ) );
 		exit;

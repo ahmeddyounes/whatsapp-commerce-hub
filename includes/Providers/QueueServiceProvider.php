@@ -87,17 +87,6 @@ class QueueServiceProvider implements ServiceProviderInterface {
 		$container->singleton( 'wch.queue.dead_letter', fn( $c ) => $c->get( DeadLetterQueue::class ) );
 		$container->singleton( 'wch.queue.monitor', fn( $c ) => $c->get( JobMonitor::class ) );
 
-		// Register the legacy queue for backward compatibility.
-		$container->singleton(
-			'wch.queue.legacy',
-			static function () {
-				if ( class_exists( 'WCH_Queue' ) ) {
-					return \WCH_Queue::getInstance();
-				}
-				return null;
-			}
-		);
-
 		// Register IdempotencyService.
 		$container->singleton(
 			IdempotencyService::class,
@@ -370,7 +359,6 @@ class QueueServiceProvider implements ServiceProviderInterface {
 			'wch.queue',
 			'wch.queue.dead_letter',
 			'wch.queue.monitor',
-			'wch.queue.legacy',
 			'wch.idempotency',
 			'wch.processor.webhook_message',
 			'wch.processor.webhook_status',

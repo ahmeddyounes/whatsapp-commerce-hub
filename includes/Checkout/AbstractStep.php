@@ -12,9 +12,11 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Checkout;
 
+use WhatsAppCommerceHub\Application\Services\MessageBuilderFactory;
 use WhatsAppCommerceHub\Contracts\Checkout\StepInterface;
 use WhatsAppCommerceHub\Contracts\Services\AddressServiceInterface;
-use WhatsAppCommerceHub\Application\Services\MessageBuilderFactory;
+use WhatsAppCommerceHub\Core\Logger;
+use WhatsAppCommerceHub\Support\Messaging\MessageBuilder;
 use WhatsAppCommerceHub\ValueObjects\CheckoutResponse;
 
 // Exit if accessed directly.
@@ -103,9 +105,9 @@ abstract class AbstractStep implements StepInterface {
 	 * Create an error message to send to the customer.
 	 *
 	 * @param string $message The error message text.
-	 * @return \WCH_Message_Builder
+	 * @return MessageBuilder
 	 */
-	protected function errorMessage( string $message ): \WCH_Message_Builder {
+	protected function errorMessage( string $message ): MessageBuilder {
 		return $this->message_builder->text( '⚠️ ' . $message );
 	}
 
@@ -159,9 +161,7 @@ abstract class AbstractStep implements StepInterface {
 	protected function log( string $message, array $data = [] ): void {
 		$data['step'] = $this->getStepId();
 
-		if ( class_exists( '\WCH_Logger' ) ) {
-			\WCH_Logger::info( $message, 'checkout', $data );
-		}
+		Logger::instance()->info( $message, 'checkout', $data );
 	}
 
 	/**
@@ -174,9 +174,7 @@ abstract class AbstractStep implements StepInterface {
 	protected function logError( string $message, array $data = [] ): void {
 		$data['step'] = $this->getStepId();
 
-		if ( class_exists( '\WCH_Logger' ) ) {
-			\WCH_Logger::error( $message, 'checkout', $data );
-		}
+		Logger::instance()->error( $message, 'checkout', $data );
 	}
 
 	/**

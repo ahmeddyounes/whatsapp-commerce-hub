@@ -39,7 +39,7 @@ class WCH_Webhook_Test extends WCH_Integration_Test_Case {
 
 		// Verify message was stored.
 		$this->assertDatabaseHas( 'wch_messages', [
-			'message_type' => 'text',
+			'type' => 'text',
 			'direction' => 'incoming',
 		] );
 	}

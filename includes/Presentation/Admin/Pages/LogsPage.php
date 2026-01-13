@@ -12,6 +12,8 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Presentation\Admin\Pages;
 
+use WhatsAppCommerceHub\Core\Logger;
+
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -114,7 +116,8 @@ class LogsPage {
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'whatsapp-commerce-hub' ) );
 		}
 
-		$logFiles = \WCH_Logger::get_log_files();
+		$logger   = wch( Logger::class );
+		$logFiles = $this->normalizeLogFiles( $logger->getLogFiles() );
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only log file selection.
 		$currentLog = isset( $_GET['log'] ) ? sanitize_file_name( wp_unslash( $_GET['log'] ) ) : '';
 
@@ -127,7 +130,8 @@ class LogsPage {
 		$logEntries = [];
 
 		if ( ! empty( $currentLog ) ) {
-			$logEntries = \WCH_Logger::read_log( $currentLog, $logLevel ? strtoupper( $logLevel ) : null );
+			$logContent = $logger->readLog( $currentLog, 0 );
+			$logEntries = $this->parseLogEntries( $logContent, $logLevel );
 		}
 
 		$totalFiles = count( $logFiles );
@@ -306,7 +310,7 @@ class LogsPage {
 			wp_send_json_error( [ 'message' => __( 'Insufficient permissions.', 'whatsapp-commerce-hub' ) ] );
 		}
 
-		$deleted = \WCH_Logger::delete_old_logs( 30 );
+		$deleted = $this->deleteOldLogs( 30 );
 
 		wp_send_json_success(
 			[
@@ -317,5 +321,78 @@ class LogsPage {
 				),
 			]
 		);
+	}
+
+	/**
+	 * Normalize log file metadata for UI.
+	 *
+	 * @param array<int, array{filename: string, size: int, modified: int}> $files Log files.
+	 * @return array<int, array{name: string, size: int, modified: int}> Normalized files.
+	 */
+	private function normalizeLogFiles( array $files ): array {
+		return array_map(
+			static fn( array $file ): array => [
+				'name'     => $file['filename'] ?? '',
+				'size'     => (int) ( $file['size'] ?? 0 ),
+				'modified' => (int) ( $file['modified'] ?? 0 ),
+			],
+			$files
+		);
+	}
+
+	/**
+	 * Parse log content into filtered entries.
+	 *
+	 * @param string $content  Log file content.
+	 * @param string $logLevel Optional log level filter.
+	 * @return array<int, string> Log entries.
+	 */
+	private function parseLogEntries( string $content, string $logLevel ): array {
+		if ( '' === $content ) {
+			return [];
+		}
+
+		$lines = preg_split( "/\r\n|\n|\r/", $content );
+		if ( ! $lines ) {
+			return [];
+		}
+
+		$lines = array_values( array_filter( $lines, static fn( string $line ): bool => '' !== trim( $line ) ) );
+
+		if ( '' === $logLevel ) {
+			return $lines;
+		}
+
+		$levelTag = '[' . strtoupper( $logLevel ) . ']';
+
+		return array_values(
+			array_filter(
+				$lines,
+				static fn( string $line ): bool => str_contains( $line, $levelTag )
+			)
+		);
+	}
+
+	/**
+	 * Delete log files older than the given number of days.
+	 *
+	 * @param int $days Days threshold.
+	 * @return int Number of deleted files.
+	 */
+	private function deleteOldLogs( int $days ): int {
+		$logger  = wch( Logger::class );
+		$cutoff  = time() - ( $days * DAY_IN_SECONDS );
+		$deleted = 0;
+
+		foreach ( $logger->getLogFiles() as $file ) {
+			$modified = (int) ( $file['modified'] ?? 0 );
+			if ( $modified > 0 && $modified < $cutoff ) {
+				if ( $logger->deleteLog( $file['filename'] ?? '' ) ) {
+					$deleted++;
+				}
+			}
+		}
+
+		return $deleted;
 	}
 }

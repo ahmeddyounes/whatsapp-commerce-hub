@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Application\Services\Reengagement;
 
+use WhatsAppCommerceHub\Contracts\Services\CustomerServiceInterface;
 use WhatsAppCommerceHub\Contracts\Services\Reengagement\ReengagementMessageBuilderInterface;
 use WhatsAppCommerceHub\Contracts\Services\Reengagement\ProductTrackingServiceInterface;
 use WhatsAppCommerceHub\Contracts\Services\Reengagement\LoyaltyCouponGeneratorInterface;
@@ -53,9 +54,9 @@ class ReengagementMessageBuilder implements ReengagementMessageBuilderInterface 
 	/**
 	 * Customer service.
 	 *
-	 * @var \WCH_Customer_Service
+	 * @var CustomerServiceInterface
 	 */
-	protected \WCH_Customer_Service $customerService;
+	protected CustomerServiceInterface $customerService;
 
 	/**
 	 * Constructor.
@@ -72,7 +73,7 @@ class ReengagementMessageBuilder implements ReengagementMessageBuilderInterface 
 		$this->settings         = $settings;
 		$this->productTracking  = $productTracking;
 		$this->loyaltyGenerator = $loyaltyGenerator;
-		$this->customerService  = \WCH_Customer_Service::instance();
+		$this->customerService  = wch( CustomerServiceInterface::class );
 	}
 
 	/**

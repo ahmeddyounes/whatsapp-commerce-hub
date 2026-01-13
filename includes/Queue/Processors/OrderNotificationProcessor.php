@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Queue\Processors;
 
+use WhatsAppCommerceHub\Clients\WhatsAppApiClient;
+use WhatsAppCommerceHub\Presentation\Templates\TemplateManager;
 use WhatsAppCommerceHub\Queue\DeadLetterQueue;
 use WhatsAppCommerceHub\Queue\PriorityQueue;
 use WhatsAppCommerceHub\Queue\IdempotencyService;
@@ -370,15 +372,24 @@ class OrderNotificationProcessor extends AbstractQueueProcessor {
 	 * @return bool True on success.
 	 */
 	private function sendTemplateMessage( int $orderId, string $phone, string $templateName, array $variables ): bool {
-		// Check if the API client is available.
-		if ( ! class_exists( 'WCH_WhatsApp_API_Client' ) ) {
-			$this->logError( 'WhatsApp API client not available' );
-			return false;
-		}
-
 		try {
-			$apiClient = \WCH_WhatsApp_API_Client::getInstance();
-			$result    = $apiClient->sendTemplate( $phone, $templateName, $variables );
+			$apiClient = wch( WhatsAppApiClient::class );
+			$templateManager = wch( TemplateManager::class );
+
+			// Render template to validate and track usage.
+			$templateManager->renderTemplate( $templateName, $variables );
+
+			$components = [
+				[
+					'type'       => 'body',
+					'parameters' => array_map(
+						static fn( $value ) => [ 'type' => 'text', 'text' => (string) $value ],
+						array_values( $variables )
+					),
+				],
+			];
+
+			$result = $apiClient->sendTemplate( $phone, $templateName, 'en', $components );
 
 			if ( is_wp_error( $result ) ) {
 				$this->logError(

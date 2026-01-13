@@ -12,6 +12,12 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Application\Services;
 
+use WhatsAppCommerceHub\Clients\WhatsAppApiClient;
+use WhatsAppCommerceHub\Core\Logger;
+use WhatsAppCommerceHub\Infrastructure\Configuration\SettingsManager;
+use WhatsAppCommerceHub\Infrastructure\Queue\JobDispatcher;
+use WhatsAppCommerceHub\Presentation\Templates\TemplateManager;
+
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -46,16 +52,16 @@ class NotificationService {
 	/**
 	 * WhatsApp API client.
 	 *
-	 * @var \WCH_WhatsApp_API_Client
+	 * @var WhatsAppApiClient
 	 */
-	private \WCH_WhatsApp_API_Client $apiClient;
+	private WhatsAppApiClient $apiClient;
 
 	/**
 	 * Template manager.
 	 *
-	 * @var \WCH_Template_Manager|null
+	 * @var TemplateManager|null
 	 */
-	private ?\WCH_Template_Manager $templateManager;
+	private ?TemplateManager $templateManager;
 
 	/**
 	 * Status to notification info mapping.
@@ -122,15 +128,15 @@ class NotificationService {
 	/**
 	 * Constructor.
 	 *
-	 * @param \WCH_WhatsApp_API_Client|null $apiClient       WhatsApp API client.
-	 * @param \WCH_Template_Manager|null    $templateManager Template manager.
+	 * @param WhatsAppApiClient|null $apiClient       WhatsApp API client.
+	 * @param TemplateManager|null    $templateManager Template manager.
 	 */
 	public function __construct(
-		?\WCH_WhatsApp_API_Client $apiClient = null,
-		?\WCH_Template_Manager $templateManager = null
+		?WhatsAppApiClient $apiClient = null,
+		?TemplateManager $templateManager = null
 	) {
-		$this->apiClient       = $apiClient ?? new \WCH_WhatsApp_API_Client();
-		$this->templateManager = $templateManager ?? ( class_exists( 'WCH_Template_Manager' ) ? \WCH_Template_Manager::getInstance() : null );
+		$this->apiClient       = $apiClient ?? wch( WhatsAppApiClient::class );
+		$this->templateManager = $templateManager ?? wch( TemplateManager::class );
 	}
 
 	/**
@@ -470,20 +476,32 @@ class NotificationService {
 		try {
 			// Render template if template manager is available.
 			if ( $this->templateManager ) {
-				$rendered = $this->templateManager->render_template( $templateName, $variables );
+				$rendered = $this->templateManager->renderTemplate( $templateName, $variables );
 				if ( ! $rendered ) {
 					throw new \Exception( "Template {$templateName} not found or failed to render" );
 				}
 			}
 
+			$components = [
+				[
+					'type'       => 'body',
+					'parameters' => array_map(
+						static fn( $value ) => [ 'type' => 'text', 'text' => (string) $value ],
+						array_values( $variables )
+					),
+				],
+			];
+
 			// Send message.
-			$result = $this->apiClient->send_template_message(
+			$result = $this->apiClient->sendTemplate(
 				$customerPhone,
 				$templateName,
-				array_values( $variables )
+				'en',
+				$components
 			);
 
-			if ( ! $result || ! isset( $result['messages'][0]['id'] ) ) {
+			$messageId = $result['message_id'] ?? $result['messages'][0]['id'] ?? null;
+			if ( ! $result || ! $messageId ) {
 				throw new \Exception( 'Failed to send WhatsApp message' );
 			}
 
@@ -491,7 +509,7 @@ class NotificationService {
 				$logId,
 				[
 					'status'        => 'sent',
-					'wa_message_id' => $result['messages'][0]['id'],
+					'wa_message_id' => $messageId,
 					'sent_at'       => current_time( 'mysql' ),
 				]
 			);
@@ -523,13 +541,11 @@ class NotificationService {
 	 * @return void
 	 */
 	private function queueNotification( array $data, int $delaySeconds = 30 ): void {
-		if ( class_exists( 'WCH_Job_Dispatcher' ) ) {
-			\WCH_Job_Dispatcher::dispatch(
-				'wch_send_order_notification',
-				$data,
-				$delaySeconds
-			);
-		}
+		wch( JobDispatcher::class )->dispatch(
+			'wch_send_order_notification',
+			$data,
+			$delaySeconds
+		);
 	}
 
 	/**
@@ -710,11 +726,8 @@ class NotificationService {
 	 * @return bool
 	 */
 	private function isNotificationEnabled( string $type ): bool {
-		if ( class_exists( 'WCH_Settings' ) ) {
-			$settings = \WCH_Settings::getInstance();
-			return (bool) $settings->get( "notifications.{$type}_enabled", true );
-		}
-		return true;
+		$settings = wch( SettingsManager::class );
+		return (bool) $settings->get( "notifications.{$type}_enabled", true );
 	}
 
 	/**
@@ -943,8 +956,6 @@ class NotificationService {
 	 * @return void
 	 */
 	private function log( string $message, array $context = [], string $level = 'info' ): void {
-		if ( class_exists( 'WCH_Logger' ) ) {
-			\WCH_Logger::{ $level }( $message, $context );
-		}
+		Logger::instance()->log( $level, $message, 'notifications', $context );
 	}
 }

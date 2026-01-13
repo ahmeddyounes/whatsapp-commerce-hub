@@ -12,7 +12,9 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Application\Services\Reengagement;
 
+use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
 use WhatsAppCommerceHub\Contracts\Services\Reengagement\ReengagementAnalyticsInterface;
+use WhatsAppCommerceHub\Infrastructure\Database\DatabaseManager;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -41,16 +43,16 @@ class ReengagementAnalytics implements ReengagementAnalyticsInterface {
 	/**
 	 * Database manager.
 	 *
-	 * @var \WCH_Database_Manager
+	 * @var DatabaseManager
 	 */
-	protected \WCH_Database_Manager $dbManager;
+	protected DatabaseManager $dbManager;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param \WCH_Database_Manager $dbManager Database manager.
+	 * @param DatabaseManager $dbManager Database manager.
 	 */
-	public function __construct( \WCH_Database_Manager $dbManager ) {
+	public function __construct( DatabaseManager $dbManager ) {
 		global $wpdb;
 		$this->wpdb      = $wpdb;
 		$this->dbManager = $dbManager;
@@ -63,7 +65,7 @@ class ReengagementAnalytics implements ReengagementAnalyticsInterface {
 	 * @return array Analytics data by campaign type.
 	 */
 	public function getAnalytics( int $days = 30 ): array {
-		$tableName = $this->dbManager->get_table_name( 'reengagement_log' );
+		$tableName = $this->dbManager->getTableName( 'reengagement_log' );
 		$sinceDate = gmdate( 'Y-m-d H:i:s', current_time( 'timestamp' ) - ( $days * DAY_IN_SECONDS ) );
 
 		$results = $this->wpdb->get_results(
@@ -105,7 +107,7 @@ class ReengagementAnalytics implements ReengagementAnalyticsInterface {
 	 * @return bool True if tracked.
 	 */
 	public function trackConversion( string $customerPhone, int $orderId ): bool {
-		$tableName         = $this->dbManager->get_table_name( 'reengagement_log' );
+		$tableName         = $this->dbManager->getTableName( 'reengagement_log' );
 		$attributionWindow = gmdate( 'Y-m-d H:i:s', current_time( 'timestamp' ) - ( self::ATTRIBUTION_WINDOW_DAYS * DAY_IN_SECONDS ) );
 
 		// Find the most recent re-engagement message sent to this customer.
@@ -138,14 +140,24 @@ class ReengagementAnalytics implements ReengagementAnalyticsInterface {
 		);
 
 		if ( false !== $result ) {
-			\WCH_Logger::info(
-				'Re-engagement conversion tracked',
-				[
-					'phone'    => $customerPhone,
-					'order_id' => $orderId,
-					'log_id'   => $logId,
-				]
-			);
+			$logger = null;
+			try {
+				$logger = wch( LoggerInterface::class );
+			} catch ( \Throwable $loggerError ) {
+				$logger = null;
+			}
+
+			if ( $logger ) {
+				$logger->info(
+					'Re-engagement conversion tracked',
+					'reengagement',
+					[
+						'phone'    => $customerPhone,
+						'order_id' => $orderId,
+						'log_id'   => $logId,
+					]
+				);
+			}
 			return true;
 		}
 
@@ -160,7 +172,7 @@ class ReengagementAnalytics implements ReengagementAnalyticsInterface {
 	 * @return bool True if updated.
 	 */
 	public function updateMessageStatus( string $messageId, string $status ): bool {
-		$tableName = $this->dbManager->get_table_name( 'reengagement_log' );
+		$tableName = $this->dbManager->getTableName( 'reengagement_log' );
 
 		$result = $this->wpdb->update(
 			$tableName,
@@ -181,7 +193,7 @@ class ReengagementAnalytics implements ReengagementAnalyticsInterface {
 	 * @return float Conversion rate percentage.
 	 */
 	public function getConversionRate( string $campaignType, int $days = 30 ): float {
-		$tableName = $this->dbManager->get_table_name( 'reengagement_log' );
+		$tableName = $this->dbManager->getTableName( 'reengagement_log' );
 		$sinceDate = gmdate( 'Y-m-d H:i:s', current_time( 'timestamp' ) - ( $days * DAY_IN_SECONDS ) );
 
 		$result = $this->wpdb->get_row(
@@ -210,7 +222,7 @@ class ReengagementAnalytics implements ReengagementAnalyticsInterface {
 	 * @return float Total revenue.
 	 */
 	public function getAttributedRevenue( int $days = 30 ): float {
-		$tableName = $this->dbManager->get_table_name( 'reengagement_log' );
+		$tableName = $this->dbManager->getTableName( 'reengagement_log' );
 		$sinceDate = gmdate( 'Y-m-d H:i:s', current_time( 'timestamp' ) - ( $days * DAY_IN_SECONDS ) );
 
 		$orderIds = $this->wpdb->get_col(

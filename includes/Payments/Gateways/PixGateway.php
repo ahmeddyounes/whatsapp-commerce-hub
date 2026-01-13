@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Payments\Gateways;
 
+use WhatsAppCommerceHub\Clients\WhatsAppApiClient;
 use WhatsAppCommerceHub\Payments\Contracts\PaymentResult;
 use WhatsAppCommerceHub\Payments\Contracts\PaymentStatus;
 use WhatsAppCommerceHub\Payments\Contracts\WebhookResult;
@@ -70,19 +71,19 @@ class PixGateway extends AbstractGateway {
 	/**
 	 * WhatsApp API client.
 	 *
-	 * @var \WCH_WhatsApp_API_Client
+	 * @var WhatsAppApiClient|null
 	 */
-	private \WCH_WhatsApp_API_Client $whatsappClient;
+	private ?WhatsAppApiClient $whatsappClient;
 
 	/**
 	 * Constructor.
 	 */
-	public function __construct() {
+	public function __construct( ?WhatsAppApiClient $whatsappClient = null ) {
 		$this->title          = __( 'PIX', 'whatsapp-commerce-hub' );
 		$this->description    = __( 'Instant payment via PIX', 'whatsapp-commerce-hub' );
 		$this->processor      = get_option( 'wch_pix_processor', 'mercadopago' );
 		$this->apiToken       = get_option( 'wch_pix_api_token', '' );
-		$this->whatsappClient = new \WCH_WhatsApp_API_Client();
+		$this->whatsappClient = $whatsappClient;
 	}
 
 	/**
@@ -327,6 +328,11 @@ class PixGateway extends AbstractGateway {
 			return;
 		}
 
+		if ( ! $this->whatsappClient ) {
+			$this->log( 'WhatsApp API client not configured for PIX notifications', [], 'warning' );
+			return;
+		}
+
 		// Send QR code as image if base64 is available.
 		if ( ! empty( $pixData['qr_code'] ) && str_contains( $pixData['qr_code'], 'base64' ) ) {
 			$uploadDir = wp_upload_dir();
@@ -338,16 +344,16 @@ class PixGateway extends AbstractGateway {
 			file_put_contents( $qrFile, base64_decode( $qrData ) );
 
 			// Upload to WhatsApp.
-			$media = $this->whatsappClient->upload_media( $qrFile, 'image/png' );
+			$mediaId = $this->whatsappClient->uploadMedia( $qrFile, 'image/png' );
 
-			if ( $media && isset( $media['id'] ) ) {
-				$this->whatsappClient->send_message(
+			if ( $mediaId ) {
+				$this->whatsappClient->sendMessage(
 					[
 						'messaging_product' => 'whatsapp',
 						'to'                => $phone,
 						'type'              => 'image',
 						'image'             => [
-							'id'      => $media['id'],
+							'id'      => $mediaId,
 							'caption' => __( 'Scan this PIX QR code with your banking app to complete the payment.', 'whatsapp-commerce-hub' ),
 						],
 					]
@@ -360,7 +366,7 @@ class PixGateway extends AbstractGateway {
 
 		// Also send the PIX code as text for copy-paste.
 		if ( ! empty( $pixData['qr_code_text'] ) ) {
-			$this->whatsappClient->send_message(
+			$this->whatsappClient->sendMessage(
 				[
 					'messaging_product' => 'whatsapp',
 					'to'                => $phone,

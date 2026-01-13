@@ -759,7 +759,7 @@ class CircuitBreaker {
 	}
 
 	/**
-	 * Get cache key for a field (legacy, kept for compatibility).
+	 * Get cache key for a field.
 	 *
 	 * @param string $field Field name.
 	 *

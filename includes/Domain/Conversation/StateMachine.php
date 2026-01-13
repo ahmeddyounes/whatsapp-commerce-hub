@@ -22,8 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * Implements finite state machine for conversation flow.
  *
- * Note: This is a transitional class. Full migration will refactor
- * the legacy implementation in a future phase.
+ * Note: This is a transitional class.
  */
 class StateMachine {
 	/**

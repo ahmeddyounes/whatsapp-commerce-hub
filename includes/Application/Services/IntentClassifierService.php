@@ -14,6 +14,7 @@ namespace WhatsAppCommerceHub\Application\Services;
 
 use WhatsAppCommerceHub\Contracts\Services\IntentClassifierInterface;
 use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
+use WhatsAppCommerceHub\Core\Logger;
 use WhatsAppCommerceHub\ValueObjects\Intent;
 
 // Exit if accessed directly.
@@ -463,10 +464,7 @@ class IntentClassifierService implements IntentClassifierInterface {
 			return;
 		}
 
-		// Fallback to legacy logger.
-		if ( class_exists( 'WCH_Logger' ) ) {
-			\WCH_Logger::log( $message, $data, $level );
-		}
+		Logger::instance()->log( $level, $message, 'intent_classifier', $data );
 	}
 
 	/**

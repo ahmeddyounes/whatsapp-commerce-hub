@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace WhatsAppCommerceHub\Checkout\Steps;
 
 use WhatsAppCommerceHub\Checkout\AbstractStep;
+use WhatsAppCommerceHub\Support\Messaging\MessageBuilder;
 use WhatsAppCommerceHub\ValueObjects\CheckoutResponse;
 
 // Exit if accessed directly.
@@ -248,9 +249,9 @@ class ReviewStep extends AbstractStep {
 	 * @param array $cart          Cart data.
 	 * @param array $checkout_data Checkout data.
 	 * @param array $totals        Calculated totals.
-	 * @return \WCH_Message_Builder
+	 * @return MessageBuilder
 	 */
-	private function buildOrderSummaryMessage( array $cart, array $checkout_data, array $totals ): \WCH_Message_Builder {
+	private function buildOrderSummaryMessage( array $cart, array $checkout_data, array $totals ): MessageBuilder {
 		$message = $this->message_builder->create();
 
 		// Build summary text.

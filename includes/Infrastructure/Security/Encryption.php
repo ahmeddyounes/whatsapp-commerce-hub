@@ -111,7 +111,6 @@ class Encryption {
 	 * Decrypt a string.
 	 *
 	 * Verifies HMAC before decrypting to prevent padding oracle attacks.
-	 * Supports both new format (HMAC + IV + ciphertext) and legacy format (IV + ciphertext).
 	 *
 	 * @param string $value The value to decrypt.
 	 * @return string The decrypted value.
@@ -129,14 +128,11 @@ class Encryption {
 			throw new \RuntimeException( 'Invalid base64 encoding' );
 		}
 
-		// Check if this is new format (with HMAC) or legacy format.
-		$isNewFormat = strlen( $decoded ) >= ( self::HMAC_LENGTH + $this->ivLength + 1 );
-
-		if ( $isNewFormat ) {
-			return $this->decryptNewFormat( $decoded );
+		if ( strlen( $decoded ) < ( self::HMAC_LENGTH + $this->ivLength + 1 ) ) {
+			throw new \RuntimeException( 'Invalid encrypted data format' );
 		}
 
-		return $this->decryptLegacyFormat( $decoded );
+		return $this->decryptNewFormat( $decoded );
 	}
 
 	/**
@@ -165,38 +161,6 @@ class Encryption {
 			self::ENCRYPTION_METHOD,
 			$this->getKey(),
 			OPENSSL_RAW_DATA,
-			$iv
-		);
-
-		if ( false === $decrypted ) {
-			throw new \RuntimeException( 'Decryption failed: ' . openssl_error_string() );
-		}
-
-		return $decrypted;
-	}
-
-	/**
-	 * Decrypt legacy format (without HMAC).
-	 *
-	 * @param string $decoded Decoded data.
-	 * @return string Decrypted value.
-	 * @throws \RuntimeException If decryption fails.
-	 */
-	private function decryptLegacyFormat( string $decoded ): string {
-		// Validate decoded data has sufficient length for IV extraction.
-		if ( strlen( $decoded ) <= $this->ivLength ) {
-			throw new \RuntimeException( 'Invalid encrypted data length' );
-		}
-
-		$iv        = substr( $decoded, 0, $this->ivLength );
-		$encrypted = substr( $decoded, $this->ivLength );
-
-		// Decrypt the value (legacy used non-raw mode).
-		$decrypted = openssl_decrypt(
-			$encrypted,
-			self::ENCRYPTION_METHOD,
-			$this->getKey(),
-			0,
 			$iv
 		);
 

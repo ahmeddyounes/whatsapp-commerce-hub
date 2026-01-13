@@ -164,4 +164,13 @@ interface CartServiceInterface {
 	 * @return bool Success status.
 	 */
 	public function markCompleted( string $phone, int $order_id ): bool;
+
+	/**
+	 * Update cart status by ID.
+	 *
+	 * @param string $cart_id Cart ID.
+	 * @param string $status  New status.
+	 * @return bool Success status.
+	 */
+	public function updateCartStatus( string $cart_id, string $status ): bool;
 }

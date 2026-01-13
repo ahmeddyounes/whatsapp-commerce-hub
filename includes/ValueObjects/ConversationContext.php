@@ -146,6 +146,15 @@ final class ConversationContext {
 	}
 
 	/**
+	 * Get combined context data.
+	 *
+	 * @return array
+	 */
+	public function getData(): array {
+		return array_merge( $this->stateData, $this->slots );
+	}
+
+	/**
 	 * Get state data value.
 	 *
 	 * @param string $key     Data key.

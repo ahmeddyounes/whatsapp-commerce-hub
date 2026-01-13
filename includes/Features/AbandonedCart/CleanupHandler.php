@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace WhatsAppCommerceHub\Features\AbandonedCart;
 
 use WhatsAppCommerceHub\Core\Logger;
+use WhatsAppCommerceHub\Infrastructure\Queue\JobDispatcher;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -25,6 +26,10 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Removes expired and stale carts from the database.
  */
 class CleanupHandler {
+	/**
+	 * Option name for storing last cleanup results.
+	 */
+	private const LAST_CLEANUP_OPTION = 'wch_cart_cleanup_last_result';
 
 	/**
 	 * Cart expiry time in hours
@@ -75,6 +80,7 @@ class CleanupHandler {
 
 		if ( $count === 0 ) {
 			$this->logger->info( 'No expired carts to clean up' );
+			$this->storeCleanupResult( 0 );
 			return;
 		}
 
@@ -97,6 +103,8 @@ class CleanupHandler {
 			return;
 		}
 
+		$this->storeCleanupResult( (int) $deleted );
+
 		$this->logger->info(
 			'Cart cleanup completed',
 			[
@@ -107,6 +115,13 @@ class CleanupHandler {
 
 		// Also clean up abandoned carts older than 30 days
 		$this->cleanupOldAbandonedCarts();
+	}
+
+	/**
+	 * Trigger cart cleanup asynchronously.
+	 */
+	public function triggerCleanup(): void {
+		wch( JobDispatcher::class )->dispatch( 'wch_cleanup_expired_carts' );
 	}
 
 	/**
@@ -151,9 +166,9 @@ class CleanupHandler {
 
 		$deleted = $wpdb->query(
 			$wpdb->prepare(
-				"DELETE FROM {$tableName} WHERE recovered_at < %s AND status = %s",
+				"DELETE FROM {$tableName} WHERE recovered_at < %s AND recovered = %d",
 				$threshold,
-				'recovered'
+				1
 			)
 		);
 
@@ -183,10 +198,10 @@ class CleanupHandler {
 		$stats = $wpdb->get_row(
 			$wpdb->prepare(
 				"SELECT 
-                    SUM(CASE WHEN updated_at < %s AND status = 'active' THEN 1 ELSE 0 END) as expired_active,
-                    SUM(CASE WHEN abandoned_at < %s AND status = 'abandoned' THEN 1 ELSE 0 END) as old_abandoned,
-                    SUM(CASE WHEN recovered_at < %s AND status = 'recovered' THEN 1 ELSE 0 END) as old_recovered
-                FROM {$tableName}",
+	                    SUM(CASE WHEN updated_at < %s AND status = 'active' THEN 1 ELSE 0 END) as expired_active,
+	                    SUM(CASE WHEN abandoned_at < %s AND status = 'abandoned' THEN 1 ELSE 0 END) as old_abandoned,
+	                    SUM(CASE WHEN recovered_at < %s AND recovered = 1 THEN 1 ELSE 0 END) as old_recovered
+	                FROM {$tableName}",
 				$expiryDate,
 				$abandonedThreshold,
 				$recoveredThreshold
@@ -199,5 +214,64 @@ class CleanupHandler {
 			'old_abandoned'  => (int) ( $stats['old_abandoned'] ?? 0 ),
 			'old_recovered'  => (int) ( $stats['old_recovered'] ?? 0 ),
 		];
+	}
+
+	/**
+	 * Get active carts count.
+	 */
+	public function getActiveCartsCount(): int {
+		global $wpdb;
+		$tableName = $wpdb->prefix . 'wch_carts';
+
+		return (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$tableName} WHERE status = %s",
+				'active'
+			)
+		);
+	}
+
+	/**
+	 * Get expired carts count (active carts beyond expiry).
+	 */
+	public function getExpiredCartsCount(): int {
+		global $wpdb;
+		$tableName = $wpdb->prefix . 'wch_carts';
+
+		$expiryDate = gmdate( 'Y-m-d H:i:s', time() - ( self::CART_EXPIRY_HOURS * HOUR_IN_SECONDS ) );
+
+		return (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$tableName} WHERE updated_at < %s AND status = %s",
+				$expiryDate,
+				'active'
+			)
+		);
+	}
+
+	/**
+	 * Get last cleanup result.
+	 *
+	 * @return array<string, mixed>|null
+	 */
+	public function getLastCleanupResult(): ?array {
+		$result = get_option( self::LAST_CLEANUP_OPTION, null );
+		return is_array( $result ) ? $result : null;
+	}
+
+	/**
+	 * Persist last cleanup result.
+	 *
+	 * @param int $deletedCount Number of deleted carts.
+	 */
+	private function storeCleanupResult( int $deletedCount ): void {
+		update_option(
+			self::LAST_CLEANUP_OPTION,
+			[
+				'deleted_count' => $deletedCount,
+				'timestamp'     => current_time( 'mysql' ),
+			],
+			false
+		);
 	}
 }

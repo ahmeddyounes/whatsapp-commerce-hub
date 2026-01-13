@@ -12,10 +12,13 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Application\Services\Broadcasts;
 
+use WhatsAppCommerceHub\Clients\WhatsAppApiClient;
 use WhatsAppCommerceHub\Contracts\Services\Broadcasts\CampaignDispatcherInterface;
 use WhatsAppCommerceHub\Contracts\Services\Broadcasts\CampaignRepositoryInterface;
 use WhatsAppCommerceHub\Contracts\Services\Broadcasts\AudienceCalculatorInterface;
 use WhatsAppCommerceHub\Contracts\Services\SettingsInterface;
+use WhatsAppCommerceHub\Core\Logger;
+use WhatsAppCommerceHub\Infrastructure\Queue\JobDispatcher;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -159,17 +162,10 @@ class CampaignDispatcher implements CampaignDispatcherInterface {
 
 		// Send via API.
 		try {
-			if ( ! class_exists( 'WCH_WhatsApp_API_Client' ) ) {
-				return [
-					'success' => false,
-					'message' => __( 'API client not available', 'whatsapp-commerce-hub' ),
-				];
-			}
-
-			$api = new \WCH_WhatsApp_API_Client();
+			$api = wch( WhatsAppApiClient::class );
 
 			if ( ! empty( $message['template_name'] ) ) {
-				$api->send_template_message(
+				$api->sendTemplateMessage(
 					$testPhone,
 					$message['template_name'],
 					$message['template_data'] ?? [],
@@ -221,8 +217,8 @@ class CampaignDispatcher implements CampaignDispatcherInterface {
 
 		// Cancel scheduled jobs.
 		$jobId = $campaign['job_id'] ?? '';
-		if ( ! empty( $jobId ) && class_exists( 'WCH_Job_Dispatcher' ) ) {
-			\WCH_Job_Dispatcher::cancel_by_prefix( $jobId );
+		if ( ! empty( $jobId ) ) {
+			wch( JobDispatcher::class )->cancelByPrefix( $jobId );
 		}
 
 		// Update status.
@@ -266,9 +262,7 @@ class CampaignDispatcher implements CampaignDispatcherInterface {
 	 * @return void
 	 */
 	protected function dispatchBatch( array $args, int $delay = 0 ): void {
-		if ( class_exists( 'WCH_Job_Dispatcher' ) ) {
-			\WCH_Job_Dispatcher::dispatch( 'wch_send_broadcast_batch', $args, $delay );
-		}
+		wch( JobDispatcher::class )->dispatch( 'wch_send_broadcast_batch', $args, $delay );
 	}
 
 	/**
@@ -282,8 +276,6 @@ class CampaignDispatcher implements CampaignDispatcherInterface {
 	protected function log( string $level, string $message, array $context = [] ): void {
 		$context['category'] = 'broadcasts';
 
-		if ( class_exists( 'WCH_Logger' ) ) {
-			\WCH_Logger::log( $message, $context, $level );
-		}
+		Logger::instance()->log( $level, $message, 'broadcasts', $context );
 	}
 }

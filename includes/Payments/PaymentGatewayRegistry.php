@@ -13,6 +13,13 @@ declare(strict_types=1);
 namespace WhatsAppCommerceHub\Payments;
 
 use WhatsAppCommerceHub\Contracts\Payments\PaymentGatewayRegistryInterface;
+use WhatsAppCommerceHub\Payments\Contracts\PaymentGatewayInterface;
+use WhatsAppCommerceHub\Core\Logger;
+use WhatsAppCommerceHub\Payments\Gateways\CodGateway;
+use WhatsAppCommerceHub\Payments\Gateways\StripeGateway;
+use WhatsAppCommerceHub\Payments\Gateways\RazorpayGateway;
+use WhatsAppCommerceHub\Payments\Gateways\WhatsAppPayGateway;
+use WhatsAppCommerceHub\Payments\Gateways\PixGateway;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -25,11 +32,10 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Plugin-based architecture for managing payment gateways.
  */
 class PaymentGatewayRegistry implements PaymentGatewayRegistryInterface {
-
 	/**
 	 * Registered payment gateways.
 	 *
-	 * @var array<string, \WCH_Payment_Gateway>
+	 * @var array<string, PaymentGatewayInterface>
 	 */
 	private array $gateways = [];
 
@@ -69,17 +75,17 @@ class PaymentGatewayRegistry implements PaymentGatewayRegistryInterface {
 	 * Register a payment gateway.
 	 *
 	 * @param string               $id Gateway identifier.
-	 * @param \WCH_Payment_Gateway $gateway Gateway instance.
+	 * @param PaymentGatewayInterface $gateway Gateway instance.
 	 * @return void
 	 */
-	public function register( string $id, \WCH_Payment_Gateway $gateway ): void {
+	public function register( string $id, PaymentGatewayInterface $gateway ): void {
 		$this->gateways[ $id ] = $gateway;
 
 		/**
 		 * Fires after a payment gateway is registered.
 		 *
-		 * @param string              $id Gateway identifier.
-		 * @param \WCH_Payment_Gateway $gateway Gateway instance.
+		 * @param string                $id Gateway identifier.
+		 * @param PaymentGatewayInterface $gateway Gateway instance.
 		 */
 		do_action( 'wch_payment_gateway_registered', $id, $gateway );
 	}
@@ -88,9 +94,9 @@ class PaymentGatewayRegistry implements PaymentGatewayRegistryInterface {
 	 * Get a gateway by ID.
 	 *
 	 * @param string $id Gateway identifier.
-	 * @return \WCH_Payment_Gateway|null Gateway instance or null if not found.
+	 * @return PaymentGatewayInterface|null Gateway instance or null if not found.
 	 */
-	public function get( string $id ): ?\WCH_Payment_Gateway {
+	public function get( string $id ): ?PaymentGatewayInterface {
 		return $this->gateways[ $id ] ?? null;
 	}
 
@@ -107,7 +113,7 @@ class PaymentGatewayRegistry implements PaymentGatewayRegistryInterface {
 	/**
 	 * Get all registered gateways.
 	 *
-	 * @return array<string, \WCH_Payment_Gateway> All registered gateways.
+	 * @return array<string, PaymentGatewayInterface> All registered gateways.
 	 */
 	public function all(): array {
 		return $this->gateways;
@@ -116,7 +122,7 @@ class PaymentGatewayRegistry implements PaymentGatewayRegistryInterface {
 	/**
 	 * Get all enabled gateways.
 	 *
-	 * @return array<string, \WCH_Payment_Gateway> Enabled gateways.
+	 * @return array<string, PaymentGatewayInterface> Enabled gateways.
 	 */
 	public function getEnabled(): array {
 		$enabled_ids = $this->getEnabledIds();
@@ -150,7 +156,7 @@ class PaymentGatewayRegistry implements PaymentGatewayRegistryInterface {
 	 * Get available gateways for a specific country.
 	 *
 	 * @param string $country Two-letter country code.
-	 * @return array<string, \WCH_Payment_Gateway> Available gateways.
+	 * @return array<string, PaymentGatewayInterface> Available gateways.
 	 */
 	public function getAvailable( string $country ): array {
 		if ( empty( $country ) && function_exists( 'WC' ) ) {
@@ -176,6 +182,45 @@ class PaymentGatewayRegistry implements PaymentGatewayRegistryInterface {
 		 * @param string $country Country code.
 		 */
 		return apply_filters( 'wch_available_payment_gateways', $available, $country );
+	}
+
+	/**
+	 * Process a payment for an order using the selected gateway.
+	 *
+	 * @param int    $orderId       Order ID.
+	 * @param string $paymentMethod Payment method ID.
+	 * @param array  $context       Payment context.
+	 * @return array
+	 */
+	public function processOrderPayment( int $orderId, string $paymentMethod, array $context = [] ): array {
+		$gateway = $this->get( $paymentMethod );
+
+		if ( ! $gateway ) {
+			return [
+				'success' => false,
+				'error'   => [
+					'code'    => 'gateway_not_found',
+					'message' => 'Payment gateway not available',
+				],
+			];
+		}
+
+		try {
+			$result = $gateway->processPayment( $orderId, $context );
+			if ( $result instanceof \WhatsAppCommerceHub\Payments\Contracts\PaymentResult ) {
+				return $result->toArray();
+			}
+
+			return is_array( $result ) ? $result : [ 'success' => (bool) $result ];
+		} catch ( \Throwable $e ) {
+			return [
+				'success' => false,
+				'error'   => [
+					'code'    => 'payment_exception',
+					'message' => $e->getMessage(),
+				],
+			];
+		}
 	}
 
 	/**
@@ -222,9 +267,6 @@ class PaymentGatewayRegistry implements PaymentGatewayRegistryInterface {
 
 		$this->defaults_loaded = true;
 
-		// Ensure gateway interface and classes are loaded.
-		$this->loadGatewayFiles();
-
 		// Register built-in gateways.
 		$this->registerBuiltinGateways();
 
@@ -237,44 +279,17 @@ class PaymentGatewayRegistry implements PaymentGatewayRegistryInterface {
 	}
 
 	/**
-	 * Load gateway class files.
-	 *
-	 * @return void
-	 */
-	private function loadGatewayFiles(): void {
-		$gateway_dir = defined( 'WCH_PLUGIN_DIR' ) ? WCH_PLUGIN_DIR . 'includes/Payments/' : '';
-
-		if ( empty( $gateway_dir ) || ! is_dir( $gateway_dir ) ) {
-			return;
-		}
-
-		// Load interface first.
-		$interface_file = $gateway_dir . 'interface-wch-payment-gateway.php';
-		if ( file_exists( $interface_file ) && ! interface_exists( 'WCH_Payment_Gateway' ) ) {
-			require_once $interface_file;
-		}
-
-		// Auto-discover gateway files.
-		$gateway_files = glob( $gateway_dir . 'class-wch-payment-*.php' );
-		if ( $gateway_files ) {
-			foreach ( $gateway_files as $file ) {
-				require_once $file;
-			}
-		}
-	}
-
-	/**
 	 * Register built-in payment gateways.
 	 *
 	 * @return void
 	 */
 	private function registerBuiltinGateways(): void {
 		$builtin_gateways = [
-			'cod'         => 'WCH_Payment_COD',
-			'stripe'      => 'WCH_Payment_Stripe',
-			'razorpay'    => 'WCH_Payment_Razorpay',
-			'whatsapppay' => 'WCH_Payment_WhatsAppPay',
-			'pix'         => 'WCH_Payment_PIX',
+			'cod'         => CodGateway::class,
+			'stripe'      => StripeGateway::class,
+			'razorpay'    => RazorpayGateway::class,
+			'whatsapppay' => WhatsAppPayGateway::class,
+			'pix'         => PixGateway::class,
 		];
 
 		/**
@@ -287,22 +302,19 @@ class PaymentGatewayRegistry implements PaymentGatewayRegistryInterface {
 		foreach ( $builtin_gateways as $id => $class_name ) {
 			if ( class_exists( $class_name ) ) {
 				try {
-					$gateway = new $class_name();
-					if ( $gateway instanceof \WCH_Payment_Gateway ) {
+					$gateway = function_exists( 'wch' ) ? wch( $class_name ) : new $class_name();
+					if ( $gateway instanceof PaymentGatewayInterface ) {
 						$this->register( $id, $gateway );
 					}
 				} catch ( \Throwable $e ) {
-					// Log error but don't break the entire registry.
-					if ( class_exists( 'WCH_Logger' ) ) {
-						\WCH_Logger::error(
-							"Failed to instantiate payment gateway: {$id}",
-							[
-								'category' => 'payments',
-								'class'    => $class_name,
-								'error'    => $e->getMessage(),
-							]
-						);
-					}
+					Logger::instance()->error(
+						"Failed to instantiate payment gateway: {$id}",
+						'payments',
+						[
+							'class' => $class_name,
+							'error' => $e->getMessage(),
+						]
+					);
 				}
 			}
 		}

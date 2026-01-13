@@ -12,7 +12,11 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Application\Services;
 
+use WhatsAppCommerceHub\Clients\WhatsAppApiClient;
 use WhatsAppCommerceHub\Contracts\Services\BroadcastServiceInterface;
+use WhatsAppCommerceHub\Core\Logger;
+use WhatsAppCommerceHub\Infrastructure\Queue\JobDispatcher;
+use WhatsAppCommerceHub\Presentation\Templates\TemplateManager;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -43,17 +47,17 @@ class BroadcastService implements BroadcastServiceInterface {
 	/**
 	 * Template manager instance.
 	 *
-	 * @var \WCH_Template_Manager|null
+	 * @var TemplateManager|null
 	 */
-	private ?\WCH_Template_Manager $template_manager;
+	private ?TemplateManager $template_manager;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param \wpdb|null                 $wpdb_instance WordPress database instance.
-	 * @param \WCH_Template_Manager|null $template_manager Template manager instance.
+	 * @param \wpdb|null            $wpdb_instance WordPress database instance.
+	 * @param TemplateManager|null $template_manager Template manager instance.
 	 */
-	public function __construct( ?\wpdb $wpdb_instance = null, ?\WCH_Template_Manager $template_manager = null ) {
+	public function __construct( ?\wpdb $wpdb_instance = null, ?TemplateManager $template_manager = null ) {
 		if ( null === $wpdb_instance ) {
 			global $wpdb;
 			$this->wpdb = $wpdb;
@@ -316,10 +320,10 @@ class BroadcastService implements BroadcastServiceInterface {
 			}
 
 			// Fallback to static API client.
-			$api_client = \WCH_WhatsApp_API_Client::instance();
+			$api_client = wch( WhatsAppApiClient::class );
 			return $api_client->sendTemplateMessage( $phone_number, $message );
 		} catch ( \Throwable $e ) {
-			\WCH_Logger::error(
+			Logger::instance()->error(
 				'Failed to send test broadcast',
 				[
 					'category' => 'broadcasts',
@@ -467,7 +471,7 @@ class BroadcastService implements BroadcastServiceInterface {
 
 			$recipient_count = count( $all_recipients );
 			if ( $recipient_count >= $max_recipients ) {
-				\WCH_Logger::warning(
+				Logger::instance()->warning(
 					'Broadcast recipients hit safety limit',
 					[
 						'category'    => 'broadcasts',
@@ -516,7 +520,7 @@ class BroadcastService implements BroadcastServiceInterface {
 			return [];
 		}
 
-		$all_templates      = $template_manager->get_templates();
+		$all_templates      = $template_manager->getTemplates();
 		$approved_templates = [];
 
 		if ( is_array( $all_templates ) ) {
@@ -554,7 +558,7 @@ class BroadcastService implements BroadcastServiceInterface {
 			}
 
 			if ( ! $api_client ) {
-				$api_client = \WCH_WhatsApp_API_Client::instance();
+				$api_client = wch( WhatsAppApiClient::class );
 			}
 
 			foreach ( $batch as $phone ) {
@@ -578,7 +582,7 @@ class BroadcastService implements BroadcastServiceInterface {
 				}
 			}
 		} catch ( \Throwable $e ) {
-			\WCH_Logger::error(
+			Logger::instance()->error(
 				'Broadcast batch processing failed',
 				[
 					'category'    => 'broadcasts',
@@ -609,7 +613,7 @@ class BroadcastService implements BroadcastServiceInterface {
 		$recipients = $this->getCampaignRecipients( $campaign );
 
 		if ( empty( $recipients ) ) {
-			\WCH_Logger::warning(
+			Logger::instance()->warning(
 				'Broadcast has no recipients',
 				[
 					'category'    => 'broadcasts',
@@ -619,20 +623,6 @@ class BroadcastService implements BroadcastServiceInterface {
 			return [
 				'success' => false,
 				'message' => __( 'No recipients found matching the audience criteria', 'whatsapp-commerce-hub' ),
-			];
-		}
-
-		if ( ! class_exists( 'WCH_Job_Dispatcher' ) ) {
-			\WCH_Logger::error(
-				'WCH_Job_Dispatcher class not found - cannot schedule broadcast',
-				[
-					'category'    => 'broadcasts',
-					'campaign_id' => $campaign['id'] ?? 'unknown',
-				]
-			);
-			return [
-				'success' => false,
-				'message' => __( 'Job dispatcher not available - cannot schedule broadcast', 'whatsapp-commerce-hub' ),
 			];
 		}
 
@@ -650,7 +640,7 @@ class BroadcastService implements BroadcastServiceInterface {
 
 			$batch_delay = $delay + ( $batch_num * 1 );
 
-			\WCH_Job_Dispatcher::dispatch( 'wch_send_broadcast_batch', $args, $batch_delay );
+			wch( JobDispatcher::class )->dispatch( 'wch_send_broadcast_batch', $args, $batch_delay );
 		}
 
 		return [
@@ -741,29 +731,13 @@ class BroadcastService implements BroadcastServiceInterface {
 	/**
 	 * Get template manager instance.
 	 *
-	 * @return \WCH_Template_Manager|null
+	 * @return TemplateManager|null
 	 */
-	private function getTemplateManager(): ?\WCH_Template_Manager {
+	private function getTemplateManager(): ?TemplateManager {
 		if ( $this->template_manager ) {
 			return $this->template_manager;
 		}
 
-		if ( function_exists( 'wch_get_container' ) ) {
-			try {
-				$container = wch_get_container();
-				if ( $container->has( \WCH_Template_Manager::class ) ) {
-					return $container->get( \WCH_Template_Manager::class );
-				}
-			} catch ( \Throwable $e ) {
-				// phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- Intentional fallthrough to alternative instantiation.
-				unset( $e );
-			}
-		}
-
-		if ( class_exists( 'WCH_Template_Manager' ) ) {
-			return \WCH_Template_Manager::getInstance();
-		}
-
-		return null;
+		return wch( TemplateManager::class );
 	}
 }

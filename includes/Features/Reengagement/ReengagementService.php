@@ -134,15 +134,15 @@ class ReengagementService {
 	 */
 	private function findInactiveCustomers(): array {
 		global $wpdb;
-		$customersTable = $wpdb->prefix . 'wch_customers';
+		$customersTable = $wpdb->prefix . 'wch_customer_profiles';
 
 		$thresholdDate = gmdate( 'Y-m-d H:i:s', strtotime( '-' . self::INACTIVITY_THRESHOLD . ' days' ) );
 
 		$customers = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT * FROM {$customersTable}
-                WHERE last_interaction_at < %s
-                AND opted_out = 0
+                WHERE (last_interaction_at IS NULL OR last_interaction_at < %s)
+                AND notification_opt_out = 0
                 AND phone IS NOT NULL
                 ORDER BY last_interaction_at ASC
                 LIMIT 50",
@@ -241,7 +241,7 @@ class ReengagementService {
 	 */
 	private function buildCampaignVariables( int $customerId, string $campaignType ): array {
 		global $wpdb;
-		$customersTable = $wpdb->prefix . 'wch_customers';
+		$customersTable = $wpdb->prefix . 'wch_customer_profiles';
 
 		$customer = $wpdb->get_row(
 			$wpdb->prepare( "SELECT * FROM {$customersTable} WHERE id = %d", $customerId ),

@@ -15,6 +15,7 @@ namespace WhatsAppCommerceHub\Application\Services;
 use WhatsAppCommerceHub\Contracts\Services\CartServiceInterface;
 use WhatsAppCommerceHub\Contracts\Repositories\CartRepositoryInterface;
 use WhatsAppCommerceHub\Domain\Cart\Cart;
+use WhatsAppCommerceHub\Features\AbandonedCart\RecoveryService;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -681,16 +682,30 @@ class CartService implements CartServiceInterface {
 			$update_data['recovered']          = true;
 			$update_data['recovered_order_id'] = $order_id;
 			$update_data['recovered_revenue']  = $cart->total;
+			$update_data['recovered_at']       = new \DateTimeImmutable();
 		}
 
 		return $this->repository->update( $cart->id, $update_data );
 	}
 
 	/**
+	 * {@inheritdoc}
+	 */
+	public function updateCartStatus( string $cart_id, string $status ): bool {
+		return $this->repository->update(
+			(int) $cart_id,
+			[
+				'status'     => $status,
+				'updated_at' => new \DateTimeImmutable(),
+			]
+		);
+	}
+
+	/**
 	 * Calculate cart total from items.
 	 *
 	 * SECURITY: Uses stored price_at_add to prevent price manipulation attacks.
-	 * If price_at_add is missing, falls back to current price but logs a warning.
+	 * If price_at_add is missing, falls back to current price and logs a warning.
 	 *
 	 * @param array $items Cart items.
 	 * @return float Total price.
@@ -710,7 +725,7 @@ class CartService implements CartServiceInterface {
 			if ( isset( $item['price_at_add'] ) && is_numeric( $item['price_at_add'] ) ) {
 				$price = (float) $item['price_at_add'];
 			} else {
-				// Fallback to current price if price_at_add is missing (legacy carts).
+				// Fallback to current price if price_at_add is missing.
 				$price = (float) $product->get_price();
 				// Log warning for monitoring - this shouldn't happen with new carts.
 				do_action(
@@ -896,9 +911,10 @@ class CartService implements CartServiceInterface {
 	 * @param string $phone Customer phone.
 	 */
 	private function stopRecoverySequence( string $phone ): void {
-		if ( class_exists( 'WCH_Abandoned_Cart_Recovery' ) ) {
-			$recovery = \WCH_Abandoned_Cart_Recovery::getInstance();
-			$recovery->stop_sequence( $phone, 'cart_modified' );
+		try {
+			wch( RecoveryService::class )->stopSequence( $phone, 'cart_modified' );
+		} catch ( \Throwable ) {
+			// No recovery service available.
 		}
 	}
 

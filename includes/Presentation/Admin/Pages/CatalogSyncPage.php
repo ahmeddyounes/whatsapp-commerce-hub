@@ -12,6 +12,11 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Presentation\Admin\Pages;
 
+use WhatsAppCommerceHub\Contracts\Services\ProductSync\ProductSyncOrchestratorInterface;
+use WhatsAppCommerceHub\Contracts\Services\ProductSync\SyncProgressTrackerInterface;
+use WhatsAppCommerceHub\Infrastructure\Configuration\SettingsManager;
+use WhatsAppCommerceHub\Infrastructure\Queue\QueueManager;
+
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -148,7 +153,7 @@ class CatalogSyncPage {
 			wp_die( esc_html__( 'You do not have permission to access this page.', 'whatsapp-commerce-hub' ) );
 		}
 
-		$settings   = \WCH_Settings::getInstance();
+		$settings   = wch( SettingsManager::class );
 		$catalogId  = $settings->get( 'api.catalog_id', '' );
 		$businessId = $settings->get( 'api.business_account_id', '' );
 		$syncStatus = $this->getSyncStatusOverview();
@@ -179,7 +184,7 @@ class CatalogSyncPage {
 	private function getSyncStatusOverview(): array {
 		global $wpdb;
 
-		$settings = \WCH_Settings::getInstance();
+		$settings = wch( SettingsManager::class );
 
 		$totalSynced = (int) $wpdb->get_var(
 			"SELECT COUNT(*) FROM {$wpdb->prefix}postmeta
@@ -725,15 +730,15 @@ class CatalogSyncPage {
 		}
 
 		try {
-			$syncService = \WCH_Product_Sync_Service::instance();
+			$syncService = wch( ProductSyncOrchestratorInterface::class );
 
 			if ( $syncAll ) {
-				$syncService->sync_all_products();
+				$syncService->syncAllProducts();
 			} else {
 				foreach ( $productIds as $productId ) {
 					update_post_meta( $productId, '_wch_sync_status', 'pending' );
 				}
-				\WCH_Queue::getInstance()->schedule_bulk_action( 'wch_sync_product', $productIds );
+				wch( QueueManager::class )->schedule_bulk_action( 'wch_sync_product', $productIds );
 			}
 
 			$this->recordSyncHistory( count( $productIds ), 'manual' );
@@ -768,10 +773,10 @@ class CatalogSyncPage {
 		}
 
 		try {
-			$syncService = \WCH_Product_Sync_Service::instance();
-			$result      = $syncService->sync_product( $productId );
+			$syncService = wch( ProductSyncOrchestratorInterface::class );
+			$result      = $syncService->syncProduct( $productId );
 
-			if ( $result ) {
+			if ( ! empty( $result['success'] ) ) {
 				update_post_meta( $productId, '_wch_sync_status', 'synced' );
 				update_post_meta( $productId, '_wch_last_synced', current_time( 'mysql' ) );
 				delete_post_meta( $productId, '_wch_sync_error' );
@@ -888,7 +893,7 @@ class CatalogSyncPage {
 			wp_send_json_error( [ 'message' => __( 'Permission denied', 'whatsapp-commerce-hub' ) ] );
 		}
 
-		$settings = \WCH_Settings::getInstance();
+		$settings = wch( SettingsManager::class );
 
 		$syncMode          = isset( $_POST['sync_mode'] ) ? sanitize_text_field( wp_unslash( $_POST['sync_mode'] ) ) : 'manual';
 		$syncFrequency     = isset( $_POST['sync_frequency'] ) ? sanitize_text_field( wp_unslash( $_POST['sync_frequency'] ) ) : 'daily';
@@ -974,7 +979,7 @@ class CatalogSyncPage {
 			delete_post_meta( $productId, '_wch_sync_error' );
 		}
 
-		\WCH_Queue::getInstance()->schedule_bulk_action( 'wch_sync_product', $productIds );
+		wch( QueueManager::class )->schedule_bulk_action( 'wch_sync_product', $productIds );
 
 		wp_send_json_success(
 			[
@@ -996,8 +1001,8 @@ class CatalogSyncPage {
 			wp_send_json_error( [ 'message' => __( 'Permission denied', 'whatsapp-commerce-hub' ) ] );
 		}
 
-		$syncService = \WCH_Product_Sync_Service::instance();
-		$progress    = $syncService->get_sync_progress();
+		$progressTracker = wch( SyncProgressTrackerInterface::class );
+		$progress        = $progressTracker->getProgress();
 
 		if ( ! $progress ) {
 			wp_send_json_success(
@@ -1041,8 +1046,8 @@ class CatalogSyncPage {
 			wp_send_json_error( [ 'message' => __( 'Permission denied', 'whatsapp-commerce-hub' ) ] );
 		}
 
-		$syncService = \WCH_Product_Sync_Service::instance();
-		$syncId      = $syncService->retry_failed_items();
+		$syncService = wch( ProductSyncOrchestratorInterface::class );
+		$syncId      = $syncService->retryFailedItems();
 
 		if ( ! $syncId ) {
 			wp_send_json_error(
@@ -1070,8 +1075,8 @@ class CatalogSyncPage {
 			wp_send_json_error( [ 'message' => __( 'Permission denied', 'whatsapp-commerce-hub' ) ] );
 		}
 
-		$syncService = \WCH_Product_Sync_Service::instance();
-		$cleared     = $syncService->clear_sync_progress();
+		$progressTracker = wch( SyncProgressTrackerInterface::class );
+		$cleared         = $progressTracker->clearProgress();
 
 		if ( ! $cleared ) {
 			wp_send_json_error(

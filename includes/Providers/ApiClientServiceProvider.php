@@ -45,22 +45,11 @@ class ApiClientServiceProvider implements ServiceProviderInterface {
 		$container->singleton(
 			'wch.whatsapp.client',
 			static function ( ContainerInterface $c ) {
-				// Use existing singleton during transition (if it has instance() method).
-				if ( class_exists( 'WCH_WhatsApp_API_Client' ) && method_exists( 'WCH_WhatsApp_API_Client', 'instance' ) ) {
-					return \WCH_WhatsApp_API_Client::instance();
+				try {
+					return $c->get( WhatsAppApiClient::class );
+				} catch ( \Throwable ) {
+					return null;
 				}
-
-				// Fall back to new DI-based client if available.
-				if ( class_exists( 'WCH_WhatsApp_API_Client' ) && method_exists( 'WCH_WhatsApp_API_Client', 'getClient' ) ) {
-					try {
-						return \WCH_WhatsApp_API_Client::getClient();
-					} catch ( \Throwable $e ) {
-						// Client not configured yet.
-						return null;
-					}
-				}
-
-				return null;
 			}
 		);
 
@@ -68,12 +57,11 @@ class ApiClientServiceProvider implements ServiceProviderInterface {
 		$container->singleton(
 			'wch.openai.client',
 			static function ( ContainerInterface $c ) {
-				// Use existing singleton during transition (if it has instance() method).
-				if ( class_exists( 'WCH_OpenAI_Client' ) && method_exists( 'WCH_OpenAI_Client', 'instance' ) ) {
-					return \WCH_OpenAI_Client::instance();
+				try {
+					return $c->get( OpenAIClient::class );
+				} catch ( \Throwable ) {
+					return null;
 				}
-
-				return null;
 			}
 		);
 

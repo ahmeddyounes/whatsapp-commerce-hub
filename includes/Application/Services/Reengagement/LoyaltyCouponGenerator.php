@@ -12,6 +12,8 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Application\Services\Reengagement;
 
+use WhatsAppCommerceHub\Contracts\Services\CustomerServiceInterface;
+use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
 use WhatsAppCommerceHub\Contracts\Services\Reengagement\LoyaltyCouponGeneratorInterface;
 use WhatsAppCommerceHub\Contracts\Services\SettingsInterface;
 
@@ -57,9 +59,9 @@ class LoyaltyCouponGenerator implements LoyaltyCouponGeneratorInterface {
 	/**
 	 * Customer service.
 	 *
-	 * @var \WCH_Customer_Service
+	 * @var CustomerServiceInterface
 	 */
-	protected \WCH_Customer_Service $customerService;
+	protected CustomerServiceInterface $customerService;
 
 	/**
 	 * Constructor.
@@ -68,7 +70,7 @@ class LoyaltyCouponGenerator implements LoyaltyCouponGeneratorInterface {
 	 */
 	public function __construct( SettingsInterface $settings ) {
 		$this->settings        = $settings;
-		$this->customerService = \WCH_Customer_Service::instance();
+		$this->customerService = wch( CustomerServiceInterface::class );
 	}
 
 	/**
@@ -104,13 +106,23 @@ class LoyaltyCouponGenerator implements LoyaltyCouponGeneratorInterface {
 
 			return $couponCode;
 		} catch ( \Exception $e ) {
-			\WCH_Logger::error(
-				'Failed to create loyalty discount coupon',
-				[
-					'phone' => $customer->phone,
-					'error' => $e->getMessage(),
-				]
-			);
+			$logger = null;
+			try {
+				$logger = wch( LoggerInterface::class );
+			} catch ( \Throwable $loggerError ) {
+				$logger = null;
+			}
+
+			if ( $logger ) {
+				$logger->error(
+					'Failed to create loyalty discount coupon',
+					'reengagement',
+					[
+						'phone' => $customer->phone,
+						'error' => $e->getMessage(),
+					]
+				);
+			}
 			return null;
 		}
 	}
@@ -140,7 +152,7 @@ class LoyaltyCouponGenerator implements LoyaltyCouponGeneratorInterface {
 	 * @return bool True if qualifies.
 	 */
 	public function qualifiesForLoyaltyDiscount( string $customerPhone ): bool {
-		$stats  = $this->customerService->calculate_customer_stats( $customerPhone );
+		$stats  = $this->customerService->calculateStats( $customerPhone );
 		$minLtv = $this->getMinimumLtv();
 
 		return ! empty( $stats['total_spent'] ) && $stats['total_spent'] >= $minLtv;

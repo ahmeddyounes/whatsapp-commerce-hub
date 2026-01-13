@@ -18,6 +18,7 @@ use WP_REST_Response;
 use WP_Error;
 use WhatsAppCommerceHub\Security\RateLimiter;
 use WhatsAppCommerceHub\Application\Services\SettingsService;
+use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -53,11 +54,11 @@ abstract class AbstractController extends WP_REST_Controller {
 	 * Constructor.
 	 *
 	 * @param SettingsService|null $settings    Settings service.
-	 * @param RateLimiter|null     $rateLimiter Rate limiter service.
+	 * @param RateLimiter          $rateLimiter Rate limiter service.
 	 */
 	public function __construct(
-		protected ?SettingsService $settings = null,
-		protected ?RateLimiter $rateLimiter = null
+		protected ?SettingsService $settings,
+		protected RateLimiter $rateLimiter
 	) {
 	}
 
@@ -347,52 +348,9 @@ abstract class AbstractController extends WP_REST_Controller {
 		$limit    = $this->rateLimits[ $endpointType ] ?? 100;
 		$clientId = $this->getClientIdentifier();
 
-		// Use database-backed RateLimiter if available.
-		if ( $this->rateLimiter ) {
-			$result = $this->rateLimiter->checkAndHit( $clientId, $endpointType, $limit, 60 );
+		$result = $this->rateLimiter->checkAndHit( $clientId, $endpointType, $limit, 60 );
 
-			if ( ! $result['allowed'] ) {
-				return new WP_Error(
-					'wch_rest_rate_limit_exceeded',
-					sprintf(
-						/* translators: %d: rate limit */
-						__( 'Rate limit exceeded. Maximum %d requests per minute allowed.', 'whatsapp-commerce-hub' ),
-						$limit
-					),
-					[
-						'status'      => 429,
-						'remaining'   => $result['remaining'] ?? 0,
-						'reset_at'    => $result['reset_at'] ?? null,
-						'retry_after' => $result['retry_after'] ?? 60,
-					]
-				);
-			}
-
-			return true;
-		}
-
-		// Fallback to transient-based rate limiting.
-		return $this->checkRateLimitLegacy( $clientId, $endpointType, $limit );
-	}
-
-	/**
-	 * Legacy transient-based rate limiting (fallback).
-	 *
-	 * @param string $clientId     Client identifier.
-	 * @param string $endpointType Endpoint type.
-	 * @param int    $limit        Rate limit.
-	 * @return bool|WP_Error True if within limit, WP_Error otherwise.
-	 */
-	protected function checkRateLimitLegacy( string $clientId, string $endpointType, int $limit ) {
-		$transientKey = 'wch_rate_limit_' . $endpointType . '_' . md5( $clientId );
-		$count        = get_transient( $transientKey );
-
-		if ( false === $count ) {
-			set_transient( $transientKey, 1, MINUTE_IN_SECONDS );
-			return true;
-		}
-
-		if ( $count >= $limit ) {
+		if ( ! $result['allowed'] ) {
 			return new WP_Error(
 				'wch_rest_rate_limit_exceeded',
 				sprintf(
@@ -400,11 +358,14 @@ abstract class AbstractController extends WP_REST_Controller {
 					__( 'Rate limit exceeded. Maximum %d requests per minute allowed.', 'whatsapp-commerce-hub' ),
 					$limit
 				),
-				[ 'status' => 429 ]
+				[
+					'status'      => 429,
+					'remaining'   => $result['remaining'] ?? 0,
+					'reset_at'    => $result['reset_at'] ?? null,
+					'retry_after' => $result['retry_after'] ?? 60,
+				]
 			);
 		}
-
-		set_transient( $transientKey, $count + 1, MINUTE_IN_SECONDS );
 
 		return true;
 	}
@@ -590,8 +551,15 @@ abstract class AbstractController extends WP_REST_Controller {
 	 * @return void
 	 */
 	protected function log( string $message, array $context = [], string $level = 'info' ): void {
-		if ( class_exists( 'WCH_Logger' ) ) {
-			\WCH_Logger::log( $message, $context, $level );
+		try {
+			$logger = wch( LoggerInterface::class );
+		} catch ( \Throwable $e ) {
+			return;
 		}
+
+		$contextStr = $context['category'] ?? 'api';
+		unset( $context['category'] );
+
+		$logger->log( $level, $message, $contextStr, $context );
 	}
 }

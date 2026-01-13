@@ -12,6 +12,10 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Presentation\Admin\Widgets;
 
+use WhatsAppCommerceHub\Application\Services\InventorySyncService;
+use WhatsAppCommerceHub\Features\AbandonedCart\RecoveryService;
+use WhatsAppCommerceHub\Features\Analytics\AnalyticsData;
+
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -146,8 +150,8 @@ class DashboardWidgets {
 	 * @return void
 	 */
 	public function renderInventorySyncWidget(): void {
-		$syncHandler = \WCH_Inventory_Sync_Handler::instance();
-		$stats       = $syncHandler->get_sync_stats();
+		$syncHandler = wch( InventorySyncService::class );
+		$stats       = $syncHandler->getSyncStats();
 
 		$productsInSync = $stats['products_in_sync'] ?? 0;
 		$outOfSyncCount = $stats['out_of_sync_count'] ?? 0;
@@ -337,7 +341,7 @@ class DashboardWidgets {
 	 * @return void
 	 */
 	public function renderAnalyticsWidget(): void {
-		$summary = \WCH_Analytics_Data::get_summary( 'week' );
+		$summary = wch( AnalyticsData::class )->getSummary( 'week' );
 
 		$totalOrders         = $summary['total_orders'] ?? 0;
 		$totalRevenue        = $summary['total_revenue'] ?? 0;
@@ -434,13 +438,8 @@ class DashboardWidgets {
 	 * @return void
 	 */
 	public function renderAbandonedCartRecoveryWidget(): void {
-		if ( ! class_exists( 'WCH_Abandoned_Cart_Recovery' ) ) {
-			echo '<p>' . esc_html__( 'Abandoned cart recovery not available.', 'whatsapp-commerce-hub' ) . '</p>';
-			return;
-		}
-
-		$recovery = \WCH_Abandoned_Cart_Recovery::getInstance();
-		$stats    = $recovery->get_recovery_stats( 7 );
+		$recovery = wch( RecoveryService::class );
+		$stats    = $recovery->getRecoveryStats( 7 );
 
 		$abandonedCarts   = $stats['abandoned_carts'] ?? 0;
 		$messagesSent     = $stats['messages_sent'] ?? 0;

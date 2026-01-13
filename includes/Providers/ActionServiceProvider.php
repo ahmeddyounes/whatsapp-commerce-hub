@@ -23,6 +23,8 @@ use WhatsAppCommerceHub\Actions\RequestAddressAction;
 use WhatsAppCommerceHub\Actions\ConfirmOrderAction;
 use WhatsAppCommerceHub\Actions\ProcessPaymentAction;
 use WhatsAppCommerceHub\Contracts\Services\CartServiceInterface;
+use WhatsAppCommerceHub\Contracts\Services\CustomerServiceInterface;
+use WhatsAppCommerceHub\Core\Logger;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -104,13 +106,13 @@ class ActionServiceProvider extends AbstractServiceProvider {
 		// Allow external handlers to register.
 		do_action( 'wch_register_action_handlers', $registry, $this->container );
 
-		\WCH_Logger::log(
+		Logger::instance()->debug(
 			'Action handlers registered',
+			'actions',
 			[
 				'count'   => $registry->count(),
 				'actions' => $registry->getRegisteredActions(),
-			],
-			'debug'
+			]
 		);
 	}
 
@@ -140,8 +142,8 @@ class ActionServiceProvider extends AbstractServiceProvider {
 		}
 
 		// Inject CustomerService if available.
-		if ( class_exists( 'WCH_Customer_Service' ) ) {
-			$handler->setCustomerService( \WCH_Customer_Service::instance() );
+		if ( $container->has( CustomerServiceInterface::class ) ) {
+			$handler->setCustomerService( $container->get( CustomerServiceInterface::class ) );
 		}
 	}
 

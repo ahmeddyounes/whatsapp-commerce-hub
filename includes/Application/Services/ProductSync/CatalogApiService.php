@@ -12,9 +12,11 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Application\Services\ProductSync;
 
+use WhatsAppCommerceHub\Clients\WhatsAppApiClient;
 use WhatsAppCommerceHub\Contracts\Services\ProductSync\CatalogApiInterface;
 use WhatsAppCommerceHub\Contracts\Services\SettingsInterface;
 use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
+use WhatsAppCommerceHub\Core\Logger;
 use Exception;
 
 // Exit if accessed directly.
@@ -47,9 +49,9 @@ class CatalogApiService implements CatalogApiInterface {
 	/**
 	 * WhatsApp API client.
 	 *
-	 * @var \WCH_WhatsApp_API_Client|null
+	 * @var WhatsAppApiClient|null
 	 */
-	protected $apiClient = null;
+	protected ?WhatsAppApiClient $apiClient = null;
 
 	/**
 	 * Constructor.
@@ -239,45 +241,25 @@ class CatalogApiService implements CatalogApiInterface {
 	/**
 	 * Get API client instance.
 	 *
-	 * @return \WCH_WhatsApp_API_Client|null
+	 * @return WhatsAppApiClient|null
 	 */
-	protected function getApiClient() {
-		if ( null !== $this->apiClient ) {
-			return $this->apiClient;
-		}
-
-		try {
-			$phoneNumberId = $this->getSetting( 'api.whatsapp_phone_number_id' );
-			$accessToken   = $this->getSetting( 'api.access_token' );
-			$apiVersion    = $this->getSetting( 'api.api_version', 'v18.0' );
-
-			if ( empty( $phoneNumberId ) || empty( $accessToken ) ) {
+	protected function getApiClient(): ?WhatsAppApiClient {
+		if ( null === $this->apiClient ) {
+			try {
+				$this->apiClient = wch( WhatsAppApiClient::class );
+			} catch ( Exception $e ) {
+				$this->log(
+					'error',
+					'Failed to initialize API client',
+					[
+						'error' => $e->getMessage(),
+					]
+				);
 				return null;
 			}
-
-			if ( ! class_exists( 'WCH_WhatsApp_API_Client' ) ) {
-				return null;
-			}
-
-			$this->apiClient = new \WCH_WhatsApp_API_Client(
-				[
-					'phone_number_id' => $phoneNumberId,
-					'access_token'    => $accessToken,
-					'api_version'     => $apiVersion,
-				]
-			);
-
-			return $this->apiClient;
-		} catch ( Exception $e ) {
-			$this->log(
-				'error',
-				'Failed to initialize API client',
-				[
-					'error' => $e->getMessage(),
-				]
-			);
-			return null;
 		}
+
+		return $this->apiClient;
 	}
 
 	/**
@@ -292,11 +274,11 @@ class CatalogApiService implements CatalogApiInterface {
 			return $this->settings->get( $key, $default );
 		}
 
-		if ( class_exists( 'WCH_Settings' ) ) {
-			return \WCH_Settings::instance()->get( $key, $default );
+		if ( $this->settings ) {
+			return $this->settings->get( $key, $default );
 		}
 
-		return $default;
+		return wch( \WhatsAppCommerceHub\Infrastructure\Configuration\SettingsManager::class )->get( $key, $default );
 	}
 
 	/**
@@ -315,8 +297,6 @@ class CatalogApiService implements CatalogApiInterface {
 			return;
 		}
 
-		if ( class_exists( 'WCH_Logger' ) ) {
-			\WCH_Logger::log( $message, $context, $level );
-		}
+		Logger::instance()->log( $level, $message, 'product-sync', $context );
 	}
 }

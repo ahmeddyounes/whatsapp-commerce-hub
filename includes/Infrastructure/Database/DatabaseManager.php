@@ -27,7 +27,7 @@ class DatabaseManager {
 	/**
 	 * Database schema version.
 	 */
-	public const DB_VERSION = '2.4.0';
+	public const DB_VERSION = '2.5.0';
 
 	/**
 	 * Option name for storing DB version.
@@ -133,6 +133,13 @@ class DatabaseManager {
 			return;
 		}
 
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+
+		$charsetCollate = $this->wpdb->get_charset_collate();
+		foreach ( $this->getTableSchemas( $charsetCollate ) as $sql ) {
+			dbDelta( $sql );
+		}
+
 		$currentVersion = $this->getCurrentVersion();
 
 		// Load and run migration files.
@@ -209,15 +216,23 @@ class DatabaseManager {
 			id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
 			conversation_id BIGINT(20) UNSIGNED NOT NULL,
 			direction ENUM('inbound', 'outbound') NOT NULL,
-			message_type ENUM('text', 'interactive', 'image', 'document', 'template') NOT NULL,
+			type ENUM('text', 'interactive', 'image', 'document', 'template', 'audio', 'video', 'location', 'reaction', 'button') NOT NULL,
 			wa_message_id VARCHAR(100) NOT NULL,
 			content JSON NULL,
-			status ENUM('sent', 'delivered', 'read', 'failed') NOT NULL DEFAULT 'sent',
+			raw_payload JSON NULL,
+			status ENUM('pending', 'sent', 'delivered', 'read', 'failed') NOT NULL DEFAULT 'pending',
+			retry_count INT(11) NOT NULL DEFAULT 0,
+			error_message TEXT NULL,
 			created_at DATETIME NOT NULL,
+			updated_at DATETIME NOT NULL,
+			sent_at DATETIME NULL,
+			delivered_at DATETIME NULL,
+			read_at DATETIME NULL,
 			PRIMARY KEY (id),
 			UNIQUE KEY wa_message_id (wa_message_id),
 			KEY conversation_id (conversation_id),
-			KEY created_at (created_at)
+			KEY created_at (created_at),
+			KEY status (status)
 		) $charsetCollate;";
 	}
 
@@ -235,15 +250,17 @@ class DatabaseManager {
 			total DECIMAL(10,2) NOT NULL DEFAULT 0.00,
 			coupon_code VARCHAR(50) NULL,
 			shipping_address JSON NULL,
-			status ENUM('active', 'completed', 'abandoned') NOT NULL DEFAULT 'active',
+			status ENUM('active', 'abandoned', 'converted', 'expired') NOT NULL DEFAULT 'active',
 			reminder_sent_at DATETIME NULL,
 			reminder_1_sent_at DATETIME NULL,
 			reminder_2_sent_at DATETIME NULL,
 			reminder_3_sent_at DATETIME NULL,
+			abandoned_at DATETIME NULL,
 			recovery_coupon_code VARCHAR(50) NULL,
 			recovered TINYINT(1) NOT NULL DEFAULT 0,
 			recovered_order_id BIGINT(20) UNSIGNED NULL,
 			recovered_revenue DECIMAL(10,2) NULL,
+			recovered_at DATETIME NULL,
 			expires_at DATETIME NOT NULL,
 			created_at DATETIME NOT NULL,
 			updated_at DATETIME NOT NULL,
@@ -263,20 +280,24 @@ class DatabaseManager {
 	 * @return string SQL statement.
 	 */
 	private function getCustomerProfilesTableSchema( string $charsetCollate ): string {
-		return 'CREATE TABLE ' . $this->getTableName( 'customer_profiles' ) . " (
-			id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-			phone VARCHAR(20) NOT NULL,
-			wc_customer_id BIGINT(20) UNSIGNED NULL,
-			name VARCHAR(100) NOT NULL,
-			saved_addresses JSON NULL,
-			preferences JSON NULL,
-			tags JSON NULL,
-			total_orders INT(11) NOT NULL DEFAULT 0,
-			total_spent DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-			opt_in_marketing TINYINT(1) NOT NULL DEFAULT 0,
-			notification_opt_out TINYINT(1) NOT NULL DEFAULT 0,
-			created_at DATETIME NOT NULL,
-			updated_at DATETIME NOT NULL,
+			return 'CREATE TABLE ' . $this->getTableName( 'customer_profiles' ) . " (
+				id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+				phone VARCHAR(20) NOT NULL,
+				wc_customer_id BIGINT(20) UNSIGNED NULL,
+				name VARCHAR(100) NOT NULL,
+				email VARCHAR(100) NULL,
+				last_known_address JSON NULL,
+				saved_addresses JSON NULL,
+				preferences JSON NULL,
+				tags JSON NULL,
+				total_orders INT(11) NOT NULL DEFAULT 0,
+				total_spent DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+				opt_in_marketing TINYINT(1) NOT NULL DEFAULT 0,
+				notification_opt_out TINYINT(1) NOT NULL DEFAULT 0,
+				last_interaction_at DATETIME NULL,
+				marketing_opted_at DATETIME NULL,
+				created_at DATETIME NOT NULL,
+				updated_at DATETIME NOT NULL,
 			PRIMARY KEY (id),
 			UNIQUE KEY phone (phone),
 			KEY wc_customer_id (wc_customer_id),

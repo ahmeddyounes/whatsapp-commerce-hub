@@ -20,7 +20,6 @@ use WhatsAppCommerceHub\Core\Logger;
  * Manages async job processing using Action Scheduler bundled with WooCommerce.
  */
 class QueueManager {
-
 	/**
 	 * Registered action hooks
 	 */
@@ -150,6 +149,82 @@ class QueueManager {
 
 			$this->logger->info( 'Scheduled recurring job: schedule_recovery_reminders' );
 		}
+	}
+
+	/**
+	 * Schedule a bulk action for a list of items.
+	 *
+	 * @param string $hook     Action hook name.
+	 * @param array  $items    Items to schedule.
+	 * @param array  $baseArgs Shared arguments for each action.
+	 * @param string $itemKey  Optional key to assign scalar item values.
+	 * @return int Number of scheduled actions.
+	 */
+	public function schedule_bulk_action( string $hook, array $items, array $baseArgs = [], string $itemKey = '' ): int {
+		if ( empty( $items ) ) {
+			return 0;
+		}
+
+		if ( ! function_exists( 'as_enqueue_async_action' ) && ! function_exists( 'as_schedule_single_action' ) ) {
+			$this->logger->warning(
+				'Action Scheduler unavailable for bulk action scheduling',
+				[
+					'hook'  => $hook,
+					'count' => count( $items ),
+				]
+			);
+			return 0;
+		}
+
+		$itemKey = $itemKey ?: $this->resolveBulkItemKey( $hook );
+		$scheduled = 0;
+
+		foreach ( $items as $item ) {
+			$args = $baseArgs;
+
+			if ( is_array( $item ) ) {
+				$args = array_merge( $args, $item );
+			} elseif ( '' !== $itemKey ) {
+				$args[ $itemKey ] = $item;
+			} else {
+				$args[] = $item;
+			}
+
+			if ( function_exists( 'as_enqueue_async_action' ) ) {
+				$actionId = as_enqueue_async_action( $hook, $args, 'wch' );
+			} else {
+				$actionId = as_schedule_single_action( time(), $hook, $args, 'wch' );
+			}
+
+			if ( $actionId ) {
+				++$scheduled;
+			}
+		}
+
+		if ( $scheduled > 0 ) {
+			$this->logger->info(
+				'Bulk actions scheduled',
+				[
+					'hook'  => $hook,
+					'count' => $scheduled,
+				]
+			);
+		}
+
+		return $scheduled;
+	}
+
+	/**
+	 * Resolve the default item key for bulk scheduling.
+	 *
+	 * @param string $hook Action hook name.
+	 * @return string
+	 */
+	private function resolveBulkItemKey( string $hook ): string {
+		return match ( $hook ) {
+			'wch_sync_product' => 'product_id',
+			default => 'item',
+		};
 	}
 
 	/**

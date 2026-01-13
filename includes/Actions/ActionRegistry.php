@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace WhatsAppCommerceHub\Actions;
 
 use WhatsAppCommerceHub\Actions\Contracts\ActionHandlerInterface;
+use WhatsAppCommerceHub\Core\Logger;
 use WhatsAppCommerceHub\ValueObjects\ActionResult;
 use WhatsAppCommerceHub\ValueObjects\ConversationContext;
 
@@ -149,10 +150,10 @@ class ActionRegistry {
 		$handler = $this->get( $actionName );
 
 		if ( ! $handler ) {
-			\WCH_Logger::log(
+			Logger::instance()->warning(
 				'No handler found for action',
-				[ 'action' => $actionName ],
-				'warning'
+				'action',
+				[ 'action' => $actionName ]
 			);
 			return null;
 		}

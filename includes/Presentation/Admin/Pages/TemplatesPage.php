@@ -12,6 +12,8 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Presentation\Admin\Pages;
 
+use WhatsAppCommerceHub\Presentation\Templates\TemplateManager;
+
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -106,8 +108,8 @@ class TemplatesPage {
 		}
 
 		try {
-			$templateManager = \WCH_Template_Manager::getInstance();
-			$templates       = $templateManager->sync_templates();
+			$templateManager = wch( TemplateManager::class );
+			$templates       = $templateManager->syncTemplates();
 
 			wp_safe_redirect(
 				add_query_arg(
@@ -153,8 +155,8 @@ class TemplatesPage {
 		}
 
 		try {
-			$templateManager = \WCH_Template_Manager::getInstance();
-			$rendered        = $templateManager->render_template( $templateName, $variables );
+			$templateManager = wch( TemplateManager::class );
+			$rendered        = $templateManager->renderTemplate( $templateName, $variables );
 
 			wp_send_json_success( [ 'template' => $rendered ] );
 		} catch ( \Exception $e ) {
@@ -172,10 +174,10 @@ class TemplatesPage {
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'whatsapp-commerce-hub' ) );
 		}
 
-		$templateManager = \WCH_Template_Manager::getInstance();
-		$templates       = $templateManager->get_templates();
-		$lastSync        = $templateManager->get_last_sync_time();
-		$usageStats      = $templateManager->get_all_usage_stats();
+		$templateManager = wch( TemplateManager::class );
+		$templates       = $templateManager->getTemplates();
+		$lastSync        = $templateManager->getLastSyncTime();
+		$usageStats      = $templateManager->getAllUsageStats();
 
 		$statsByName         = $this->buildStatsIndex( $usageStats );
 		$templatesByCategory = $this->groupTemplatesByCategory( $templates );

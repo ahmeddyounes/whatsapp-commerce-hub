@@ -12,6 +12,9 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Application\Services;
 
+use WhatsAppCommerceHub\Clients\WhatsAppApiClient;
+use WhatsAppCommerceHub\Core\Logger;
+use WhatsAppCommerceHub\Payments\PaymentGatewayRegistry;
 use WhatsAppCommerceHub\Payments\Contracts\RefundResult;
 
 // Exit if accessed directly.
@@ -28,17 +31,39 @@ class RefundService {
 	/**
 	 * WhatsApp API client.
 	 *
-	 * @var \WCH_WhatsApp_API_Client
+	 * @var WhatsAppApiClient|null
 	 */
-	private \WCH_WhatsApp_API_Client $apiClient;
+	private ?WhatsAppApiClient $apiClient;
+
+	/**
+	 * Payment gateway registry.
+	 *
+	 * @var PaymentGatewayRegistry|null
+	 */
+	private ?PaymentGatewayRegistry $paymentRegistry;
+
+	/**
+	 * Logger instance.
+	 *
+	 * @var Logger
+	 */
+	private Logger $logger;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param \WCH_WhatsApp_API_Client|null $apiClient WhatsApp API client.
+	 * @param WhatsAppApiClient|null     $apiClient WhatsApp API client.
+	 * @param PaymentGatewayRegistry|null $paymentRegistry Payment gateway registry.
+	 * @param Logger|null                 $logger Logger instance.
 	 */
-	public function __construct( ?\WCH_WhatsApp_API_Client $apiClient = null ) {
-		$this->apiClient = $apiClient ?? new \WCH_WhatsApp_API_Client();
+	public function __construct(
+		?WhatsAppApiClient $apiClient = null,
+		?PaymentGatewayRegistry $paymentRegistry = null,
+		?Logger $logger = null
+	) {
+		$this->apiClient      = $apiClient;
+		$this->paymentRegistry = $paymentRegistry;
+		$this->logger         = $logger ?? Logger::instance();
 	}
 
 	/**
@@ -198,17 +223,24 @@ class RefundService {
 			wc_price( $totalRefunded )
 		);
 
-		// Send message to customer.
-		$this->apiClient->send_message(
-			[
-				'messaging_product' => 'whatsapp',
-				'to'                => $customerPhone,
-				'type'              => 'text',
-				'text'              => [
-					'body' => $message,
-				],
-			]
-		);
+		if ( $this->apiClient ) {
+			$this->apiClient->sendMessage(
+				[
+					'messaging_product' => 'whatsapp',
+					'to'                => $customerPhone,
+					'type'              => 'text',
+					'text'              => [
+						'body' => $message,
+					],
+				]
+			);
+		} else {
+			$this->log(
+				'Refund notification skipped: WhatsApp API client not configured',
+				[ 'order_id' => $orderId ],
+				'warning'
+			);
+		}
 
 		$this->log(
 			'Refund notification sent',
@@ -307,20 +339,17 @@ class RefundService {
 	 * @return \WhatsAppCommerceHub\Payments\Contracts\PaymentGatewayInterface|null
 	 */
 	private function getPaymentGateway( string $gatewayId ) {
-		// Try to get from container first.
-		try {
-			$container = \WhatsAppCommerceHub\Container\Container::getInstance();
-			if ( $container->has( "payment.gateway.{$gatewayId}" ) ) {
-				return $container->get( "payment.gateway.{$gatewayId}" );
-			}
-		} catch ( \Exception $e ) {
-			// Fall back to payment manager.
+		if ( $this->paymentRegistry && $this->paymentRegistry->has( $gatewayId ) ) {
+			return $this->paymentRegistry->get( $gatewayId );
 		}
 
-		// Fall back to legacy payment manager.
-		if ( class_exists( 'WCH_Payment_Manager' ) ) {
-			$manager = \WCH_Payment_Manager::instance();
-			return $manager->get_gateway( $gatewayId );
+		try {
+			$container = \WhatsAppCommerceHub\Container\Container::getInstance();
+			if ( $container->has( PaymentGatewayRegistry::class ) ) {
+				return $container->get( PaymentGatewayRegistry::class )->get( $gatewayId );
+			}
+		} catch ( \Throwable ) {
+			// Ignore and fall through.
 		}
 
 		return null;
@@ -370,8 +399,6 @@ class RefundService {
 	 * @return void
 	 */
 	private function log( string $message, array $context = [], string $level = 'info' ): void {
-		if ( class_exists( 'WCH_Logger' ) ) {
-			\WCH_Logger::log( $message, $context, $level );
-		}
+		$this->logger->log( $level, $message, 'refunds', $context );
 	}
 }

@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Controllers;
 
+use WhatsAppCommerceHub\Features\Analytics\AnalyticsData;
 use WP_REST_Request;
 use WP_REST_Response;
 use WP_REST_Server;
@@ -249,7 +250,7 @@ class AnalyticsController extends AbstractController {
 		$period = $request->get_param( 'period' );
 
 		try {
-			$data = \WCH_Analytics_Data::get_summary( $period );
+			$data = wch( AnalyticsData::class )->getSummary( $period );
 
 			return $this->prepareResponse(
 				[
@@ -285,7 +286,7 @@ class AnalyticsController extends AbstractController {
 		$days = $request->get_param( 'days' );
 
 		try {
-			$data = \WCH_Analytics_Data::get_orders_over_time( $days );
+			$data = wch( AnalyticsData::class )->getOrdersOverTime( $days );
 
 			return $this->prepareResponse(
 				[
@@ -321,7 +322,7 @@ class AnalyticsController extends AbstractController {
 		$days = $request->get_param( 'days' );
 
 		try {
-			$data = \WCH_Analytics_Data::get_revenue_by_day( $days );
+			$data = wch( AnalyticsData::class )->getRevenueByDay( $days );
 
 			return $this->prepareResponse(
 				[
@@ -358,7 +359,7 @@ class AnalyticsController extends AbstractController {
 		$days  = $request->get_param( 'days' );
 
 		try {
-			$data = \WCH_Analytics_Data::get_top_products( $limit, $days );
+			$data = wch( AnalyticsData::class )->getTopProducts( $limit, $days );
 
 			return $this->prepareResponse(
 				[
@@ -394,7 +395,7 @@ class AnalyticsController extends AbstractController {
 		$days = $request->get_param( 'days' );
 
 		try {
-			$data = \WCH_Analytics_Data::get_conversation_heatmap( $days );
+			$data = wch( AnalyticsData::class )->getConversationHeatmap( $days );
 
 			return $this->prepareResponse(
 				[
@@ -430,7 +431,7 @@ class AnalyticsController extends AbstractController {
 		$days = $request->get_param( 'days' );
 
 		try {
-			$data = \WCH_Analytics_Data::get_detailed_metrics( $days );
+			$data = wch( AnalyticsData::class )->getDetailedMetrics( $days );
 
 			return $this->prepareResponse(
 				[
@@ -466,7 +467,7 @@ class AnalyticsController extends AbstractController {
 		$days = $request->get_param( 'days' );
 
 		try {
-			$data = \WCH_Analytics_Data::get_customer_insights( $days );
+			$data = wch( AnalyticsData::class )->getCustomerInsights( $days );
 
 			return $this->prepareResponse(
 				[
@@ -502,7 +503,7 @@ class AnalyticsController extends AbstractController {
 		$days = $request->get_param( 'days' );
 
 		try {
-			$data = \WCH_Analytics_Data::get_funnel_data( $days );
+			$data = wch( AnalyticsData::class )->getFunnelData( $days );
 
 			return $this->prepareResponse(
 				[
@@ -546,7 +547,7 @@ class AnalyticsController extends AbstractController {
 			}
 
 			$filename = 'wch-analytics-' . $type . '-' . gmdate( 'Y-m-d-His' ) . '.csv';
-			\WCH_Analytics_Data::export_to_csv( $data, $filename );
+			wch( AnalyticsData::class )->exportToCsv( $data, $filename );
 
 			return $this->prepareResponse(
 				[
@@ -580,15 +581,15 @@ class AnalyticsController extends AbstractController {
 	private function getExportData( string $type, int $days ) {
 		switch ( $type ) {
 			case 'orders':
-				return \WCH_Analytics_Data::get_orders_over_time( $days );
+				return wch( AnalyticsData::class )->getOrdersOverTime( $days );
 			case 'revenue':
-				return \WCH_Analytics_Data::get_revenue_by_day( $days );
+				return wch( AnalyticsData::class )->getRevenueByDay( $days );
 			case 'products':
-				return \WCH_Analytics_Data::get_top_products( 50, $days );
+				return wch( AnalyticsData::class )->getTopProducts( 50, $days );
 			case 'metrics':
-				return \WCH_Analytics_Data::get_detailed_metrics( $days );
+				return wch( AnalyticsData::class )->getDetailedMetrics( $days );
 			case 'funnel':
-				return \WCH_Analytics_Data::get_funnel_data( $days );
+				return wch( AnalyticsData::class )->getFunnelData( $days );
 			default:
 				return $this->prepareError(
 					'invalid_export_type',
