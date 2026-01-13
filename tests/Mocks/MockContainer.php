@@ -23,21 +23,21 @@ class MockContainer implements ContainerInterface {
 	 *
 	 * @var array
 	 */
-	private array $services = array();
+	private array $services = [];
 
 	/**
 	 * Service factories.
 	 *
 	 * @var array<string, callable>
 	 */
-	private array $factories = array();
+	private array $factories = [];
 
 	/**
 	 * Resolved singleton instances.
 	 *
 	 * @var array
 	 */
-	private array $instances = array();
+	private array $instances = [];
 
 	/**
 	 * Register a mock service.
@@ -133,9 +133,9 @@ class MockContainer implements ContainerInterface {
 	 * @return void
 	 */
 	public function reset(): void {
-		$this->services  = array();
-		$this->factories = array();
-		$this->instances = array();
+		$this->services  = [];
+		$this->factories = [];
+		$this->instances = [];
 	}
 
 	/**
@@ -144,7 +144,7 @@ class MockContainer implements ContainerInterface {
 	 * @return void
 	 */
 	public function clearInstances(): void {
-		$this->instances = array();
+		$this->instances = [];
 	}
 
 	/**
@@ -177,7 +177,7 @@ class MockContainer implements ContainerInterface {
 		// Mock settings.
 		$container->set(
 			'wch.settings',
-			array(
+			[
 				'phone_number_id'       => 'test_phone_id',
 				'business_account_id'   => 'test_business_id',
 				'access_token'          => 'test_token',
@@ -186,7 +186,7 @@ class MockContainer implements ContainerInterface {
 				'enable_ai_chat'        => true,
 				'enable_cart_recovery'  => true,
 				'cart_expiry_hours'     => 72,
-			)
+			]
 		);
 
 		// Mock logger.
@@ -211,7 +211,7 @@ class MockContainer implements ContainerInterface {
 
 		return new class {
 			public string $prefix = 'wp_';
-			public array $results = array();
+			public array $results = [];
 			public ?int $insert_id = null;
 			private int $insert_sequence = 0;
 
@@ -245,7 +245,7 @@ class MockContainer implements ContainerInterface {
 			}
 
 			public function get_col( string $query, int $x = 0 ): array {
-				return array();
+				return [];
 			}
 
 			public function insert( string $table, array $data, ?array $format = null ): int|false {
@@ -273,22 +273,22 @@ class MockContainer implements ContainerInterface {
  * Mock Logger for testing.
  */
 class MockLogger {
-	public array $logs = array();
+	public array $logs = [];
 
-	public function debug( string $message, array $context = array() ): void {
-		$this->logs[] = array( 'level' => 'debug', 'message' => $message, 'context' => $context );
+	public function debug( string $message, array $context = [] ): void {
+		$this->logs[] = [ 'level' => 'debug', 'message' => $message, 'context' => $context ];
 	}
 
-	public function info( string $message, array $context = array() ): void {
-		$this->logs[] = array( 'level' => 'info', 'message' => $message, 'context' => $context );
+	public function info( string $message, array $context = [] ): void {
+		$this->logs[] = [ 'level' => 'info', 'message' => $message, 'context' => $context ];
 	}
 
-	public function warning( string $message, array $context = array() ): void {
-		$this->logs[] = array( 'level' => 'warning', 'message' => $message, 'context' => $context );
+	public function warning( string $message, array $context = [] ): void {
+		$this->logs[] = [ 'level' => 'warning', 'message' => $message, 'context' => $context ];
 	}
 
-	public function error( string $message, array $context = array() ): void {
-		$this->logs[] = array( 'level' => 'error', 'message' => $message, 'context' => $context );
+	public function error( string $message, array $context = [] ): void {
+		$this->logs[] = [ 'level' => 'error', 'message' => $message, 'context' => $context ];
 	}
 
 	public function getLogs( ?string $level = null ): array {
@@ -299,7 +299,7 @@ class MockLogger {
 	}
 
 	public function clear(): void {
-		$this->logs = array();
+		$this->logs = [];
 	}
 }
 
@@ -307,7 +307,7 @@ class MockLogger {
  * Mock Cache for testing.
  */
 class MockCache {
-	private array $cache = array();
+	private array $cache = [];
 
 	public function get( string $key, mixed $default = null ): mixed {
 		return $this->cache[ $key ] ?? $default;
@@ -334,7 +334,7 @@ class MockCache {
 
 	public function flush( string $prefix = '' ): void {
 		if ( empty( $prefix ) ) {
-			$this->cache = array();
+			$this->cache = [];
 		} else {
 			foreach ( array_keys( $this->cache ) as $key ) {
 				if ( str_starts_with( $key, $prefix ) ) {

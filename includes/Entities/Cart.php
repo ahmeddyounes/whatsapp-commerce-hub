@@ -8,6 +8,8 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Entities;
 
 // Exit if accessed directly.
@@ -33,32 +35,32 @@ final class Cart {
 	/**
 	 * Allowed cart statuses (whitelist for validation).
 	 */
-	private const ALLOWED_STATUSES = array(
+	private const ALLOWED_STATUSES = [
 		self::STATUS_ACTIVE,
 		self::STATUS_ABANDONED,
 		self::STATUS_CONVERTED,
 		self::STATUS_EXPIRED,
-	);
+	];
 
 	/**
 	 * Constructor.
 	 *
-	 * @param int                       $id                  The cart ID.
-	 * @param string                    $customer_phone      The customer phone number.
-	 * @param array                     $items               The cart items.
-	 * @param float                     $total               The cart total.
-	 * @param string|null               $coupon_code         Applied coupon code.
-	 * @param array|null                $shipping_address    The shipping address.
-	 * @param string                    $status              The cart status.
-	 * @param \DateTimeImmutable        $expires_at          When the cart expires.
-	 * @param \DateTimeImmutable        $created_at          When the cart was created.
-	 * @param \DateTimeImmutable        $updated_at          When the cart was last updated.
-	 * @param \DateTimeImmutable|null   $reminder_1_sent_at  When first reminder was sent.
-	 * @param \DateTimeImmutable|null   $reminder_2_sent_at  When second reminder was sent.
-	 * @param \DateTimeImmutable|null   $reminder_3_sent_at  When third reminder was sent.
-	 * @param bool                      $recovered           Whether the cart was recovered.
-	 * @param int|null                  $recovered_order_id  The recovered order ID.
-	 * @param float|null                $recovered_revenue   The recovered revenue amount.
+	 * @param int                     $id                  The cart ID.
+	 * @param string                  $customer_phone      The customer phone number.
+	 * @param array                   $items               The cart items.
+	 * @param float                   $total               The cart total.
+	 * @param string|null             $coupon_code         Applied coupon code.
+	 * @param array|null              $shipping_address    The shipping address.
+	 * @param string                  $status              The cart status.
+	 * @param \DateTimeImmutable      $expires_at          When the cart expires.
+	 * @param \DateTimeImmutable      $created_at          When the cart was created.
+	 * @param \DateTimeImmutable      $updated_at          When the cart was last updated.
+	 * @param \DateTimeImmutable|null $reminder_1_sent_at  When first reminder was sent.
+	 * @param \DateTimeImmutable|null $reminder_2_sent_at  When second reminder was sent.
+	 * @param \DateTimeImmutable|null $reminder_3_sent_at  When third reminder was sent.
+	 * @param bool                    $recovered           Whether the cart was recovered.
+	 * @param int|null                $recovered_order_id  The recovered order ID.
+	 * @param float|null              $recovered_revenue   The recovered revenue amount.
 	 */
 	public function __construct(
 		public readonly int $id,
@@ -135,10 +137,14 @@ final class Cart {
 
 		// Log invalid status for debugging/security auditing.
 		if ( function_exists( 'do_action' ) ) {
-			do_action( 'wch_log_warning', 'Invalid cart status attempted', array(
-				'status'   => $status,
-				'allowed'  => self::ALLOWED_STATUSES,
-			) );
+			do_action(
+				'wch_log_warning',
+				'Invalid cart status attempted',
+				[
+					'status'  => $status,
+					'allowed' => self::ALLOWED_STATUSES,
+				]
+			);
 		}
 
 		// Return safe default.
@@ -179,23 +185,27 @@ final class Cart {
 	 */
 	private static function decodeJsonArray( string $json, string $field, int $cart_id ): array {
 		if ( '' === $json ) {
-			return array();
+			return [];
 		}
 
 		$decoded = json_decode( $json, true );
 
 		if ( JSON_ERROR_NONE !== json_last_error() ) {
 			if ( function_exists( 'do_action' ) ) {
-				do_action( 'wch_log_warning', 'JSON decode failed in Cart entity', array(
-					'field'   => $field,
-					'cart_id' => $cart_id,
-					'error'   => json_last_error_msg(),
-				) );
+				do_action(
+					'wch_log_warning',
+					'JSON decode failed in Cart entity',
+					[
+						'field'   => $field,
+						'cart_id' => $cart_id,
+						'error'   => json_last_error_msg(),
+					]
+				);
 			}
-			return array();
+			return [];
 		}
 
-		return is_array( $decoded ) ? $decoded : array();
+		return is_array( $decoded ) ? $decoded : [];
 	}
 
 	/**
@@ -226,10 +236,14 @@ final class Cart {
 		} catch ( \Exception $e ) {
 			// Log the invalid date for debugging.
 			if ( function_exists( 'do_action' ) ) {
-				do_action( 'wch_log_warning', 'Invalid date encountered in Cart entity', array(
-					'date'  => $date,
-					'error' => $e->getMessage(),
-				) );
+				do_action(
+					'wch_log_warning',
+					'Invalid date encountered in Cart entity',
+					[
+						'date'  => $date,
+						'error' => $e->getMessage(),
+					]
+				);
 			}
 
 			return false === $default ? new \DateTimeImmutable() : $default;
@@ -242,26 +256,26 @@ final class Cart {
 	 * @return array
 	 */
 	public function toArray(): array {
-		return array(
-			'id'                  => $this->id,
-			'customer_phone'      => $this->customer_phone,
-			'items'               => wp_json_encode( $this->items ),
-			'total'               => $this->total,
-			'coupon_code'         => $this->coupon_code,
-			'shipping_address'    => $this->shipping_address
+		return [
+			'id'                 => $this->id,
+			'customer_phone'     => $this->customer_phone,
+			'items'              => wp_json_encode( $this->items ),
+			'total'              => $this->total,
+			'coupon_code'        => $this->coupon_code,
+			'shipping_address'   => $this->shipping_address
 				? wp_json_encode( $this->shipping_address )
 				: null,
-			'status'              => $this->status,
-			'expires_at'          => $this->expires_at->format( 'Y-m-d H:i:s' ),
-			'created_at'          => $this->created_at->format( 'Y-m-d H:i:s' ),
-			'updated_at'          => $this->updated_at->format( 'Y-m-d H:i:s' ),
-			'reminder_1_sent_at'  => $this->reminder_1_sent_at?->format( 'Y-m-d H:i:s' ),
-			'reminder_2_sent_at'  => $this->reminder_2_sent_at?->format( 'Y-m-d H:i:s' ),
-			'reminder_3_sent_at'  => $this->reminder_3_sent_at?->format( 'Y-m-d H:i:s' ),
-			'recovered'           => $this->recovered ? 1 : 0,
-			'recovered_order_id'  => $this->recovered_order_id,
-			'recovered_revenue'   => $this->recovered_revenue,
-		);
+			'status'             => $this->status,
+			'expires_at'         => $this->expires_at->format( 'Y-m-d H:i:s' ),
+			'created_at'         => $this->created_at->format( 'Y-m-d H:i:s' ),
+			'updated_at'         => $this->updated_at->format( 'Y-m-d H:i:s' ),
+			'reminder_1_sent_at' => $this->reminder_1_sent_at?->format( 'Y-m-d H:i:s' ),
+			'reminder_2_sent_at' => $this->reminder_2_sent_at?->format( 'Y-m-d H:i:s' ),
+			'reminder_3_sent_at' => $this->reminder_3_sent_at?->format( 'Y-m-d H:i:s' ),
+			'recovered'          => $this->recovered ? 1 : 0,
+			'recovered_order_id' => $this->recovered_order_id,
+			'recovered_revenue'  => $this->recovered_revenue,
+		];
 	}
 
 	/**

@@ -21,8 +21,11 @@ use WhatsAppCommerceHub\Payments\Gateways\RazorpayGateway;
 use WhatsAppCommerceHub\Payments\Gateways\PixGateway;
 use WhatsAppCommerceHub\Payments\Gateways\WhatsAppPayGateway;
 use WhatsAppCommerceHub\Controllers\PaymentWebhookController;
-use WhatsAppCommerceHub\Services\RefundService;
-use WhatsAppCommerceHub\Services\NotificationService;
+use WhatsAppCommerceHub\Application\Services\RefundService;
+use WhatsAppCommerceHub\Application\Services\NotificationService;
+use WhatsAppCommerceHub\Clients\WhatsAppApiClient;
+use WhatsAppCommerceHub\Core\Logger;
+use WhatsAppCommerceHub\Presentation\Templates\TemplateManager;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -41,13 +44,13 @@ class PaymentServiceProvider implements ServiceProviderInterface {
 	 *
 	 * @var array<string, class-string<PaymentGatewayInterface>>
 	 */
-	private array $gatewayClasses = array(
+	private array $gatewayClasses = [
 		'cod'         => CodGateway::class,
 		'stripe'      => StripeGateway::class,
 		'razorpay'    => RazorpayGateway::class,
 		'pix'         => PixGateway::class,
 		'whatsapppay' => WhatsAppPayGateway::class,
-	);
+	];
 
 	/**
 	 * Register services with the container.
@@ -72,7 +75,7 @@ class PaymentServiceProvider implements ServiceProviderInterface {
 		foreach ( $this->gatewayClasses as $id => $class ) {
 			$container->singleton(
 				$class,
-				static fn() => new $class()
+				static fn( ContainerInterface $c ) => $c->make( $class )
 			);
 
 			// Register alias for easy access.
@@ -86,7 +89,7 @@ class PaymentServiceProvider implements ServiceProviderInterface {
 		$container->singleton(
 			'payment.gateways',
 			function ( ContainerInterface $c ) {
-				$gateways = array();
+				$gateways = [];
 				foreach ( $this->gatewayClasses as $id => $class ) {
 					$gateways[ $id ] = $c->get( $class );
 				}
@@ -117,8 +120,10 @@ class PaymentServiceProvider implements ServiceProviderInterface {
 			RefundService::class,
 			static function ( ContainerInterface $c ) {
 				$apiClient = null;
-				if ( class_exists( 'WCH_WhatsApp_API_Client' ) ) {
-					$apiClient = new \WCH_WhatsApp_API_Client();
+				try {
+					$apiClient = $c->get( WhatsAppApiClient::class );
+				} catch ( \Throwable ) {
+					// Leave null if API client is not configured.
 				}
 				return new RefundService( $apiClient );
 			}
@@ -137,12 +142,16 @@ class PaymentServiceProvider implements ServiceProviderInterface {
 				$apiClient       = null;
 				$templateManager = null;
 
-				if ( class_exists( 'WCH_WhatsApp_API_Client' ) ) {
-					$apiClient = new \WCH_WhatsApp_API_Client();
+				try {
+					$apiClient = $c->get( WhatsAppApiClient::class );
+				} catch ( \Throwable ) {
+					// Leave null if API client is not configured.
 				}
 
-				if ( class_exists( 'WCH_Template_Manager' ) ) {
-					$templateManager = \WCH_Template_Manager::getInstance();
+				try {
+					$templateManager = $c->get( TemplateManager::class );
+				} catch ( \Throwable ) {
+					// Leave null if templates are not available.
 				}
 
 				return new NotificationService( $apiClient, $templateManager );
@@ -225,7 +234,7 @@ class PaymentServiceProvider implements ServiceProviderInterface {
 	 * @return array<string>
 	 */
 	public function provides(): array {
-		$provides = array(
+		$provides = [
 			PaymentGatewayInterface::class,
 			PaymentWebhookController::class,
 			RefundService::class,
@@ -234,7 +243,7 @@ class PaymentServiceProvider implements ServiceProviderInterface {
 			'payment.refund',
 			'payment.notifications',
 			'payment.webhook.controller',
-		);
+		];
 
 		// Add gateway classes and aliases.
 		foreach ( $this->gatewayClasses as $id => $class ) {
@@ -274,13 +283,9 @@ class PaymentServiceProvider implements ServiceProviderInterface {
 	 * @return void
 	 */
 	private function logRegistration( ContainerInterface $container ): void {
-		if ( ! class_exists( 'WCH_Logger' ) ) {
-			return;
-		}
-
-		$gateways    = $container->get( 'payment.gateways' );
-		$gatewayIds  = array_keys( $gateways );
-		$configuredGateways = array();
+		$gateways           = $container->get( 'payment.gateways' );
+		$gatewayIds         = array_keys( $gateways );
+		$configuredGateways = [];
 
 		foreach ( $gateways as $id => $gateway ) {
 			if ( $gateway->isConfigured() ) {
@@ -288,14 +293,14 @@ class PaymentServiceProvider implements ServiceProviderInterface {
 			}
 		}
 
-		\WCH_Logger::log(
+		Logger::instance()->debug(
 			'Payment services registered',
-			array(
+			'payments',
+			[
 				'total_gateways'      => count( $gatewayIds ),
 				'available_gateways'  => $gatewayIds,
 				'configured_gateways' => $configuredGateways,
-			),
-			'debug'
+			]
 		);
 	}
 }

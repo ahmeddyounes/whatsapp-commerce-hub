@@ -56,13 +56,13 @@ class BroadcastWizardRenderer {
 	 * @return void
 	 */
 	protected function renderStepIndicators(): void {
-		$steps = array(
+		$steps = [
 			1 => __( 'Template', 'whatsapp-commerce-hub' ),
 			2 => __( 'Audience', 'whatsapp-commerce-hub' ),
 			3 => __( 'Personalize', 'whatsapp-commerce-hub' ),
 			4 => __( 'Schedule', 'whatsapp-commerce-hub' ),
 			5 => __( 'Review', 'whatsapp-commerce-hub' ),
-		);
+		];
 		?>
 		<div class="wch-wizard-steps">
 			<?php foreach ( $steps as $num => $label ) : ?>
@@ -171,10 +171,10 @@ class BroadcastWizardRenderer {
 	 */
 	protected function renderCategoryOptions(): void {
 		$categories = get_terms(
-			array(
+			[
 				'taxonomy'   => 'product_cat',
 				'hide_empty' => false,
-			)
+			]
 		);
 
 		if ( is_wp_error( $categories ) ) {
@@ -273,23 +273,23 @@ class BroadcastWizardRenderer {
 	 * @return void
 	 */
 	protected function renderScheduleDatetime(): void {
-		$tzstring    = get_option( 'timezone_string' );
-		$selectedTz  = $tzstring ? $tzstring : 'UTC';
+		$tzstring   = get_option( 'timezone_string' );
+		$selectedTz = $tzstring ? $tzstring : 'UTC';
 
-		$timezones = array(
-			'UTC'                => 'UTC',
-			'America/New_York'   => 'Eastern Time',
-			'America/Chicago'    => 'Central Time',
-			'America/Denver'     => 'Mountain Time',
+		$timezones = [
+			'UTC'                 => 'UTC',
+			'America/New_York'    => 'Eastern Time',
+			'America/Chicago'     => 'Central Time',
+			'America/Denver'      => 'Mountain Time',
 			'America/Los_Angeles' => 'Pacific Time',
-			'Europe/London'      => 'London',
-			'Europe/Paris'       => 'Paris',
-			'Asia/Dubai'         => 'Dubai',
-			'Asia/Kolkata'       => 'India',
-			'Asia/Singapore'     => 'Singapore',
-			'Asia/Tokyo'         => 'Tokyo',
-			'Australia/Sydney'   => 'Sydney',
-		);
+			'Europe/London'       => 'London',
+			'Europe/Paris'        => 'Paris',
+			'Asia/Dubai'          => 'Dubai',
+			'Asia/Kolkata'        => 'India',
+			'Asia/Singapore'      => 'Singapore',
+			'Asia/Tokyo'          => 'Tokyo',
+			'Australia/Sydney'    => 'Sydney',
+		];
 		?>
 		<div class="wch-schedule-datetime" style="margin-left: 30px; display: none;">
 			<label>
@@ -327,7 +327,9 @@ class BroadcastWizardRenderer {
 				<div class="wch-review-section">
 					<h3><?php esc_html_e( 'Campaign Name', 'whatsapp-commerce-hub' ); ?></h3>
 					<div class="wch-form-field">
-						<input type="text" name="campaign_name" placeholder="<?php esc_attr_e( 'Enter campaign name', 'whatsapp-commerce-hub' ); ?>" style="width: 100%; max-width: 500px;">
+						<input type="text" name="campaign_name"
+							placeholder="<?php esc_attr_e( 'Enter campaign name', 'whatsapp-commerce-hub' ); ?>"
+							style="width: 100%; max-width: 500px;">
 					</div>
 				</div>
 

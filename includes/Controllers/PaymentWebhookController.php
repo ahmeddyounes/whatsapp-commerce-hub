@@ -12,8 +12,9 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Controllers;
 
+use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
+use WhatsAppCommerceHub\Payments\PaymentGatewayRegistry;
 use WhatsAppCommerceHub\Payments\Contracts\PaymentGatewayInterface;
-use WhatsAppCommerceHub\Payments\Contracts\WebhookResult;
 use WP_REST_Server;
 use WP_REST_Request;
 use WP_REST_Response;
@@ -45,19 +46,11 @@ class PaymentWebhookController {
 	private const EVENTS_TABLE = 'wch_webhook_events';
 
 	/**
-	 * Registered payment gateways.
-	 *
-	 * @var array<string, PaymentGatewayInterface>
-	 */
-	private array $gateways = array();
-
-	/**
 	 * Constructor.
 	 *
 	 * @param array<string, PaymentGatewayInterface> $gateways Payment gateways.
 	 */
-	public function __construct( array $gateways = array() ) {
-		$this->gateways = $gateways;
+	public function __construct( private array $gateways = [] ) {
 	}
 
 	/**
@@ -79,31 +72,31 @@ class PaymentWebhookController {
 		register_rest_route(
 			self::NAMESPACE,
 			'/payment-webhook',
-			array(
-				array(
+			[
+				[
 					'methods'             => WP_REST_Server::CREATABLE,
-					'callback'            => array( $this, 'handlePaymentWebhook' ),
-					'permission_callback' => array( $this, 'verifyWebhookPermission' ),
-				),
-			)
+					'callback'            => [ $this, 'handlePaymentWebhook' ],
+					'permission_callback' => [ $this, 'verifyWebhookPermission' ],
+				],
+			]
 		);
 
 		register_rest_route(
 			self::NAMESPACE,
 			'/payment-webhook/(?P<gateway>[a-z]+)',
-			array(
-				array(
+			[
+				[
 					'methods'             => WP_REST_Server::CREATABLE,
-					'callback'            => array( $this, 'handleGatewayWebhook' ),
-					'permission_callback' => array( $this, 'verifyWebhookPermission' ),
-					'args'                => array(
-						'gateway' => array(
+					'callback'            => [ $this, 'handleGatewayWebhook' ],
+					'permission_callback' => [ $this, 'verifyWebhookPermission' ],
+					'args'                => [
+						'gateway' => [
 							'required' => true,
 							'type'     => 'string',
-						),
-					),
-				),
-			)
+						],
+					],
+				],
+			]
 		);
 	}
 
@@ -113,7 +106,7 @@ class PaymentWebhookController {
 	 * @param WP_REST_Request $request Request object.
 	 * @return bool|WP_Error
 	 */
-	public function verifyWebhookPermission( WP_REST_Request $request ) {
+	public function verifyWebhookPermission( WP_REST_Request $request ): bool|WP_Error {
 		$gatewayId = $request->get_param( 'gateway' );
 		if ( ! $gatewayId ) {
 			$gatewayId = $this->detectGateway( $request );
@@ -123,7 +116,7 @@ class PaymentWebhookController {
 			return new WP_Error(
 				'rest_forbidden',
 				__( 'Unable to identify payment gateway.', 'whatsapp-commerce-hub' ),
-				array( 'status' => 400 )
+				[ 'status' => 400 ]
 			);
 		}
 
@@ -132,14 +125,14 @@ class PaymentWebhookController {
 		if ( ! $gateway ) {
 			$this->log(
 				'Unknown payment gateway rejected',
-				array( 'gateway' => $gatewayId ),
+				[ 'gateway' => $gatewayId ],
 				'warning'
 			);
 
 			return new WP_Error(
 				'rest_forbidden',
 				__( 'Unknown payment gateway.', 'whatsapp-commerce-hub' ),
-				array( 'status' => 400 )
+				[ 'status' => 400 ]
 			);
 		}
 
@@ -150,17 +143,17 @@ class PaymentWebhookController {
 		if ( ! $gateway->verifyWebhookSignature( $payload, $signature ) ) {
 			$this->log(
 				'Payment webhook signature verification failed',
-				array(
+				[
 					'gateway' => $gatewayId,
 					'ip'      => $this->getClientIp(),
-				),
+				],
 				'warning'
 			);
 
 			return new WP_Error(
 				'rest_forbidden',
 				__( 'Invalid webhook signature.', 'whatsapp-commerce-hub' ),
-				array( 'status' => 401 )
+				[ 'status' => 401 ]
 			);
 		}
 
@@ -182,7 +175,7 @@ class PaymentWebhookController {
 
 		if ( ! $gatewayId ) {
 			return new WP_REST_Response(
-				array( 'error' => 'Gateway not specified' ),
+				[ 'error' => 'Gateway not specified' ],
 				400
 			);
 		}
@@ -225,17 +218,17 @@ class PaymentWebhookController {
 		if ( $payloadSize > self::MAX_PAYLOAD_SIZE ) {
 			$this->log(
 				'Payment webhook payload too large',
-				array(
+				[
 					'gateway'  => $gatewayId,
 					'size'     => $payloadSize,
 					'max_size' => self::MAX_PAYLOAD_SIZE,
 					'ip'       => $this->getClientIp(),
-				),
+				],
 				'warning'
 			);
 
 			return new WP_REST_Response(
-				array( 'error' => 'Payload exceeds maximum allowed size' ),
+				[ 'error' => 'Payload exceeds maximum allowed size' ],
 				413
 			);
 		}
@@ -244,12 +237,12 @@ class PaymentWebhookController {
 		if ( ! function_exists( 'wch_is_woocommerce_active' ) || ! wch_is_woocommerce_active() ) {
 			$this->log(
 				'Payment webhook received but WooCommerce is not active',
-				array( 'gateway' => $gatewayId ),
+				[ 'gateway' => $gatewayId ],
 				'error'
 			);
 
 			return new WP_REST_Response(
-				array( 'error' => 'WooCommerce is not available' ),
+				[ 'error' => 'WooCommerce is not available' ],
 				503
 			);
 		}
@@ -269,17 +262,17 @@ class PaymentWebhookController {
 			if ( 'already_processed' === $claimResult ) {
 				$this->log(
 					'Payment webhook already processed (idempotent)',
-					array(
+					[
 						'gateway'  => $gatewayId,
 						'event_id' => $eventId,
-					)
+					]
 				);
 
 				return new WP_REST_Response(
-					array(
+					[
 						'success' => true,
 						'message' => 'Event already processed',
-					),
+					],
 					200
 				);
 			}
@@ -287,17 +280,17 @@ class PaymentWebhookController {
 			if ( 'already_processing' === $claimResult ) {
 				$this->log(
 					'Payment webhook being processed by another request',
-					array(
+					[
 						'gateway'  => $gatewayId,
 						'event_id' => $eventId,
-					)
+					]
 				);
 
 				return new WP_REST_Response(
-					array(
+					[
 						'success' => true,
 						'message' => 'Event is being processed',
-					),
+					],
 					200
 				);
 			}
@@ -305,10 +298,10 @@ class PaymentWebhookController {
 
 		$this->log(
 			sprintf( 'Payment webhook received for gateway: %s', $gatewayId ),
-			array(
+			[
 				'gateway'  => $gatewayId,
 				'event_id' => $eventId ?? 'unknown',
-			)
+			]
 		);
 
 		try {
@@ -328,10 +321,10 @@ class PaymentWebhookController {
 
 			if ( $result->isSuccess() ) {
 				return new WP_REST_Response(
-					array(
+					[
 						'success' => true,
 						'message' => $result->getMessage(),
-					),
+					],
 					200
 				);
 			} else {
@@ -341,10 +334,10 @@ class PaymentWebhookController {
 				}
 
 				return new WP_REST_Response(
-					array(
+					[
 						'success' => false,
 						'message' => $result->getMessage(),
-					),
+					],
 					200
 				);
 			}
@@ -356,19 +349,19 @@ class PaymentWebhookController {
 
 			$this->log(
 				'Payment webhook processing error',
-				array(
+				[
 					'gateway'  => $gatewayId,
 					'event_id' => $eventId ?? 'unknown',
 					'error'    => $e->getMessage(),
-				),
+				],
 				'error'
 			);
 
 			return new WP_REST_Response(
-				array(
+				[
 					'success' => false,
 					'message' => 'Internal error processing webhook',
-				),
+				],
 				500
 			);
 		}
@@ -385,23 +378,11 @@ class PaymentWebhookController {
 			return $this->gateways[ $gatewayId ];
 		}
 
-		// Try to get from container.
 		try {
-			$container = \WhatsAppCommerceHub\Container\Container::getInstance();
-			if ( $container->has( "payment.gateway.{$gatewayId}" ) ) {
-				return $container->get( "payment.gateway.{$gatewayId}" );
-			}
+			return wch( PaymentGatewayRegistry::class )->get( $gatewayId );
 		} catch ( \Exception $e ) {
-			// Fall back to legacy.
+			return null;
 		}
-
-		// Fall back to legacy payment manager.
-		if ( class_exists( 'WCH_Payment_Manager' ) ) {
-			$manager = \WCH_Payment_Manager::instance();
-			return $manager->get_gateway( $gatewayId );
-		}
-
-		return null;
 	}
 
 	/**
@@ -425,12 +406,12 @@ class PaymentWebhookController {
 		$data = $request->get_json_params();
 
 		// Stripe events.
-		if ( isset( $data['type'] ) && strpos( $data['type'], 'payment_intent' ) !== false ) {
+		if ( isset( $data['type'] ) && str_contains( $data['type'], 'payment_intent' ) ) {
 			return 'stripe';
 		}
 
 		// Razorpay events.
-		if ( isset( $data['event'] ) && strpos( $data['event'], 'payment.' ) !== false ) {
+		if ( isset( $data['event'] ) && str_contains( $data['event'], 'payment.' ) ) {
 			return 'razorpay';
 		}
 
@@ -450,11 +431,11 @@ class PaymentWebhookController {
 	 * @return string
 	 */
 	private function getSignatureHeader( string $gatewayId, WP_REST_Request $request ): string {
-		$headers = array(
+		$headers = [
 			'stripe'   => 'Stripe-Signature',
 			'razorpay' => 'X-Razorpay-Signature',
 			'pix'      => 'x-signature',
-		);
+		];
 
 		$headerName = $headers[ $gatewayId ] ?? '';
 
@@ -575,13 +556,13 @@ class PaymentWebhookController {
 
 		$wpdb->update(
 			$tableName,
-			array(
+			[
 				'status'       => 'completed',
 				'completed_at' => current_time( 'mysql', true ),
-			),
-			array( 'event_id' => $eventId ),
-			array( '%s', '%s' ),
-			array( '%s' )
+			],
+			[ 'event_id' => $eventId ],
+			[ '%s', '%s' ],
+			[ '%s' ]
 		);
 	}
 
@@ -607,11 +588,11 @@ class PaymentWebhookController {
 
 		$wpdb->delete(
 			$tableName,
-			array(
+			[
 				'event_id' => $eventId,
 				'status'   => 'processing',
-			),
-			array( '%s', '%s' )
+			],
+			[ '%s', '%s' ]
 		);
 	}
 
@@ -621,7 +602,7 @@ class PaymentWebhookController {
 	 * @return string
 	 */
 	private function getClientIp(): string {
-		$trustedProxies = apply_filters( 'wch_trusted_proxies', array() );
+		$trustedProxies = apply_filters( 'wch_trusted_proxies', [] );
 
 		// Only trust X-Forwarded-For if from a trusted proxy.
 		if ( ! empty( $trustedProxies ) && isset( $_SERVER['REMOTE_ADDR'] ) ) {
@@ -649,10 +630,17 @@ class PaymentWebhookController {
 	 * @param string $level   Log level.
 	 * @return void
 	 */
-	private function log( string $message, array $context = array(), string $level = 'info' ): void {
-		if ( class_exists( 'WCH_Logger' ) ) {
-			\WCH_Logger::{ $level }( $message, $context );
+	private function log( string $message, array $context = [], string $level = 'info' ): void {
+		try {
+			$logger = wch( LoggerInterface::class );
+		} catch ( \Throwable $e ) {
+			return;
 		}
+
+		$contextStr = $context['category'] ?? 'payments';
+		unset( $context['category'] );
+
+		$logger->log( $level, $message, $contextStr, $context );
 	}
 
 	/**
@@ -661,27 +649,27 @@ class PaymentWebhookController {
 	 * @return array
 	 */
 	public function getItemSchema(): array {
-		return array(
+		return [
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
 			'title'      => 'payment_webhook',
 			'type'       => 'object',
-			'properties' => array(
-				'gateway'    => array(
+			'properties' => [
+				'gateway'    => [
 					'description' => 'Payment gateway name',
 					'type'        => 'string',
-					'context'     => array( 'view' ),
-				),
-				'event_type' => array(
+					'context'     => [ 'view' ],
+				],
+				'event_type' => [
 					'description' => 'Webhook event type',
 					'type'        => 'string',
-					'context'     => array( 'view' ),
-				),
-				'order_id'   => array(
+					'context'     => [ 'view' ],
+				],
+				'order_id'   => [
 					'description' => 'Order ID',
 					'type'        => 'integer',
-					'context'     => array( 'view' ),
-				),
-			),
-		);
+					'context'     => [ 'view' ],
+				],
+			],
+		];
 	}
 }

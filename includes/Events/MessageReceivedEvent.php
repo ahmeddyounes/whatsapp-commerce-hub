@@ -8,6 +8,8 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Events;
 
 use WhatsAppCommerceHub\Entities\Message;
@@ -54,8 +56,8 @@ class MessageReceivedEvent extends Event {
 	 */
 	public function __construct( Message $message, string $from, int $conversation_id ) {
 		parent::__construct();
-		$this->message = $message;
-		$this->from = $from;
+		$this->message         = $message;
+		$this->from            = $from;
 		$this->conversation_id = $conversation_id;
 	}
 
@@ -70,13 +72,13 @@ class MessageReceivedEvent extends Event {
 	 * {@inheritdoc}
 	 */
 	public function getPayload(): array {
-		return array(
+		return [
 			'message_id'      => $this->message->id,
 			'wa_message_id'   => $this->message->wa_message_id,
 			'conversation_id' => $this->conversation_id,
 			'from'            => $this->from,
 			'type'            => $this->message->type,
 			'content'         => $this->message->content,
-		);
+		];
 	}
 }

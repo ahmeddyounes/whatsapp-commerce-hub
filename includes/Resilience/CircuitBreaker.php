@@ -9,12 +9,18 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Resilience;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+
+// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound, WordPress.Security.EscapeOutput.ExceptionNotEscaped, Generic.Files.OneObjectStructurePerFile.MultipleFound
+// SQL uses safe table names from $wpdb->prefix. Hook names use wch_ project prefix.
+// Exception messages are for logging, not output. File contains exception class.
 
 /**
  * Class CircuitBreaker
@@ -96,15 +102,15 @@ class CircuitBreaker {
 		int $timeout = 30,
 		?\wpdb $wpdb = null
 	) {
-		$this->service = $service;
+		$this->service           = $service;
 		$this->failure_threshold = $failure_threshold;
 		$this->success_threshold = $success_threshold;
-		$this->timeout = $timeout;
+		$this->timeout           = $timeout;
 
 		if ( null === $wpdb ) {
 			global $wpdb;
 		}
-		$this->wpdb = $wpdb;
+		$this->wpdb  = $wpdb;
 		$this->table = $this->wpdb->prefix . 'wch_circuit_breakers';
 	}
 
@@ -122,6 +128,7 @@ class CircuitBreaker {
 	 * @return mixed Operation result or fallback result.
 	 *
 	 * @throws CircuitOpenException If circuit is open and no fallback provided.
+	 * @throws \Throwable If operation fails and no fallback provided.
 	 */
 	public function call(
 		callable $operation,
@@ -129,7 +136,7 @@ class CircuitBreaker {
 		bool $throw_on_open = true
 	): mixed {
 		// Get actual database state, not logical state.
-		$row = $this->getCircuitRow();
+		$row      = $this->getCircuitRow();
 		$db_state = $row ? $row->state : self::STATE_CLOSED;
 
 		// Handle open circuit.
@@ -270,10 +277,14 @@ class CircuitBreaker {
 
 			// Validate strtotime result - returns false on parse failure.
 			if ( false === $opened_at ) {
-				do_action( 'wch_log_error', 'CircuitBreaker: Invalid opened_at timestamp', array(
-					'service'   => $this->service,
-					'opened_at' => $row->opened_at,
-				) );
+				do_action(
+					'wch_log_error',
+					'CircuitBreaker: Invalid opened_at timestamp',
+					[
+						'service'   => $this->service,
+						'opened_at' => $row->opened_at,
+					]
+				);
 				// Assume timeout elapsed on parse error to allow recovery attempts.
 				return self::STATE_HALF_OPEN;
 			}
@@ -321,10 +332,14 @@ class CircuitBreaker {
 		);
 
 		if ( false === $result ) {
-			do_action( 'wch_log_error', 'CircuitBreaker: Failed to ensure circuit exists', array(
-				'service'    => $this->service,
-				'last_error' => $this->wpdb->last_error,
-			) );
+			do_action(
+				'wch_log_error',
+				'CircuitBreaker: Failed to ensure circuit exists',
+				[
+					'service'    => $this->service,
+					'last_error' => $this->wpdb->last_error,
+				]
+			);
 			return false;
 		}
 
@@ -341,7 +356,7 @@ class CircuitBreaker {
 	 */
 	public function isAvailable(): bool {
 		// Get actual database state first.
-		$row = $this->getCircuitRow();
+		$row      = $this->getCircuitRow();
 		$db_state = $row ? $row->state : self::STATE_CLOSED;
 
 		if ( self::STATE_CLOSED === $db_state ) {
@@ -357,7 +372,7 @@ class CircuitBreaker {
 			// Another request already transitioned - check new state.
 			$new_state = $this->getState();
 			// Allow if circuit is now half-open (another request is testing) or closed (recovery succeeded).
-			return in_array( $new_state, array( self::STATE_HALF_OPEN, self::STATE_CLOSED ), true );
+			return in_array( $new_state, [ self::STATE_HALF_OPEN, self::STATE_CLOSED ], true );
 		}
 
 		return self::STATE_HALF_OPEN === $db_state;
@@ -391,7 +406,7 @@ class CircuitBreaker {
 	 * @return array<string, mixed> Health metrics.
 	 */
 	public function getMetrics(): array {
-		return array(
+		return [
 			'service'           => $this->service,
 			'state'             => $this->getState(),
 			'failures'          => $this->getCounter( 'failures' ),
@@ -401,7 +416,7 @@ class CircuitBreaker {
 			'timeout'           => $this->timeout,
 			'opened_at'         => get_transient( $this->getCacheKey( 'opened_at' ) ) ?: null,
 			'last_failure'      => get_transient( $this->getCacheKey( 'last_failure' ) ) ?: null,
-		);
+		];
 	}
 
 	/**
@@ -421,10 +436,10 @@ class CircuitBreaker {
 		$old_state = $this->getState();
 
 		// Use atomic update with state check to prevent race conditions.
-		$update_data = array(
+		$update_data = [
 			'state'      => $state,
 			'updated_at' => current_time( 'mysql', true ),
-		);
+		];
 
 		if ( self::STATE_OPEN === $state ) {
 			$update_data['opened_at'] = current_time( 'mysql', true );
@@ -437,7 +452,7 @@ class CircuitBreaker {
 
 		if ( self::STATE_CLOSED === $state ) {
 			// Reset all counters.
-			$update_data['failures'] = 0;
+			$update_data['failures']  = 0;
 			$update_data['successes'] = 0;
 			$update_data['opened_at'] = null;
 		}
@@ -445,16 +460,20 @@ class CircuitBreaker {
 		$result = $this->wpdb->update(
 			$this->table,
 			$update_data,
-			array( 'service' => $this->service )
+			[ 'service' => $this->service ]
 		);
 
 		if ( false === $result ) {
-			do_action( 'wch_log_error', 'CircuitBreaker: Failed to transition state', array(
-				'service'    => $this->service,
-				'from_state' => $old_state,
-				'to_state'   => $state,
-				'last_error' => $this->wpdb->last_error,
-			) );
+			do_action(
+				'wch_log_error',
+				'CircuitBreaker: Failed to transition state',
+				[
+					'service'    => $this->service,
+					'from_state' => $old_state,
+					'to_state'   => $state,
+					'last_error' => $this->wpdb->last_error,
+				]
+			);
 			return false;
 		}
 
@@ -479,10 +498,10 @@ class CircuitBreaker {
 	 * @return bool True if transition occurred.
 	 */
 	private function compareAndTransition( string $expected_state, string $new_state ): bool {
-		$update_data = array(
+		$update_data = [
 			'state'      => $new_state,
 			'updated_at' => current_time( 'mysql', true ),
-		);
+		];
 
 		if ( self::STATE_OPEN === $new_state ) {
 			$update_data['opened_at'] = current_time( 'mysql', true );
@@ -493,7 +512,7 @@ class CircuitBreaker {
 		}
 
 		if ( self::STATE_CLOSED === $new_state ) {
-			$update_data['failures'] = 0;
+			$update_data['failures']  = 0;
 			$update_data['successes'] = 0;
 			$update_data['opened_at'] = null;
 		}
@@ -530,7 +549,7 @@ class CircuitBreaker {
 			$this->wpdb->update(
 				$this->table,
 				$update_data,
-				array( 'service' => $this->service )
+				[ 'service' => $this->service ]
 			);
 
 			$this->wpdb->query( 'COMMIT' );
@@ -539,10 +558,14 @@ class CircuitBreaker {
 			return true;
 		} catch ( \Throwable $e ) {
 			$this->wpdb->query( 'ROLLBACK' );
-			do_action( 'wch_log_error', 'CircuitBreaker: Transaction failed in compareAndTransition', array(
-				'service' => $this->service,
-				'error'   => $e->getMessage(),
-			) );
+			do_action(
+				'wch_log_error',
+				'CircuitBreaker: Transaction failed in compareAndTransition',
+				[
+					'service' => $this->service,
+					'error'   => $e->getMessage(),
+				]
+			);
 			return false;
 		}
 	}
@@ -563,10 +586,14 @@ class CircuitBreaker {
 
 		// Validate strtotime result - returns false on parse failure.
 		if ( false === $opened_at ) {
-			do_action( 'wch_log_error', 'CircuitBreaker: Invalid opened_at in shouldAttemptRecovery', array(
-				'service'   => $this->service,
-				'opened_at' => $row->opened_at,
-			) );
+			do_action(
+				'wch_log_error',
+				'CircuitBreaker: Invalid opened_at in shouldAttemptRecovery',
+				[
+					'service'   => $this->service,
+					'opened_at' => $row->opened_at,
+				]
+			);
 			// Allow recovery attempt on parse error.
 			return true;
 		}
@@ -600,11 +627,15 @@ class CircuitBreaker {
 	 */
 	private function setCounter( string $name, int $value ): bool {
 		// Validate counter name to prevent SQL injection via column name.
-		if ( ! in_array( $name, array( 'failures', 'successes' ), true ) ) {
-			do_action( 'wch_log_error', 'CircuitBreaker: Invalid counter name', array(
-				'service' => $this->service,
-				'name'    => $name,
-			) );
+		if ( ! in_array( $name, [ 'failures', 'successes' ], true ) ) {
+			do_action(
+				'wch_log_error',
+				'CircuitBreaker: Invalid counter name',
+				[
+					'service' => $this->service,
+					'name'    => $name,
+				]
+			);
 			return false;
 		}
 
@@ -614,20 +645,24 @@ class CircuitBreaker {
 
 		$result = $this->wpdb->update(
 			$this->table,
-			array(
+			[
 				$name        => $value,
 				'updated_at' => current_time( 'mysql', true ),
-			),
-			array( 'service' => $this->service )
+			],
+			[ 'service' => $this->service ]
 		);
 
 		if ( false === $result ) {
-			do_action( 'wch_log_error', 'CircuitBreaker: Failed to set counter', array(
-				'service'    => $this->service,
-				'counter'    => $name,
-				'value'      => $value,
-				'last_error' => $this->wpdb->last_error,
-			) );
+			do_action(
+				'wch_log_error',
+				'CircuitBreaker: Failed to set counter',
+				[
+					'service'    => $this->service,
+					'counter'    => $name,
+					'value'      => $value,
+					'last_error' => $this->wpdb->last_error,
+				]
+			);
 			return false;
 		}
 
@@ -696,19 +731,27 @@ class CircuitBreaker {
 
 			default:
 				// Invalid counter name - log and return 0.
-				do_action( 'wch_log_error', 'CircuitBreaker: Invalid counter name in increment', array(
-					'service' => $this->service,
-					'name'    => $name,
-				) );
+				do_action(
+					'wch_log_error',
+					'CircuitBreaker: Invalid counter name in increment',
+					[
+						'service' => $this->service,
+						'name'    => $name,
+					]
+				);
 				return 0;
 		}
 
 		if ( false === $result ) {
-			do_action( 'wch_log_error', 'CircuitBreaker: Failed to increment counter', array(
-				'service'    => $this->service,
-				'counter'    => $name,
-				'last_error' => $this->wpdb->last_error,
-			) );
+			do_action(
+				'wch_log_error',
+				'CircuitBreaker: Failed to increment counter',
+				[
+					'service'    => $this->service,
+					'counter'    => $name,
+					'last_error' => $this->wpdb->last_error,
+				]
+			);
 			return 0;
 		}
 
@@ -716,7 +759,7 @@ class CircuitBreaker {
 	}
 
 	/**
-	 * Get cache key for a field (legacy, kept for compatibility).
+	 * Get cache key for a field.
 	 *
 	 * @param string $field Field name.
 	 *
@@ -738,20 +781,23 @@ class CircuitBreaker {
 		if ( 'blocked' === $event ) {
 			set_transient(
 				$this->getCacheKey( 'last_failure' ),
-				array(
+				[
 					'time'    => time(),
 					'message' => $message,
-				),
+				],
 				HOUR_IN_SECONDS
 			);
 		}
 
-		do_action( 'wch_log_info', sprintf(
-			'[CircuitBreaker:%s] %s - %s',
-			$this->service,
-			$event,
-			$message
-		) );
+		do_action(
+			'wch_log_info',
+			sprintf(
+				'[CircuitBreaker:%s] %s - %s',
+				$this->service,
+				$event,
+				$message
+			)
+		);
 
 		do_action( 'wch_circuit_event', $this->service, $event, $message );
 	}
@@ -768,7 +814,7 @@ class CircuitBreaker {
 	public static function createTable(): void {
 		global $wpdb;
 
-		$table = $wpdb->prefix . 'wch_circuit_breakers';
+		$table           = $wpdb->prefix . 'wch_circuit_breakers';
 		$charset_collate = $wpdb->get_charset_collate();
 
 		$sql = "CREATE TABLE IF NOT EXISTS {$table} (

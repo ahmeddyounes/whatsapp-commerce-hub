@@ -8,6 +8,10 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
+// phpcs:disable Squiz.Commenting.FunctionComment.Missing -- Service provider closures don't need docblocks.
+
 namespace WhatsAppCommerceHub\Providers;
 
 use WhatsAppCommerceHub\Container\ContainerInterface;
@@ -79,7 +83,7 @@ class SecurityServiceProvider implements ServiceProviderInterface {
 		$container->singleton(
 			'wch.security.logger',
 			static function ( ContainerInterface $c ) {
-				$wpdb = $c->get( \wpdb::class );
+				$wpdb   = $c->get( \wpdb::class );
 				$logger = $c->get( 'wch.logger' );
 
 				return new class( $wpdb, $logger ) {
@@ -88,9 +92,9 @@ class SecurityServiceProvider implements ServiceProviderInterface {
 					private string $table;
 
 					public function __construct( \wpdb $wpdb, object $logger ) {
-						$this->wpdb = $wpdb;
+						$this->wpdb   = $wpdb;
 						$this->logger = $logger;
-						$this->table = $wpdb->prefix . 'wch_security_log';
+						$this->table  = $wpdb->prefix . 'wch_security_log';
 					}
 
 					/**
@@ -101,23 +105,23 @@ class SecurityServiceProvider implements ServiceProviderInterface {
 					 * @param string $level   Log level (info, warning, error).
 					 * @return void
 					 */
-					public function log( string $event, array $context = array(), string $level = 'info' ): void {
+					public function log( string $event, array $context = [], string $level = 'info' ): void {
 						// Always log to file.
 						$this->logger->$level( "Security: {$event}", $context );
 
 						// Log to database for important events.
-						if ( in_array( $level, array( 'warning', 'error' ), true ) ) {
+						if ( in_array( $level, [ 'warning', 'error' ], true ) ) {
 							$this->wpdb->insert(
 								$this->table,
-								array(
+								[
 									'event'      => $event,
 									'level'      => $level,
 									'context'    => wp_json_encode( $context ),
 									'ip_address' => $this->getClientIP(),
 									'user_id'    => get_current_user_id() ?: null,
 									'created_at' => current_time( 'mysql' ),
-								),
-								array( '%s', '%s', '%s', '%s', '%d', '%s' )
+								],
+								[ '%s', '%s', '%s', '%s', '%d', '%s' ]
 							);
 						}
 					}
@@ -130,28 +134,28 @@ class SecurityServiceProvider implements ServiceProviderInterface {
 					 * @param int   $offset  Offset.
 					 * @return array Security events.
 					 */
-					public function getEvents( array $filters = array(), int $limit = 50, int $offset = 0 ): array {
-						$where = array( '1=1' );
-						$params = array();
+					public function getEvents( array $filters = [], int $limit = 50, int $offset = 0 ): array {
+						$where  = [ '1=1' ];
+						$params = [];
 
 						if ( isset( $filters['event'] ) ) {
-							$where[] = 'event = %s';
+							$where[]  = 'event = %s';
 							$params[] = $filters['event'];
 						}
 
 						if ( isset( $filters['level'] ) ) {
-							$where[] = 'level = %s';
+							$where[]  = 'level = %s';
 							$params[] = $filters['level'];
 						}
 
 						if ( isset( $filters['since'] ) ) {
-							$where[] = 'created_at >= %s';
+							$where[]  = 'created_at >= %s';
 							$params[] = $filters['since'];
 						}
 
 						$where_clause = implode( ' AND ', $where );
-						$params[] = $limit;
-						$params[] = $offset;
+						$params[]     = $limit;
+						$params[]     = $offset;
 
 						// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 						return $this->wpdb->get_results(
@@ -163,7 +167,7 @@ class SecurityServiceProvider implements ServiceProviderInterface {
 								...$params
 							),
 							ARRAY_A
-						) ?: array();
+						) ?: [];
 					}
 
 					/**
@@ -172,12 +176,12 @@ class SecurityServiceProvider implements ServiceProviderInterface {
 					 * @return string The client IP.
 					 */
 					private function getClientIP(): string {
-						$headers = array(
+						$headers = [
 							'HTTP_CF_CONNECTING_IP',
 							'HTTP_X_FORWARDED_FOR',
 							'HTTP_X_REAL_IP',
 							'REMOTE_ADDR',
-						);
+						];
 
 						foreach ( $headers as $header ) {
 							if ( ! empty( $_SERVER[ $header ] ) ) {
@@ -229,30 +233,41 @@ class SecurityServiceProvider implements ServiceProviderInterface {
 	 */
 	public function boot( ContainerInterface $container ): void {
 		// Register security log action.
-		add_action( 'wch_security_log', function ( string $event, array $context = array() ) use ( $container ) {
-			$logger = $container->get( 'wch.security.logger' );
-			$logger->log( $event, $context, 'info' );
-		}, 10, 2 );
+		add_action(
+			'wch_security_log',
+			function ( string $event, array $context = [] ) use ( $container ) {
+				$logger = $container->get( 'wch.security.logger' );
+				$logger->log( $event, $context, 'info' );
+			},
+			10,
+			2
+		);
 
 		// Schedule rate limit cleanup.
 		if ( ! wp_next_scheduled( 'wch_rate_limit_cleanup' ) ) {
 			wp_schedule_event( time(), 'hourly', 'wch_rate_limit_cleanup' );
 		}
 
-		add_action( 'wch_rate_limit_cleanup', function () use ( $container ) {
-			$rate_limiter = $container->get( RateLimiter::class );
-			$rate_limiter->cleanup();
-		} );
+		add_action(
+			'wch_rate_limit_cleanup',
+			function () use ( $container ) {
+				$rate_limiter = $container->get( RateLimiter::class );
+				$rate_limiter->cleanup();
+			}
+		);
 
 		// Schedule security log cleanup.
 		if ( ! wp_next_scheduled( 'wch_security_log_cleanup' ) ) {
 			wp_schedule_event( time(), 'daily', 'wch_security_log_cleanup' );
 		}
 
-		add_action( 'wch_security_log_cleanup', function () use ( $container ) {
-			$logger = $container->get( 'wch.security.logger' );
-			$logger->cleanup( 90 );
-		} );
+		add_action(
+			'wch_security_log_cleanup',
+			function () use ( $container ) {
+				$logger = $container->get( 'wch.security.logger' );
+				$logger->cleanup( 90 );
+			}
+		);
 	}
 
 	/**
@@ -261,7 +276,7 @@ class SecurityServiceProvider implements ServiceProviderInterface {
 	 * @return array<string>
 	 */
 	public function provides(): array {
-		return array(
+		return [
 			SecureVault::class,
 			'wch.security.vault',
 			PIIEncryptor::class,
@@ -269,6 +284,6 @@ class SecurityServiceProvider implements ServiceProviderInterface {
 			RateLimiter::class,
 			'wch.security.rate_limiter',
 			'wch.security.logger',
-		);
+		];
 	}
 }

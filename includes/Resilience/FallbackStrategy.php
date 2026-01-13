@@ -8,6 +8,8 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Resilience;
 
 // Exit if accessed directly.
@@ -27,14 +29,14 @@ class FallbackStrategy {
 	 *
 	 * @var array<string, callable>
 	 */
-	private array $handlers = array();
+	private array $handlers = [];
 
 	/**
 	 * Cached fallback values.
 	 *
 	 * @var array<string, mixed>
 	 */
-	private array $cache = array();
+	private array $cache = [];
 
 	/**
 	 * Cache TTL in seconds.
@@ -59,13 +61,13 @@ class FallbackStrategy {
 	/**
 	 * Execute a fallback for a service.
 	 *
-	 * @param string       $service Service identifier.
-	 * @param array        $context Additional context for the fallback.
-	 * @param mixed        $default Default value if no handler exists.
+	 * @param string $service Service identifier.
+	 * @param array  $context Additional context for the fallback.
+	 * @param mixed  $default Default value if no handler exists.
 	 *
 	 * @return mixed Fallback result.
 	 */
-	public function execute( string $service, array $context = array(), mixed $default = null ): mixed {
+	public function execute( string $service, array $context = [], mixed $default = null ): mixed {
 		if ( ! isset( $this->handlers[ $service ] ) ) {
 			$this->logFallback( $service, 'no_handler', $context );
 			return $default;
@@ -76,9 +78,16 @@ class FallbackStrategy {
 			$this->logFallback( $service, 'executed', $context );
 			return $result;
 		} catch ( \Throwable $e ) {
-			$this->logFallback( $service, 'failed', array_merge( $context, array(
-				'error' => $e->getMessage(),
-			) ) );
+			$this->logFallback(
+				$service,
+				'failed',
+				array_merge(
+					$context,
+					[
+						'error' => $e->getMessage(),
+					]
+				)
+			);
 			return $default;
 		}
 	}
@@ -116,11 +125,14 @@ class FallbackStrategy {
 	 * @return void
 	 */
 	private function logFallback( string $service, string $status, array $context ): void {
-		do_action( 'wch_log_info', sprintf(
-			'[Fallback:%s] Status: %s',
-			$service,
-			$status
-		) );
+		do_action(
+			'wch_log_info',
+			sprintf(
+				'[Fallback:%s] Status: %s',
+				$service,
+				$status
+			)
+		);
 
 		do_action( 'wch_fallback_executed', $service, $status, $context );
 	}
@@ -134,101 +146,129 @@ class FallbackStrategy {
 		$strategy = new self();
 
 		// WhatsApp API fallback: Queue for later.
-		$strategy->register( 'whatsapp', function ( array $context ): array {
-			$message_data = $context['message'] ?? array();
+		$strategy->register(
+			'whatsapp',
+			function ( array $context ): array {
+				$message_data = $context['message'] ?? [];
 
-			// Store in outbox for later sending.
-			if ( ! empty( $message_data ) && function_exists( 'as_schedule_single_action' ) ) {
-				as_schedule_single_action(
-					time() + 300, // Retry in 5 minutes.
-					'wch_retry_whatsapp_message',
-					array( $message_data ),
-					'wch-urgent'
-				);
+				// Store in outbox for later sending.
+				if ( ! empty( $message_data ) && function_exists( 'as_schedule_single_action' ) ) {
+					as_schedule_single_action(
+						time() + 300, // Retry in 5 minutes.
+						'wch_retry_whatsapp_message',
+						[ $message_data ],
+						'wch-urgent'
+					);
+				}
+
+				return [
+					'status'  => 'queued',
+					'message' => 'Message queued for later delivery',
+				];
 			}
-
-			return array(
-				'status'  => 'queued',
-				'message' => 'Message queued for later delivery',
-			);
-		} );
+		);
 
 		// OpenAI fallback: Rule-based intent detection.
-		$strategy->register( 'openai', function ( array $context ): array {
-			$message = strtolower( $context['message'] ?? '' );
+		$strategy->register(
+			'openai',
+			function ( array $context ): array {
+				$message = strtolower( $context['message'] ?? '' );
 
-			// Simple keyword-based intent detection.
-			$intents = array(
-				'order'    => array( 'order', 'buy', 'purchase', 'checkout' ),
-				'support'  => array( 'help', 'support', 'problem', 'issue' ),
-				'status'   => array( 'status', 'where', 'track', 'shipping' ),
-				'catalog'  => array( 'products', 'catalog', 'show', 'list' ),
-				'greeting' => array( 'hi', 'hello', 'hey', 'good' ),
-			);
+				// Simple keyword-based intent detection.
+				$intents = [
+					'order'    => [ 'order', 'buy', 'purchase', 'checkout' ],
+					'support'  => [ 'help', 'support', 'problem', 'issue' ],
+					'status'   => [ 'status', 'where', 'track', 'shipping' ],
+					'catalog'  => [ 'products', 'catalog', 'show', 'list' ],
+					'greeting' => [ 'hi', 'hello', 'hey', 'good' ],
+				];
 
-			$detected_intent = 'unknown';
-			$confidence = 0.3; // Low confidence for rule-based.
+				$detected_intent = 'unknown';
+				$confidence      = 0.3; // Low confidence for rule-based.
 
-			foreach ( $intents as $intent => $keywords ) {
-				foreach ( $keywords as $keyword ) {
-					if ( str_contains( $message, $keyword ) ) {
-						$detected_intent = $intent;
-						$confidence = 0.6;
-						break 2;
+				foreach ( $intents as $intent => $keywords ) {
+					foreach ( $keywords as $keyword ) {
+						if ( str_contains( $message, $keyword ) ) {
+							$detected_intent = $intent;
+							$confidence      = 0.6;
+							break 2;
+						}
 					}
 				}
-			}
 
-			return array(
-				'intent'     => $detected_intent,
-				'confidence' => $confidence,
-				'fallback'   => true,
-				'message'    => 'Rule-based detection (AI unavailable)',
-			);
-		} );
+				return [
+					'intent'     => $detected_intent,
+					'confidence' => $confidence,
+					'fallback'   => true,
+					'message'    => 'Rule-based detection (AI unavailable)',
+				];
+			}
+		);
 
 		// Payment gateway fallback: Offer COD.
-		$strategy->register( 'payment', function ( array $context ): array {
-			return array(
-				'status'           => 'gateway_unavailable',
-				'alternative'      => 'cod',
-				'message'          => 'Online payment is temporarily unavailable. Would you like to pay Cash on Delivery?',
-				'show_cod_option'  => true,
-			);
-		} );
+		$strategy->register(
+			'payment',
+			function ( array $context ): array {
+				return [
+					'status'          => 'gateway_unavailable',
+					'alternative'     => 'cod',
+					'message'         => 'Online payment is temporarily unavailable. Would you like to pay Cash on Delivery?',
+					'show_cod_option' => true,
+				];
+			}
+		);
 
 		// Product catalog fallback: Cached catalog.
-		$strategy->register( 'catalog', function ( array $context ) use ( $strategy ): array {
-			return $strategy->cached( 'product_catalog', function (): array {
-				// Return cached catalog summary.
-				$products = wc_get_products( array(
-					'status'  => 'publish',
-					'limit'   => 20,
-					'orderby' => 'popularity',
-				) );
+		$strategy->register(
+			'catalog',
+			function ( array $context ) use ( $strategy ): array {
+				return $strategy->cached(
+					'product_catalog',
+					function (): array {
+						// Return cached catalog summary.
+						$products = wc_get_products(
+							[
+								'status'  => 'publish',
+								'limit'   => 20,
+								'orderby' => 'popularity',
+							]
+						);
 
-				return array_map( function ( $product ) {
-					return array(
-						'id'    => $product->get_id(),
-						'name'  => $product->get_name(),
-						'price' => $product->get_price(),
-					);
-				}, $products );
-			}, 3600 ); // Cache for 1 hour.
-		} );
+						return array_map(
+							function ( $product ) {
+								return [
+									'id'    => $product->get_id(),
+									'name'  => $product->get_name(),
+									'price' => $product->get_price(),
+								];
+							},
+							$products
+						);
+					},
+					3600
+				); // Cache for 1 hour.
+			}
+		);
 
 		// Analytics fallback: Return empty/cached data.
-		$strategy->register( 'analytics', function ( array $context ) use ( $strategy ): array {
-			$metric = $context['metric'] ?? 'unknown';
+		$strategy->register(
+			'analytics',
+			function ( array $context ) use ( $strategy ): array {
+				$metric = $context['metric'] ?? 'unknown';
 
-			return $strategy->cached( 'analytics_' . $metric, function (): array {
-				return array(
-					'status'  => 'cached',
-					'data'    => array(),
-					'message' => 'Live analytics temporarily unavailable',
-				);
-			}, 600 ); // Cache for 10 minutes.
-		} );
+				return $strategy->cached(
+					'analytics_' . $metric,
+					function (): array {
+						return [
+							'status'  => 'cached',
+							'data'    => [],
+							'message' => 'Live analytics temporarily unavailable',
+						];
+					},
+					600
+				); // Cache for 10 minutes.
+			}
+		);
 
 		return $strategy;
 	}

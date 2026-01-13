@@ -8,12 +8,18 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Sagas;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+
+// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound, Generic.Files.OneObjectStructurePerFile.MultipleFound
+// SQL uses safe table names from $wpdb->prefix. Hook names use wch_ project prefix.
+// File contains multiple classes for saga pattern implementation.
 
 /**
  * Class SagaOrchestrator
@@ -25,12 +31,12 @@ class SagaOrchestrator {
 	/**
 	 * Saga states.
 	 */
-	public const STATE_PENDING    = 'pending';
-	public const STATE_RUNNING    = 'running';
-	public const STATE_COMPLETED  = 'completed';
-	public const STATE_FAILED     = 'failed';
+	public const STATE_PENDING      = 'pending';
+	public const STATE_RUNNING      = 'running';
+	public const STATE_COMPLETED    = 'completed';
+	public const STATE_FAILED       = 'failed';
 	public const STATE_COMPENSATING = 'compensating';
-	public const STATE_COMPENSATED = 'compensated';
+	public const STATE_COMPENSATED  = 'compensated';
 
 	/**
 	 * WordPress database instance.
@@ -69,12 +75,13 @@ class SagaOrchestrator {
 	 * - If running/compensating: throws exception to prevent concurrent execution
 	 * - If pending: attempts to acquire lock and execute
 	 *
-	 * @param string      $saga_id   Unique saga identifier.
-	 * @param string      $saga_type Type of saga (e.g., 'checkout', 'refund').
-	 * @param array       $context   Initial saga context.
-	 * @param SagaStep[]  $steps     Array of saga steps.
+	 * @param string     $saga_id   Unique saga identifier.
+	 * @param string     $saga_type Type of saga (e.g., 'checkout', 'refund').
+	 * @param array      $context   Initial saga context.
+	 * @param SagaStep[] $steps     Array of saga steps.
 	 * @return SagaResult Saga execution result.
 	 * @throws \RuntimeException If saga is already running concurrently.
+	 * @throws \Throwable If saga execution fails.
 	 */
 	public function execute(
 		string $saga_id,
@@ -90,13 +97,15 @@ class SagaOrchestrator {
 		}
 
 		// Acquire lock before creating saga to prevent race conditions.
-		$lock_name = 'wch_saga_' . $saga_id;
+		$lock_name     = 'wch_saga_' . $saga_id;
 		$lock_acquired = $this->acquireLock( $lock_name );
 
 		if ( ! $lock_acquired ) {
+			// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception message, not output.
 			throw new \RuntimeException(
 				sprintf( 'Unable to acquire lock for saga %s - concurrent execution detected', $saga_id )
 			);
+			// phpcs:enable WordPress.Security.EscapeOutput.ExceptionNotEscaped
 		}
 
 		try {
@@ -126,27 +135,35 @@ class SagaOrchestrator {
 	 *
 	 * @param string $saga_id  Saga ID.
 	 * @param array  $existing Existing saga state.
-	 * @param array  $context  Request context (for logging).
+	 * @param array  $context  Request context (reserved for future logging).
 	 * @return SagaResult The saga result.
 	 * @throws \RuntimeException If saga is currently running.
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter)
 	 */
 	private function handleExistingSaga( string $saga_id, array $existing, array $context ): SagaResult {
+		// Note: $context parameter kept for API consistency and future logging enhancements.
+		unset( $context );
+
 		$state = $existing['state'];
 
 		// If completed or compensated, return the cached result (idempotent response).
-		if ( in_array( $state, array( self::STATE_COMPLETED, self::STATE_COMPENSATED ), true ) ) {
-			do_action( 'wch_log_info', sprintf(
-				'[SagaOrchestrator] Idempotent response for saga %s (state: %s)',
-				$saga_id,
-				$state
-			) );
+		if ( in_array( $state, [ self::STATE_COMPLETED, self::STATE_COMPENSATED ], true ) ) {
+			do_action(
+				'wch_log_info',
+				sprintf(
+					'[SagaOrchestrator] Idempotent response for saga %s (state: %s)',
+					$saga_id,
+					$state
+				)
+			);
 
 			$existing_context = $existing['context'];
 
 			return new SagaResult(
 				$saga_id,
 				self::STATE_COMPLETED === $state,
-				$existing_context['step_results'] ?? array(),
+				$existing_context['step_results'] ?? [],
 				self::STATE_COMPENSATED === $state ? 'Saga was previously compensated' : null,
 				$existing_context
 			);
@@ -154,34 +171,42 @@ class SagaOrchestrator {
 
 		// If failed, also return cached result.
 		if ( self::STATE_FAILED === $state ) {
-			do_action( 'wch_log_info', sprintf(
-				'[SagaOrchestrator] Returning failed result for saga %s',
-				$saga_id
-			) );
+			do_action(
+				'wch_log_info',
+				sprintf(
+					'[SagaOrchestrator] Returning failed result for saga %s',
+					$saga_id
+				)
+			);
 
 			$existing_context = $existing['context'];
 
 			return new SagaResult(
 				$saga_id,
 				false,
-				$existing_context['step_results'] ?? array(),
+				$existing_context['step_results'] ?? [],
 				'Saga previously failed',
 				$existing_context
 			);
 		}
 
 		// If running or compensating, reject to prevent concurrent execution.
-		if ( in_array( $state, array( self::STATE_RUNNING, self::STATE_COMPENSATING ), true ) ) {
+		if ( in_array( $state, [ self::STATE_RUNNING, self::STATE_COMPENSATING ], true ) ) {
+			// phpcs:disable WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception message, not output.
 			throw new \RuntimeException(
 				sprintf( 'Saga %s is already %s - concurrent execution not allowed', $saga_id, $state )
 			);
+			// phpcs:enable WordPress.Security.EscapeOutput.ExceptionNotEscaped
 		}
 
 		// Pending state - should not happen normally, but try to execute.
-		do_action( 'wch_log_warning', sprintf(
-			'[SagaOrchestrator] Found saga %s in pending state - attempting execution',
-			$saga_id
-		) );
+		do_action(
+			'wch_log_warning',
+			sprintf(
+				'[SagaOrchestrator] Found saga %s in pending state - attempting execution',
+				$saga_id
+			)
+		);
 
 		// We'll proceed with execution - the existing state will be overwritten.
 		return $this->executePendingSaga( $saga_id, $existing );
@@ -197,6 +222,8 @@ class SagaOrchestrator {
 	 * @param array      $context   Initial context.
 	 * @param SagaStep[] $steps     Steps to execute.
 	 * @return SagaResult Execution result.
+	 * @throws \InvalidArgumentException If step is not a SagaStep instance.
+	 * @throws SagaStepException If a critical step fails.
 	 */
 	private function executeSteps(
 		string $saga_id,
@@ -205,8 +232,8 @@ class SagaOrchestrator {
 		array $steps
 	): SagaResult {
 
-		$completed_steps = array();
-		$step_results    = array();
+		$completed_steps = [];
+		$step_results    = [];
 		$current_context = $context;
 
 		// Add saga metadata to context for step access.
@@ -231,16 +258,16 @@ class SagaOrchestrator {
 					$result = $this->executeStepWithRetry( $step, $current_context );
 
 					// Store result in context for subsequent steps.
-					$step_results[ $step_name ] = $result;
-					$current_context['step_results']  = $step_results;
-					$current_context['last_result']   = $result;
+					$step_results[ $step_name ]      = $result;
+					$current_context['step_results'] = $step_results;
+					$current_context['last_result']  = $result;
 
 					// Track completed step for potential compensation.
-					$completed_steps[] = array(
+					$completed_steps[] = [
 						'step'    => $step,
 						'result'  => $result,
 						'context' => $current_context,
-					);
+					];
 
 					$this->logStepComplete( $saga_id, $step_name, $result );
 				} catch ( \Throwable $e ) {
@@ -256,10 +283,10 @@ class SagaOrchestrator {
 					}
 
 					// Non-critical step - continue but record failure.
-					$step_results[ $step_name ] = array(
+					$step_results[ $step_name ] = [
 						'error'   => $e->getMessage(),
 						'skipped' => true,
-					);
+					];
 				}
 			}
 
@@ -336,18 +363,25 @@ class SagaOrchestrator {
 
 		// GET_LOCK returns: 1 = lock acquired, 0 = timeout, NULL = error.
 		if ( '1' === $result || 1 === $result ) {
-			do_action( 'wch_log_debug', sprintf(
-				'[SagaOrchestrator] Acquired lock: %s',
-				$lock_name
-			) );
+			do_action(
+				'wch_log_debug',
+				sprintf(
+					'[SagaOrchestrator] Acquired lock: %s',
+					$lock_name
+				)
+			);
 			return true;
 		}
 
-		do_action( 'wch_log_warning', sprintf(
-			'[SagaOrchestrator] Failed to acquire lock: %s (result: %s)',
-			$lock_name,
-			var_export( $result, true )
-		) );
+		do_action(
+			'wch_log_warning',
+			sprintf(
+				'[SagaOrchestrator] Failed to acquire lock: %s (result: %s)',
+				$lock_name,
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_var_export -- Needed for debugging lock acquisition.
+				var_export( $result, true )
+			)
+		);
 
 		return false;
 	}
@@ -373,17 +407,23 @@ class SagaOrchestrator {
 
 		// RELEASE_LOCK returns: 1 = released, 0 = not owned, NULL = didn't exist.
 		if ( '1' === $result || 1 === $result ) {
-			do_action( 'wch_log_debug', sprintf(
-				'[SagaOrchestrator] Released lock: %s',
-				$lock_name
-			) );
+			do_action(
+				'wch_log_debug',
+				sprintf(
+					'[SagaOrchestrator] Released lock: %s',
+					$lock_name
+				)
+			);
 			return true;
 		}
 
-		do_action( 'wch_log_warning', sprintf(
-			'[SagaOrchestrator] Lock was not owned or did not exist: %s',
-			$lock_name
-		) );
+		do_action(
+			'wch_log_warning',
+			sprintf(
+				'[SagaOrchestrator] Lock was not owned or did not exist: %s',
+				$lock_name
+			)
+		);
 
 		return false;
 	}
@@ -412,22 +452,25 @@ class SagaOrchestrator {
 		// step definitions (closures can't be serialized). True saga recovery
 		// would require a registry pattern where saga_type maps to step builders.
 
-		do_action( 'wch_log_warning', sprintf(
-			'[SagaOrchestrator] Cannot recover pending saga %s - steps not available. ' .
-			'Marking as failed. Original caller should retry.',
-			$saga_id
-		) );
+		do_action(
+			'wch_log_warning',
+			sprintf(
+				'[SagaOrchestrator] Cannot recover pending saga %s - steps not available. ' .
+				'Marking as failed. Original caller should retry.',
+				$saga_id
+			)
+		);
 
 		// Mark as failed so subsequent calls don't keep hitting this.
 		$this->updateState( $saga_id, self::STATE_FAILED );
 		$this->appendLog( $saga_id, 'recovery_failed', 'Steps not available for recovery' );
 
-		$existing_context = $existing['context'] ?? array();
+		$existing_context = $existing['context'] ?? [];
 
 		return new SagaResult(
 			$saga_id,
 			false,
-			array(),
+			[],
 			'Saga found in pending state but cannot be recovered - steps not serialized',
 			$existing_context
 		);
@@ -475,7 +518,7 @@ class SagaOrchestrator {
 	 * @return array Compensation errors (empty if all successful).
 	 */
 	private function compensate( string $saga_id, array $completed_steps ): array {
-		$errors = array();
+		$errors = [];
 
 		// Compensate in reverse order.
 		$reversed = array_reverse( $completed_steps );
@@ -534,22 +577,28 @@ class SagaOrchestrator {
 		// Decode JSON fields with validation.
 		$row['context'] = json_decode( $row['context'] ?? '{}', true );
 		if ( JSON_ERROR_NONE !== json_last_error() ) {
-			do_action( 'wch_log_warning', sprintf(
-				'[SagaOrchestrator] Corrupted context JSON for saga %s: %s',
-				$saga_id,
-				json_last_error_msg()
-			) );
-			$row['context'] = array();
+			do_action(
+				'wch_log_warning',
+				sprintf(
+					'[SagaOrchestrator] Corrupted context JSON for saga %s: %s',
+					$saga_id,
+					json_last_error_msg()
+				)
+			);
+			$row['context'] = [];
 		}
 
 		$row['log'] = json_decode( $row['log'] ?? '[]', true );
 		if ( JSON_ERROR_NONE !== json_last_error() ) {
-			do_action( 'wch_log_warning', sprintf(
-				'[SagaOrchestrator] Corrupted log JSON for saga %s: %s',
-				$saga_id,
-				json_last_error_msg()
-			) );
-			$row['log'] = array();
+			do_action(
+				'wch_log_warning',
+				sprintf(
+					'[SagaOrchestrator] Corrupted log JSON for saga %s: %s',
+					$saga_id,
+					json_last_error_msg()
+				)
+			);
+			$row['log'] = [];
 		}
 
 		return $row;
@@ -587,7 +636,7 @@ class SagaOrchestrator {
 	private function createSagaState( string $saga_id, string $saga_type, array $context ): void {
 		$this->wpdb->insert(
 			$this->table,
-			array(
+			[
 				'saga_id'    => $saga_id,
 				'saga_type'  => $saga_type,
 				'state'      => self::STATE_PENDING,
@@ -595,8 +644,8 @@ class SagaOrchestrator {
 				'log'        => '[]',
 				'created_at' => current_time( 'mysql', true ),
 				'updated_at' => current_time( 'mysql', true ),
-			),
-			array( '%s', '%s', '%s', '%s', '%s', '%s', '%s' )
+			],
+			[ '%s', '%s', '%s', '%s', '%s', '%s', '%s' ]
 		);
 	}
 
@@ -610,13 +659,13 @@ class SagaOrchestrator {
 	private function updateState( string $saga_id, string $state ): void {
 		$this->wpdb->update(
 			$this->table,
-			array(
+			[
 				'state'      => $state,
 				'updated_at' => current_time( 'mysql', true ),
-			),
-			array( 'saga_id' => $saga_id ),
-			array( '%s', '%s' ),
-			array( '%s' )
+			],
+			[ 'saga_id' => $saga_id ],
+			[ '%s', '%s' ],
+			[ '%s' ]
 		);
 
 		do_action( 'wch_saga_state_changed', $saga_id, $state );
@@ -632,11 +681,11 @@ class SagaOrchestrator {
 	private function updateContext( string $saga_id, array $context ): void {
 		$this->wpdb->update(
 			$this->table,
-			array(
+			[
 				'context'    => wp_json_encode( $context ),
 				'updated_at' => current_time( 'mysql', true ),
-			),
-			array( 'saga_id' => $saga_id )
+			],
+			[ 'saga_id' => $saga_id ]
 		);
 	}
 
@@ -669,31 +718,34 @@ class SagaOrchestrator {
 				return;
 			}
 
-			$log = ! empty( $row->log ) ? json_decode( $row->log, true ) : array();
+			$log = ! empty( $row->log ) ? json_decode( $row->log, true ) : [];
 			if ( ! is_array( $log ) ) {
-				$log = array();
+				$log = [];
 			}
 
-			$log[] = array(
+			$log[] = [
 				'timestamp' => current_time( 'mysql', true ),
 				'event'     => $event,
 				'message'   => $message,
-			);
+			];
 
 			$this->wpdb->update(
 				$this->table,
-				array( 'log' => wp_json_encode( $log ) ),
-				array( 'saga_id' => $saga_id )
+				[ 'log' => wp_json_encode( $log ) ],
+				[ 'saga_id' => $saga_id ]
 			);
 
 			$this->wpdb->query( 'COMMIT' );
 		} catch ( \Throwable $e ) {
 			$this->wpdb->query( 'ROLLBACK' );
 			// Log the error but don't propagate - logging shouldn't fail the saga.
-			do_action( 'wch_log_warning', sprintf(
-				'[SagaOrchestrator] Failed to append log: %s',
-				$e->getMessage()
-			) );
+			do_action(
+				'wch_log_warning',
+				sprintf(
+					'[SagaOrchestrator] Failed to append log: %s',
+					$e->getMessage()
+				)
+			);
 		}
 	}
 
@@ -769,12 +821,15 @@ class SagaOrchestrator {
 	 */
 	private function logCompensationFailed( string $saga_id, string $step_name, string $error ): void {
 		$this->appendLog( $saga_id, 'compensate_failed', $step_name . ': ' . $error );
-		do_action( 'wch_log_error', sprintf(
-			'[Saga:%s] Compensation failed: %s - %s',
-			$saga_id,
-			$step_name,
-			$error
-		) );
+		do_action(
+			'wch_log_error',
+			sprintf(
+				'[Saga:%s] Compensation failed: %s - %s',
+				$saga_id,
+				$step_name,
+				$error
+			)
+		);
 	}
 
 	/**
@@ -923,9 +978,9 @@ class SagaResult {
 		bool $success,
 		array $step_results,
 		?string $error = null,
-		array $context = array(),
+		array $context = [],
 		?string $failed_step = null,
-		array $compensation_errors = array()
+		array $compensation_errors = []
 	) {
 		$this->saga_id             = $saga_id;
 		$this->success             = $success;

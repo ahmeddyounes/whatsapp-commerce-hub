@@ -27,19 +27,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 class CampaignReportGenerator {
 
 	/**
-	 * Campaign repository.
-	 *
-	 * @var CampaignRepositoryInterface
-	 */
-	protected CampaignRepositoryInterface $repository;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param CampaignRepositoryInterface $repository Campaign repository.
 	 */
-	public function __construct( CampaignRepositoryInterface $repository ) {
-		$this->repository = $repository;
+	public function __construct( protected CampaignRepositoryInterface $repository ) {
 	}
 
 	/**
@@ -147,10 +139,10 @@ class CampaignReportGenerator {
 	/**
 	 * Render a funnel item.
 	 *
-	 * @param int         $count      Count value.
-	 * @param string      $label      Label text.
-	 * @param float       $barWidth   Bar width percentage.
-	 * @param float|null  $percentage Optional percentage to display.
+	 * @param int        $count      Count value.
+	 * @param string     $label      Label text.
+	 * @param float      $barWidth   Bar width percentage.
+	 * @param float|null $percentage Optional percentage to display.
 	 * @return void
 	 */
 	protected function renderFunnelItem( int $count, string $label, float $barWidth, ?float $percentage = null ): void {
@@ -177,7 +169,7 @@ class CampaignReportGenerator {
 	 * @return void
 	 */
 	protected function renderErrorsBreakdown( array $stats ): void {
-		$errors = $stats['errors'] ?? array();
+		$errors = $stats['errors'] ?? [];
 
 		if ( empty( $errors ) ) {
 			return;
@@ -239,32 +231,32 @@ class CampaignReportGenerator {
 
 		$stats = $campaign['stats'] ?? $this->getDefaultStats();
 
-		return array(
-			'campaign'   => array(
+		return [
+			'campaign'    => [
 				'id'       => $campaign['id'],
 				'name'     => $campaign['name'],
 				'template' => $campaign['template_name'],
 				'status'   => $campaign['status'],
 				'sent_at'  => $campaign['sent_at'] ?? null,
-			),
-			'statistics' => array(
+			],
+			'statistics'  => [
 				'total'     => $stats['total'] ?? 0,
 				'sent'      => $stats['sent'] ?? 0,
 				'delivered' => $stats['delivered'] ?? 0,
 				'read'      => $stats['read'] ?? 0,
 				'failed'    => $stats['failed'] ?? 0,
-			),
-			'rates'      => array(
+			],
+			'rates'       => [
 				'delivery_rate' => $stats['sent'] > 0
 					? round( ( $stats['delivered'] / $stats['sent'] ) * 100, 2 )
 					: 0,
 				'read_rate'     => $stats['delivered'] > 0
 					? round( ( $stats['read'] / $stats['delivered'] ) * 100, 2 )
 					: 0,
-			),
-			'errors'     => $stats['errors'] ?? array(),
+			],
+			'errors'      => $stats['errors'] ?? [],
 			'exported_at' => gmdate( 'Y-m-d H:i:s' ),
-		);
+		];
 	}
 
 	/**
@@ -274,7 +266,7 @@ class CampaignReportGenerator {
 	 * @return string Formatted date.
 	 */
 	protected function formatCampaignDate( array $campaign ): string {
-		$dateField = in_array( $campaign['status'] ?? '', array( 'scheduled', 'draft' ), true )
+		$dateField = in_array( $campaign['status'] ?? '', [ 'scheduled', 'draft' ], true )
 			? 'scheduled_at'
 			: 'sent_at';
 
@@ -296,12 +288,12 @@ class CampaignReportGenerator {
 	 * @return array Default stats.
 	 */
 	protected function getDefaultStats(): array {
-		return array(
+		return [
 			'sent'      => 0,
 			'delivered' => 0,
 			'read'      => 0,
 			'failed'    => 0,
-			'errors'    => array(),
-		);
+			'errors'    => [],
+		];
 	}
 }

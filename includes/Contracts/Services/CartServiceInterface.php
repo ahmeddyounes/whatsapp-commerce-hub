@@ -8,9 +8,11 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Contracts\Services;
 
-use WhatsAppCommerceHub\Entities\Cart;
+use WhatsAppCommerceHub\Domain\Cart\Cart;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -132,8 +134,8 @@ interface CartServiceInterface {
 	/**
 	 * Mark cart reminder as sent.
 	 *
-	 * @param int    $cart_id        Cart ID.
-	 * @param int    $reminder_number Reminder number (1, 2, or 3).
+	 * @param int $cart_id        Cart ID.
+	 * @param int $reminder_number Reminder number (1, 2, or 3).
 	 * @return bool Success status.
 	 */
 	public function markReminderSent( int $cart_id, int $reminder_number = 1 ): bool;
@@ -162,4 +164,13 @@ interface CartServiceInterface {
 	 * @return bool Success status.
 	 */
 	public function markCompleted( string $phone, int $order_id ): bool;
+
+	/**
+	 * Update cart status by ID.
+	 *
+	 * @param string $cart_id Cart ID.
+	 * @param string $status  New status.
+	 * @return bool Success status.
+	 */
+	public function updateCartStatus( string $cart_id, string $status ): bool;
 }

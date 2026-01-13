@@ -8,11 +8,15 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Checkout\Steps;
 
+use WhatsAppCommerceHub\Application\Services\MessageBuilderFactory;
+use WhatsAppCommerceHub\Application\Services\OrderSyncService;
 use WhatsAppCommerceHub\Checkout\AbstractStep;
 use WhatsAppCommerceHub\Contracts\Services\AddressServiceInterface;
-use WhatsAppCommerceHub\Services\MessageBuilderFactory;
+use WhatsAppCommerceHub\Support\Messaging\MessageBuilder;
 use WhatsAppCommerceHub\ValueObjects\CheckoutResponse;
 
 // Exit if accessed directly.
@@ -30,21 +34,21 @@ class ConfirmationStep extends AbstractStep {
 	/**
 	 * Order sync service.
 	 *
-	 * @var \WCH_Order_Sync_Service|null
+	 * @var OrderSyncService|null
 	 */
-	private $order_sync_service;
+	private ?OrderSyncService $order_sync_service;
 
 	/**
 	 * Constructor.
 	 *
 	 * @param MessageBuilderFactory   $message_builder    Message builder factory.
 	 * @param AddressServiceInterface $address_service    Address service.
-	 * @param mixed                   $order_sync_service Order sync service (optional).
+	 * @param OrderSyncService|null   $order_sync_service Order sync service (optional).
 	 */
 	public function __construct(
 		MessageBuilderFactory $message_builder,
 		AddressServiceInterface $address_service,
-		$order_sync_service = null
+		?OrderSyncService $order_sync_service = null
 	) {
 		parent::__construct( $message_builder, $address_service );
 		$this->order_sync_service = $order_sync_service;
@@ -94,20 +98,20 @@ class ConfirmationStep extends AbstractStep {
 	 */
 	public function execute( array $context ): CheckoutResponse {
 		try {
-			$this->log( 'Creating order', array( 'phone' => $this->getCustomerPhone( $context ) ) );
+			$this->log( 'Creating order', [ 'phone' => $this->getCustomerPhone( $context ) ] );
 
-			$cart = $this->getCart( $context );
-			$checkout_data = $this->getCheckoutData( $context );
+			$cart           = $this->getCart( $context );
+			$checkout_data  = $this->getCheckoutData( $context );
 			$customer_phone = $this->getCustomerPhone( $context );
 
 			// Validate all required data is present.
-			$validation = $this->validate( array(), $context );
+			$validation = $this->validate( [], $context );
 			if ( ! $validation['is_valid'] ) {
 				$first_error = reset( $validation['errors'] );
 				return $this->failure(
 					__( 'Missing checkout data', 'whatsapp-commerce-hub' ),
 					'missing_checkout_data',
-					array( $this->errorMessage( $first_error ) )
+					[ $this->errorMessage( $first_error ) ]
 				);
 			}
 
@@ -118,11 +122,11 @@ class ConfirmationStep extends AbstractStep {
 				return $this->failure(
 					$order_result['error'] ?? __( 'Order creation failed', 'whatsapp-commerce-hub' ),
 					'order_creation_failed',
-					array( $this->errorMessage( __( 'Sorry, we could not create your order. Please try again.', 'whatsapp-commerce-hub' ) ) )
+					[ $this->errorMessage( __( 'Sorry, we could not create your order. Please try again.', 'whatsapp-commerce-hub' ) ) ]
 				);
 			}
 
-			$order_id = $order_result['order_id'];
+			$order_id     = $order_result['order_id'];
 			$order_number = $order_result['order_number'] ?? $order_id;
 
 			// Build confirmation message.
@@ -130,20 +134,20 @@ class ConfirmationStep extends AbstractStep {
 
 			return CheckoutResponse::completed(
 				$order_id,
-				array( $message ),
-				array(
-					'order_number' => $order_number,
+				[ $message ],
+				[
+					'order_number'   => $order_number,
 					'payment_method' => $checkout_data['payment_method']['id'] ?? 'cod',
-				)
+				]
 			);
 
 		} catch ( \Throwable $e ) {
-			$this->logError( 'Error creating order', array( 'error' => $e->getMessage() ) );
+			$this->logError( 'Error creating order', [ 'error' => $e->getMessage() ] );
 
 			return $this->failure(
 				$e->getMessage(),
 				'confirmation_failed',
-				array( $this->errorMessage( __( 'Sorry, we could not process your order. Please try again.', 'whatsapp-commerce-hub' ) ) )
+				[ $this->errorMessage( __( 'Sorry, we could not process your order. Please try again.', 'whatsapp-commerce-hub' ) ) ]
 			);
 		}
 	}
@@ -169,8 +173,8 @@ class ConfirmationStep extends AbstractStep {
 	 * @return array{is_valid: bool, errors: array<string, string>}
 	 */
 	public function validate( array $data, array $context ): array {
-		$errors = array();
-		$cart = $this->getCart( $context );
+		$errors        = [];
+		$cart          = $this->getCart( $context );
 		$checkout_data = $this->getCheckoutData( $context );
 
 		if ( empty( $cart['items'] ) ) {
@@ -189,10 +193,10 @@ class ConfirmationStep extends AbstractStep {
 			$errors['payment_method'] = __( 'Payment method is required', 'whatsapp-commerce-hub' );
 		}
 
-		return array(
+		return [
 			'is_valid' => empty( $errors ),
 			'errors'   => $errors,
-		);
+		];
 	}
 
 	/**
@@ -215,41 +219,41 @@ class ConfirmationStep extends AbstractStep {
 
 				if ( $order_id ) {
 					$order = wc_get_order( $order_id );
-					return array(
+					return [
 						'success'      => true,
 						'order_id'     => $order_id,
 						'order_number' => $order ? $order->get_order_number() : $order_id,
-					);
+					];
 				}
 
-				return array(
+				return [
 					'success' => false,
 					'error'   => __( 'Order sync service failed to create order', 'whatsapp-commerce-hub' ),
-				);
+				];
 			}
 
 			// Fallback: Create order directly using WooCommerce.
 			if ( ! function_exists( 'wc_create_order' ) ) {
-				return array(
+				return [
 					'success' => false,
 					'error'   => __( 'WooCommerce is not available', 'whatsapp-commerce-hub' ),
-				);
+				];
 			}
 
 			$order = wc_create_order();
 
 			if ( is_wp_error( $order ) ) {
-				return array(
+				return [
 					'success' => false,
 					'error'   => $order->get_error_message(),
-				);
+				];
 			}
 
 			// Add items to order.
 			foreach ( $cart['items'] as $item ) {
-				$product_id = $item['product_id'] ?? 0;
+				$product_id   = $item['product_id'] ?? 0;
 				$variation_id = $item['variation_id'] ?? 0;
-				$quantity = $item['quantity'] ?? 1;
+				$quantity     = $item['quantity'] ?? 1;
 
 				$product = $variation_id > 0 ? wc_get_product( $variation_id ) : wc_get_product( $product_id );
 
@@ -259,7 +263,7 @@ class ConfirmationStep extends AbstractStep {
 			}
 
 			// Set address.
-			$address = $checkout_data['shipping_address'];
+			$address    = $checkout_data['shipping_address'];
 			$wc_address = $this->address_service->formatForWooCommerce( $address, 'billing' );
 			$order->set_address( $wc_address, 'billing' );
 
@@ -274,7 +278,7 @@ class ConfirmationStep extends AbstractStep {
 			$order->set_payment_method( $payment_method );
 
 			// Add shipping.
-			$shipping = $checkout_data['shipping_method'] ?? array();
+			$shipping = $checkout_data['shipping_method'] ?? [];
 			if ( ! empty( $shipping['cost'] ) && $shipping['cost'] > 0 ) {
 				$shipping_item = new \WC_Order_Item_Shipping();
 				$shipping_item->set_method_title( $shipping['label'] ?? __( 'Shipping', 'whatsapp-commerce-hub' ) );
@@ -303,19 +307,19 @@ class ConfirmationStep extends AbstractStep {
 			$order->update_meta_data( '_wch_customer_phone', $customer_phone );
 			$order->save();
 
-			return array(
+			return [
 				'success'      => true,
 				'order_id'     => $order->get_id(),
 				'order_number' => $order->get_order_number(),
-			);
+			];
 
 		} catch ( \Throwable $e ) {
-			$this->logError( 'Order creation exception', array( 'error' => $e->getMessage() ) );
+			$this->logError( 'Order creation exception', [ 'error' => $e->getMessage() ] );
 
-			return array(
+			return [
 				'success' => false,
 				'error'   => $e->getMessage(),
-			);
+			];
 		}
 	}
 
@@ -325,9 +329,9 @@ class ConfirmationStep extends AbstractStep {
 	 * @param int    $order_id     Order ID.
 	 * @param string $order_number Order number.
 	 * @param array  $checkout_data Checkout data.
-	 * @return \WCH_Message_Builder
+	 * @return MessageBuilder
 	 */
-	private function buildConfirmationMessage( int $order_id, string $order_number, array $checkout_data ): \WCH_Message_Builder {
+	private function buildConfirmationMessage( int $order_id, string $order_number, array $checkout_data ): MessageBuilder {
 		$payment_method = $checkout_data['payment_method']['id'] ?? 'cod';
 
 		$text = sprintf(
@@ -339,14 +343,17 @@ class ConfirmationStep extends AbstractStep {
 		// Add payment-specific instructions.
 		switch ( $payment_method ) {
 			case 'cod':
-				$text .= __( "💰 *Payment:* Cash on Delivery\n\nPlease have the exact amount ready when your order arrives.", 'whatsapp-commerce-hub' );
+				$text .= __(
+					"💰 *Payment:* Cash on Delivery\n\nPlease have the exact amount ready when your order arrives.",
+					'whatsapp-commerce-hub'
+				);
 				break;
 
 			case 'upi':
 			case 'pix':
 			case 'razorpay':
 			case 'stripe':
-				$text .= __( "💳 *Payment:* You will receive payment instructions shortly.", 'whatsapp-commerce-hub' );
+				$text .= __( '💳 *Payment:* You will receive payment instructions shortly.', 'whatsapp-commerce-hub' );
 				break;
 
 			default:

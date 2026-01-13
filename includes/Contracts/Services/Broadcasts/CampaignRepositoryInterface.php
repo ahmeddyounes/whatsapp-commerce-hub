@@ -71,7 +71,7 @@ interface CampaignRepositoryInterface {
 	 * @param array  $extraData  Additional data to update.
 	 * @return bool True on success.
 	 */
-	public function updateStatus( int $campaignId, string $status, array $extraData = array() ): bool;
+	public function updateStatus( int $campaignId, string $status, array $extraData = [] ): bool;
 
 	/**
 	 * Update campaign statistics.

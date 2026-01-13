@@ -23,6 +23,8 @@ use WhatsAppCommerceHub\Actions\RequestAddressAction;
 use WhatsAppCommerceHub\Actions\ConfirmOrderAction;
 use WhatsAppCommerceHub\Actions\ProcessPaymentAction;
 use WhatsAppCommerceHub\Contracts\Services\CartServiceInterface;
+use WhatsAppCommerceHub\Contracts\Services\CustomerServiceInterface;
+use WhatsAppCommerceHub\Core\Logger;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -41,7 +43,7 @@ class ActionServiceProvider extends AbstractServiceProvider {
 	 *
 	 * @var string[]
 	 */
-	private array $actionHandlers = array(
+	private array $actionHandlers = [
 		AddToCartAction::class,
 		ShowCartAction::class,
 		ShowCategoryAction::class,
@@ -50,14 +52,14 @@ class ActionServiceProvider extends AbstractServiceProvider {
 		RequestAddressAction::class,
 		ConfirmOrderAction::class,
 		ProcessPaymentAction::class,
-	);
+	];
 
 	/**
 	 * Register services with the container.
 	 *
 	 * @return void
 	 */
-	public function register(): void {
+	protected function doRegister(): void {
 		// Register ActionRegistry as singleton.
 		$this->container->singleton(
 			ActionRegistry::class,
@@ -92,7 +94,7 @@ class ActionServiceProvider extends AbstractServiceProvider {
 	 *
 	 * @return void
 	 */
-	public function boot(): void {
+	protected function doBoot(): void {
 		$registry = $this->container->get( ActionRegistry::class );
 
 		// Register all action handlers with the registry.
@@ -104,13 +106,13 @@ class ActionServiceProvider extends AbstractServiceProvider {
 		// Allow external handlers to register.
 		do_action( 'wch_register_action_handlers', $registry, $this->container );
 
-		\WCH_Logger::log(
+		Logger::instance()->debug(
 			'Action handlers registered',
-			array(
+			'actions',
+			[
 				'count'   => $registry->count(),
 				'actions' => $registry->getRegisteredActions(),
-			),
-			'debug'
+			]
 		);
 	}
 
@@ -121,7 +123,7 @@ class ActionServiceProvider extends AbstractServiceProvider {
 	 */
 	public function provides(): array {
 		return array_merge(
-			array( ActionRegistry::class ),
+			[ ActionRegistry::class ],
 			$this->actionHandlers
 		);
 	}
@@ -140,8 +142,8 @@ class ActionServiceProvider extends AbstractServiceProvider {
 		}
 
 		// Inject CustomerService if available.
-		if ( class_exists( 'WCH_Customer_Service' ) ) {
-			$handler->setCustomerService( \WCH_Customer_Service::instance() );
+		if ( $container->has( CustomerServiceInterface::class ) ) {
+			$handler->setCustomerService( $container->get( CustomerServiceInterface::class ) );
 		}
 	}
 

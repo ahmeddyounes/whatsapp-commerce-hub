@@ -16,7 +16,7 @@ use WhatsAppCommerceHub\Container\ContainerInterface;
 use WhatsAppCommerceHub\Container\ServiceProviderInterface;
 use WhatsAppCommerceHub\Controllers\AnalyticsController;
 use WhatsAppCommerceHub\Controllers\ConversationsController;
-use WhatsAppCommerceHub\Services\SettingsService;
+use WhatsAppCommerceHub\Application\Services\SettingsService;
 use WhatsAppCommerceHub\Security\RateLimiter;
 
 // Exit if accessed directly.
@@ -43,7 +43,7 @@ class ControllerServiceProvider implements ServiceProviderInterface {
 			AnalyticsController::class,
 			static function ( ContainerInterface $c ) {
 				$settings    = $c->has( SettingsService::class ) ? $c->get( SettingsService::class ) : null;
-				$rateLimiter = $c->has( RateLimiter::class ) ? $c->get( RateLimiter::class ) : null;
+				$rateLimiter = $c->get( RateLimiter::class );
 
 				return new AnalyticsController( $settings, $rateLimiter );
 			}
@@ -54,7 +54,7 @@ class ControllerServiceProvider implements ServiceProviderInterface {
 			ConversationsController::class,
 			static function ( ContainerInterface $c ) {
 				$settings    = $c->has( SettingsService::class ) ? $c->get( SettingsService::class ) : null;
-				$rateLimiter = $c->has( RateLimiter::class ) ? $c->get( RateLimiter::class ) : null;
+				$rateLimiter = $c->get( RateLimiter::class );
 
 				return new ConversationsController( $settings, $rateLimiter );
 			}
@@ -95,11 +95,11 @@ class ControllerServiceProvider implements ServiceProviderInterface {
 	 * @return array<string>
 	 */
 	public function provides(): array {
-		return array(
+		return [
 			AnalyticsController::class,
 			ConversationsController::class,
 			'wch.controller.analytics',
 			'wch.controller.conversations',
-		);
+		];
 	}
 }

@@ -8,6 +8,8 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Providers;
 
 use WhatsAppCommerceHub\Container\ContainerInterface;
@@ -113,7 +115,7 @@ class RepositoryServiceProvider implements ServiceProviderInterface {
 	 * @return array<string>
 	 */
 	public function provides(): array {
-		return array(
+		return [
 			CartRepositoryInterface::class,
 			CartRepository::class,
 			ConversationRepositoryInterface::class,
@@ -122,6 +124,6 @@ class RepositoryServiceProvider implements ServiceProviderInterface {
 			CustomerRepository::class,
 			MessageRepositoryInterface::class,
 			MessageRepository::class,
-		);
+		];
 	}
 }

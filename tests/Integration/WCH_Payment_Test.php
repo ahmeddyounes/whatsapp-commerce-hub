@@ -31,11 +31,11 @@ class WCH_Payment_Test extends WCH_Integration_Test_Case {
 	 * Test COD payment gateway.
 	 */
 	public function test_cod_payment_gateway() {
-		$product = $this->create_test_product( array( 'regular_price' => '50.00' ) );
-		$order = $this->create_test_order( array(
+		$product = $this->create_test_product( [ 'regular_price' => '50.00' ] );
+		$order = $this->create_test_order( [
 			'billing_phone' => '+1234567890',
 			'product' => $product,
-		) );
+		] );
 
 		$gateway = $this->payment_manager->get_gateway( 'cod' );
 		$result = $gateway->process_payment( $order->get_id() );
@@ -82,27 +82,27 @@ class WCH_Payment_Test extends WCH_Integration_Test_Case {
 		// Mock Stripe API response.
 		$this->add_http_mock(
 			'/api\.stripe\.com/',
-			array(
-				'response' => array( 'code' => 200 ),
-				'body' => wp_json_encode( array(
+			[
+				'response' => [ 'code' => 200 ],
+				'body' => wp_json_encode( [
 					'id' => 'pi_test123',
 					'status' => 'succeeded',
-				) ),
-			)
+				] ),
+			]
 		);
 
-		$product = $this->create_test_product( array( 'regular_price' => '100.00' ) );
-		$order = $this->create_test_order( array(
+		$product = $this->create_test_product( [ 'regular_price' => '100.00' ] );
+		$order = $this->create_test_order( [
 			'billing_phone' => '+1234567890',
 			'product' => $product,
-		) );
+		] );
 
 		$gateway = $this->payment_manager->get_gateway( 'stripe' );
 
 		if ( $gateway ) {
-			$result = $gateway->process_payment( $order->get_id(), array(
+			$result = $gateway->process_payment( $order->get_id(), [
 				'payment_method' => 'pm_test_card',
-			) );
+			] );
 
 			$this->assertTrue( $result['success'] );
 		} else {
@@ -117,28 +117,28 @@ class WCH_Payment_Test extends WCH_Integration_Test_Case {
 		// Mock failed payment response.
 		$this->add_http_mock(
 			'/api\.stripe\.com/',
-			array(
-				'response' => array( 'code' => 402 ),
-				'body' => wp_json_encode( array(
-					'error' => array(
+			[
+				'response' => [ 'code' => 402 ],
+				'body' => wp_json_encode( [
+					'error' => [
 						'message' => 'Card declined',
-					),
-				) ),
-			)
+					],
+				] ),
+			]
 		);
 
 		$product = $this->create_test_product();
-		$order = $this->create_test_order( array(
+		$order = $this->create_test_order( [
 			'billing_phone' => '+1234567890',
 			'product' => $product,
-		) );
+		] );
 
 		$gateway = $this->payment_manager->get_gateway( 'stripe' );
 
 		if ( $gateway ) {
-			$result = $gateway->process_payment( $order->get_id(), array(
+			$result = $gateway->process_payment( $order->get_id(), [
 				'payment_method' => 'pm_test_card',
-			) );
+			] );
 
 			$this->assertFalse( $result['success'] );
 			$this->assertArrayHasKey( 'error', $result );
@@ -151,12 +151,12 @@ class WCH_Payment_Test extends WCH_Integration_Test_Case {
 	 * Test refund processing.
 	 */
 	public function test_process_refund() {
-		$product = $this->create_test_product( array( 'regular_price' => '75.00' ) );
-		$order = $this->create_test_order( array(
+		$product = $this->create_test_product( [ 'regular_price' => '75.00' ] );
+		$order = $this->create_test_order( [
 			'billing_phone' => '+1234567890',
 			'product' => $product,
 			'status' => 'completed',
-		) );
+		] );
 
 		update_post_meta( $order->get_id(), '_transaction_id', 'txn_test123' );
 
@@ -171,23 +171,23 @@ class WCH_Payment_Test extends WCH_Integration_Test_Case {
 	 */
 	public function test_payment_webhook_processing() {
 		$product = $this->create_test_product();
-		$order = $this->create_test_order( array(
+		$order = $this->create_test_order( [
 			'billing_phone' => '+1234567890',
 			'product' => $product,
-		) );
+		] );
 
-		$webhook_data = array(
+		$webhook_data = [
 			'type' => 'payment_intent.succeeded',
-			'data' => array(
-				'object' => array(
+			'data' => [
+				'object' => [
 					'id' => 'pi_test123',
 					'status' => 'succeeded',
 					'metadata' => array(
 						'order_id' => $order->get_id(),
 					),
-				),
-			),
-		);
+				],
+			],
+		];
 
 		$handler = new WCH_Payment_Webhook_Handler();
 		$result = $handler->process( $webhook_data, 'stripe' );
@@ -200,10 +200,10 @@ class WCH_Payment_Test extends WCH_Integration_Test_Case {
 	 */
 	public function test_payment_confirmation_notification() {
 		$product = $this->create_test_product();
-		$order = $this->create_test_order( array(
+		$order = $this->create_test_order( [
 			'billing_phone' => '+1234567890',
 			'product' => $product,
-		) );
+		] );
 
 		$order->payment_complete( 'txn_test123' );
 
@@ -215,12 +215,12 @@ class WCH_Payment_Test extends WCH_Integration_Test_Case {
 	 * Test partial refund.
 	 */
 	public function test_partial_refund() {
-		$product = $this->create_test_product( array( 'regular_price' => '100.00' ) );
-		$order = $this->create_test_order( array(
+		$product = $this->create_test_product( [ 'regular_price' => '100.00' ] );
+		$order = $this->create_test_order( [
 			'billing_phone' => '+1234567890',
 			'product' => $product,
 			'status' => 'completed',
-		) );
+		] );
 
 		$gateway = $this->payment_manager->get_gateway( 'cod' );
 		$result = $gateway->process_refund( $order->get_id(), 50.00 );

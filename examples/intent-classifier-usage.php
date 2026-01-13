@@ -48,10 +48,10 @@ function wch_example_classification_with_context() {
 	$classifier = new WCH_Intent_Classifier();
 
 	// Provide context about current conversation state
-	$context = array(
+	$context = [
 		'current_state'  => 'VIEWING_PRODUCT',
 		'customer_phone' => '+1234567890',
-	);
+	];
 
 	$intent = $classifier->classify( 'Add 2 to cart', $context );
 	echo "Intent: {$intent->intent_name}\n";
@@ -101,14 +101,14 @@ function wch_example_custom_intents() {
 	add_filter(
 		'wch_custom_intents',
 		function( $intents ) {
-			$intents['REFUND_REQUEST'] = array(
+			$intents['REFUND_REQUEST'] = [
 				'regex'      => '/(refund|money back|return)/i',
 				'confidence' => 0.9,
-			);
-			$intents['COMPLAINT'] = array(
+			];
+			$intents['COMPLAINT'] = [
 				'regex'      => '/(complain|complaint|not happy|dissatisfied)/i',
 				'confidence' => 0.85,
-			);
+			];
 			return $intents;
 		}
 	);

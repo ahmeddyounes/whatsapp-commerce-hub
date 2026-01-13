@@ -8,6 +8,8 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Providers;
 
 use WhatsAppCommerceHub\Container\ContainerInterface;
@@ -80,33 +82,44 @@ class SagaServiceProvider implements ServiceProviderInterface {
 		}
 
 		// Register custom interval.
-		add_filter( 'cron_schedules', function ( array $schedules ) {
-			$schedules['every_five_minutes'] = array(
-				'interval' => 300,
-				'display'  => __( 'Every 5 Minutes', 'whatsapp-commerce-hub' ),
-			);
-			return $schedules;
-		} );
+		// phpcs:disable WordPress.WP.CronInterval.CronSchedulesInterval -- 5 minutes is appropriate for saga cleanup.
+		add_filter(
+			'cron_schedules',
+			function ( array $schedules ) {
+				$schedules['every_five_minutes'] = [
+					'interval' => 300,
+					'display'  => __( 'Every 5 Minutes', 'whatsapp-commerce-hub' ),
+				];
+				return $schedules;
+			}
+		);
+		// phpcs:enable WordPress.WP.CronInterval.CronSchedulesInterval
 
 		// Handle saga recovery.
-		add_action( 'wch_recover_pending_sagas', function () use ( $container ) {
-			try {
-				$orchestrator = $container->get( SagaOrchestrator::class );
-				$pending = $orchestrator->getPendingSagas( 10 );
+		add_action(
+			'wch_recover_pending_sagas',
+			function () use ( $container ) {
+				try {
+					$orchestrator = $container->get( SagaOrchestrator::class );
+					$pending      = $orchestrator->getPendingSagas( 10 );
 
-				foreach ( $pending as $saga_id ) {
-					do_action( 'wch_log_warning', sprintf(
-						'Found stuck saga: %s - manual review required',
-						$saga_id
-					) );
+					foreach ( $pending as $saga_id ) {
+						do_action(
+							'wch_log_warning',
+							sprintf(
+								'Found stuck saga: %s - manual review required',
+								$saga_id
+							)
+						);
 
-					// Stuck sagas need manual intervention, just log them.
-					do_action( 'wch_saga_stuck', $saga_id );
+						// Stuck sagas need manual intervention, just log them.
+						do_action( 'wch_saga_stuck', $saga_id );
+					}
+				} catch ( \Throwable $e ) {
+					do_action( 'wch_log_error', 'Failed to check pending sagas: ' . $e->getMessage() );
 				}
-			} catch ( \Throwable $e ) {
-				do_action( 'wch_log_error', 'Failed to check pending sagas: ' . $e->getMessage() );
 			}
-		} );
+		);
 	}
 
 	/**
@@ -115,11 +128,11 @@ class SagaServiceProvider implements ServiceProviderInterface {
 	 * @return array<string>
 	 */
 	public function provides(): array {
-		return array(
+		return [
 			SagaOrchestrator::class,
 			'wch.saga',
 			CheckoutSaga::class,
 			'wch.checkout',
-		);
+		];
 	}
 }

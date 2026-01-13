@@ -8,6 +8,8 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Events;
 
 // Exit if accessed directly.
@@ -48,15 +50,15 @@ abstract class Event {
 	 *
 	 * @param array $metadata Optional event metadata.
 	 */
-	public function __construct( array $metadata = array() ) {
-		$this->id = $this->generateId();
+	public function __construct( array $metadata = [] ) {
+		$this->id          = $this->generateId();
 		$this->occurred_at = new \DateTimeImmutable();
-		$this->metadata = array_merge(
-			array(
+		$this->metadata    = array_merge(
+			[
 				'source'     => 'wch',
 				'version'    => WCH_VERSION,
 				'request_id' => $this->getRequestId(),
-			),
+			],
 			$metadata
 		);
 	}
@@ -81,13 +83,13 @@ abstract class Event {
 	 * @return array The serialized event.
 	 */
 	public function toArray(): array {
-		return array(
+		return [
 			'id'          => $this->id,
 			'name'        => $this->getName(),
 			'payload'     => $this->getPayload(),
 			'metadata'    => $this->metadata,
 			'occurred_at' => $this->occurred_at->format( 'c' ),
-		);
+		];
 	}
 
 	/**
@@ -107,9 +109,13 @@ abstract class Event {
 			// This is NOT cryptographically secure but ensures system continuity.
 			// Log the event for monitoring - this should never happen in production.
 			if ( function_exists( 'do_action' ) ) {
-				do_action( 'wch_log_warning', 'Event ID generated without secure entropy', array(
-					'error' => $e->getMessage(),
-				) );
+				do_action(
+					'wch_log_warning',
+					'Event ID generated without secure entropy',
+					[
+						'error' => $e->getMessage(),
+					]
+				);
 			}
 
 			// Generate pseudo-random data using available sources.
@@ -132,14 +138,14 @@ abstract class Event {
 	 */
 	private function generateFallbackEntropy(): string {
 		// Combine multiple entropy sources.
-		$sources = array(
+		$sources = [
 			microtime( true ),
 			getmypid(),
 			memory_get_usage( true ),
 			spl_object_id( $this ),
 			mt_rand(),
 			mt_rand(),
-		);
+		];
 
 		// Add server-specific entropy if available.
 		if ( isset( $_SERVER['REQUEST_TIME_FLOAT'] ) ) {

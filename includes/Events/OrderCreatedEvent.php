@@ -8,6 +8,8 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Events;
 
 // Exit if accessed directly.
@@ -74,11 +76,11 @@ class OrderCreatedEvent extends Event {
 		bool $from_recovery = false
 	) {
 		parent::__construct();
-		$this->order_id = $order_id;
-		$this->customer_phone = $customer_phone;
-		$this->total = $total;
+		$this->order_id        = $order_id;
+		$this->customer_phone  = $customer_phone;
+		$this->total           = $total;
 		$this->conversation_id = $conversation_id;
-		$this->from_recovery = $from_recovery;
+		$this->from_recovery   = $from_recovery;
 	}
 
 	/**
@@ -92,12 +94,12 @@ class OrderCreatedEvent extends Event {
 	 * {@inheritdoc}
 	 */
 	public function getPayload(): array {
-		return array(
+		return [
 			'order_id'        => $this->order_id,
 			'customer_phone'  => $this->customer_phone,
 			'total'           => $this->total,
 			'conversation_id' => $this->conversation_id,
 			'from_recovery'   => $this->from_recovery,
-		);
+		];
 	}
 }

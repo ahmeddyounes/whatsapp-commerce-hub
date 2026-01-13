@@ -12,6 +12,9 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Actions;
 
+use WhatsAppCommerceHub\Actions\ActionRegistry;
+use WhatsAppCommerceHub\Infrastructure\Configuration\SettingsManager;
+use WhatsAppCommerceHub\Payments\PaymentGatewayRegistry;
 use WhatsAppCommerceHub\ValueObjects\ActionResult;
 use WhatsAppCommerceHub\ValueObjects\ConversationContext;
 
@@ -53,6 +56,17 @@ class ProcessPaymentAction extends AbstractAction {
 	public function handle( string $phone, array $params, ConversationContext $context ): ActionResult {
 		try {
 			$paymentMethod = $params['payment_method'] ?? null;
+			$contextData   = $context->getData();
+
+			if ( empty( $contextData['shipping_address'] ) ) {
+				$registry = wch( ActionRegistry::class );
+				$result   = $registry->execute( 'request_address', $phone, [], $context );
+				if ( $result instanceof ActionResult ) {
+					return $result;
+				}
+
+				return $this->error( __( 'Shipping address is required. Please provide your address.', 'whatsapp-commerce-hub' ) );
+			}
 
 			// If no payment method provided, show selection.
 			if ( ! $paymentMethod ) {
@@ -61,10 +75,10 @@ class ProcessPaymentAction extends AbstractAction {
 
 			$this->log(
 				'Processing payment',
-				array(
+				[
 					'phone'          => $phone,
 					'payment_method' => $paymentMethod,
-				)
+				]
 			);
 
 			// Get cart for amount.
@@ -74,17 +88,17 @@ class ProcessPaymentAction extends AbstractAction {
 				return $this->error( __( 'Your cart is empty. Please add items before checkout.', 'whatsapp-commerce-hub' ) );
 			}
 
-			$items = is_array( $cart ) ? ( $cart['items'] ?? array() ) : ( $cart->items ?? array() );
+			$items = is_array( $cart ) ? ( $cart['items'] ?? [] ) : ( $cart->items ?? [] );
 
 			if ( empty( $items ) ) {
 				return $this->error( __( 'Your cart is empty. Please add items before checkout.', 'whatsapp-commerce-hub' ) );
 			}
 
-			$cartData = array(
+			$cartData = [
 				'id'    => is_array( $cart ) ? ( $cart['id'] ?? null ) : ( $cart->id ?? null ),
 				'items' => $items,
 				'total' => is_array( $cart ) ? ( $cart['total'] ?? 0 ) : ( $cart->total ?? 0 ),
-			);
+			];
 
 			// Process based on payment method.
 			switch ( $paymentMethod ) {
@@ -101,9 +115,8 @@ class ProcessPaymentAction extends AbstractAction {
 				default:
 					return $this->error( __( 'Invalid payment method. Please select a valid option.', 'whatsapp-commerce-hub' ) );
 			}
-
 		} catch ( \Exception $e ) {
-			$this->log( 'Error processing payment', array( 'error' => $e->getMessage() ), 'error' );
+			$this->log( 'Error processing payment', [ 'error' => $e->getMessage() ], 'error' );
 			return $this->error( __( 'Sorry, we could not process your payment. Please try again.', 'whatsapp-commerce-hub' ) );
 		}
 	}
@@ -120,20 +133,20 @@ class ProcessPaymentAction extends AbstractAction {
 		$message->body( __( 'How would you like to pay?', 'whatsapp-commerce-hub' ) );
 
 		// Get available payment gateways.
-		$paymentManager = \WCH_Payment_Manager::instance();
+		$paymentManager = wch( PaymentGatewayRegistry::class );
 		$country        = WC()->countries->get_base_country();
-		$gateways       = $paymentManager->get_available_gateways( $country );
+		$gateways       = $paymentManager->getAvailable( $country );
 
 		// Build payment options.
-		$options = array();
+		$options = [];
 		foreach ( $gateways as $gatewayId => $gateway ) {
 			$description = $this->getGatewayDescription( $gatewayId );
 
-			$options[] = array(
+			$options[] = [
 				'id'          => 'payment_' . $gatewayId,
 				'title'       => $gateway->get_title(),
 				'description' => $description,
-			);
+			];
 		}
 
 		if ( empty( $options ) ) {
@@ -142,7 +155,7 @@ class ProcessPaymentAction extends AbstractAction {
 
 		$message->section( __( 'Payment Options', 'whatsapp-commerce-hub' ), $options );
 
-		return ActionResult::success( array( $message ) );
+		return ActionResult::success( [ $message ] );
 	}
 
 	/**
@@ -152,13 +165,13 @@ class ProcessPaymentAction extends AbstractAction {
 	 * @return string Description.
 	 */
 	private function getGatewayDescription( string $gatewayId ): string {
-		$descriptions = array(
+		$descriptions = [
 			'cod'         => __( 'Pay when you receive the order', 'whatsapp-commerce-hub' ),
 			'stripe'      => __( 'Secure card and local payments', 'whatsapp-commerce-hub' ),
 			'razorpay'    => __( 'UPI, Cards, Net Banking, Wallets', 'whatsapp-commerce-hub' ),
 			'whatsapppay' => __( 'Pay directly in WhatsApp', 'whatsapp-commerce-hub' ),
 			'pix'         => __( 'Instant payment via PIX', 'whatsapp-commerce-hub' ),
-		);
+		];
 
 		return $descriptions[ $gatewayId ] ?? '';
 	}
@@ -187,27 +200,27 @@ class ProcessPaymentAction extends AbstractAction {
 
 		$message->button(
 			'reply',
-			array(
+			[
 				'id'    => 'confirm_order',
 				'title' => __( 'Confirm Order', 'whatsapp-commerce-hub' ),
-			)
+			]
 		);
 
 		$message->button(
 			'reply',
-			array(
+			[
 				'id'    => 'change_payment',
 				'title' => __( 'Change Payment', 'whatsapp-commerce-hub' ),
-			)
+			]
 		);
 
 		return ActionResult::success(
-			array( $message ),
+			[ $message ],
 			null,
-			array(
+			[
 				'payment_method' => self::METHOD_COD,
 				'payment_status' => 'ready',
-			)
+			]
 		);
 	}
 
@@ -222,7 +235,9 @@ class ProcessPaymentAction extends AbstractAction {
 		$paymentLink = $this->generatePaymentLink( $cart, $method );
 
 		if ( ! $paymentLink ) {
-			return $this->error( __( 'Failed to generate payment link. Please try again or select a different payment method.', 'whatsapp-commerce-hub' ) );
+			return $this->error(
+				__( 'Failed to generate payment link. Please try again or select a different payment method.', 'whatsapp-commerce-hub' )
+			);
 		}
 
 		$message = $this->createMessageBuilder();
@@ -242,28 +257,28 @@ class ProcessPaymentAction extends AbstractAction {
 
 		$message->button(
 			'url',
-			array(
+			[
 				'title' => __( 'Pay Now', 'whatsapp-commerce-hub' ),
 				'url'   => $paymentLink,
-			)
+			]
 		);
 
 		$message->button(
 			'reply',
-			array(
+			[
 				'id'    => 'change_payment',
 				'title' => __( 'Change Payment', 'whatsapp-commerce-hub' ),
-			)
+			]
 		);
 
 		return ActionResult::success(
-			array( $message ),
+			[ $message ],
 			null,
-			array(
+			[
 				'payment_method' => $method,
 				'payment_link'   => $paymentLink,
 				'payment_status' => 'pending',
-			)
+			]
 		);
 	}
 
@@ -277,7 +292,9 @@ class ProcessPaymentAction extends AbstractAction {
 		$upiLink = $this->generateUpiLink( $cart );
 
 		if ( ! $upiLink ) {
-			return $this->error( __( 'Failed to generate UPI payment link. Please try again or select a different payment method.', 'whatsapp-commerce-hub' ) );
+			return $this->error(
+				__( 'Failed to generate UPI payment link. Please try again or select a different payment method.', 'whatsapp-commerce-hub' )
+			);
 		}
 
 		$message = $this->createMessageBuilder();
@@ -297,28 +314,28 @@ class ProcessPaymentAction extends AbstractAction {
 
 		$message->button(
 			'url',
-			array(
+			[
 				'title' => __( 'Pay via UPI', 'whatsapp-commerce-hub' ),
 				'url'   => $upiLink,
-			)
+			]
 		);
 
 		$message->button(
 			'reply',
-			array(
+			[
 				'id'    => 'change_payment',
 				'title' => __( 'Change Payment', 'whatsapp-commerce-hub' ),
-			)
+			]
 		);
 
 		return ActionResult::success(
-			array( $message ),
+			[ $message ],
 			null,
-			array(
+			[
 				'payment_method' => self::METHOD_UPI,
 				'payment_link'   => $upiLink,
 				'payment_status' => 'pending',
-			)
+			]
 		);
 	}
 
@@ -330,15 +347,15 @@ class ProcessPaymentAction extends AbstractAction {
 	 * @return string|null Payment link or null on failure.
 	 */
 	private function generatePaymentLink( array $cart, string $method ): ?string {
-		$settings = \WCH_Settings::getInstance();
+		$settings = wch( SettingsManager::class );
 		$baseUrl  = $settings->get( 'payment.gateway_url', site_url( '/payment' ) );
 
-		$paymentData = array(
+		$paymentData = [
 			'amount'   => $cart['total'],
 			'currency' => get_woocommerce_currency(),
 			'cart_id'  => $cart['id'],
 			'method'   => $method,
-		);
+		];
 
 		// Generate unique payment ID.
 		$paymentId = 'wch_' . wp_generate_uuid4();
@@ -347,10 +364,10 @@ class ProcessPaymentAction extends AbstractAction {
 		update_option( 'wch_payment_' . $paymentId, $paymentData, false );
 
 		return add_query_arg(
-			array(
+			[
 				'payment_id' => $paymentId,
 				'method'     => $method,
-			),
+			],
 			$baseUrl
 		);
 	}
@@ -362,16 +379,16 @@ class ProcessPaymentAction extends AbstractAction {
 	 * @return string|null UPI link or null on failure.
 	 */
 	private function generateUpiLink( array $cart ): ?string {
-		$settings = \WCH_Settings::getInstance();
+		$settings = wch( SettingsManager::class );
 		$upiId    = $settings->get( 'payment.upi_id', 'merchant@upi' );
 
-		$params = array(
+		$params = [
 			'pa' => $upiId,
 			'pn' => get_bloginfo( 'name' ),
 			'am' => number_format( (float) $cart['total'], 2, '.', '' ),
 			'cu' => get_woocommerce_currency(),
 			'tn' => __( 'Order payment', 'whatsapp-commerce-hub' ),
-		);
+		];
 
 		return 'upi://pay?' . http_build_query( $params );
 	}

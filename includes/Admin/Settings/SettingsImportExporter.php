@@ -40,42 +40,26 @@ class SettingsImportExporter implements SettingsImportExporterInterface {
 	protected const OPTION_SCHEMA_VERSION = 'wch_settings_schema_version';
 
 	/**
-	 * Settings service.
-	 *
-	 * @var SettingsInterface
-	 */
-	protected SettingsInterface $settings;
-
-	/**
-	 * Settings sanitizer.
-	 *
-	 * @var SettingsSanitizerInterface
-	 */
-	protected SettingsSanitizerInterface $sanitizer;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param SettingsInterface          $settings  Settings service.
 	 * @param SettingsSanitizerInterface $sanitizer Settings sanitizer.
 	 */
 	public function __construct(
-		SettingsInterface $settings,
-		SettingsSanitizerInterface $sanitizer
+		protected SettingsInterface $settings,
+		protected SettingsSanitizerInterface $sanitizer
 	) {
-		$this->settings  = $settings;
-		$this->sanitizer = $sanitizer;
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
 	public function getSensitiveKeys(): array {
-		return array(
+		return [
 			'api.access_token',
 			'api.webhook_verify_token',
 			'ai.openai_api_key',
-		);
+		];
 	}
 
 	/**
@@ -85,10 +69,10 @@ class SettingsImportExporter implements SettingsImportExporterInterface {
 		$allSettings    = $this->settings->all();
 		$exportSettings = $this->removeSensitiveData( $allSettings );
 
-		return array(
+		return [
 			'settings' => $exportSettings,
 			'filename' => 'wch-settings-' . gmdate( 'Y-m-d-H-i-s' ) . '.json',
-		);
+		];
 	}
 
 	/**
@@ -115,22 +99,22 @@ class SettingsImportExporter implements SettingsImportExporterInterface {
 		$importData = json_decode( $jsonData, true );
 
 		if ( json_last_error() !== JSON_ERROR_NONE ) {
-			return array(
+			return [
 				'imported' => 0,
 				'skipped'  => 0,
-				'errors'   => array( __( 'Invalid JSON format', 'whatsapp-commerce-hub' ) ),
-			);
+				'errors'   => [ __( 'Invalid JSON format', 'whatsapp-commerce-hub' ) ],
+			];
 		}
 
-		$whitelist      = $this->sanitizer->getImportableWhitelist();
-		$importedCount  = 0;
-		$skippedCount   = 0;
-		$errors         = array();
+		$whitelist     = $this->sanitizer->getImportableWhitelist();
+		$importedCount = 0;
+		$skippedCount  = 0;
+		$errors        = [];
 
 		foreach ( $importData as $section => $values ) {
 			// Reject unknown sections.
 			if ( ! isset( $whitelist[ $section ] ) ) {
-				$skippedCount++;
+				++$skippedCount;
 				$errors[] = sprintf(
 					/* translators: %s: section name */
 					__( 'Section "%s" is not allowed for import', 'whatsapp-commerce-hub' ),
@@ -140,7 +124,7 @@ class SettingsImportExporter implements SettingsImportExporterInterface {
 			}
 
 			if ( ! is_array( $values ) ) {
-				$skippedCount++;
+				++$skippedCount;
 				continue;
 			}
 
@@ -149,7 +133,7 @@ class SettingsImportExporter implements SettingsImportExporterInterface {
 			foreach ( $values as $key => $value ) {
 				// Reject keys not in whitelist for this section.
 				if ( ! in_array( $key, $allowedKeys, true ) ) {
-					$skippedCount++;
+					++$skippedCount;
 					continue;
 				}
 
@@ -158,18 +142,18 @@ class SettingsImportExporter implements SettingsImportExporterInterface {
 
 				if ( null !== $sanitizedValue ) {
 					$this->settings->set( $section . '.' . $key, $sanitizedValue );
-					$importedCount++;
+					++$importedCount;
 				} else {
-					$skippedCount++;
+					++$skippedCount;
 				}
 			}
 		}
 
-		return array(
+		return [
 			'imported' => $importedCount,
 			'skipped'  => $skippedCount,
 			'errors'   => $errors,
-		);
+		];
 	}
 
 	/**
@@ -215,29 +199,29 @@ class SettingsImportExporter implements SettingsImportExporterInterface {
 		$backup = get_transient( 'wch_settings_backup' );
 
 		if ( empty( $backup ) ) {
-			return array(
+			return [
 				'success' => false,
 				'message' => __( 'No backup found', 'whatsapp-commerce-hub' ),
-			);
+			];
 		}
 
 		$result = $this->import( $backup );
 
 		if ( $result['imported'] > 0 ) {
-			return array(
+			return [
 				'success' => true,
 				'message' => sprintf(
 					/* translators: %d: number of restored settings */
 					__( 'Restored %d settings from backup', 'whatsapp-commerce-hub' ),
 					$result['imported']
 				),
-			);
+			];
 		}
 
-		return array(
+		return [
 			'success' => false,
 			'message' => __( 'Failed to restore settings from backup', 'whatsapp-commerce-hub' ),
-		);
+		];
 	}
 
 	/**
@@ -247,22 +231,22 @@ class SettingsImportExporter implements SettingsImportExporterInterface {
 	 * @return array{valid: bool, errors: array} Validation result.
 	 */
 	public function validateImportData( string $jsonData ): array {
-		$errors = array();
+		$errors = [];
 
 		$importData = json_decode( $jsonData, true );
 
 		if ( json_last_error() !== JSON_ERROR_NONE ) {
-			return array(
+			return [
 				'valid'  => false,
-				'errors' => array( __( 'Invalid JSON format', 'whatsapp-commerce-hub' ) ),
-			);
+				'errors' => [ __( 'Invalid JSON format', 'whatsapp-commerce-hub' ) ],
+			];
 		}
 
 		if ( ! is_array( $importData ) ) {
-			return array(
+			return [
 				'valid'  => false,
-				'errors' => array( __( 'Settings data must be an object', 'whatsapp-commerce-hub' ) ),
-			);
+				'errors' => [ __( 'Settings data must be an object', 'whatsapp-commerce-hub' ) ],
+			];
 		}
 
 		$whitelist = $this->sanitizer->getImportableWhitelist();
@@ -277,10 +261,10 @@ class SettingsImportExporter implements SettingsImportExporterInterface {
 			}
 		}
 
-		return array(
+		return [
 			'valid'  => empty( $errors ),
 			'errors' => $errors,
-		);
+		];
 	}
 
 	/**
@@ -293,17 +277,17 @@ class SettingsImportExporter implements SettingsImportExporterInterface {
 		$importData = json_decode( $jsonData, true );
 
 		if ( json_last_error() !== JSON_ERROR_NONE ) {
-			return array(
-				'sections'       => array(),
+			return [
+				'sections'       => [],
 				'total_settings' => 0,
-				'warnings'       => array( __( 'Invalid JSON format', 'whatsapp-commerce-hub' ) ),
-			);
+				'warnings'       => [ __( 'Invalid JSON format', 'whatsapp-commerce-hub' ) ],
+			];
 		}
 
-		$whitelist      = $this->sanitizer->getImportableWhitelist();
-		$sections       = array();
-		$totalSettings  = 0;
-		$warnings       = array();
+		$whitelist     = $this->sanitizer->getImportableWhitelist();
+		$sections      = [];
+		$totalSettings = 0;
+		$warnings      = [];
 
 		foreach ( $importData as $section => $values ) {
 			if ( ! isset( $whitelist[ $section ] ) ) {
@@ -320,16 +304,16 @@ class SettingsImportExporter implements SettingsImportExporterInterface {
 			}
 
 			$allowedKeys    = $whitelist[ $section ];
-			$sectionDetails = array(
+			$sectionDetails = [
 				'name'     => $section,
-				'settings' => array(),
-				'skipped'  => array(),
-			);
+				'settings' => [],
+				'skipped'  => [],
+			];
 
 			foreach ( $values as $key => $value ) {
 				if ( in_array( $key, $allowedKeys, true ) ) {
 					$sectionDetails['settings'][] = $key;
-					$totalSettings++;
+					++$totalSettings;
 				} else {
 					$sectionDetails['skipped'][] = $key;
 				}
@@ -338,10 +322,10 @@ class SettingsImportExporter implements SettingsImportExporterInterface {
 			$sections[] = $sectionDetails;
 		}
 
-		return array(
+		return [
 			'sections'       => $sections,
 			'total_settings' => $totalSettings,
 			'warnings'       => $warnings,
-		);
+		];
 	}
 }

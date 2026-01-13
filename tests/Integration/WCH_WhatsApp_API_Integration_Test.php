@@ -37,11 +37,11 @@ class WCH_WhatsApp_API_Integration_Test extends WCH_Integration_Test_Case {
 		WCH_API_Mock_Server::init();
 
 		$this->api_client = new WCH_WhatsApp_API_Client(
-			array(
+			[
 				'phone_number_id' => 'test_phone_number_id',
 				'access_token'    => 'test_access_token',
 				'api_version'     => 'v18.0',
-			)
+			]
 		);
 	}
 
@@ -87,10 +87,10 @@ class WCH_WhatsApp_API_Integration_Test extends WCH_Integration_Test_Case {
 			WCH_API_Mock_Server::mock_whatsapp_send_message_success( $message_id )
 		);
 
-		$sections = array(
-			array(
+		$sections = [
+			[
 				'title' => 'Products',
-				'rows'  => array(
+				'rows'  => [
 					array(
 						'id'          => 'product_1',
 						'title'       => 'Product 1',
@@ -101,9 +101,9 @@ class WCH_WhatsApp_API_Integration_Test extends WCH_Integration_Test_Case {
 						'title'       => 'Product 2',
 						'description' => 'Description 2',
 					),
-				),
-			),
-		);
+				],
+			],
+		];
 
 		// Act.
 		$result = $this->api_client->send_interactive_list(
@@ -132,17 +132,17 @@ class WCH_WhatsApp_API_Integration_Test extends WCH_Integration_Test_Case {
 			WCH_API_Mock_Server::mock_whatsapp_send_message_success( $message_id )
 		);
 
-		$components = array(
-			array(
+		$components = [
+			[
 				'type'       => 'body',
-				'parameters' => array(
+				'parameters' => [
 					array(
 						'type' => 'text',
 						'text' => 'John Doe',
 					),
-				),
-			),
-		);
+				],
+			],
+		];
 
 		// Act.
 		$result = $this->api_client->send_template(
@@ -256,7 +256,7 @@ class WCH_WhatsApp_API_Integration_Test extends WCH_Integration_Test_Case {
 			WCH_API_Mock_Server::mock_whatsapp_catalog_product_success( $product_id )
 		);
 
-		$product_data = array(
+		$product_data = [
 			'retailer_id'       => 'wc_product_100',
 			'name'              => 'Test Product',
 			'description'       => 'Test Description',
@@ -266,7 +266,7 @@ class WCH_WhatsApp_API_Integration_Test extends WCH_Integration_Test_Case {
 			'condition'         => 'new',
 			'image_url'         => 'https://example.com/image.jpg',
 			'url'               => 'https://example.com/product',
-		);
+		];
 
 		// Act.
 		$result = $this->api_client->create_catalog_product( $catalog_id, $product_data );

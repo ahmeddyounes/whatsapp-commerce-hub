@@ -8,6 +8,8 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Queue;
 
 // Exit if accessed directly.
@@ -25,29 +27,18 @@ class JobMonitor {
 	/**
 	 * Priority queue instance.
 	 *
-	 * @var PriorityQueue
-	 */
-	private PriorityQueue $priority_queue;
-
-	/**
-	 * Dead letter queue instance.
-	 *
-	 * @var DeadLetterQueue
-	 */
-	private DeadLetterQueue $dead_letter_queue;
-
 	/**
 	 * Alert thresholds.
 	 *
 	 * @var array<string, int>
 	 */
-	private array $thresholds = array(
-		'pending_critical'  => 10,     // Alert if > 10 critical jobs pending.
-		'pending_total'     => 1000,   // Alert if > 1000 total jobs pending.
-		'dlq_pending'       => 50,     // Alert if > 50 items in DLQ.
-		'failed_per_hour'   => 100,    // Alert if > 100 failures per hour.
-		'avg_wait_seconds'  => 300,    // Alert if avg wait > 5 minutes.
-	);
+	private array $thresholds = [
+		'pending_critical' => 10,     // Alert if > 10 critical jobs pending.
+		'pending_total'    => 1000,   // Alert if > 1000 total jobs pending.
+		'dlq_pending'      => 50,     // Alert if > 50 items in DLQ.
+		'failed_per_hour'  => 100,    // Alert if > 100 failures per hour.
+		'avg_wait_seconds' => 300,    // Alert if avg wait > 5 minutes.
+	];
 
 	/**
 	 * Constructor.
@@ -56,11 +47,9 @@ class JobMonitor {
 	 * @param DeadLetterQueue $dead_letter_queue Dead letter queue instance.
 	 */
 	public function __construct(
-		PriorityQueue $priority_queue,
-		DeadLetterQueue $dead_letter_queue
+		private PriorityQueue $priority_queue,
+		private DeadLetterQueue $dead_letter_queue
 	) {
-		$this->priority_queue = $priority_queue;
-		$this->dead_letter_queue = $dead_letter_queue;
 	}
 
 	/**
@@ -70,22 +59,22 @@ class JobMonitor {
 	 */
 	public function getHealthStatus(): array {
 		$queue_stats = $this->priority_queue->getStats();
-		$dlq_stats = $this->dead_letter_queue->getStats();
+		$dlq_stats   = $this->dead_letter_queue->getStats();
 
 		$totals = $this->calculateTotals( $queue_stats );
 		$alerts = $this->checkAlerts( $totals, $dlq_stats );
 
-		return array(
-			'status'     => empty( $alerts ) ? 'healthy' : 'warning',
-			'timestamp'  => current_time( 'mysql', true ),
-			'queue'      => array(
+		return [
+			'status'      => empty( $alerts ) ? 'healthy' : 'warning',
+			'timestamp'   => current_time( 'mysql', true ),
+			'queue'       => [
 				'by_priority' => $queue_stats,
 				'totals'      => $totals,
-			),
+			],
 			'dead_letter' => $dlq_stats,
 			'alerts'      => $alerts,
 			'throughput'  => $this->getThroughputMetrics(),
-		);
+		];
 	}
 
 	/**
@@ -96,9 +85,9 @@ class JobMonitor {
 	public function getThroughputMetrics(): array {
 		global $wpdb;
 
-		$table = $wpdb->prefix . 'actionscheduler_actions';
+		$table    = $wpdb->prefix . 'actionscheduler_actions';
 		$hour_ago = gmdate( 'Y-m-d H:i:s', strtotime( '-1 hour' ) );
-		$day_ago = gmdate( 'Y-m-d H:i:s', strtotime( '-24 hours' ) );
+		$day_ago  = gmdate( 'Y-m-d H:i:s', strtotime( '-24 hours' ) );
 
 		// Get completed in last hour.
 		$completed_hour = (int) $wpdb->get_var(
@@ -141,7 +130,7 @@ class JobMonitor {
 			)
 		);
 
-		return array(
+		return [
 			'completed_last_hour' => $completed_hour,
 			'completed_last_day'  => $completed_day,
 			'failed_last_hour'    => $failed_hour,
@@ -150,7 +139,7 @@ class JobMonitor {
 			'success_rate'        => $completed_hour + $failed_hour > 0
 				? round( ( $completed_hour / ( $completed_hour + $failed_hour ) ) * 100, 2 )
 				: 100,
-		);
+		];
 	}
 
 	/**
@@ -163,7 +152,7 @@ class JobMonitor {
 	public function getFailedJobs( int $limit = 50 ): array {
 		global $wpdb;
 
-		$table = $wpdb->prefix . 'actionscheduler_actions';
+		$table      = $wpdb->prefix . 'actionscheduler_actions';
 		$logs_table = $wpdb->prefix . 'actionscheduler_logs';
 
 		$results = $wpdb->get_results(
@@ -188,10 +177,13 @@ class JobMonitor {
 			)
 		);
 
-		return array_map( function ( $row ) {
-			$row->args = json_decode( $row->args, true );
-			return $row;
-		}, $results );
+		return array_map(
+			function ( $row ) {
+				$row->args = json_decode( $row->args, true );
+				return $row;
+			},
+			$results
+		);
 	}
 
 	/**
@@ -234,12 +226,12 @@ class JobMonitor {
 	 * @return array<string, int> Totals.
 	 */
 	private function calculateTotals( array $queue_stats ): array {
-		$totals = array(
+		$totals = [
 			'pending'   => 0,
 			'running'   => 0,
 			'completed' => 0,
 			'failed'    => 0,
-		);
+		];
 
 		foreach ( $queue_stats as $stats ) {
 			$totals['pending']   += $stats['pending'];
@@ -260,7 +252,7 @@ class JobMonitor {
 	 * @return array<string> Active alerts.
 	 */
 	private function checkAlerts( array $totals, array $dlq_stats ): array {
-		$alerts = array();
+		$alerts     = [];
 		$throughput = $this->getThroughputMetrics();
 
 		// Check pending total.
@@ -323,7 +315,7 @@ class JobMonitor {
 	 */
 	public function exportPrometheusMetrics(): string {
 		$health = $this->getHealthStatus();
-		$lines = array();
+		$lines  = [];
 
 		// Queue metrics.
 		$lines[] = '# HELP wch_queue_pending Number of pending jobs by priority';

@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Actions;
 
+use WhatsAppCommerceHub\Contracts\Services\CartServiceInterface;
 use WhatsAppCommerceHub\ValueObjects\ActionResult;
 use WhatsAppCommerceHub\ValueObjects\ConversationContext;
 
@@ -53,11 +54,14 @@ class AddToCartAction extends AbstractAction {
 			$variantId = ! empty( $params['variant_id'] ) ? (int) $params['variant_id'] : null;
 			$quantity  = ! empty( $params['quantity'] ) ? (int) $params['quantity'] : 1;
 
-			$this->log( 'Adding to cart', array(
-				'product_id' => $productId,
-				'variant_id' => $variantId,
-				'quantity'   => $quantity,
-			) );
+			$this->log(
+				'Adding to cart',
+				[
+					'product_id' => $productId,
+					'variant_id' => $variantId,
+					'quantity'   => $quantity,
+				]
+			);
 
 			// Validate product.
 			$product = wc_get_product( $productId );
@@ -72,7 +76,9 @@ class AddToCartAction extends AbstractAction {
 
 			// Validate stock.
 			if ( ! $this->hasStock( $productId, $quantity, $variantId ) ) {
-				return $this->error( __( 'Sorry, this product is out of stock or the requested quantity is not available.', 'whatsapp-commerce-hub' ) );
+				return $this->error(
+					__( 'Sorry, this product is out of stock or the requested quantity is not available.', 'whatsapp-commerce-hub' )
+				);
 			}
 
 			// Add to cart via service.
@@ -88,16 +94,18 @@ class AddToCartAction extends AbstractAction {
 			return ActionResult::success(
 				$messages,
 				null,
-				array(
+				[
 					'cart_id'         => $result['cart']['id'] ?? null,
-					'cart_item_count' => count( $result['cart']['items'] ?? array() ),
+					'cart_item_count' => count( $result['cart']['items'] ?? [] ),
 					'cart_total'      => $result['cart']['total'] ?? 0,
-				)
+				]
 			);
 
 		} catch ( \Exception $e ) {
-			$this->log( 'Error adding to cart', array( 'error' => $e->getMessage() ), 'error' );
-			return $this->error( __( 'Sorry, we could not add the item to your cart. Please try again.', 'whatsapp-commerce-hub' ) );
+			$this->log( 'Error adding to cart', [ 'error' => $e->getMessage() ], 'error' );
+			return $this->error(
+				__( 'Sorry, we could not add the item to your cart. Please try again.', 'whatsapp-commerce-hub' )
+			);
 		}
 	}
 
@@ -111,49 +119,26 @@ class AddToCartAction extends AbstractAction {
 	 * @return array{success: bool, cart: array|null, error: string|null}
 	 */
 	private function addToCart( string $phone, int $productId, ?int $variantId, int $quantity ): array {
-		if ( $this->cartService ) {
-			$result = $this->cartService->addItem( $phone, $productId, $variantId, $quantity );
+		$cartService = $this->cartService ?? wch( CartServiceInterface::class );
 
-			if ( $result ) {
-				$cart = $this->cartService->getCart( $phone );
-				return array(
-					'success' => true,
-					'cart'    => array(
-						'id'    => $cart->id ?? null,
-						'items' => $cart->items ?? array(),
-						'total' => $cart->total ?? 0,
-					),
-					'error'   => null,
-				);
-			}
-
-			return array( 'success' => false, 'cart' => null, 'error' => __( 'Failed to add item to cart.', 'whatsapp-commerce-hub' ) );
-		}
-
-		// Fallback to legacy cart manager.
-		$cartManager = \WCH_Cart_Manager::instance();
-		$cart        = $cartManager->get_or_create_cart( $phone );
-
-		if ( ! $cart ) {
-			return array( 'success' => false, 'cart' => null, 'error' => __( 'Failed to access cart.', 'whatsapp-commerce-hub' ) );
-		}
-
-		$result = $cartManager->add_item( $phone, $productId, $quantity, $variantId );
-
-		if ( $result ) {
-			$updatedCart = $cartManager->get_cart( $phone );
-			return array(
+		try {
+			$cart = $cartService->addItem( $phone, $productId, $variantId, $quantity );
+			return [
 				'success' => true,
-				'cart'    => array(
-					'id'    => $updatedCart->id ?? $cart['id'] ?? null,
-					'items' => $updatedCart->items ?? $cart['items'] ?? array(),
-					'total' => $updatedCart->total ?? $this->calculateCartTotal( $cart['items'] ?? array() ),
-				),
+				'cart'    => [
+					'id'    => $cart->id ?? null,
+					'items' => $cart->items ?? [],
+					'total' => $cart->total ?? 0,
+				],
 				'error'   => null,
-			);
+			];
+		} catch ( \Throwable $e ) {
+			return [
+				'success' => false,
+				'cart'    => null,
+				'error'   => $e->getMessage(),
+			];
 		}
-
-		return array( 'success' => false, 'cart' => null, 'error' => __( 'Failed to add item.', 'whatsapp-commerce-hub' ) );
 	}
 
 	/**
@@ -166,13 +151,13 @@ class AddToCartAction extends AbstractAction {
 	 * @return array Array of message builders.
 	 */
 	private function buildConfirmationMessages( \WC_Product $product, ?int $variantId, int $quantity, array $cart ): array {
-		$messages = array();
+		$messages = [];
 
 		$confirmation = $this->createMessageBuilder();
 
 		$productName = $product->get_name();
 		if ( $variantId ) {
-			$variation = wc_get_product( $variantId );
+			$variation   = wc_get_product( $variantId );
 			$productName = $variation ? $variation->get_name() : $productName;
 		}
 
@@ -190,26 +175,26 @@ class AddToCartAction extends AbstractAction {
 
 		$confirmation->button(
 			'reply',
-			array(
+			[
 				'id'    => 'continue_shopping',
 				'title' => __( 'Continue Shopping', 'whatsapp-commerce-hub' ),
-			)
+			]
 		);
 
 		$confirmation->button(
 			'reply',
-			array(
+			[
 				'id'    => 'view_cart',
 				'title' => __( 'View Cart', 'whatsapp-commerce-hub' ),
-			)
+			]
 		);
 
 		$confirmation->button(
 			'reply',
-			array(
+			[
 				'id'    => 'checkout',
 				'title' => __( 'Checkout', 'whatsapp-commerce-hub' ),
-			)
+			]
 		);
 
 		$messages[] = $confirmation;
@@ -224,7 +209,7 @@ class AddToCartAction extends AbstractAction {
 	 * @return string Formatted summary.
 	 */
 	private function formatCartSummary( array $cart ): string {
-		$itemCount = count( $cart['items'] ?? array() );
+		$itemCount = count( $cart['items'] ?? [] );
 		$total     = $this->formatPrice( (float) ( $cart['total'] ?? 0 ) );
 
 		return sprintf(

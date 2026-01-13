@@ -8,6 +8,10 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
+// phpcs:disable Squiz.Commenting.FunctionComment.Missing -- Service provider closures don't need docblocks.
+
 namespace WhatsAppCommerceHub\Providers;
 
 use WhatsAppCommerceHub\Container\ContainerInterface;
@@ -19,6 +23,7 @@ use WhatsAppCommerceHub\Events\Handlers\MessageReceivedHandler;
 use WhatsAppCommerceHub\Events\Handlers\MessageSentHandler;
 use WhatsAppCommerceHub\Events\Handlers\OrderCreatedHandler;
 use WhatsAppCommerceHub\Queue\PriorityQueue;
+use WhatsAppCommerceHub\Core\Logger;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -39,33 +44,33 @@ class EventServiceProvider implements ServiceProviderInterface {
 	 *
 	 * @var array<string, array<string>>
 	 */
-	protected array $handlers = array(
-		'wch.message.received' => array(
+	protected array $handlers = [
+		'wch.message.received' => [
 			MessageReceivedHandler::class,
-		),
-		'wch.message.sent' => array(
+		],
+		'wch.message.sent'     => [
 			MessageSentHandler::class,
-		),
-		'wch.order.created' => array(
+		],
+		'wch.order.created'    => [
 			OrderCreatedHandler::class,
-		),
-		'wch.cart.abandoned' => array(
+		],
+		'wch.cart.abandoned'   => [
 			CartAbandonedHandler::class,
-		),
-		'wch.cart.recovered' => array(
+		],
+		'wch.cart.recovered'   => [
 			CartRecoveredHandler::class,
-		),
-	);
+		],
+	];
 
 	/**
 	 * Events that should be dispatched asynchronously.
 	 *
 	 * @var array<string>
 	 */
-	protected array $async_events = array(
+	protected array $async_events = [
 		'wch.cart.abandoned',
 		'wch.message.sent',
-	);
+	];
 
 	/**
 	 * {@inheritdoc}
@@ -77,27 +82,27 @@ class EventServiceProvider implements ServiceProviderInterface {
 			function ( ContainerInterface $c ): EventBus {
 				$queue = $c->has( PriorityQueue::class ) ? $c->get( PriorityQueue::class ) : null;
 
-				// Create a logger adapter that wraps WCH_Logger static methods.
-				$logger = null;
-				if ( class_exists( 'WCH_Logger' ) ) {
-					$logger = new class {
-						public function info( string $message, array $context = array() ): void {
-							\WCH_Logger::info( $message, array_merge( array( 'category' => 'events' ), $context ) );
-						}
+				$loggerService = $c->has( Logger::class ) ? $c->get( Logger::class ) : Logger::instance();
+				$logger        = new class( $loggerService ) {
+					public function __construct( private Logger $logger ) {
+					}
 
-						public function error( string $message, array $context = array() ): void {
-							\WCH_Logger::error( $message, array_merge( array( 'category' => 'events' ), $context ) );
-						}
+					public function info( string $message, array $context = [] ): void {
+						$this->logger->info( $message, 'events', $context );
+					}
 
-						public function warning( string $message, array $context = array() ): void {
-							\WCH_Logger::warning( $message, array_merge( array( 'category' => 'events' ), $context ) );
-						}
+					public function error( string $message, array $context = [] ): void {
+						$this->logger->error( $message, 'events', $context );
+					}
 
-						public function debug( string $message, array $context = array() ): void {
-							\WCH_Logger::debug( $message, array_merge( array( 'category' => 'events' ), $context ) );
-						}
-					};
-				}
+					public function warning( string $message, array $context = [] ): void {
+						$this->logger->warning( $message, 'events', $context );
+					}
+
+					public function debug( string $message, array $context = [] ): void {
+						$this->logger->debug( $message, 'events', $context );
+					}
+				};
 
 				return new EventBus( $queue, $logger );
 			}
@@ -140,7 +145,7 @@ class EventServiceProvider implements ServiceProviderInterface {
 		}
 
 		// Hook into WordPress for async event processing.
-		add_action( 'wch_process_async_event', array( $this, 'processAsyncEvent' ), 10, 2 );
+		add_action( 'wch_process_async_event', [ $this, 'processAsyncEvent' ], 10, 2 );
 
 		// Register WordPress hooks for event dispatch.
 		$this->registerWordPressHooks( $event_bus );
@@ -162,10 +167,14 @@ class EventServiceProvider implements ServiceProviderInterface {
 			// Use EventBus's native async event processor which handles array data.
 			$event_bus->processAsyncEvent( $event_name, $event_data );
 		} catch ( \Throwable $e ) {
-			do_action( 'wch_log_error', 'Failed to process async event: ' . $e->getMessage(), array(
-				'event_name' => $event_name,
-				'event_id'   => $event_data['id'] ?? 'unknown',
-			) );
+			do_action(
+				'wch_log_error',
+				'Failed to process async event: ' . $e->getMessage(),
+				[
+					'event_name' => $event_name,
+					'event_id'   => $event_data['id'] ?? 'unknown',
+				]
+			);
 		}
 	}
 
@@ -241,7 +250,7 @@ class EventServiceProvider implements ServiceProviderInterface {
 	 * @return array<string>
 	 */
 	public function provides(): array {
-		return array(
+		return [
 			EventBus::class,
 			'events',
 			// Handler classes.
@@ -250,6 +259,6 @@ class EventServiceProvider implements ServiceProviderInterface {
 			OrderCreatedHandler::class,
 			CartAbandonedHandler::class,
 			CartRecoveredHandler::class,
-		);
+		];
 	}
 }

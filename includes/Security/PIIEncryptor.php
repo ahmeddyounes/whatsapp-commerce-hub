@@ -9,6 +9,8 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Security;
 
 // Exit if accessed directly.
@@ -24,35 +26,42 @@ if ( ! defined( 'ABSPATH' ) ) {
 class PIIEncryptor {
 
 	/**
-	 * The secure vault instance.
-	 *
-	 * @var SecureVault
-	 */
-	private SecureVault $vault;
-
-	/**
 	 * PII field definitions with their encryption requirements.
 	 *
 	 * @var array<string, array>
 	 */
-	private array $pii_fields = array(
-		'phone'         => array( 'searchable' => true, 'normalize' => 'phone' ),
-		'email'         => array( 'searchable' => true, 'normalize' => 'email' ),
-		'name'          => array( 'searchable' => false ),
-		'address_line1' => array( 'searchable' => false ),
-		'address_line2' => array( 'searchable' => false ),
-		'city'          => array( 'searchable' => true, 'normalize' => 'lowercase' ),
-		'postcode'      => array( 'searchable' => true, 'normalize' => 'uppercase' ),
-		'country'       => array( 'searchable' => true, 'normalize' => 'uppercase' ),
-	);
+	private array $pii_fields = [
+		'phone'         => [
+			'searchable' => true,
+			'normalize'  => 'phone',
+		],
+		'email'         => [
+			'searchable' => true,
+			'normalize'  => 'email',
+		],
+		'name'          => [ 'searchable' => false ],
+		'address_line1' => [ 'searchable' => false ],
+		'address_line2' => [ 'searchable' => false ],
+		'city'          => [
+			'searchable' => true,
+			'normalize'  => 'lowercase',
+		],
+		'postcode'      => [
+			'searchable' => true,
+			'normalize'  => 'uppercase',
+		],
+		'country'       => [
+			'searchable' => true,
+			'normalize'  => 'uppercase',
+		],
+	];
 
 	/**
 	 * Constructor.
 	 *
 	 * @param SecureVault $vault The secure vault instance.
 	 */
-	public function __construct( SecureVault $vault ) {
-		$this->vault = $vault;
+	public function __construct( private SecureVault $vault ) {
 	}
 
 	/**
@@ -64,13 +73,13 @@ class PIIEncryptor {
 	 */
 	public function encrypt( string $field, string $value ): array {
 		if ( empty( $value ) ) {
-			return array(
+			return [
 				'encrypted'   => '',
 				'blind_index' => null,
-			);
+			];
 		}
 
-		$field_config = $this->pii_fields[ $field ] ?? array();
+		$field_config = $this->pii_fields[ $field ] ?? [];
 
 		// Encrypt the value.
 		$encrypted = $this->vault->encrypt( $value, "pii-{$field}" );
@@ -78,14 +87,14 @@ class PIIEncryptor {
 		// Generate blind index if searchable.
 		$blind_index = null;
 		if ( ! empty( $field_config['searchable'] ) ) {
-			$normalized = $this->normalize( $value, $field_config['normalize'] ?? null );
+			$normalized  = $this->normalize( $value, $field_config['normalize'] ?? null );
 			$blind_index = $this->generateBlindIndex( $field, $normalized );
 		}
 
-		return array(
+		return [
 			'encrypted'   => $encrypted,
 			'blind_index' => $blind_index,
-		);
+		];
 	}
 
 	/**
@@ -128,7 +137,7 @@ class PIIEncryptor {
 	 * @return string The blind index to search for.
 	 */
 	public function getSearchIndex( string $field, string $value ): string {
-		$field_config = $this->pii_fields[ $field ] ?? array();
+		$field_config = $this->pii_fields[ $field ] ?? [];
 
 		if ( empty( $field_config['searchable'] ) ) {
 			return '';
@@ -169,7 +178,7 @@ class PIIEncryptor {
 		$phone = trim( $phone );
 
 		// Preserve + for international format, remove all other non-digits.
-		$has_plus = str_starts_with( $phone, '+' );
+		$has_plus   = str_starts_with( $phone, '+' );
 		$normalized = preg_replace( '/[^0-9]/', '', $phone );
 
 		// Re-add + prefix if it was present (indicates international format).
@@ -187,8 +196,8 @@ class PIIEncryptor {
 	 * @return array{encrypted: array, indexes: array}
 	 */
 	public function encryptMany( array $data ): array {
-		$encrypted = array();
-		$indexes = array();
+		$encrypted = [];
+		$indexes   = [];
 
 		foreach ( $data as $field => $value ) {
 			if ( ! isset( $this->pii_fields[ $field ] ) ) {
@@ -197,7 +206,7 @@ class PIIEncryptor {
 				continue;
 			}
 
-			$result = $this->encrypt( $field, $value );
+			$result              = $this->encrypt( $field, $value );
 			$encrypted[ $field ] = $result['encrypted'];
 
 			if ( $result['blind_index'] ) {
@@ -205,10 +214,10 @@ class PIIEncryptor {
 			}
 		}
 
-		return array(
+		return [
 			'encrypted' => $encrypted,
 			'indexes'   => $indexes,
-		);
+		];
 	}
 
 	/**
@@ -218,7 +227,7 @@ class PIIEncryptor {
 	 * @return array Key-value pairs of field => decrypted_value.
 	 */
 	public function decryptMany( array $data ): array {
-		$decrypted = array();
+		$decrypted = [];
 
 		foreach ( $data as $field => $value ) {
 			// Skip index fields.
@@ -267,10 +276,10 @@ class PIIEncryptor {
 	 * @return void
 	 */
 	public function registerField( string $field, bool $searchable = false, string $normalize = '' ): void {
-		$this->pii_fields[ $field ] = array(
+		$this->pii_fields[ $field ] = [
 			'searchable' => $searchable,
 			'normalize'  => $normalize,
-		);
+		];
 	}
 
 	/**
@@ -323,7 +332,7 @@ class PIIEncryptor {
 			return $this->maskGeneric( $email );
 		}
 
-		$local = $parts[0];
+		$local  = $parts[0];
 		$domain = $parts[1];
 
 		// Mask local part - show first 2 chars.
@@ -334,9 +343,9 @@ class PIIEncryptor {
 		// Mask domain - preserve TLD but mask the rest.
 		$domain_parts = explode( '.', $domain );
 		if ( count( $domain_parts ) >= 2 ) {
-			$tld = array_pop( $domain_parts );
-			$domain_name = implode( '.', $domain_parts );
-			$masked_domain = strlen( $domain_name ) > 1
+			$tld            = array_pop( $domain_parts );
+			$domain_name    = implode( '.', $domain_parts );
+			$masked_domain  = strlen( $domain_name ) > 1
 				? substr( $domain_name, 0, 1 ) . str_repeat( '*', strlen( $domain_name ) - 1 )
 				: str_repeat( '*', strlen( $domain_name ) );
 			$masked_domain .= '.' . $tld;
@@ -356,13 +365,19 @@ class PIIEncryptor {
 	private function maskName( string $name ): string {
 		$parts = explode( ' ', $name );
 
-		return implode( ' ', array_map( function ( $part ) {
-			$length = strlen( $part );
-			if ( $length <= 1 ) {
-				return '*';
-			}
-			return substr( $part, 0, 1 ) . str_repeat( '*', $length - 1 );
-		}, $parts ) );
+		return implode(
+			' ',
+			array_map(
+				function ( $part ) {
+					$length = strlen( $part );
+					if ( $length <= 1 ) {
+							return '*';
+					}
+					return substr( $part, 0, 1 ) . str_repeat( '*', $length - 1 );
+				},
+				$parts
+			)
+		);
 	}
 
 	/**
@@ -397,7 +412,7 @@ class PIIEncryptor {
 	 * @return array Anonymized placeholder values.
 	 */
 	public function getAnonymizedValues(): array {
-		return array(
+		return [
 			'phone'         => '[DELETED]',
 			'email'         => '[DELETED]',
 			'name'          => '[DELETED]',
@@ -406,6 +421,6 @@ class PIIEncryptor {
 			'city'          => '[DELETED]',
 			'postcode'      => '[DELETED]',
 			'country'       => '[DELETED]',
-		);
+		];
 	}
 }

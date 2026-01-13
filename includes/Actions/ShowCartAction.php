@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Actions;
 
+use WhatsAppCommerceHub\Support\Messaging\MessageBuilder;
 use WhatsAppCommerceHub\ValueObjects\ActionResult;
 use WhatsAppCommerceHub\ValueObjects\ConversationContext;
 
@@ -44,40 +45,40 @@ class ShowCartAction extends AbstractAction {
 	 */
 	public function handle( string $phone, array $params, ConversationContext $context ): ActionResult {
 		try {
-			$this->log( 'Showing cart', array( 'phone' => $phone ) );
+			$this->log( 'Showing cart', [ 'phone' => $phone ] );
 
 			$cart = $this->getCart( $phone );
 
-			if ( ! $cart ) {
+			if ( ! $cart || ! is_object( $cart ) ) {
 				return $this->showEmptyCart();
 			}
 
-			$items = is_array( $cart ) ? ( $cart['items'] ?? array() ) : ( $cart->items ?? array() );
+			$items = $cart->items ?? [];
 
 			if ( empty( $items ) ) {
 				return $this->showEmptyCart();
 			}
 
-			$cartData = array(
-				'id'    => is_array( $cart ) ? ( $cart['id'] ?? null ) : ( $cart->id ?? null ),
+			$cartData = [
+				'id'    => $cart->id ?? null,
 				'items' => $items,
-				'total' => is_array( $cart ) ? ( $cart['total'] ?? 0 ) : ( $cart->total ?? 0 ),
-			);
+				'total' => $cart->total ?? 0,
+			];
 
 			$message = $this->buildCartMessage( $cartData );
 
 			return ActionResult::success(
-				array( $message ),
+				[ $message ],
 				null,
-				array(
+				[
 					'cart_id'         => $cartData['id'],
 					'cart_item_count' => count( $cartData['items'] ),
 					'cart_total'      => $cartData['total'],
-				)
+				]
 			);
 
 		} catch ( \Exception $e ) {
-			$this->log( 'Error showing cart', array( 'error' => $e->getMessage() ), 'error' );
+			$this->log( 'Error showing cart', [ 'error' => $e->getMessage() ], 'error' );
 			return $this->error( __( 'Sorry, we could not load your cart. Please try again.', 'whatsapp-commerce-hub' ) );
 		}
 	}
@@ -86,9 +87,9 @@ class ShowCartAction extends AbstractAction {
 	 * Build cart message.
 	 *
 	 * @param array $cart Cart data.
-	 * @return \WCH_Message_Builder
+	 * @return MessageBuilder
 	 */
-	private function buildCartMessage( array $cart ): \WCH_Message_Builder {
+	private function buildCartMessage( array $cart ): MessageBuilder {
 		$message = $this->createMessageBuilder();
 
 		$message->header( __( 'Your Cart', 'whatsapp-commerce-hub' ) );
@@ -125,26 +126,26 @@ class ShowCartAction extends AbstractAction {
 		// Action buttons.
 		$message->button(
 			'reply',
-			array(
+			[
 				'id'    => 'checkout',
 				'title' => __( 'Checkout', 'whatsapp-commerce-hub' ),
-			)
+			]
 		);
 
 		$message->button(
 			'reply',
-			array(
+			[
 				'id'    => 'continue_shopping',
 				'title' => __( 'Continue Shopping', 'whatsapp-commerce-hub' ),
-			)
+			]
 		);
 
 		$message->button(
 			'reply',
-			array(
+			[
 				'id'    => 'clear_cart',
 				'title' => __( 'Clear Cart', 'whatsapp-commerce-hub' ),
-			)
+			]
 		);
 
 		return $message;
@@ -160,13 +161,20 @@ class ShowCartAction extends AbstractAction {
 		$subtotal = 0.0;
 
 		foreach ( $items as $item ) {
-			$price = isset( $item['price'] ) ? (float) $item['price'] : null;
+			$price = isset( $item['price_at_add'] ) ? (float) $item['price_at_add'] : null;
 
 			if ( null === $price ) {
-				// Fallback to live price if not stored.
-				$targetId = ! empty( $item['variant_id'] ) ? $item['variant_id'] : $item['product_id'];
+				$targetId = ! empty( $item['variation_id'] ) ? $item['variation_id'] : $item['product_id'];
 				$product  = wc_get_product( $targetId );
 				$price    = $product ? (float) $product->get_price() : 0.0;
+				$this->log(
+					'Cart item missing price_at_add, using live price',
+					[
+						'product_id'   => $item['product_id'] ?? 0,
+						'variation_id' => $item['variation_id'] ?? null,
+					],
+					'warning'
+				);
 			}
 
 			$quantity  = (int) $item['quantity'];
@@ -187,11 +195,11 @@ class ShowCartAction extends AbstractAction {
 	 * @return string Formatted items.
 	 */
 	private function formatCartItems( array $items ): string {
-		$lines = array();
+		$lines = [];
 
 		foreach ( $items as $index => $item ) {
-			$product   = wc_get_product( $item['product_id'] );
-			$targetId  = $item['product_id'];
+			$product  = wc_get_product( $item['product_id'] );
+			$targetId = $item['product_id'];
 
 			if ( ! $product ) {
 				continue;
@@ -200,17 +208,17 @@ class ShowCartAction extends AbstractAction {
 			$productName = $product->get_name();
 
 			// Handle variants.
-			if ( ! empty( $item['variant_id'] ) ) {
-				$variation = wc_get_product( $item['variant_id'] );
+			if ( ! empty( $item['variation_id'] ) ) {
+				$variation = wc_get_product( $item['variation_id'] );
 				if ( $variation ) {
 					$productName = $variation->get_name();
-					$targetId    = $item['variant_id'];
+					$targetId    = $item['variation_id'];
 				}
 			}
 
 			// SECURITY: Use cart-stored price if available for consistency with cart total.
 			// Fall back to current product price only if cart doesn't have stored price.
-			$price = isset( $item['price'] ) ? (float) $item['price'] : null;
+			$price = isset( $item['price_at_add'] ) ? (float) $item['price_at_add'] : null;
 
 			if ( null === $price ) {
 				// Fallback: fetch current price.
@@ -218,11 +226,11 @@ class ShowCartAction extends AbstractAction {
 				$price         = $targetProduct ? (float) $targetProduct->get_price() : 0.0;
 
 				$this->log(
-					'Cart item missing stored price, using live price',
-					array(
-						'product_id' => $item['product_id'],
-						'variant_id' => $item['variant_id'] ?? null,
-					),
+					'Cart item missing price_at_add, using live price',
+					[
+						'product_id'   => $item['product_id'],
+						'variation_id' => $item['variation_id'] ?? null,
+					],
 					'warning'
 				);
 			}
@@ -251,7 +259,7 @@ class ShowCartAction extends AbstractAction {
 	 * @return array Rows for interactive list.
 	 */
 	private function buildItemRows( array $items ): array {
-		$rows = array();
+		$rows = [];
 
 		foreach ( $items as $item ) {
 			$product = wc_get_product( $item['product_id'] );
@@ -262,16 +270,16 @@ class ShowCartAction extends AbstractAction {
 
 			$productName = $product->get_name();
 
-			if ( ! empty( $item['variant_id'] ) ) {
-				$variation = wc_get_product( $item['variant_id'] );
+			if ( ! empty( $item['variation_id'] ) ) {
+				$variation = wc_get_product( $item['variation_id'] );
 				if ( $variation ) {
 					$productName = $variation->get_name();
 				}
 			}
 
-			$itemKey = $this->getCartItemKey( $item['product_id'], $item['variant_id'] ?? null );
+			$itemKey = $this->getCartItemKey( $item['product_id'], $item['variation_id'] ?? null );
 
-			$rows[] = array(
+			$rows[] = [
 				'id'          => 'modify_item_' . $itemKey,
 				'title'       => wp_trim_words( $productName, 3, '...' ),
 				'description' => sprintf(
@@ -280,7 +288,7 @@ class ShowCartAction extends AbstractAction {
 					$item['quantity'],
 					__( 'Edit or Remove', 'whatsapp-commerce-hub' )
 				),
-			);
+			];
 
 			// Limit to 10 items.
 			if ( count( $rows ) >= 10 ) {
@@ -294,12 +302,12 @@ class ShowCartAction extends AbstractAction {
 	/**
 	 * Generate cart item key.
 	 *
-	 * @param int      $productId Product ID.
-	 * @param int|null $variantId Variant ID or null.
+	 * @param int      $productId   Product ID.
+	 * @param int|null $variationId Variation ID or null.
 	 * @return string Item key.
 	 */
-	private function getCartItemKey( int $productId, ?int $variantId ): string {
-		return $variantId ? "{$productId}_{$variantId}" : (string) $productId;
+	private function getCartItemKey( int $productId, ?int $variationId ): string {
+		return $variationId ? "{$productId}_{$variationId}" : (string) $productId;
 	}
 
 	/**
@@ -320,20 +328,20 @@ class ShowCartAction extends AbstractAction {
 
 		$message->button(
 			'reply',
-			array(
+			[
 				'id'    => 'browse_products',
 				'title' => __( 'Browse Products', 'whatsapp-commerce-hub' ),
-			)
+			]
 		);
 
 		$message->button(
 			'reply',
-			array(
+			[
 				'id'    => 'main_menu',
 				'title' => __( 'Main Menu', 'whatsapp-commerce-hub' ),
-			)
+			]
 		);
 
-		return ActionResult::success( array( $message ) );
+		return ActionResult::success( [ $message ] );
 	}
 }

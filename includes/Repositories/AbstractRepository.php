@@ -8,6 +8,8 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Repositories;
 
 use WhatsAppCommerceHub\Contracts\Repositories\RepositoryInterface;
@@ -16,6 +18,9 @@ use WhatsAppCommerceHub\Contracts\Repositories\RepositoryInterface;
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+
+// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
+// SQL uses safe table names from $wpdb->prefix. Hook names use wch_ project prefix.
 
 /**
  * Class AbstractRepository
@@ -135,7 +140,7 @@ abstract class AbstractRepository implements RepositoryInterface {
 	 * @return array Array of format strings (%s, %d, %f).
 	 */
 	protected function getFormats( array $data ): array {
-		$formats = array();
+		$formats = [];
 		foreach ( $data as $value ) {
 			if ( is_int( $value ) ) {
 				$formats[] = '%d';
@@ -194,17 +199,17 @@ abstract class AbstractRepository implements RepositoryInterface {
 	 * {@inheritdoc}
 	 */
 	public function findAll(
-		array $criteria = array(),
-		array $orderBy = array(),
+		array $criteria = [],
+		array $orderBy = [],
 		?int $limit = null,
 		int $offset = 0
 	): array {
 		$sql = "SELECT * FROM {$this->table}";
 
-		$where_parts = array();
+		$where_parts = [];
 
 		if ( ! empty( $criteria ) ) {
-			$where       = $this->buildWhereClause( $criteria );
+			$where         = $this->buildWhereClause( $criteria );
 			$where_parts[] = $where['clause'];
 		}
 
@@ -217,7 +222,7 @@ abstract class AbstractRepository implements RepositoryInterface {
 		}
 
 		if ( ! empty( $orderBy ) ) {
-			$order_clauses = array();
+			$order_clauses = [];
 			foreach ( $orderBy as $column => $direction ) {
 				$direction       = strtoupper( $direction ) === 'DESC' ? 'DESC' : 'ASC';
 				$order_clauses[] = $this->sanitizeColumn( $column ) . " {$direction}";
@@ -232,7 +237,7 @@ abstract class AbstractRepository implements RepositoryInterface {
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		$rows = $this->wpdb->get_results( $sql, ARRAY_A );
 
-		return array_map( array( $this, 'mapToEntity' ), $rows ?: array() );
+		return array_map( [ $this, 'mapToEntity' ], $rows ?: [] );
 	}
 
 	/**
@@ -280,9 +285,9 @@ abstract class AbstractRepository implements RepositoryInterface {
 		$result = $this->wpdb->update(
 			$this->table,
 			$data,
-			array( $this->primary_key => $id ),
+			[ $this->primary_key => $id ],
 			$this->getFormats( $data ),
-			array( '%d' )
+			[ '%d' ]
 		);
 
 		return false !== $result;
@@ -295,14 +300,14 @@ abstract class AbstractRepository implements RepositoryInterface {
 		if ( $this->soft_deletes ) {
 			return $this->update(
 				$id,
-				array( $this->deleted_at_column => current_time( 'mysql' ) )
+				[ $this->deleted_at_column => current_time( 'mysql' ) ]
 			);
 		}
 
 		$result = $this->wpdb->delete(
 			$this->table,
-			array( $this->primary_key => $id ),
-			array( '%d' )
+			[ $this->primary_key => $id ],
+			[ '%d' ]
 		);
 
 		return false !== $result;
@@ -311,13 +316,13 @@ abstract class AbstractRepository implements RepositoryInterface {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function count( array $criteria = array() ): int {
+	public function count( array $criteria = [] ): int {
 		$sql = "SELECT COUNT(*) FROM {$this->table}";
 
-		$where_parts = array();
+		$where_parts = [];
 
 		if ( ! empty( $criteria ) ) {
-			$where       = $this->buildWhereClause( $criteria );
+			$where         = $this->buildWhereClause( $criteria );
 			$where_parts[] = $where['clause'];
 		}
 
@@ -370,8 +375,8 @@ abstract class AbstractRepository implements RepositoryInterface {
 	 * @return array{clause: string, values: array}
 	 */
 	protected function buildWhereClause( array $criteria ): array {
-		$conditions = array();
-		$values     = array();
+		$conditions = [];
+		$values     = [];
 
 		foreach ( $criteria as $column => $value ) {
 			$column = $this->sanitizeColumn( $column );
@@ -440,7 +445,7 @@ abstract class AbstractRepository implements RepositoryInterface {
 
 					default:
 						// Comparison operators: =, !=, <, >, <=, >=.
-						if ( in_array( $operator, array( '=', '!=', '<', '>', '<=', '>=' ), true ) ) {
+						if ( in_array( $operator, [ '=', '!=', '<', '>', '<=', '>=' ], true ) ) {
 							$conditions[] = $this->wpdb->prepare(
 								"{$column} {$operator} %s",
 								$val
@@ -465,10 +470,10 @@ abstract class AbstractRepository implements RepositoryInterface {
 			}
 		}
 
-		return array(
+		return [
 			'clause' => implode( ' AND ', $conditions ),
 			'values' => $values,
-		);
+		];
 	}
 
 	/**
@@ -478,14 +483,14 @@ abstract class AbstractRepository implements RepositoryInterface {
 	 * @param array  $args The query arguments.
 	 * @return array The query results.
 	 */
-	protected function query( string $sql, array $args = array() ): array {
+	protected function query( string $sql, array $args = [] ): array {
 		if ( ! empty( $args ) ) {
 			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			$sql = $this->wpdb->prepare( $sql, ...$args );
 		}
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-		return $this->wpdb->get_results( $sql, ARRAY_A ) ?: array();
+		return $this->wpdb->get_results( $sql, ARRAY_A ) ?: [];
 	}
 
 	/**
@@ -495,7 +500,7 @@ abstract class AbstractRepository implements RepositoryInterface {
 	 * @param array  $args The query arguments.
 	 * @return array|null The row or null.
 	 */
-	protected function queryRow( string $sql, array $args = array() ): ?array {
+	protected function queryRow( string $sql, array $args = [] ): ?array {
 		if ( ! empty( $args ) ) {
 			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			$sql = $this->wpdb->prepare( $sql, ...$args );
@@ -514,7 +519,7 @@ abstract class AbstractRepository implements RepositoryInterface {
 	 * @param array  $args The query arguments.
 	 * @return mixed The value or null.
 	 */
-	protected function queryVar( string $sql, array $args = array() ): mixed {
+	protected function queryVar( string $sql, array $args = [] ): mixed {
 		if ( ! empty( $args ) ) {
 			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			$sql = $this->wpdb->prepare( $sql, ...$args );
@@ -543,8 +548,8 @@ abstract class AbstractRepository implements RepositoryInterface {
 		$now = current_time( 'mysql' );
 
 		// Phase 1: Prepare all rows and extract columns.
-		$prepared_rows = array();
-		$columns = null;
+		$prepared_rows = [];
+		$columns       = null;
 
 		foreach ( $rows as $index => $row ) {
 			$row = $this->prepareData( $row );
@@ -580,9 +585,9 @@ abstract class AbstractRepository implements RepositoryInterface {
 		}
 
 		// Phase 3: Build SQL values (all validation passed).
-		$values = array();
+		$values = [];
 		foreach ( $prepared_rows as $row ) {
-			$placeholders = array();
+			$placeholders = [];
 			foreach ( $row as $value ) {
 				if ( is_int( $value ) ) {
 					$placeholders[] = '%d';
@@ -620,7 +625,7 @@ abstract class AbstractRepository implements RepositoryInterface {
 		$data               = $this->prepareData( $data );
 		$data['updated_at'] = current_time( 'mysql' );
 
-		$set_parts = array();
+		$set_parts = [];
 		foreach ( $data as $column => $value ) {
 			$sanitized_column = $this->sanitizeColumn( $column );
 
@@ -661,7 +666,7 @@ abstract class AbstractRepository implements RepositoryInterface {
 
 		if ( $this->soft_deletes ) {
 			return $this->bulkUpdate(
-				array( $this->deleted_at_column => current_time( 'mysql' ) ),
+				[ $this->deleted_at_column => current_time( 'mysql' ) ],
 				$criteria
 			);
 		}

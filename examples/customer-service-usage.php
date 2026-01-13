@@ -24,14 +24,14 @@ if ( $found_customer_id ) {
 }
 
 // Example 4: Save customer address.
-$address = array(
+$address = [
 	'address_1' => '123 Market Street',
 	'address_2' => 'Suite 400',
 	'city'      => 'San Francisco',
 	'state'     => 'CA',
 	'postcode'  => '94103',
 	'country'   => 'US',
-);
+];
 $customer_service->save_address( $phone, $address, true ); // true = set as default
 
 // Example 5: Get default address.
@@ -41,10 +41,10 @@ if ( $default_address ) {
 }
 
 // Example 6: Update customer preferences.
-$preferences = array(
+$preferences = [
 	'language' => 'es',
 	'currency' => 'EUR',
-);
+];
 $customer_service->update_preferences( $phone, $preferences );
 
 // Example 7: Get order history.
@@ -83,12 +83,12 @@ echo "Lifetime Value: \${$profile->lifetime_value}\n";
 echo "Marketing Opt-in: " . ( $profile->opt_in_marketing ? 'Yes' : 'No' ) . "\n";
 
 // Example 12: Phone number variations (all resolve to same profile).
-$variations = array(
+$variations = [
 	'+14155552671',
 	'14155552671',
 	'(415) 555-2671',
 	'415-555-2671',
-);
+];
 foreach ( $variations as $variation ) {
 	$profile = $customer_service->get_or_create_profile( $variation );
 	// All return same profile with phone: +14155552671

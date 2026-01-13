@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Actions;
 
+use WhatsAppCommerceHub\Support\Messaging\MessageBuilder;
 use WhatsAppCommerceHub\ValueObjects\ActionResult;
 use WhatsAppCommerceHub\ValueObjects\ConversationContext;
 
@@ -44,13 +45,13 @@ class RequestAddressAction extends AbstractAction {
 	 */
 	public function handle( string $phone, array $params, ConversationContext $context ): ActionResult {
 		try {
-			$this->log( 'Requesting address', array( 'phone' => $phone ) );
+			$this->log( 'Requesting address', [ 'phone' => $phone ] );
 
 			// Get customer profile.
 			$customer = $this->getCustomerProfile( $phone );
 
 			// Check for saved addresses.
-			$savedAddresses = array();
+			$savedAddresses = [];
 			if ( $customer && ! empty( $customer->saved_addresses ) && is_array( $customer->saved_addresses ) ) {
 				$savedAddresses = $customer->saved_addresses;
 			}
@@ -63,13 +64,13 @@ class RequestAddressAction extends AbstractAction {
 			}
 
 			return ActionResult::success(
-				array( $message ),
+				[ $message ],
 				null,
-				array( 'awaiting_address' => true )
+				[ 'awaiting_address' => true ]
 			);
 
 		} catch ( \Exception $e ) {
-			$this->log( 'Error requesting address', array( 'error' => $e->getMessage() ), 'error' );
+			$this->log( 'Error requesting address', [ 'error' => $e->getMessage() ], 'error' );
 			return $this->error( __( 'Sorry, we could not process your address. Please try again.', 'whatsapp-commerce-hub' ) );
 		}
 	}
@@ -78,16 +79,16 @@ class RequestAddressAction extends AbstractAction {
 	 * Build message with saved addresses.
 	 *
 	 * @param array $addresses Saved addresses.
-	 * @return \WCH_Message_Builder
+	 * @return MessageBuilder
 	 */
-	private function buildSavedAddressesMessage( array $addresses ): \WCH_Message_Builder {
+	private function buildSavedAddressesMessage( array $addresses ): MessageBuilder {
 		$message = $this->createMessageBuilder();
 
 		$message->header( __( 'Shipping Address', 'whatsapp-commerce-hub' ) );
 		$message->body( __( 'Please select a saved address or enter a new one:', 'whatsapp-commerce-hub' ) );
 
 		// Build address rows.
-		$rows = array();
+		$rows = [];
 
 		foreach ( $addresses as $index => $address ) {
 			$addressText = $this->formatAddressSummary( $address );
@@ -95,11 +96,11 @@ class RequestAddressAction extends AbstractAction {
 				? $address['label']
 				: sprintf( __( 'Address %d', 'whatsapp-commerce-hub' ), $index + 1 );
 
-			$rows[] = array(
+			$rows[] = [
 				'id'          => 'saved_address_' . $index,
 				'title'       => $label,
 				'description' => wp_trim_words( $addressText, 10, '...' ),
-			);
+			];
 
 			// Limit to 9 addresses to leave room for "new address" option.
 			if ( count( $rows ) >= 9 ) {
@@ -108,11 +109,11 @@ class RequestAddressAction extends AbstractAction {
 		}
 
 		// Add "Enter New Address" option.
-		$rows[] = array(
+		$rows[] = [
 			'id'          => 'new_address',
 			'title'       => __( 'Enter New Address', 'whatsapp-commerce-hub' ),
 			'description' => __( 'Provide a different address', 'whatsapp-commerce-hub' ),
-		);
+		];
 
 		$message->section( __( 'Select Address', 'whatsapp-commerce-hub' ), $rows );
 
@@ -122,9 +123,9 @@ class RequestAddressAction extends AbstractAction {
 	/**
 	 * Build new address prompt.
 	 *
-	 * @return \WCH_Message_Builder
+	 * @return MessageBuilder
 	 */
-	private function buildNewAddressPrompt(): \WCH_Message_Builder {
+	private function buildNewAddressPrompt(): MessageBuilder {
 		$message = $this->createMessageBuilder();
 
 		$text = sprintf(
@@ -152,10 +153,17 @@ class RequestAddressAction extends AbstractAction {
 	 * @return string Formatted address.
 	 */
 	private function formatAddressSummary( array $address ): string {
-		$parts = array();
+		$parts = [];
 
-		if ( ! empty( $address['street'] ) ) {
-			$parts[] = $address['street'];
+		$street = $address['street'] ?? $address['address_1'] ?? '';
+		if ( '' !== $street ) {
+			$parts[] = $street;
+		}
+
+		if ( ! empty( $address['street_2'] ) ) {
+			$parts[] = $address['street_2'];
+		} elseif ( ! empty( $address['address_2'] ) ) {
+			$parts[] = $address['address_2'];
 		}
 
 		if ( ! empty( $address['city'] ) ) {
@@ -166,8 +174,9 @@ class RequestAddressAction extends AbstractAction {
 			$parts[] = $address['state'];
 		}
 
-		if ( ! empty( $address['postal_code'] ) ) {
-			$parts[] = $address['postal_code'];
+		$postalCode = $address['postal_code'] ?? $address['postcode'] ?? '';
+		if ( '' !== $postalCode ) {
+			$parts[] = $postalCode;
 		}
 
 		if ( ! empty( $address['country'] ) ) {
@@ -184,24 +193,32 @@ class RequestAddressAction extends AbstractAction {
 	 * @return array{valid: bool, message: string} Validation result.
 	 */
 	public static function validateAddress( array $address ): array {
-		$requiredFields = array( 'street', 'city', 'postal_code', 'country' );
+		$requiredFields = [ 'street', 'city', 'postal_code', 'country' ];
 
 		foreach ( $requiredFields as $field ) {
-			if ( empty( $address[ $field ] ) ) {
-				return array(
+			$value = $address[ $field ] ?? null;
+			if ( 'street' === $field ) {
+				$value = $address['street'] ?? $address['address_1'] ?? null;
+			}
+			if ( 'postal_code' === $field ) {
+				$value = $address['postal_code'] ?? $address['postcode'] ?? null;
+			}
+
+			if ( empty( $value ) ) {
+				return [
 					'valid'   => false,
 					'message' => sprintf(
 						__( 'Missing required field: %s', 'whatsapp-commerce-hub' ),
 						$field
 					),
-				);
+				];
 			}
 		}
 
-		return array(
+		return [
 			'valid'   => true,
 			'message' => __( 'Address is valid', 'whatsapp-commerce-hub' ),
-		);
+		];
 	}
 
 	/**
@@ -213,13 +230,13 @@ class RequestAddressAction extends AbstractAction {
 	public static function parseAddressFromText( string $text ): array {
 		$lines = array_filter( array_map( 'trim', explode( "\n", $text ) ) );
 
-		$address = array(
+		$address = [
 			'street'      => '',
 			'city'        => '',
 			'state'       => '',
 			'postal_code' => '',
 			'country'     => '',
-		);
+		];
 
 		if ( isset( $lines[0] ) ) {
 			$address['street'] = $lines[0];

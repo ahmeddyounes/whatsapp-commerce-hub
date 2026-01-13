@@ -8,6 +8,8 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\ValueObjects;
 
 // Exit if accessed directly.
@@ -48,13 +50,13 @@ final class CheckoutResponse {
 	public function __construct(
 		public readonly bool $success,
 		public readonly string $step,
-		public readonly array $messages = array(),
-		public readonly array $data = array(),
+		public readonly array $messages = [],
+		public readonly array $data = [],
 		public readonly ?string $error = null,
 		public readonly ?string $error_code = null,
 		public readonly ?int $order_id = null,
 		public readonly ?string $next_step = null,
-		public readonly array $step_data = array(),
+		public readonly array $step_data = [],
 	) {}
 
 	/**
@@ -69,10 +71,10 @@ final class CheckoutResponse {
 	 */
 	public static function success(
 		string $step,
-		array $messages = array(),
-		array $data = array(),
+		array $messages = [],
+		array $data = [],
 		?string $next_step = null,
-		array $step_data = array()
+		array $step_data = []
 	): self {
 		return new self(
 			success: true,
@@ -98,8 +100,8 @@ final class CheckoutResponse {
 		string $step,
 		string $error,
 		?string $error_code = null,
-		array $messages = array(),
-		array $data = array()
+		array $messages = [],
+		array $data = []
 	): self {
 		return new self(
 			success: false,
@@ -119,7 +121,7 @@ final class CheckoutResponse {
 	 * @param array $data     Additional data (order details, etc.).
 	 * @return self
 	 */
-	public static function completed( int $order_id, array $messages = array(), array $data = array() ): self {
+	public static function completed( int $order_id, array $messages = [], array $data = [] ): self {
 		return new self(
 			success: true,
 			step: self::STEP_COMPLETED,
@@ -162,7 +164,7 @@ final class CheckoutResponse {
 	 * @return array
 	 */
 	public function toArray(): array {
-		return array(
+		return [
 			'success'    => $this->success,
 			'step'       => $this->step,
 			'messages'   => $this->messages,
@@ -172,7 +174,7 @@ final class CheckoutResponse {
 			'order_id'   => $this->order_id,
 			'next_step'  => $this->next_step,
 			'step_data'  => $this->step_data,
-		);
+		];
 	}
 
 	/**

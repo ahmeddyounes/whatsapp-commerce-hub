@@ -12,13 +12,13 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Providers;
 
-use WhatsAppCommerceHub\Admin\AnalyticsPage;
-use WhatsAppCommerceHub\Admin\CatalogSyncPage;
-use WhatsAppCommerceHub\Admin\DashboardWidgets;
-use WhatsAppCommerceHub\Admin\InboxPage;
-use WhatsAppCommerceHub\Admin\JobsPage;
-use WhatsAppCommerceHub\Admin\LogsPage;
-use WhatsAppCommerceHub\Admin\TemplatesPage;
+use WhatsAppCommerceHub\Presentation\Admin\Pages\AnalyticsPage;
+use WhatsAppCommerceHub\Presentation\Admin\Pages\CatalogSyncPage;
+use WhatsAppCommerceHub\Presentation\Admin\Pages\InboxPage;
+use WhatsAppCommerceHub\Presentation\Admin\Pages\JobsPage;
+use WhatsAppCommerceHub\Presentation\Admin\Pages\LogsPage;
+use WhatsAppCommerceHub\Presentation\Admin\Pages\TemplatesPage;
+use WhatsAppCommerceHub\Presentation\Admin\Widgets\DashboardWidgets;
 use WhatsAppCommerceHub\Container\ContainerInterface;
 use WhatsAppCommerceHub\Container\ServiceProviderInterface;
 
@@ -148,7 +148,7 @@ class AdminServiceProvider implements ServiceProviderInterface {
 	 * @return array<string>
 	 */
 	public function provides(): array {
-		return array(
+		return [
 			LogsPage::class,
 			JobsPage::class,
 			InboxPage::class,
@@ -163,6 +163,6 @@ class AdminServiceProvider implements ServiceProviderInterface {
 			'wch.admin.templates',
 			'wch.admin.catalog_sync',
 			'wch.admin.dashboard_widgets',
-		);
+		];
 	}
 }

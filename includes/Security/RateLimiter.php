@@ -9,12 +9,18 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Security;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+
+// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
+// The table name comes from $wpdb->prefix which is safe. All user data uses proper placeholders.
+// Hook names use wch_ prefix which is the project's standard prefix.
 
 /**
  * Class RateLimiter
@@ -42,15 +48,36 @@ class RateLimiter {
 	 *
 	 * @var array<string, array{limit: int, window: int}>
 	 */
-	private array $limits = array(
-		'webhook'       => array( 'limit' => 1000, 'window' => 60 ),    // 1000/min.
-		'api'           => array( 'limit' => 100, 'window' => 60 ),     // 100/min.
-		'admin'         => array( 'limit' => 60, 'window' => 60 ),      // 60/min.
-		'auth'          => array( 'limit' => 5, 'window' => 300 ),      // 5/5min.
-		'message_send'  => array( 'limit' => 30, 'window' => 60 ),      // 30/min (WhatsApp limit).
-		'broadcast'     => array( 'limit' => 10, 'window' => 3600 ),    // 10/hour.
-		'export'        => array( 'limit' => 5, 'window' => 3600 ),     // 5/hour.
-	);
+	private array $limits = [
+		'webhook'      => [
+			'limit'  => 1000,
+			'window' => 60,
+		],    // 1000/min.
+		'api'          => [
+			'limit'  => 100,
+			'window' => 60,
+		],     // 100/min.
+		'admin'        => [
+			'limit'  => 60,
+			'window' => 60,
+		],      // 60/min.
+		'auth'         => [
+			'limit'  => 5,
+			'window' => 300,
+		],      // 5/5min.
+		'message_send' => [
+			'limit'  => 30,
+			'window' => 60,
+		],      // 30/min (WhatsApp limit).
+		'broadcast'    => [
+			'limit'  => 10,
+			'window' => 3600,
+		],    // 10/hour.
+		'export'       => [
+			'limit'  => 5,
+			'window' => 3600,
+		],     // 5/hour.
+	];
 
 	/**
 	 * Constructor.
@@ -58,7 +85,7 @@ class RateLimiter {
 	 * @param \wpdb $wpdb The WordPress database instance.
 	 */
 	public function __construct( \wpdb $wpdb ) {
-		$this->wpdb = $wpdb;
+		$this->wpdb  = $wpdb;
 		$this->table = $wpdb->prefix . 'wch_rate_limits';
 	}
 
@@ -95,10 +122,10 @@ class RateLimiter {
 	 *       doWork();
 	 *   }
 	 *
-	 * @param string      $identifier The identifier (IP, user ID, phone, etc.).
-	 * @param string      $limit_type The rate limit type.
-	 * @param int|null    $limit      Optional custom limit.
-	 * @param int|null    $window     Optional custom window in seconds.
+	 * @param string   $identifier The identifier (IP, user ID, phone, etc.).
+	 * @param string   $limit_type The rate limit type.
+	 * @param int|null $limit      Optional custom limit.
+	 * @param int|null $window     Optional custom window in seconds.
 	 * @return array{allowed: bool, remaining: int, reset_at: int}
 	 */
 	public function check(
@@ -107,14 +134,17 @@ class RateLimiter {
 		?int $limit = null,
 		?int $window = null
 	): array {
-		$config = $this->limits[ $limit_type ] ?? array( 'limit' => 100, 'window' => 60 );
+		$config = $this->limits[ $limit_type ] ?? [
+			'limit'  => 100,
+			'window' => 60,
+		];
 
-		$limit = $limit ?? $config['limit'];
+		$limit  = $limit ?? $config['limit'];
 		$window = $window ?? $config['window'];
 
 		$identifier_hash = $this->hashIdentifier( $identifier );
-		$now = time();
-		$window_start = $now - $window;
+		$now             = time();
+		$window_start    = $now - $window;
 
 		// Clean old entries.
 		$this->cleanOldEntries( $identifier_hash, $limit_type, $window_start );
@@ -131,7 +161,7 @@ class RateLimiter {
 			)
 		);
 
-		$allowed = $count < $limit;
+		$allowed   = $count < $limit;
 		$remaining = max( 0, $limit - $count );
 
 		// Calculate reset time (when the oldest entry expires).
@@ -149,11 +179,11 @@ class RateLimiter {
 
 		$reset_at = $this->calculateResetTime( $oldest, $window, $now );
 
-		return array(
+		return [
 			'allowed'   => $allowed,
 			'remaining' => $remaining,
 			'reset_at'  => $reset_at,
-		);
+		];
 	}
 
 	/**
@@ -167,6 +197,7 @@ class RateLimiter {
 	 * @param int|null $limit      Optional custom limit.
 	 * @param int|null $window     Optional custom window in seconds.
 	 * @return array{allowed: bool, remaining: int, reset_at: int}
+	 * @throws \Throwable If database transaction fails.
 	 */
 	public function checkAndHit(
 		string $identifier,
@@ -174,15 +205,18 @@ class RateLimiter {
 		?int $limit = null,
 		?int $window = null
 	): array {
-		$config = $this->limits[ $limit_type ] ?? array( 'limit' => 100, 'window' => 60 );
+		$config = $this->limits[ $limit_type ] ?? [
+			'limit'  => 100,
+			'window' => 60,
+		];
 
-		$limit = $limit ?? $config['limit'];
+		$limit  = $limit ?? $config['limit'];
 		$window = $window ?? $config['window'];
 
 		$identifier_hash = $this->hashIdentifier( $identifier );
-		$now = time();
-		$window_start = gmdate( 'Y-m-d H:i:s', $now - $window );
-		$now_mysql = gmdate( 'Y-m-d H:i:s', $now );
+		$now             = time();
+		$window_start    = gmdate( 'Y-m-d H:i:s', $now - $window );
+		$now_mysql       = gmdate( 'Y-m-d H:i:s', $now );
 
 		// Start transaction for atomicity.
 		$this->wpdb->query( 'START TRANSACTION' );
@@ -221,14 +255,14 @@ class RateLimiter {
 				// Insert the new hit while still holding the lock.
 				$this->wpdb->insert(
 					$this->table,
-					array(
+					[
 						'identifier_hash' => $identifier_hash,
 						'limit_type'      => $limit_type,
 						'created_at'      => $now_mysql,
-					),
-					array( '%s', '%s', '%s' )
+					],
+					[ '%s', '%s', '%s' ]
 				);
-				$count++; // Increment for the just-inserted record.
+				++$count; // Increment for the just-inserted record.
 			}
 
 			$this->wpdb->query( 'COMMIT' );
@@ -238,13 +272,13 @@ class RateLimiter {
 		}
 
 		$remaining = max( 0, $limit - $count );
-		$reset_at = $now + $window;
+		$reset_at  = $now + $window;
 
-		return array(
+		return [
 			'allowed'   => $allowed,
 			'remaining' => $remaining,
 			'reset_at'  => $reset_at,
-		);
+		];
 	}
 
 	/**
@@ -269,12 +303,12 @@ class RateLimiter {
 
 		$result = $this->wpdb->insert(
 			$this->table,
-			array(
+			[
 				'identifier_hash' => $identifier_hash,
 				'limit_type'      => $limit_type,
 				'created_at'      => current_time( 'mysql', true ),
-			),
-			array( '%s', '%s', '%s' )
+			],
+			[ '%s', '%s', '%s' ]
 		);
 
 		return false !== $result;
@@ -295,21 +329,21 @@ class RateLimiter {
 		$check = $this->checkAndHit( $identifier, $limit_type );
 
 		if ( ! $check['allowed'] ) {
-			return array(
+			return [
 				'success'    => false,
 				'result'     => null,
 				'rate_limit' => $check,
-			);
+			];
 		}
 
 		// Perform the action.
 		$result = $callback();
 
-		return array(
+		return [
 			'success'    => true,
 			'result'     => $result,
 			'rate_limit' => $check,
-		);
+		];
 	}
 
 	/**
@@ -325,17 +359,17 @@ class RateLimiter {
 		if ( $limit_type ) {
 			$this->wpdb->delete(
 				$this->table,
-				array(
+				[
 					'identifier_hash' => $identifier_hash,
 					'limit_type'      => $limit_type,
-				),
-				array( '%s', '%s' )
+				],
+				[ '%s', '%s' ]
 			);
 		} else {
 			$this->wpdb->delete(
 				$this->table,
-				array( 'identifier_hash' => $identifier_hash ),
-				array( '%s' )
+				[ 'identifier_hash' => $identifier_hash ],
+				[ '%s' ]
 			);
 		}
 
@@ -355,22 +389,26 @@ class RateLimiter {
 
 		$result = $this->wpdb->replace(
 			$this->table,
-			array(
+			[
 				'identifier_hash' => $identifier_hash,
 				'limit_type'      => 'blocked',
 				'created_at'      => current_time( 'mysql', true ),
 				'expires_at'      => gmdate( 'Y-m-d H:i:s', time() + $duration ),
-				'metadata'        => wp_json_encode( array( 'reason' => $reason ) ),
-			),
-			array( '%s', '%s', '%s', '%s', '%s' )
+				'metadata'        => wp_json_encode( [ 'reason' => $reason ] ),
+			],
+			[ '%s', '%s', '%s', '%s', '%s' ]
 		);
 
 		if ( $result ) {
-			do_action( 'wch_security_log', 'rate_limit_block', array(
-				'identifier' => $identifier_hash,
-				'duration'   => $duration,
-				'reason'     => $reason,
-			) );
+			do_action(
+				'wch_security_log',
+				'rate_limit_block',
+				[
+					'identifier' => $identifier_hash,
+					'duration'   => $duration,
+					'reason'     => $reason,
+				]
+			);
 		}
 
 		return false !== $result;
@@ -411,11 +449,11 @@ class RateLimiter {
 
 		$this->wpdb->delete(
 			$this->table,
-			array(
+			[
 				'identifier_hash' => $identifier_hash,
 				'limit_type'      => 'blocked',
-			),
-			array( '%s', '%s' )
+			],
+			[ '%s', '%s' ]
 		);
 
 		return $this->wpdb->rows_affected > 0;
@@ -430,10 +468,10 @@ class RateLimiter {
 	 * @return void
 	 */
 	public function configure( string $limit_type, int $limit, int $window ): void {
-		$this->limits[ $limit_type ] = array(
+		$this->limits[ $limit_type ] = [
 			'limit'  => $limit,
 			'window' => $window,
-		);
+		];
 	}
 
 	/**
@@ -443,10 +481,10 @@ class RateLimiter {
 	 * @return array<string, string> HTTP headers.
 	 */
 	public function getHeaders( array $check ): array {
-		return array(
+		return [
 			'X-RateLimit-Remaining' => (string) $check['remaining'],
 			'X-RateLimit-Reset'     => (string) $check['reset_at'],
-		);
+		];
 	}
 
 	/**
@@ -510,9 +548,13 @@ class RateLimiter {
 
 		if ( false === $oldest_timestamp || $oldest_timestamp < 0 ) {
 			// Invalid date string - log and fallback to now + window.
-			do_action( 'wch_log_warning', 'RateLimiter: Invalid date string in database', array(
-				'date_string' => $oldest_date,
-			) );
+			do_action(
+				'wch_log_warning',
+				'RateLimiter: Invalid date string in database',
+				[
+					'date_string' => $oldest_date,
+				]
+			);
 			return min( $now + $window, $max_timestamp );
 		}
 
@@ -532,7 +574,7 @@ class RateLimiter {
 	public function cleanup(): int {
 		// Delete all entries older than the longest window.
 		$max_window = max( array_column( $this->limits, 'window' ) );
-		$threshold = gmdate( 'Y-m-d H:i:s', time() - $max_window );
+		$threshold  = gmdate( 'Y-m-d H:i:s', time() - $max_window );
 
 		$this->wpdb->query(
 			$this->wpdb->prepare(
@@ -615,10 +657,10 @@ class RateLimiter {
 			);
 		}
 
-		return array(
-			'total_hits'          => (int) ( $stats['total_hits'] ?? 0 ),
-			'unique_identifiers'  => (int) ( $stats['unique_identifiers'] ?? 0 ),
-			'top_identifiers'     => $top_identifiers ?: array(),
-		);
+		return [
+			'total_hits'         => (int) ( $stats['total_hits'] ?? 0 ),
+			'unique_identifiers' => (int) ( $stats['unique_identifiers'] ?? 0 ),
+			'top_identifiers'    => $top_identifiers ?: [],
+		];
 	}
 }

@@ -8,6 +8,8 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Queue;
 
 // Exit if accessed directly.
@@ -41,41 +43,33 @@ class PriorityQueue {
 	 *
 	 * @var array<int, string>
 	 */
-	private const PRIORITY_GROUPS = array(
+	private const PRIORITY_GROUPS = [
 		self::PRIORITY_CRITICAL    => 'critical',
 		self::PRIORITY_URGENT      => 'urgent',
 		self::PRIORITY_NORMAL      => 'normal',
 		self::PRIORITY_BULK        => 'bulk',
 		self::PRIORITY_MAINTENANCE => 'maintenance',
-	);
+	];
 
 	/**
 	 * Rate limits per group (jobs per minute).
 	 *
 	 * @var array<string, int>
 	 */
-	private array $rate_limits = array(
+	private array $rate_limits = [
 		'critical'    => 1000, // No practical limit for critical.
 		'urgent'      => 100,
 		'normal'      => 50,
 		'bulk'        => 20,
 		'maintenance' => 10,
-	);
-
-	/**
-	 * Dead letter queue instance.
-	 *
-	 * @var DeadLetterQueue|null
-	 */
-	private ?DeadLetterQueue $dead_letter_queue = null;
+	];
 
 	/**
 	 * Constructor.
 	 *
 	 * @param DeadLetterQueue|null $dead_letter_queue Dead letter queue for failed jobs.
 	 */
-	public function __construct( ?DeadLetterQueue $dead_letter_queue = null ) {
-		$this->dead_letter_queue = $dead_letter_queue;
+	public function __construct( private ?DeadLetterQueue $dead_letter_queue = null ) {
 	}
 
 	/**
@@ -90,7 +84,7 @@ class PriorityQueue {
 	 */
 	public function schedule(
 		string $hook,
-		array $args = array(),
+		array $args = [],
 		int $priority = self::PRIORITY_NORMAL,
 		int $delay = 0
 	): int|false {
@@ -98,7 +92,7 @@ class PriorityQueue {
 			return false;
 		}
 
-		$group = $this->getGroup( $priority );
+		$group     = $this->getGroup( $priority );
 		$timestamp = time() + $delay;
 
 		// Wrap user args and metadata separately to avoid polluting user data.
@@ -107,7 +101,7 @@ class PriorityQueue {
 		return as_schedule_single_action(
 			$timestamp,
 			$hook,
-			array( $job_payload ),
+			[ $job_payload ],
 			$group
 		);
 	}
@@ -124,44 +118,35 @@ class PriorityQueue {
 	 * @return array Wrapped payload with separate metadata.
 	 */
 	private function wrapPayload( array $args, int $priority, int $attempt = 1 ): array {
-		return array(
+		return [
 			'_wch_version' => 2, // Payload version for migration support.
-			'_wch_meta'    => array(
+			'_wch_meta'    => [
 				'priority'     => $priority,
 				'scheduled_at' => time(),
 				'attempt'      => $attempt,
-			),
+			],
 			'args'         => $args,
-		);
+		];
 	}
 
 	/**
 	 * Unwrap job payload to extract user args.
 	 *
-	 * Handles both v2 wrapped format and legacy v1 inline format.
+	 * Requires v2 wrapped payload format.
 	 *
 	 * @param array $payload The job payload from Action Scheduler.
 	 *
 	 * @return array{args: array, meta: array} User args and metadata.
 	 */
 	public static function unwrapPayload( array $payload ): array {
-		// v2 format: separate args and metadata.
-		if ( isset( $payload['_wch_version'] ) && 2 === $payload['_wch_version'] ) {
-			return array(
-				'args' => $payload['args'] ?? array(),
-				'meta' => $payload['_wch_meta'] ?? array(),
-			);
+		if ( ! isset( $payload['_wch_version'] ) || 2 !== (int) $payload['_wch_version'] ) {
+			throw new \InvalidArgumentException( 'Unsupported queue payload format.' );
 		}
 
-		// v1 format (legacy): metadata was inline with args.
-		$meta = $payload['_wch_job_meta'] ?? array();
-		$args = $payload;
-		unset( $args['_wch_job_meta'] );
-
-		return array(
-			'args' => $args,
-			'meta' => $meta,
-		);
+		return [
+			'args' => $payload['args'] ?? [],
+			'meta' => $payload['_wch_meta'] ?? [],
+		];
 	}
 
 	/**
@@ -176,7 +161,7 @@ class PriorityQueue {
 	 */
 	public function scheduleRecurring(
 		string $hook,
-		array $args = array(),
+		array $args = [],
 		int $interval = 3600,
 		int $priority = self::PRIORITY_NORMAL
 	): int|false {
@@ -187,22 +172,22 @@ class PriorityQueue {
 		$group = $this->getGroup( $priority );
 
 		// Use wrapped payload format.
-		$job_payload = array(
+		$job_payload = [
 			'_wch_version' => 2,
-			'_wch_meta'    => array(
+			'_wch_meta'    => [
 				'priority'     => $priority,
 				'scheduled_at' => time(),
 				'recurring'    => true,
 				'interval'     => $interval,
-			),
+			],
 			'args'         => $args,
-		);
+		];
 
 		return as_schedule_recurring_action(
 			time(),
 			$interval,
 			$hook,
-			array( $job_payload ),
+			[ $job_payload ],
 			$group
 		);
 	}
@@ -222,7 +207,7 @@ class PriorityQueue {
 	 */
 	public function scheduleUnique(
 		string $hook,
-		array $args = array(),
+		array $args = [],
 		int $priority = self::PRIORITY_NORMAL,
 		int $delay = 0
 	): int|false {
@@ -234,7 +219,7 @@ class PriorityQueue {
 
 		// Create a unique lock key based on hook and args.
 		$args_json = wp_json_encode( $args );
-		$lock_key = 'wch_unique_job_' . md5( $hook . $args_json );
+		$lock_key  = 'wch_unique_job_' . md5( $hook . $args_json );
 
 		// Acquire advisory lock to prevent concurrent scheduling.
 		$lock_acquired = $wpdb->get_var(
@@ -319,7 +304,7 @@ class PriorityQueue {
 	 *
 	 * @return bool True if any job with this hook is pending.
 	 */
-	public function isPending( string $hook, array $args = array() ): bool {
+	public function isPending( string $hook, array $args = [] ): bool {
 		if ( ! function_exists( 'as_next_scheduled_action' ) ) {
 			return false;
 		}
@@ -330,7 +315,7 @@ class PriorityQueue {
 		// isPending() checks if ANY job with this hook is pending, not a
 		// specific one with matching args.
 		foreach ( self::PRIORITY_GROUPS as $group_suffix ) {
-			$group = self::GROUP_PREFIX . $group_suffix;
+			$group  = self::GROUP_PREFIX . $group_suffix;
 			$result = as_next_scheduled_action( $hook, null, $group );
 			if ( false !== $result ) {
 				return true;
@@ -352,7 +337,7 @@ class PriorityQueue {
 	 *
 	 * @return int Number of cancelled actions.
 	 */
-	public function cancel( string $hook, array $args = array() ): int {
+	public function cancel( string $hook, array $args = [] ): int {
 		if ( ! function_exists( 'as_unschedule_all_actions' ) ) {
 			return 0;
 		}
@@ -362,7 +347,7 @@ class PriorityQueue {
 		// Note: We pass null for args because the actual args are wrapped in
 		// a job payload structure. This cancels ALL jobs with this hook.
 		foreach ( self::PRIORITY_GROUPS as $group_suffix ) {
-			$group = self::GROUP_PREFIX . $group_suffix;
+			$group  = self::GROUP_PREFIX . $group_suffix;
 			$result = as_unschedule_all_actions( $hook, null, $group );
 			// as_unschedule_all_actions returns int|null, null means unlimited were unscheduled.
 			if ( is_int( $result ) ) {
@@ -386,7 +371,7 @@ class PriorityQueue {
 		}
 
 		$group = $this->getGroup( $priority );
-		as_unschedule_all_actions( '', array(), $group );
+		as_unschedule_all_actions( '', [], $group );
 	}
 
 	/**
@@ -429,13 +414,12 @@ class PriorityQueue {
 	/**
 	 * Retry a failed job.
 	 *
-	 * Handles both v1 (legacy) and v2 (wrapped) payload formats.
 	 * Uses atomic locking to prevent race conditions where multiple
 	 * concurrent retry calls could result in duplicate DLQ entries
 	 * or duplicate retry jobs.
 	 *
 	 * @param string $hook       The action hook name.
-	 * @param array  $payload    Original payload (may be v1 or v2 format).
+	 * @param array  $payload    Original payload (wrapped format).
 	 * @param int    $attempt    Current attempt number.
 	 * @param int    $max_retries Maximum retry attempts.
 	 *
@@ -452,7 +436,7 @@ class PriorityQueue {
 		// Unwrap to get user args and metadata.
 		$unwrapped = self::unwrapPayload( $payload );
 		$user_args = $unwrapped['args'];
-		$meta = $unwrapped['meta'];
+		$meta      = $unwrapped['meta'];
 
 		// SECURITY: Atomic lock to prevent race conditions.
 		// Create unique key based on hook, args, and attempt to prevent duplicate retries.
@@ -466,18 +450,22 @@ class PriorityQueue {
 		// GET_LOCK returns 1 on success, 0 if held by another session, NULL on error.
 		if ( '1' !== (string) $lock_acquired ) {
 			// Another process is handling this retry - let it proceed.
-			do_action( 'wch_log_info', 'Retry skipped - another process is handling', array(
-				'hook'    => $hook,
-				'attempt' => $attempt,
-			) );
+			do_action(
+				'wch_log_info',
+				'Retry skipped - another process is handling',
+				[
+					'hook'    => $hook,
+					'attempt' => $attempt,
+				]
+			);
 			return false;
 		}
 
 		try {
 			// Check idempotency - has this retry already been processed?
 			$idempotency_table = $wpdb->prefix . 'wch_webhook_idempotency';
-			$idempotency_hash = hash( 'sha256', $retry_key );
-			$now = current_time( 'mysql' );
+			$idempotency_hash  = hash( 'sha256', $retry_key );
+			$now               = current_time( 'mysql' );
 
 			// Atomic claim using INSERT IGNORE.
 			$claim_result = $wpdb->query(
@@ -493,35 +481,44 @@ class PriorityQueue {
 
 			// If 0 rows affected, this retry was already processed.
 			if ( 0 === $claim_result ) {
-				do_action( 'wch_log_info', 'Retry already processed by another request', array(
-					'hook'    => $hook,
-					'attempt' => $attempt,
-				) );
+				do_action(
+					'wch_log_info',
+					'Retry already processed by another request',
+					[
+						'hook'    => $hook,
+						'attempt' => $attempt,
+					]
+				);
 				return false;
 			}
 
 			if ( $attempt >= $max_retries ) {
-				// Move to dead letter queue with original user args.
+				// Move to dead letter queue with original wrapped payload.
 				if ( $this->dead_letter_queue ) {
-					// Reconstruct for DLQ (include meta for debugging).
-					$dlq_args = $user_args;
-					$dlq_args['_wch_job_meta'] = $meta;
-					$dlq_result = $this->dead_letter_queue->push( $hook, $dlq_args, DeadLetterQueue::REASON_MAX_RETRIES );
+					$dlq_result = $this->dead_letter_queue->push( $hook, $payload, DeadLetterQueue::REASON_MAX_RETRIES );
 
 					// If DLQ push fails, log critical error - job data may be lost.
 					if ( false === $dlq_result ) {
-						do_action( 'wch_log_critical', 'Failed to push failed job to DLQ - job data may be lost', array(
-							'hook'    => $hook,
-							'attempt' => $attempt,
-							'meta'    => $meta,
-						) );
+						do_action(
+							'wch_log_critical',
+							'Failed to push failed job to DLQ - job data may be lost',
+							[
+								'hook'    => $hook,
+								'attempt' => $attempt,
+								'meta'    => $meta,
+							]
+						);
 					}
 				} else {
 					// No DLQ configured - log that job is being dropped.
-					do_action( 'wch_log_warning', 'Job exceeded max retries with no DLQ configured', array(
-						'hook'    => $hook,
-						'attempt' => $attempt,
-					) );
+					do_action(
+						'wch_log_warning',
+						'Job exceeded max retries with no DLQ configured',
+						[
+							'hook'    => $hook,
+							'attempt' => $attempt,
+						]
+					);
 				}
 				return false;
 			}
@@ -533,16 +530,16 @@ class PriorityQueue {
 			$priority = $meta['priority'] ?? self::PRIORITY_NORMAL;
 
 			// Schedule with incremented attempt using wrapped format.
-			$job_payload = array(
+			$job_payload = [
 				'_wch_version' => 2,
-				'_wch_meta'    => array(
+				'_wch_meta'    => [
 					'priority'     => $priority,
 					'scheduled_at' => $meta['scheduled_at'] ?? time(),
 					'attempt'      => $attempt + 1,
 					'last_retry'   => time(),
-				),
+				],
 				'args'         => $user_args,
-			);
+			];
 
 			if ( ! function_exists( 'as_schedule_single_action' ) ) {
 				return false;
@@ -552,7 +549,7 @@ class PriorityQueue {
 			as_schedule_single_action(
 				time() + $delay,
 				$hook,
-				array( $job_payload ),
+				[ $job_payload ],
 				$group
 			);
 
@@ -572,7 +569,7 @@ class PriorityQueue {
 	 */
 	private function getGroup( int $priority ): string {
 		$priority = max( 1, min( 5, $priority ) );
-		$suffix = self::PRIORITY_GROUPS[ $priority ] ?? 'normal';
+		$suffix   = self::PRIORITY_GROUPS[ $priority ] ?? 'normal';
 		return self::GROUP_PREFIX . $suffix;
 	}
 
@@ -595,8 +592,8 @@ class PriorityQueue {
 		$table = $wpdb->prefix . 'wch_rate_limits';
 
 		// Current minute window identifier.
-		$window = gmdate( 'Y-m-d H:i' );
-		$identifier = 'queue_' . $group;
+		$window          = gmdate( 'Y-m-d H:i' );
+		$identifier      = 'queue_' . $group;
 		$identifier_hash = hash( 'sha256', $identifier );
 
 		// Use a fully atomic approach: conditionally increment only if under limit.
@@ -649,7 +646,7 @@ class PriorityQueue {
 	public static function createRateLimitsTable(): void {
 		global $wpdb;
 
-		$table = $wpdb->prefix . 'wch_rate_limits';
+		$table           = $wpdb->prefix . 'wch_rate_limits';
 		$charset_collate = $wpdb->get_charset_collate();
 
 		$sql = "CREATE TABLE IF NOT EXISTS {$table} (
@@ -697,7 +694,7 @@ class PriorityQueue {
 		global $wpdb;
 
 		$table = $wpdb->prefix . 'actionscheduler_actions';
-		$stats = array();
+		$stats = [];
 
 		foreach ( self::PRIORITY_GROUPS as $priority => $group_suffix ) {
 			$group = self::GROUP_PREFIX . $group_suffix;
@@ -717,13 +714,13 @@ class PriorityQueue {
 				ARRAY_A
 			);
 
-			$stats[ $group_suffix ] = array(
+			$stats[ $group_suffix ] = [
 				'priority'  => $priority,
 				'pending'   => (int) ( $row['pending'] ?? 0 ),
 				'running'   => (int) ( $row['running'] ?? 0 ),
 				'completed' => (int) ( $row['completed'] ?? 0 ),
 				'failed'    => (int) ( $row['failed'] ?? 0 ),
-			);
+			];
 		}
 
 		return $stats;

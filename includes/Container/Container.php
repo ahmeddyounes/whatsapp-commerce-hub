@@ -30,21 +30,21 @@ class Container implements ContainerInterface {
 	 *
 	 * @var array<string, mixed>
 	 */
-	protected array $instances = array();
+	protected array $instances = [];
 
 	/**
 	 * The container's bindings.
 	 *
 	 * @var array<string, array{concrete: callable|string|null, shared: bool}>
 	 */
-	protected array $bindings = array();
+	protected array $bindings = [];
 
 	/**
 	 * The registered service providers.
 	 *
 	 * @var ServiceProviderInterface[]
 	 */
-	protected array $providers = array();
+	protected array $providers = [];
 
 	/**
 	 * Whether providers have been booted.
@@ -58,7 +58,7 @@ class Container implements ContainerInterface {
 	 *
 	 * @var array<string>
 	 */
-	protected array $resolving = array();
+	protected array $resolving = [];
 
 	/**
 	 * The global container instance.
@@ -129,10 +129,10 @@ class Container implements ContainerInterface {
 		// Remove any existing instance if rebinding.
 		unset( $this->instances[ $abstract ] );
 
-		$this->bindings[ $abstract ] = array(
+		$this->bindings[ $abstract ] = [
 			'concrete' => $concrete ?? $abstract,
 			'shared'   => $shared,
-		);
+		];
 	}
 
 	/**
@@ -187,7 +187,7 @@ class Container implements ContainerInterface {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function make( string $concrete, array $parameters = array() ): mixed {
+	public function make( string $concrete, array $parameters = [] ): mixed {
 		// Check for circular dependency.
 		if ( in_array( $concrete, $this->resolving, true ) ) {
 			$chain   = $this->resolving;
@@ -274,9 +274,9 @@ class Container implements ContainerInterface {
 	protected function resolveDependencies(
 		string $class,
 		array $parameters,
-		array $primitives = array()
+		array $primitives = []
 	): array {
-		$dependencies = array();
+		$dependencies = [];
 
 		foreach ( $parameters as $parameter ) {
 			$name = $parameter->getName();
@@ -356,11 +356,11 @@ class Container implements ContainerInterface {
 	 * @param array         $parameters Override parameters.
 	 * @return mixed
 	 */
-	public function call( object|string $target, ?string $method = null, array $parameters = array() ): mixed {
+	public function call( object|string $target, ?string $method = null, array $parameters = [] ): mixed {
 		// Parse class::method syntax.
 		if ( is_string( $target ) && str_contains( $target, '::' ) ) {
-			list( $class, $method ) = explode( '::', $target, 2 );
-			$target                 = $this->get( $class );
+			[ $class, $method ] = explode( '::', $target, 2 );
+			$target             = $this->get( $class );
 		}
 
 		if ( null === $method ) {
@@ -404,11 +404,11 @@ class Container implements ContainerInterface {
 	 * @return void
 	 */
 	public function flush(): void {
-		$this->bindings  = array();
-		$this->instances = array();
-		$this->providers = array();
+		$this->bindings  = [];
+		$this->instances = [];
+		$this->providers = [];
 		$this->booted    = false;
-		$this->resolving = array();
+		$this->resolving = [];
 	}
 
 	/**
@@ -419,10 +419,10 @@ class Container implements ContainerInterface {
 	 * @return void
 	 */
 	public function alias( string $abstract, string $alias ): void {
-		$this->bindings[ $alias ] = array(
+		$this->bindings[ $alias ] = [
 			'concrete' => $abstract,
 			'shared'   => false, // Alias doesn't affect sharing, uses the target's setting.
-		);
+		];
 	}
 
 	/**
@@ -439,7 +439,7 @@ class Container implements ContainerInterface {
 
 		$original = $this->bindings[ $abstract ];
 
-		$this->bindings[ $abstract ] = array(
+		$this->bindings[ $abstract ] = [
 			'concrete' => function ( Container $container ) use ( $abstract, $original, $callback ) {
 				$concrete = $original['concrete'];
 
@@ -454,7 +454,7 @@ class Container implements ContainerInterface {
 				return $callback( $object, $container );
 			},
 			'shared'   => $original['shared'],
-		);
+		];
 
 		// Clear cached instance if it exists.
 		unset( $this->instances[ $abstract ] );
@@ -468,9 +468,12 @@ class Container implements ContainerInterface {
 	 * @return void
 	 */
 	public function resolving( string $abstract, callable $callback ): void {
-		$this->extend( $abstract, function ( $object, Container $container ) use ( $callback ) {
-			$callback( $object, $container );
-			return $object;
-		} );
+		$this->extend(
+			$abstract,
+			function ( $object, Container $container ) use ( $callback ) {
+				$callback( $object, $container );
+				return $object;
+			}
+		);
 	}
 }

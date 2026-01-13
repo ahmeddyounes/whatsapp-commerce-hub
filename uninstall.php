@@ -13,8 +13,8 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 }
 
 // Load the database manager class.
-require_once plugin_dir_path( __FILE__ ) . 'includes/class-wch-database-manager.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/Infrastructure/Database/DatabaseManager.php';
 
 // Create instance and run uninstall.
-$db_manager = new WCH_Database_Manager();
+$db_manager = new \WhatsAppCommerceHub\Infrastructure\Database\DatabaseManager();
 $db_manager->uninstall();

@@ -8,6 +8,8 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Providers;
 
 use WhatsAppCommerceHub\Container\ContainerInterface;
@@ -47,113 +49,135 @@ class MonitoringServiceProvider implements ServiceProviderInterface {
 	 */
 	public function boot( ContainerInterface $container ): void {
 		// Register health check REST endpoints.
-		add_action( 'rest_api_init', function () use ( $container ) {
-			// Full health check (authenticated).
-			register_rest_route( 'wch/v1', '/health', array(
-				'methods'             => 'GET',
-				'callback'            => function () use ( $container ) {
-					$health = $container->get( HealthCheck::class );
-					return rest_ensure_response( $health->check() );
-				},
-				'permission_callback' => function () {
-					return current_user_can( 'manage_woocommerce' );
-				},
-			) );
+		add_action(
+			'rest_api_init',
+			function () use ( $container ) {
+				// Full health check (authenticated).
+				register_rest_route(
+					'wch/v1',
+					'/health',
+					[
+						'methods'             => 'GET',
+						'callback'            => function () use ( $container ) {
+							$health = $container->get( HealthCheck::class );
+							return rest_ensure_response( $health->check() );
+						},
+						'permission_callback' => function () {
+							return current_user_can( 'manage_woocommerce' );
+						},
+					]
+				);
 
-			// Liveness probe (public, for load balancers).
-			register_rest_route( 'wch/v1', '/health/live', array(
-				'methods'             => 'GET',
-				'callback'            => function () use ( $container ) {
-					$health = $container->get( HealthCheck::class );
-					return rest_ensure_response( $health->liveness() );
-				},
-				'permission_callback' => '__return_true',
-			) );
+				// Liveness probe (public, for load balancers).
+				register_rest_route(
+					'wch/v1',
+					'/health/live',
+					[
+						'methods'             => 'GET',
+						'callback'            => function () use ( $container ) {
+							$health = $container->get( HealthCheck::class );
+							return rest_ensure_response( $health->liveness() );
+						},
+						'permission_callback' => '__return_true',
+					]
+				);
 
-			// Readiness probe (public, for load balancers).
-			register_rest_route( 'wch/v1', '/health/ready', array(
-				'methods'             => 'GET',
-				'callback'            => function () use ( $container ) {
-					$health = $container->get( HealthCheck::class );
-					$result = $health->readiness();
+				// Readiness probe (public, for load balancers).
+				register_rest_route(
+					'wch/v1',
+					'/health/ready',
+					[
+						'methods'             => 'GET',
+						'callback'            => function () use ( $container ) {
+							$health = $container->get( HealthCheck::class );
+							$result = $health->readiness();
 
-					if ( ! $result['ready'] ) {
-						return new \WP_REST_Response( $result, 503 );
-					}
+							if ( ! $result['ready'] ) {
+								return new \WP_REST_Response( $result, 503 );
+							}
 
-					return rest_ensure_response( $result );
-				},
-				'permission_callback' => '__return_true',
-			) );
+							return rest_ensure_response( $result );
+						},
+						'permission_callback' => '__return_true',
+					]
+				);
 
-			// Individual component check.
-			register_rest_route( 'wch/v1', '/health/(?P<component>[a-z_]+)', array(
-				'methods'             => 'GET',
-				'callback'            => function ( $request ) use ( $container ) {
-					$health = $container->get( HealthCheck::class );
-					$result = $health->checkOne( $request['component'] );
+				// Individual component check.
+				register_rest_route(
+					'wch/v1',
+					'/health/(?P<component>[a-z_]+)',
+					[
+						'methods'             => 'GET',
+						'callback'            => function ( $request ) use ( $container ) {
+							$health = $container->get( HealthCheck::class );
+							$result = $health->checkOne( $request['component'] );
 
-					if ( null === $result ) {
-						return new \WP_REST_Response(
-							array( 'error' => 'Component not found' ),
-							404
-						);
-					}
+							if ( null === $result ) {
+								return new \WP_REST_Response(
+									[ 'error' => 'Component not found' ],
+									404
+								);
+							}
 
-					return rest_ensure_response( $result );
-				},
-				'permission_callback' => function () {
-					return current_user_can( 'manage_woocommerce' );
-				},
-				'args'                => array(
-					'component' => array(
-						'required'          => true,
-						'sanitize_callback' => 'sanitize_key',
-					),
-				),
-			) );
-		} );
+							return rest_ensure_response( $result );
+						},
+						'permission_callback' => function () {
+							return current_user_can( 'manage_woocommerce' );
+						},
+						'args'                => [
+							'component' => [
+								'required'          => true,
+								'sanitize_callback' => 'sanitize_key',
+							],
+						],
+					]
+				);
+			}
+		);
 
 		// Add admin dashboard widget for health status.
-		add_action( 'wp_dashboard_setup', function () use ( $container ) {
-			if ( ! current_user_can( 'manage_woocommerce' ) ) {
-				return;
-			}
-
-			wp_add_dashboard_widget(
-				'wch_health_widget',
-				__( 'WhatsApp Commerce Hub - System Health', 'whatsapp-commerce-hub' ),
-				function () use ( $container ) {
-					$health = $container->get( HealthCheck::class );
-					$status = $health->check();
-
-					$status_class = match ( $status['status'] ) {
-						'healthy'   => 'success',
-						'warning'   => 'warning',
-						'degraded'  => 'warning',
-						default     => 'error',
-					};
-
-					echo '<div class="wch-health-widget">';
-					echo '<p><strong>' . esc_html__( 'Overall Status:', 'whatsapp-commerce-hub' ) . '</strong> ';
-					echo '<span class="wch-status-' . esc_attr( $status_class ) . '">';
-					echo esc_html( ucfirst( $status['status'] ) );
-					echo '</span></p>';
-
-					echo '<ul>';
-					foreach ( $status['checks'] as $name => $check ) {
-						$icon = 'healthy' === ( $check['status'] ?? '' ) ? '✓' : '✗';
-						echo '<li>' . esc_html( $icon . ' ' . ucfirst( $name ) . ': ' . ( $check['status'] ?? 'unknown' ) ) . '</li>';
-					}
-					echo '</ul>';
-
-					echo '<p><a href="' . esc_url( rest_url( 'wch/v1/health' ) ) . '" target="_blank">';
-					echo esc_html__( 'View Full Health Report', 'whatsapp-commerce-hub' );
-					echo '</a></p>';
-					echo '</div>';
+		add_action(
+			'wp_dashboard_setup',
+			function () use ( $container ) {
+				if ( ! current_user_can( 'manage_woocommerce' ) ) {
+					return;
 				}
-			);
-		} );
+
+				wp_add_dashboard_widget(
+					'wch_health_widget',
+					__( 'WhatsApp Commerce Hub - System Health', 'whatsapp-commerce-hub' ),
+					function () use ( $container ) {
+						$health = $container->get( HealthCheck::class );
+						$status = $health->check();
+
+						$status_class = match ( $status['status'] ) {
+							'healthy'   => 'success',
+							'warning'   => 'warning',
+							'degraded'  => 'warning',
+							default     => 'error',
+						};
+
+						echo '<div class="wch-health-widget">';
+						echo '<p><strong>' . esc_html__( 'Overall Status:', 'whatsapp-commerce-hub' ) . '</strong> ';
+						echo '<span class="wch-status-' . esc_attr( $status_class ) . '">';
+						echo esc_html( ucfirst( $status['status'] ) );
+						echo '</span></p>';
+
+						echo '<ul>';
+						foreach ( $status['checks'] as $name => $check ) {
+							$icon = 'healthy' === ( $check['status'] ?? '' ) ? '✓' : '✗';
+							echo '<li>' . esc_html( $icon . ' ' . ucfirst( $name ) . ': ' . ( $check['status'] ?? 'unknown' ) ) . '</li>';
+						}
+						echo '</ul>';
+
+						echo '<p><a href="' . esc_url( rest_url( 'wch/v1/health' ) ) . '" target="_blank">';
+						echo esc_html__( 'View Full Health Report', 'whatsapp-commerce-hub' );
+						echo '</a></p>';
+						echo '</div>';
+					}
+				);
+			}
+		);
 	}
 
 	/**
@@ -162,9 +186,9 @@ class MonitoringServiceProvider implements ServiceProviderInterface {
 	 * @return array<string>
 	 */
 	public function provides(): array {
-		return array(
+		return [
 			HealthCheck::class,
 			'wch.health',
-		);
+		];
 	}
 }

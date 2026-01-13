@@ -23,49 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Contains the result of a flow action execution, including success status,
  * response messages, optional state override, and updated context data.
  */
-class ActionResult {
-
-	/**
-	 * Whether the action executed successfully.
-	 *
-	 * @var bool
-	 */
-	protected bool $success;
-
-	/**
-	 * Array of message builders to send to the customer.
-	 *
-	 * @var array
-	 */
-	protected array $messages;
-
-	/**
-	 * Optional state override - if set, FSM will transition to this state.
-	 *
-	 * @var string|null
-	 */
-	protected ?string $nextState;
-
-	/**
-	 * Updated context data to merge into conversation context.
-	 *
-	 * @var array<string, mixed>
-	 */
-	protected array $contextUpdates;
-
-	/**
-	 * Error message if action failed.
-	 *
-	 * @var string|null
-	 */
-	protected ?string $errorMessage;
-
-	/**
-	 * Error code if action failed.
-	 *
-	 * @var string|null
-	 */
-	protected ?string $errorCode;
+final class ActionResult {
 
 	/**
 	 * Constructor.
@@ -78,19 +36,13 @@ class ActionResult {
 	 * @param string|null $errorCode      Error code.
 	 */
 	public function __construct(
-		bool $success = true,
-		array $messages = array(),
-		?string $nextState = null,
-		array $contextUpdates = array(),
-		?string $errorMessage = null,
-		?string $errorCode = null
+		protected readonly bool $success = true,
+		protected readonly array $messages = [],
+		protected readonly ?string $nextState = null,
+		protected readonly array $contextUpdates = [],
+		protected readonly ?string $errorMessage = null,
+		protected readonly ?string $errorCode = null
 	) {
-		$this->success        = $success;
-		$this->messages       = $messages;
-		$this->nextState      = $nextState;
-		$this->contextUpdates = $contextUpdates;
-		$this->errorMessage   = $errorMessage;
-		$this->errorCode      = $errorCode;
 	}
 
 	/**
@@ -102,11 +54,11 @@ class ActionResult {
 	 * @return static
 	 */
 	public static function success(
-		array $messages = array(),
+		array $messages = [],
 		?string $nextState = null,
-		array $contextUpdates = array()
-	): static {
-		return new static( true, $messages, $nextState, $contextUpdates );
+		array $contextUpdates = []
+	): self {
+		return new self( true, $messages, $nextState, $contextUpdates );
 	}
 
 	/**
@@ -121,12 +73,12 @@ class ActionResult {
 	 */
 	public static function failure(
 		string $errorMessage,
-		array $messages = array(),
+		array $messages = [],
 		?string $errorCode = null,
 		?string $nextState = null,
-		array $contextUpdates = array()
-	): static {
-		return new static( false, $messages, $nextState, $contextUpdates, $errorMessage, $errorCode );
+		array $contextUpdates = []
+	): self {
+		return new self( false, $messages, $nextState, $contextUpdates, $errorMessage, $errorCode );
 	}
 
 	/**
@@ -137,8 +89,8 @@ class ActionResult {
 	 * @param array  $context   Context updates.
 	 * @return static
 	 */
-	public static function transitionTo( string $nextState, array $messages = array(), array $context = array() ): static {
-		return new static( true, $messages, $nextState, $context );
+	public static function transitionTo( string $nextState, array $messages = [], array $context = [] ): self {
+		return new self( true, $messages, $nextState, $context );
 	}
 
 	/**
@@ -174,7 +126,7 @@ class ActionResult {
 	 * @return array Array of built message arrays.
 	 */
 	public function getBuiltMessages(): array {
-		$built = array();
+		$built = [];
 
 		foreach ( $this->messages as $message ) {
 			if ( is_object( $message ) && method_exists( $message, 'build' ) ) {
@@ -193,8 +145,8 @@ class ActionResult {
 	 * @param mixed $message Message to add.
 	 * @return static New instance with message added.
 	 */
-	public function withMessage( mixed $message ): static {
-		$new            = clone $this;
+	public function withMessage( mixed $message ): self {
+		$new             = clone $this;
 		$new->messages[] = $message;
 		return $new;
 	}
@@ -205,7 +157,7 @@ class ActionResult {
 	 * @param string $state State to transition to.
 	 * @return static New instance with state set.
 	 */
-	public function withNextState( string $state ): static {
+	public function withNextState( string $state ): self {
 		$new            = clone $this;
 		$new->nextState = $state;
 		return $new;
@@ -217,7 +169,7 @@ class ActionResult {
 	 * @param array $context Context data to merge.
 	 * @return static New instance with context updated.
 	 */
-	public function withContext( array $context ): static {
+	public function withContext( array $context ): self {
 		$new                 = clone $this;
 		$new->contextUpdates = array_merge( $new->contextUpdates, $context );
 		return $new;
@@ -283,13 +235,13 @@ class ActionResult {
 	 * @return array
 	 */
 	public function toArray(): array {
-		return array(
+		return [
 			'success'         => $this->success,
 			'messages'        => $this->getBuiltMessages(),
 			'next_state'      => $this->nextState,
 			'context_updates' => $this->contextUpdates,
 			'error_message'   => $this->errorMessage,
 			'error_code'      => $this->errorCode,
-		);
+		];
 	}
 }

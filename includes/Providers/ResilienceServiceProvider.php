@@ -8,6 +8,8 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Providers;
 
 use WhatsAppCommerceHub\Container\ContainerInterface;
@@ -81,45 +83,65 @@ class ResilienceServiceProvider implements ServiceProviderInterface {
 	 */
 	public function boot( ContainerInterface $container ): void {
 		// Register health check endpoint.
-		add_action( 'rest_api_init', function () use ( $container ) {
-			register_rest_route( 'wch/v1', '/health/circuits', array(
-				'methods'             => 'GET',
-				'callback'            => function () use ( $container ) {
-					$registry = $container->get( CircuitBreakerRegistry::class );
-					return rest_ensure_response( $registry->getHealthSummary() );
-				},
-				'permission_callback' => function () {
-					return current_user_can( 'manage_woocommerce' );
-				},
-			) );
-		} );
+		add_action(
+			'rest_api_init',
+			function () use ( $container ) {
+				register_rest_route(
+					'wch/v1',
+					'/health/circuits',
+					[
+						'methods'             => 'GET',
+						'callback'            => function () use ( $container ) {
+							$registry = $container->get( CircuitBreakerRegistry::class );
+							return rest_ensure_response( $registry->getHealthSummary() );
+						},
+						'permission_callback' => function () {
+							return current_user_can( 'manage_woocommerce' );
+						},
+					]
+				);
+			}
+		);
 
 		// Log circuit state changes.
-		add_action( 'wch_circuit_state_changed', function ( $service, $old_state, $new_state ) {
-			do_action( 'wch_log_warning', sprintf(
-				'Circuit breaker state change: %s transitioned from %s to %s',
-				$service,
-				$old_state,
-				$new_state
-			) );
+		add_action(
+			'wch_circuit_state_changed',
+			function ( $service, $old_state, $new_state ) {
+				do_action(
+					'wch_log_warning',
+					sprintf(
+						'Circuit breaker state change: %s transitioned from %s to %s',
+						$service,
+						$old_state,
+						$new_state
+					)
+				);
 
-			// Trigger alert for critical services opening.
-			if ( CircuitBreaker::STATE_OPEN === $new_state ) {
-				$critical_services = array( 'whatsapp', 'payment' );
+				// Trigger alert for critical services opening.
+				if ( CircuitBreaker::STATE_OPEN === $new_state ) {
+					$critical_services = [ 'whatsapp', 'payment' ];
 
-				if ( in_array( $service, $critical_services, true ) ) {
-					do_action( 'wch_critical_service_unavailable', $service );
+					if ( in_array( $service, $critical_services, true ) ) {
+						do_action( 'wch_critical_service_unavailable', $service );
+					}
 				}
-			}
-		}, 10, 3 );
+			},
+			10,
+			3
+		);
 
 		// Track fallback usage for metrics.
-		add_action( 'wch_fallback_executed', function ( $service, $status, $context ) {
-			// Increment fallback counter (for metrics/monitoring).
-			$key = 'wch_fallback_count_' . $service;
-			$count = get_transient( $key ) ?: 0;
-			set_transient( $key, $count + 1, HOUR_IN_SECONDS );
-		}, 10, 3 );
+		add_action(
+			'wch_fallback_executed',
+			function ( $service, $status, $context ) {
+				// Increment fallback counter (for metrics/monitoring).
+				$key   = 'wch_fallback_count_' . $service;
+				$count = get_transient( $key ) ?: 0;
+				set_transient( $key, $count + 1, HOUR_IN_SECONDS );
+			},
+			10,
+			3
+		);
 	}
 
 	/**
@@ -128,7 +150,7 @@ class ResilienceServiceProvider implements ServiceProviderInterface {
 	 * @return array<string>
 	 */
 	public function provides(): array {
-		return array(
+		return [
 			CircuitBreakerRegistry::class,
 			FallbackStrategy::class,
 			'wch.retry.whatsapp',
@@ -136,6 +158,6 @@ class ResilienceServiceProvider implements ServiceProviderInterface {
 			'wch.retry.payment',
 			'wch.circuits',
 			'wch.fallback',
-		);
+		];
 	}
 }

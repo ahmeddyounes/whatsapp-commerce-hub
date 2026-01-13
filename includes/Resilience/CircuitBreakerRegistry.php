@@ -8,6 +8,8 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Resilience;
 
 // Exit if accessed directly.
@@ -27,35 +29,35 @@ class CircuitBreakerRegistry {
 	 *
 	 * @var array<string, CircuitBreaker>
 	 */
-	private array $breakers = array();
+	private array $breakers = [];
 
 	/**
 	 * Default configurations per service type.
 	 *
 	 * @var array<string, array>
 	 */
-	private array $default_configs = array(
-		'whatsapp' => array(
+	private array $default_configs = [
+		'whatsapp' => [
 			'failure_threshold' => 5,
 			'success_threshold' => 2,
 			'timeout'           => 30,
-		),
-		'openai' => array(
+		],
+		'openai'   => [
 			'failure_threshold' => 3,
 			'success_threshold' => 2,
 			'timeout'           => 60,
-		),
-		'payment' => array(
+		],
+		'payment'  => [
 			'failure_threshold' => 3,
 			'success_threshold' => 1,
 			'timeout'           => 120,
-		),
-		'default' => array(
+		],
+		'default'  => [
 			'failure_threshold' => 5,
 			'success_threshold' => 2,
 			'timeout'           => 60,
-		),
-	);
+		],
+	];
 
 	/**
 	 * Get or create a circuit breaker for a service.
@@ -84,7 +86,7 @@ class CircuitBreakerRegistry {
 	private function create( string $service, ?array $config = null ): CircuitBreaker {
 		// Use service-specific defaults or fall back to general defaults.
 		$defaults = $this->default_configs[ $service ] ?? $this->default_configs['default'];
-		$config = array_merge( $defaults, $config ?? array() );
+		$config   = array_merge( $defaults, $config ?? [] );
 
 		return new CircuitBreaker(
 			$service,
@@ -132,7 +134,7 @@ class CircuitBreakerRegistry {
 	 * @return array<string, array> Status per service.
 	 */
 	public function getAllStatus(): array {
-		$status = array();
+		$status = [];
 
 		foreach ( $this->breakers as $service => $breaker ) {
 			$status[ $service ] = $breaker->getMetrics();
@@ -186,21 +188,21 @@ class CircuitBreakerRegistry {
 	 * @return array<string, mixed> Health summary.
 	 */
 	public function getHealthSummary(): array {
-		$total = count( $this->breakers );
-		$open = 0;
+		$total     = count( $this->breakers );
+		$open      = 0;
 		$half_open = 0;
-		$closed = 0;
+		$closed    = 0;
 
 		foreach ( $this->breakers as $breaker ) {
 			switch ( $breaker->getState() ) {
 				case CircuitBreaker::STATE_OPEN:
-					$open++;
+					++$open;
 					break;
 				case CircuitBreaker::STATE_HALF_OPEN:
-					$half_open++;
+					++$half_open;
 					break;
 				case CircuitBreaker::STATE_CLOSED:
-					$closed++;
+					++$closed;
 					break;
 			}
 		}
@@ -213,13 +215,13 @@ class CircuitBreakerRegistry {
 			$health = 'critical';
 		}
 
-		return array(
+		return [
 			'status'    => $health,
 			'total'     => $total,
 			'open'      => $open,
 			'half_open' => $half_open,
 			'closed'    => $closed,
 			'services'  => $this->getAllStatus(),
-		);
+		];
 	}
 }

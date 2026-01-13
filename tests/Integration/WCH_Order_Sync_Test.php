@@ -31,28 +31,28 @@ class WCH_Order_Sync_Test extends WCH_Integration_Test_Case {
 	 * Test creating order from WhatsApp conversation.
 	 */
 	public function test_create_order_from_conversation() {
-		$product = $this->create_test_product( array( 'regular_price' => '50.00' ) );
-		$conversation_id = $this->create_test_conversation( array(
+		$product = $this->create_test_product( [ 'regular_price' => '50.00' ] );
+		$conversation_id = $this->create_test_conversation( [
 			'customer_phone' => '+1234567890',
 			'customer_name' => 'John Doe',
-		) );
+		] );
 
-		$order_data = array(
+		$order_data = [
 			'customer_phone' => '+1234567890',
 			'customer_name' => 'John Doe',
-			'items' => array(
-				array(
+			'items' => [
+				[
 					'product_id' => $product->get_id(),
 					'quantity' => 2,
-				),
-			),
-			'shipping_address' => array(
+				],
+			],
+			'shipping_address' => [
 				'address_1' => '123 Main St',
 				'city' => 'New York',
 				'postcode' => '10001',
 				'country' => 'US',
-			),
-		);
+			],
+		];
 
 		$order_id = $this->sync_service->create_order( $order_data );
 
@@ -69,10 +69,10 @@ class WCH_Order_Sync_Test extends WCH_Integration_Test_Case {
 	 */
 	public function test_sync_order_status_notification() {
 		$product = $this->create_test_product();
-		$order = $this->create_test_order( array(
+		$order = $this->create_test_order( [
 			'billing_phone' => '+1234567890',
 			'product' => $product,
-		) );
+		] );
 
 		$result = $this->sync_service->notify_order_status( $order->get_id(), 'processing' );
 
@@ -84,10 +84,10 @@ class WCH_Order_Sync_Test extends WCH_Integration_Test_Case {
 	 */
 	public function test_notify_tracking_number() {
 		$product = $this->create_test_product();
-		$order = $this->create_test_order( array(
+		$order = $this->create_test_order( [
 			'billing_phone' => '+1234567890',
 			'product' => $product,
-		) );
+		] );
 
 		update_post_meta( $order->get_id(), '_tracking_number', 'TRACK123456' );
 
@@ -101,11 +101,11 @@ class WCH_Order_Sync_Test extends WCH_Integration_Test_Case {
 	 */
 	public function test_notify_order_completed() {
 		$product = $this->create_test_product();
-		$order = $this->create_test_order( array(
+		$order = $this->create_test_order( [
 			'billing_phone' => '+1234567890',
 			'product' => $product,
 			'status' => 'processing',
-		) );
+		] );
 
 		$order->set_status( 'completed' );
 		$order->save();
@@ -120,10 +120,10 @@ class WCH_Order_Sync_Test extends WCH_Integration_Test_Case {
 	 */
 	public function test_notify_order_cancelled() {
 		$product = $this->create_test_product();
-		$order = $this->create_test_order( array(
+		$order = $this->create_test_order( [
 			'billing_phone' => '+1234567890',
 			'product' => $product,
-		) );
+		] );
 
 		$order->set_status( 'cancelled' );
 		$order->save();
@@ -139,10 +139,10 @@ class WCH_Order_Sync_Test extends WCH_Integration_Test_Case {
 	public function test_link_order_to_conversation() {
 		$conversation_id = $this->create_test_conversation();
 		$product = $this->create_test_product();
-		$order = $this->create_test_order( array(
+		$order = $this->create_test_order( [
 			'billing_phone' => '+1234567890',
 			'product' => $product,
-		) );
+		] );
 
 		$this->sync_service->link_order_to_conversation( $order->get_id(), $conversation_id );
 
@@ -157,8 +157,8 @@ class WCH_Order_Sync_Test extends WCH_Integration_Test_Case {
 		$conversation_id = $this->create_test_conversation();
 		$product = $this->create_test_product();
 
-		$order1 = $this->create_test_order( array( 'billing_phone' => '+1234567890', 'product' => $product ) );
-		$order2 = $this->create_test_order( array( 'billing_phone' => '+1234567890', 'product' => $product ) );
+		$order1 = $this->create_test_order( [ 'billing_phone' => '+1234567890', 'product' => $product ] );
+		$order2 = $this->create_test_order( [ 'billing_phone' => '+1234567890', 'product' => $product ] );
 
 		$this->sync_service->link_order_to_conversation( $order1->get_id(), $conversation_id );
 		$this->sync_service->link_order_to_conversation( $order2->get_id(), $conversation_id );
@@ -172,16 +172,16 @@ class WCH_Order_Sync_Test extends WCH_Integration_Test_Case {
 	 * Test order with multiple products.
 	 */
 	public function test_create_order_with_multiple_products() {
-		$product1 = $this->create_test_product( array( 'regular_price' => '25.00' ) );
-		$product2 = $this->create_test_product( array( 'regular_price' => '35.00' ) );
+		$product1 = $this->create_test_product( [ 'regular_price' => '25.00' ] );
+		$product2 = $this->create_test_product( [ 'regular_price' => '35.00' ] );
 
-		$order_data = array(
+		$order_data = [
 			'customer_phone' => '+1234567890',
-			'items' => array(
-				array( 'product_id' => $product1->get_id(), 'quantity' => 2 ),
-				array( 'product_id' => $product2->get_id(), 'quantity' => 1 ),
-			),
-		);
+			'items' => [
+				[ 'product_id' => $product1->get_id(), 'quantity' => 2 ],
+				[ 'product_id' => $product2->get_id(), 'quantity' => 1 ],
+			],
+		];
 
 		$order_id = $this->sync_service->create_order( $order_data );
 

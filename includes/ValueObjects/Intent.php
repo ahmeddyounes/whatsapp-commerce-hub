@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * Immutable value object holding the results of intent classification.
  */
-class Intent {
+final class Intent {
 
 	/**
 	 * Intent name constants.
@@ -70,7 +70,7 @@ class Intent {
 	 * @param float  $confidence Confidence score (0-1).
 	 * @param array  $entities   Array of entities.
 	 */
-	public function __construct( string $name, float $confidence, array $entities = array() ) {
+	public function __construct( string $name, float $confidence, array $entities = [] ) {
 		$this->name       = self::isValid( $name ) ? $name : self::UNKNOWN;
 		$this->confidence = max( 0.0, min( 1.0, $confidence ) ); // Clamp between 0 and 1.
 		$this->entities   = $entities;
@@ -119,7 +119,7 @@ class Intent {
 	 * @return string[] Valid intent names.
 	 */
 	public static function getValidIntents(): array {
-		return array(
+		return [
 			self::GREETING,
 			self::BROWSE,
 			self::SEARCH,
@@ -134,7 +134,7 @@ class Intent {
 			self::TRACK_ORDER,
 			self::FEEDBACK,
 			self::HUMAN_AGENT,
-		);
+		];
 	}
 
 	/**
@@ -153,11 +153,11 @@ class Intent {
 	 * @return array{intent_name: string, confidence: float, entities: array}
 	 */
 	public function toArray(): array {
-		return array(
+		return [
 			'intent_name' => $this->name,
 			'confidence'  => $this->confidence,
 			'entities'    => $this->entities,
-		);
+		];
 	}
 
 	/**
@@ -175,11 +175,11 @@ class Intent {
 	 * @param array $data Intent data.
 	 * @return static
 	 */
-	public static function fromArray( array $data ): static {
-		return new static(
+	public static function fromArray( array $data ): self {
+		return new self(
 			$data['intent_name'] ?? $data['name'] ?? self::UNKNOWN,
 			(float) ( $data['confidence'] ?? 0.0 ),
-			$data['entities'] ?? array()
+			$data['entities'] ?? []
 		);
 	}
 
@@ -189,9 +189,9 @@ class Intent {
 	 * @param string $json JSON string.
 	 * @return static
 	 */
-	public static function fromJson( string $json ): static {
+	public static function fromJson( string $json ): self {
 		$data = json_decode( $json, true );
-		return static::fromArray( is_array( $data ) ? $data : array() );
+		return self::fromArray( is_array( $data ) ? $data : [] );
 	}
 
 	/**
@@ -258,7 +258,7 @@ class Intent {
 	 *
 	 * @return static
 	 */
-	public static function unknown(): static {
-		return new static( self::UNKNOWN, 0.0 );
+	public static function unknown(): self {
+		return new self( self::UNKNOWN, 0.0 );
 	}
 }

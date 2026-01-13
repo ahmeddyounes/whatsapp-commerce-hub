@@ -8,6 +8,8 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\ValueObjects;
 
 // Exit if accessed directly.
@@ -40,10 +42,10 @@ final class ValidationResponse {
 	 */
 	public function __construct(
 		public readonly bool $is_valid,
-		public readonly array $errors = array(),
-		public readonly array $warnings = array(),
-		public readonly array $validated = array(),
-		public readonly array $metadata = array(),
+		public readonly array $errors = [],
+		public readonly array $warnings = [],
+		public readonly array $validated = [],
+		public readonly array $metadata = [],
 	) {}
 
 	/**
@@ -54,7 +56,7 @@ final class ValidationResponse {
 	 * @param array $metadata  Optional metadata.
 	 * @return self
 	 */
-	public static function valid( array $validated = array(), array $warnings = array(), array $metadata = array() ): self {
+	public static function valid( array $validated = [], array $warnings = [], array $metadata = [] ): self {
 		return new self(
 			is_valid: true,
 			validated: $validated,
@@ -71,7 +73,7 @@ final class ValidationResponse {
 	 * @param array $metadata Optional metadata.
 	 * @return self
 	 */
-	public static function invalid( array $errors, array $warnings = array(), array $metadata = array() ): self {
+	public static function invalid( array $errors, array $warnings = [], array $metadata = [] ): self {
 		return new self(
 			is_valid: false,
 			errors: $errors,
@@ -90,7 +92,7 @@ final class ValidationResponse {
 	public static function fieldError( string $field, string $message ): self {
 		return new self(
 			is_valid: false,
-			errors: array( $field => $message ),
+			errors: [ $field => $message ],
 		);
 	}
 
@@ -278,7 +280,7 @@ final class ValidationResponse {
 	 * @return array
 	 */
 	public function toArray(): array {
-		return array(
+		return [
 			'is_valid'      => $this->is_valid,
 			'errors'        => $this->errors,
 			'warnings'      => $this->warnings,
@@ -286,7 +288,7 @@ final class ValidationResponse {
 			'metadata'      => $this->metadata,
 			'error_count'   => $this->getErrorCount(),
 			'warning_count' => $this->getWarningCount(),
-		);
+		];
 	}
 
 	/**
@@ -312,10 +314,10 @@ final class ValidationResponse {
 		return new \WP_Error(
 			$error_code,
 			$this->getFirstError() ?? __( 'Validation failed', 'whatsapp-commerce-hub' ),
-			array(
+			[
 				'status' => 400,
 				'errors' => $this->errors,
-			)
+			]
 		);
 	}
 
@@ -326,7 +328,7 @@ final class ValidationResponse {
 	 * @return string
 	 */
 	public function getErrorSummary( string $separator = "\n" ): string {
-		$messages = array();
+		$messages = [];
 
 		foreach ( $this->errors as $field => $message ) {
 			$messages[] = sprintf( '%s: %s', ucfirst( str_replace( '_', ' ', $field ) ), $message );

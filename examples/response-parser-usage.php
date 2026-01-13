@@ -18,12 +18,12 @@ function example_basic_text_parsing() {
 	$parser = new WCH_Response_Parser();
 
 	// Simulate webhook message data for a text message.
-	$webhook_data = array(
+	$webhook_data = [
 		'type'    => 'text',
-		'content' => array(
+		'content' => [
 			'body' => 'Hello! I want to see your products',
-		),
-	);
+		],
+	];
 
 	$parsed = $parser->parse( $webhook_data );
 
@@ -43,14 +43,14 @@ function example_basic_text_parsing() {
 function example_button_reply_parsing() {
 	$parser = new WCH_Response_Parser();
 
-	$webhook_data = array(
+	$webhook_data = [
 		'type'    => 'interactive',
-		'content' => array(
+		'content' => [
 			'type'  => 'button_reply',
 			'id'    => 'btn_checkout',
 			'title' => 'Checkout',
-		),
-	);
+		],
+	];
 
 	$parsed = $parser->parse( $webhook_data );
 
@@ -65,15 +65,15 @@ function example_button_reply_parsing() {
 function example_list_reply_parsing() {
 	$parser = new WCH_Response_Parser();
 
-	$webhook_data = array(
+	$webhook_data = [
 		'type'    => 'interactive',
-		'content' => array(
+		'content' => [
 			'type'        => 'list_reply',
 			'id'          => 'product_123',
 			'title'       => 'Blue T-Shirt',
 			'description' => 'Size: M, Color: Blue',
-		),
-	);
+		],
+	];
 
 	$parsed = $parser->parse( $webhook_data );
 
@@ -87,14 +87,14 @@ function example_list_reply_parsing() {
 function example_product_inquiry_parsing() {
 	$parser = new WCH_Response_Parser();
 
-	$webhook_data = array(
+	$webhook_data = [
 		'type'    => 'interactive',
-		'content' => array(
+		'content' => [
 			'type'                => 'nfm_reply',
 			'product_retailer_id' => 'woo_product_789',
 			'catalog_id'          => 'my_catalog',
-		),
-	);
+		],
+	];
 
 	$parsed = $parser->parse( $webhook_data );
 
@@ -127,12 +127,12 @@ function example_custom_filters() {
 
 	$parser = new WCH_Response_Parser();
 
-	$webhook_data = array(
+	$webhook_data = [
 		'type'    => 'text',
-		'content' => array(
+		'content' => [
 			'body' => 'I am stuck on the checkout page',
-		),
-	);
+		],
+	];
 
 	$parsed = $parser->parse( $webhook_data );
 
@@ -149,12 +149,12 @@ function example_conversation_context() {
 	$phone_number = '+1234567890';
 
 	// Parse a message.
-	$webhook_data = array(
+	$webhook_data = [
 		'type'    => 'text',
-		'content' => array(
+		'content' => [
 			'body' => 'Show me my cart',
-		),
-	);
+		],
+	];
 
 	$parsed = $parser->parse( $webhook_data );
 

@@ -24,16 +24,16 @@ class CartFactory {
 	 *
 	 * @var array
 	 */
-	private static array $defaults = array(
+	private static array $defaults = [
 		'id'             => null,
 		'phone_number'   => '+1234567890',
-		'items'          => array(),
+		'items'          => [],
 		'currency'       => 'USD',
 		'status'         => 'active',
 		'created_at'     => null,
 		'updated_at'     => null,
 		'expires_at'     => null,
-	);
+	];
 
 	/**
 	 * Sequence counter for unique IDs.
@@ -48,7 +48,7 @@ class CartFactory {
 	 * @param array $attributes Override attributes.
 	 * @return Cart
 	 */
-	public static function create( array $attributes = array() ): Cart {
+	public static function create( array $attributes = [] ): Cart {
 		self::$sequence++;
 
 		$data = array_merge( self::$defaults, $attributes );
@@ -89,14 +89,14 @@ class CartFactory {
 	 * @param array $attributes Override cart attributes.
 	 * @return Cart
 	 */
-	public static function createWithItems( int $item_count = 3, array $attributes = array() ): Cart {
-		$items = array();
+	public static function createWithItems( int $item_count = 3, array $attributes = [] ): Cart {
+		$items = [];
 		for ( $i = 0; $i < $item_count; $i++ ) {
-			$items[] = CartItemFactory::create( array(
+			$items[] = CartItemFactory::create( [
 				'product_id' => 100 + $i,
 				'name'       => "Test Product {$i}",
 				'quantity'   => 1 + ( $i % 5 ),  // Predictable quantity: 1-5 based on index.
-			) );
+			] );
 		}
 
 		$attributes['items'] = $items;
@@ -109,8 +109,8 @@ class CartFactory {
 	 * @param array $attributes Override cart attributes.
 	 * @return Cart
 	 */
-	public static function createEmpty( array $attributes = array() ): Cart {
-		$attributes['items'] = array();
+	public static function createEmpty( array $attributes = [] ): Cart {
+		$attributes['items'] = [];
 		return self::create( $attributes );
 	}
 
@@ -120,13 +120,13 @@ class CartFactory {
 	 * @param array $attributes Override cart attributes.
 	 * @return Cart
 	 */
-	public static function createAbandoned( array $attributes = array() ): Cart {
+	public static function createAbandoned( array $attributes = [] ): Cart {
 		$now = new \DateTimeImmutable();
 		$attributes = array_merge(
-			array(
+			[
 				'status'     => 'abandoned',
 				'updated_at' => $now->modify( '-48 hours' ),
-			),
+			],
 			$attributes
 		);
 		return self::createWithItems( 2, $attributes );
@@ -138,12 +138,12 @@ class CartFactory {
 	 * @param array $attributes Override cart attributes.
 	 * @return Cart
 	 */
-	public static function createExpired( array $attributes = array() ): Cart {
+	public static function createExpired( array $attributes = [] ): Cart {
 		$now = new \DateTimeImmutable();
 		$attributes = array_merge(
-			array(
+			[
 				'expires_at' => $now->modify( '-1 hour' ),
-			),
+			],
 			$attributes
 		);
 		return self::createWithItems( 1, $attributes );
@@ -171,15 +171,15 @@ class CartItemFactory {
 	 *
 	 * @var array
 	 */
-	private static array $defaults = array(
+	private static array $defaults = [
 		'product_id'   => 1,
 		'variation_id' => 0,
 		'name'         => 'Test Product',
 		'price'        => 29.99,
 		'quantity'     => 1,
 		'image_url'    => 'https://example.com/image.jpg',
-		'attributes'   => array(),
-	);
+		'attributes'   => [],
+	];
 
 	/**
 	 * Sequence counter.
@@ -194,7 +194,7 @@ class CartItemFactory {
 	 * @param array $attributes Override attributes.
 	 * @return CartItem
 	 */
-	public static function create( array $attributes = array() ): CartItem {
+	public static function create( array $attributes = [] ): CartItem {
 		self::$sequence++;
 
 		$data = array_merge( self::$defaults, $attributes );
@@ -221,17 +221,17 @@ class CartItemFactory {
 	 * @param array $attributes Override attributes.
 	 * @return CartItem
 	 */
-	public static function createVariable( array $attributes = array() ): CartItem {
+	public static function createVariable( array $attributes = [] ): CartItem {
 		// Use sequence-based variation ID for reproducibility.
 		$seq        = self::$sequence + 1;
 		$attributes = array_merge(
-			array(
+			[
 				'variation_id' => 1000 + $seq,  // Predictable variation ID.
-				'attributes'   => array(
+				'attributes'   => [
 					'size'  => 'Large',
 					'color' => 'Blue',
-				),
-			),
+				],
+			],
 			$attributes
 		);
 		return self::create( $attributes );
@@ -244,12 +244,12 @@ class CartItemFactory {
 	 * @param array $attributes Override attributes applied to all items.
 	 * @return array<CartItem>
 	 */
-	public static function createMany( int $count, array $attributes = array() ): array {
-		$items = array();
+	public static function createMany( int $count, array $attributes = [] ): array {
+		$items = [];
 		for ( $i = 0; $i < $count; $i++ ) {
 			$items[] = self::create( array_merge(
 				$attributes,
-				array( 'product_id' => 100 + $i, 'name' => "Product {$i}" )
+				[ 'product_id' => 100 + $i, 'name' => "Product {$i}" ]
 			) );
 		}
 		return $items;

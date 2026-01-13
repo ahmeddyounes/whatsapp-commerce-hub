@@ -37,34 +37,6 @@ class AdminBroadcastsController {
 	protected const CAPABILITY = 'manage_woocommerce';
 
 	/**
-	 * Campaign repository.
-	 *
-	 * @var CampaignRepositoryInterface
-	 */
-	protected CampaignRepositoryInterface $repository;
-
-	/**
-	 * Wizard renderer.
-	 *
-	 * @var BroadcastWizardRenderer
-	 */
-	protected BroadcastWizardRenderer $wizardRenderer;
-
-	/**
-	 * Report generator.
-	 *
-	 * @var CampaignReportGenerator
-	 */
-	protected CampaignReportGenerator $reportGenerator;
-
-	/**
-	 * AJAX handler.
-	 *
-	 * @var BroadcastsAjaxHandler
-	 */
-	protected BroadcastsAjaxHandler $ajaxHandler;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param CampaignRepositoryInterface $repository      Campaign repository.
@@ -73,15 +45,11 @@ class AdminBroadcastsController {
 	 * @param BroadcastsAjaxHandler       $ajaxHandler     AJAX handler.
 	 */
 	public function __construct(
-		CampaignRepositoryInterface $repository,
-		BroadcastWizardRenderer $wizardRenderer,
-		CampaignReportGenerator $reportGenerator,
-		BroadcastsAjaxHandler $ajaxHandler
+		protected CampaignRepositoryInterface $repository,
+		protected BroadcastWizardRenderer $wizardRenderer,
+		protected CampaignReportGenerator $reportGenerator,
+		protected BroadcastsAjaxHandler $ajaxHandler
 	) {
-		$this->repository      = $repository;
-		$this->wizardRenderer  = $wizardRenderer;
-		$this->reportGenerator = $reportGenerator;
-		$this->ajaxHandler     = $ajaxHandler;
 	}
 
 	/**
@@ -90,8 +58,8 @@ class AdminBroadcastsController {
 	 * @return void
 	 */
 	public function init(): void {
-		add_action( 'admin_menu', array( $this, 'addMenuItem' ), 52 );
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueueScripts' ) );
+		add_action( 'admin_menu', [ $this, 'addMenuItem' ], 52 );
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueueScripts' ] );
 
 		// Register AJAX handlers.
 		$this->ajaxHandler->register();
@@ -109,10 +77,10 @@ class AdminBroadcastsController {
 			__( 'Broadcasts', 'whatsapp-commerce-hub' ),
 			self::CAPABILITY,
 			self::MENU_SLUG,
-			array( $this, 'renderPage' )
+			[ $this, 'renderPage' ]
 		);
 
-		add_action( 'load-' . $hook, array( $this, 'addHelpTab' ) );
+		add_action( 'load-' . $hook, [ $this, 'addHelpTab' ] );
 	}
 
 	/**
@@ -128,11 +96,13 @@ class AdminBroadcastsController {
 		}
 
 		$screen->add_help_tab(
-			array(
+			[
 				'id'      => 'wch_broadcasts_overview',
 				'title'   => __( 'Overview', 'whatsapp-commerce-hub' ),
-				'content' => '<p>' . __( 'Create and manage promotional broadcast campaigns to send WhatsApp messages to your customers.', 'whatsapp-commerce-hub' ) . '</p>',
-			)
+				'content' => '<p>' .
+					__( 'Create and manage promotional broadcast campaigns to send WhatsApp messages to your customers.', 'whatsapp-commerce-hub' ) .
+					'</p>',
+			]
 		);
 	}
 
@@ -150,14 +120,14 @@ class AdminBroadcastsController {
 		wp_enqueue_style(
 			'wch-admin-broadcasts',
 			WCH_PLUGIN_URL . 'assets/admin-broadcasts.css',
-			array(),
+			[],
 			WCH_VERSION
 		);
 
 		wp_enqueue_script(
 			'wch-admin-broadcasts',
 			WCH_PLUGIN_URL . 'assets/admin-broadcasts.js',
-			array( 'jquery', 'wp-i18n' ),
+			[ 'jquery', 'wp-i18n' ],
 			WCH_VERSION,
 			true
 		);
@@ -165,11 +135,11 @@ class AdminBroadcastsController {
 		wp_localize_script(
 			'wch-admin-broadcasts',
 			'wchBroadcasts',
-			array(
+			[
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 				'nonce'   => wp_create_nonce( 'wch_broadcasts_nonce' ),
 				'strings' => $this->getLocalizedStrings(),
-			)
+			]
 		);
 	}
 
@@ -179,7 +149,7 @@ class AdminBroadcastsController {
 	 * @return array Localized strings.
 	 */
 	protected function getLocalizedStrings(): array {
-		return array(
+		return [
 			'confirmDelete'     => __( 'Are you sure you want to delete this campaign?', 'whatsapp-commerce-hub' ),
 			'confirmSend'       => __( 'Are you sure you want to send this campaign?', 'whatsapp-commerce-hub' ),
 			'savingCampaign'    => __( 'Saving campaign...', 'whatsapp-commerce-hub' ),
@@ -191,7 +161,7 @@ class AdminBroadcastsController {
 			'campaignSaved'     => __( 'Campaign saved successfully!', 'whatsapp-commerce-hub' ),
 			'campaignScheduled' => __( 'Campaign scheduled successfully!', 'whatsapp-commerce-hub' ),
 			'testSent'          => __( 'Test message sent!', 'whatsapp-commerce-hub' ),
-		);
+		];
 	}
 
 	/**
@@ -205,7 +175,7 @@ class AdminBroadcastsController {
 		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$action     = isset( $_GET['action'] ) ? sanitize_text_field( $_GET['action'] ) : 'list';
+		$action = isset( $_GET['action'] ) ? sanitize_text_field( $_GET['action'] ) : 'list';
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$campaignId = isset( $_GET['campaign_id'] ) ? absint( $_GET['campaign_id'] ) : 0;
 
@@ -339,14 +309,14 @@ class AdminBroadcastsController {
 	 * @return string Badge HTML.
 	 */
 	protected function getStatusBadge( string $status ): string {
-		$badges = array(
+		$badges = [
 			'draft'     => '<span class="wch-badge wch-badge-draft">' . __( 'Draft', 'whatsapp-commerce-hub' ) . '</span>',
 			'scheduled' => '<span class="wch-badge wch-badge-scheduled">' . __( 'Scheduled', 'whatsapp-commerce-hub' ) . '</span>',
 			'sending'   => '<span class="wch-badge wch-badge-sending">' . __( 'Sending', 'whatsapp-commerce-hub' ) . '</span>',
 			'completed' => '<span class="wch-badge wch-badge-completed">' . __( 'Completed', 'whatsapp-commerce-hub' ) . '</span>',
 			'failed'    => '<span class="wch-badge wch-badge-failed">' . __( 'Failed', 'whatsapp-commerce-hub' ) . '</span>',
 			'cancelled' => '<span class="wch-badge wch-badge-cancelled">' . __( 'Cancelled', 'whatsapp-commerce-hub' ) . '</span>',
-		);
+		];
 
 		return $badges[ $status ] ?? $status;
 	}
@@ -358,11 +328,11 @@ class AdminBroadcastsController {
 	 * @return string Formatted stats.
 	 */
 	protected function formatCampaignStats( array $campaign ): string {
-		if ( in_array( $campaign['status'] ?? '', array( 'draft', 'scheduled' ), true ) ) {
+		if ( in_array( $campaign['status'] ?? '', [ 'draft', 'scheduled' ], true ) ) {
 			return '-';
 		}
 
-		$stats     = $campaign['stats'] ?? array();
+		$stats     = $campaign['stats'] ?? [];
 		$sent      = $stats['sent'] ?? 0;
 		$delivered = $stats['delivered'] ?? 0;
 		$read      = $stats['read'] ?? 0;
@@ -382,7 +352,7 @@ class AdminBroadcastsController {
 	 * @return string Formatted date.
 	 */
 	protected function formatCampaignDate( array $campaign ): string {
-		$dateField = in_array( $campaign['status'] ?? '', array( 'scheduled', 'draft' ), true )
+		$dateField = in_array( $campaign['status'] ?? '', [ 'scheduled', 'draft' ], true )
 			? 'scheduled_at'
 			: 'sent_at';
 
@@ -405,7 +375,7 @@ class AdminBroadcastsController {
 	 * @return string Actions HTML.
 	 */
 	protected function getCampaignActions( array $campaign ): string {
-		$actions = array();
+		$actions = [];
 
 		if ( 'draft' === $campaign['status'] ) {
 			$actions[] = sprintf(
@@ -421,7 +391,7 @@ class AdminBroadcastsController {
 			__( 'Duplicate', 'whatsapp-commerce-hub' )
 		);
 
-		if ( in_array( $campaign['status'], array( 'completed', 'failed', 'sending' ), true ) ) {
+		if ( in_array( $campaign['status'], [ 'completed', 'failed', 'sending' ], true ) ) {
 			$actions[] = sprintf(
 				'<a href="%s" class="button button-small">%s</a>',
 				esc_url( admin_url( 'admin.php?page=' . self::MENU_SLUG . '&action=report&campaign_id=' . $campaign['id'] ) ),

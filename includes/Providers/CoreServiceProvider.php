@@ -8,13 +8,24 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
+// phpcs:disable Squiz.Commenting.FunctionComment.Missing -- Service provider closures don't need docblocks.
+
 namespace WhatsAppCommerceHub\Providers;
 
 use WhatsAppCommerceHub\Container\ContainerInterface;
 use WhatsAppCommerceHub\Container\ServiceProviderInterface;
-use WhatsAppCommerceHub\Services\LoggerService;
-use WhatsAppCommerceHub\Services\SettingsService;
+use WhatsAppCommerceHub\Core\Logger;
+use WhatsAppCommerceHub\Core\ErrorHandler;
+use WhatsAppCommerceHub\Infrastructure\Security\Encryption;
+use WhatsAppCommerceHub\Infrastructure\Database\DatabaseManager;
+use WhatsAppCommerceHub\Infrastructure\Configuration\SettingsManager;
+use WhatsAppCommerceHub\Application\Services\LoggerService;
+use WhatsAppCommerceHub\Application\Services\OrderSyncService;
+use WhatsAppCommerceHub\Application\Services\SettingsService;
 use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
+use WhatsAppCommerceHub\Contracts\Services\OrderSyncServiceInterface;
 use WhatsAppCommerceHub\Contracts\Services\SettingsInterface;
 
 // Exit if accessed directly.
@@ -55,7 +66,7 @@ class CoreServiceProvider implements ServiceProviderInterface {
 		$container->singleton(
 			'wch.settings',
 			static function () {
-				$defaults = array(
+				$defaults = [
 					'phone_number_id'       => '',
 					'business_account_id'   => '',
 					'access_token'          => '',
@@ -72,9 +83,9 @@ class CoreServiceProvider implements ServiceProviderInterface {
 					'reminder_3_delay'      => 72,
 					'enable_order_tracking' => true,
 					'enable_debug_logging'  => false,
-				);
+				];
 
-				$settings = get_option( 'wch_settings', array() );
+				$settings = get_option( 'wch_settings', [] );
 
 				return array_merge( $defaults, $settings );
 			}
@@ -107,26 +118,26 @@ class CoreServiceProvider implements ServiceProviderInterface {
 						$this->log_file      = WP_CONTENT_DIR . '/wch-debug.log';
 					}
 
-					public function debug( string $message, array $context = array() ): void {
+					public function debug( string $message, array $context = [] ): void {
 						if ( $this->debug_enabled ) {
 							$this->log( 'DEBUG', $message, $context );
 						}
 					}
 
-					public function info( string $message, array $context = array() ): void {
+					public function info( string $message, array $context = [] ): void {
 						$this->log( 'INFO', $message, $context );
 					}
 
-					public function warning( string $message, array $context = array() ): void {
+					public function warning( string $message, array $context = [] ): void {
 						$this->log( 'WARNING', $message, $context );
 					}
 
-					public function error( string $message, array $context = array() ): void {
+					public function error( string $message, array $context = [] ): void {
 						$this->log( 'ERROR', $message, $context );
 					}
 
 					private function log( string $level, string $message, array $context ): void {
-						$timestamp = gmdate( 'Y-m-d H:i:s' );
+						$timestamp   = gmdate( 'Y-m-d H:i:s' );
 						$context_str = ! empty( $context ) ? ' ' . wp_json_encode( $context ) : '';
 
 						$log_line = "[{$timestamp}] [{$level}] {$message}{$context_str}\n";
@@ -222,141 +233,105 @@ class CoreServiceProvider implements ServiceProviderInterface {
 			}
 		);
 
-		// Register encryption service placeholder.
-		// This will be replaced by the Security layer.
-		$container->singleton(
-			'wch.encryption',
-			static function () {
-				if ( class_exists( 'WCH_Encryption' ) ) {
-					return new \WCH_Encryption();
-				}
+		// ===================================================================
+		// Core Infrastructure - PSR-4 Modern Classes
+		// ===================================================================
 
-				return null;
+		// Register Core Logger (new PSR-4 location).
+		$container->singleton(
+			Logger::class,
+			static function ( ContainerInterface $c ) {
+				$settings     = $c->has( 'wch.settings' ) ? $c->get( 'wch.settings' ) : [];
+				$debugEnabled = (bool) ( $settings['enable_debug_logging'] ?? false );
+				$minLevel     = $debugEnabled ? Logger::LEVEL_DEBUG : Logger::LEVEL_INFO;
+				return new Logger( $minLevel );
 			}
 		);
 
-		// Register WCH_Encryption class.
+		// Register LoggerService (BC - points to Core\Logger).
 		$container->singleton(
-			\WCH_Encryption::class,
-			static fn( ContainerInterface $c ) => $c->get( 'wch.encryption' )
+			LoggerService::class,
+			static fn( ContainerInterface $c ) => $c->get( Logger::class )
 		);
 
-		// Register database manager.
+		// Alias LoggerInterface to Core\Logger.
 		$container->singleton(
-			\WCH_Database_Manager::class,
+			LoggerInterface::class,
+			static fn( ContainerInterface $c ) => $c->get( Logger::class )
+		);
+
+		// Register ErrorHandler (new PSR-4 location).
+		$container->singleton(
+			ErrorHandler::class,
 			static function ( ContainerInterface $c ) {
-				return new \WCH_Database_Manager();
+				$logger = $c->get( Logger::class );
+				return new ErrorHandler( $logger );
+			}
+		);
+
+		// Register Encryption (new PSR-4 location).
+		$container->singleton(
+			Encryption::class,
+			static function () {
+				return new Encryption();
+			}
+		);
+
+		// Convenience alias for encryption.
+		$container->singleton(
+			'wch.encryption',
+			static fn( ContainerInterface $c ) => $c->get( Encryption::class )
+		);
+
+		// Register DatabaseManager (new PSR-4 location).
+		$container->singleton(
+			DatabaseManager::class,
+			static function ( ContainerInterface $c ) {
+				global $wpdb;
+				return new DatabaseManager( $wpdb );
 			}
 		);
 
 		// Convenience alias for database manager.
 		$container->singleton(
 			'wch.database',
-			static fn( ContainerInterface $c ) => $c->get( \WCH_Database_Manager::class )
+			static fn( ContainerInterface $c ) => $c->get( DatabaseManager::class )
 		);
 
-		// Register settings manager.
+		// Register SettingsManager (new PSR-4 location).
 		$container->singleton(
-			\WCH_Settings::class,
+			SettingsManager::class,
 			static function ( ContainerInterface $c ) {
-				$encryption = $c->has( 'wch.encryption' ) ? $c->get( 'wch.encryption' ) : null;
-				return new \WCH_Settings( $encryption );
+				$encryption = $c->get( Encryption::class );
+				return new SettingsManager( $encryption );
 			}
 		);
 
-		// Alias for settings class.
-		$container->singleton(
-			'wch.settings.manager',
-			static fn( ContainerInterface $c ) => $c->get( \WCH_Settings::class )
-		);
-
-		// Register LoggerService (new namespaced service).
-		$container->singleton(
-			LoggerService::class,
-			static function ( ContainerInterface $c ) {
-				$settings = $c->has( 'wch.settings' ) ? $c->get( 'wch.settings' ) : array();
-
-				// Explicit boolean cast to handle string values like "false", "0", etc.
-				$debugEnabled = (bool) ( $settings['enable_debug_logging'] ?? false );
-				$minLevel     = $debugEnabled ? LoggerService::LEVEL_DEBUG : LoggerService::LEVEL_INFO;
-
-				return new LoggerService( $minLevel );
-			}
-		);
-
-		// Alias LoggerInterface to LoggerService.
-		$container->singleton(
-			LoggerInterface::class,
-			static fn( ContainerInterface $c ) => $c->get( LoggerService::class )
-		);
-
-		// Register SettingsService (new namespaced service).
+		// Register SettingsService for SettingsInterface consumers.
 		$container->singleton(
 			SettingsService::class,
 			static function ( ContainerInterface $c ) {
-				$legacySettings = $c->get( \WCH_Settings::class );
-				return new SettingsService( $legacySettings );
+				$settingsManager = $c->get( SettingsManager::class );
+				return new SettingsService( $settingsManager );
 			}
 		);
 
-		// Alias SettingsInterface to SettingsService.
+		// Alias SettingsInterface to SettingsManager directly.
 		$container->singleton(
 			SettingsInterface::class,
-			static fn( ContainerInterface $c ) => $c->get( SettingsService::class )
+			static fn( ContainerInterface $c ) => $c->get( SettingsManager::class )
 		);
 
 		// Register order sync service.
 		$container->singleton(
-			\WCH_Order_Sync_Service::class,
-			static function ( ContainerInterface $c ) {
-				$settings = $c->has( \WCH_Settings::class ) ? $c->get( \WCH_Settings::class ) : null;
-				return new \WCH_Order_Sync_Service( $settings );
-			}
+			OrderSyncServiceInterface::class,
+			static fn( ContainerInterface $c ) => $c->make( OrderSyncService::class )
 		);
 
 		// Convenience alias for order sync.
 		$container->singleton(
-			'wch.order_sync',
-			static fn( ContainerInterface $c ) => $c->get( \WCH_Order_Sync_Service::class )
-		);
-
-		// Register template manager.
-		$container->singleton(
-			\WCH_Template_Manager::class,
-			static function ( ContainerInterface $c ) {
-				$settings = $c->has( \WCH_Settings::class ) ? $c->get( \WCH_Settings::class ) : null;
-				return new \WCH_Template_Manager( $settings );
-			}
-		);
-
-		// Convenience alias for template manager.
-		$container->singleton(
-			'wch.templates',
-			static fn( ContainerInterface $c ) => $c->get( \WCH_Template_Manager::class )
-		);
-
-		// Register payment manager.
-		$container->singleton(
-			\WCH_Payment_Manager::class,
-			static fn() => new \WCH_Payment_Manager()
-		);
-
-		// Convenience alias for payments.
-		$container->singleton(
-			'wch.payments',
-			static fn( ContainerInterface $c ) => $c->get( \WCH_Payment_Manager::class )
-		);
-
-		// Register queue manager.
-		$container->singleton(
-			\WCH_Queue::class,
-			static fn() => new \WCH_Queue()
-		);
-
-		// Convenience alias for queue.
-		$container->singleton(
-			'wch.queue',
-			static fn( ContainerInterface $c ) => $c->get( \WCH_Queue::class )
+			OrderSyncService::class,
+			static fn( ContainerInterface $c ) => $c->get( OrderSyncServiceInterface::class )
 		);
 	}
 
@@ -377,7 +352,7 @@ class CoreServiceProvider implements ServiceProviderInterface {
 	 * @return array<string>
 	 */
 	public function provides(): array {
-		return array(
+		return [
 			\wpdb::class,
 			'wpdb',
 			'wch.settings',
@@ -386,23 +361,17 @@ class CoreServiceProvider implements ServiceProviderInterface {
 			'wch.hooks',
 			'wch.cache',
 			'wch.encryption',
-			\WCH_Encryption::class,
-			\WCH_Database_Manager::class,
+			Encryption::class,
+			DatabaseManager::class,
 			'wch.database',
-			\WCH_Settings::class,
-			'wch.settings.manager',
+			SettingsManager::class,
+			Logger::class,
 			LoggerService::class,
 			LoggerInterface::class,
 			SettingsService::class,
 			SettingsInterface::class,
-			\WCH_Order_Sync_Service::class,
-			'wch.order_sync',
-			\WCH_Template_Manager::class,
-			'wch.templates',
-			\WCH_Payment_Manager::class,
-			'wch.payments',
-			\WCH_Queue::class,
-			'wch.queue',
-		);
+			OrderSyncServiceInterface::class,
+			OrderSyncService::class,
+		];
 	}
 }

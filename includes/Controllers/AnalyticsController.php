@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Controllers;
 
+use WhatsAppCommerceHub\Features\Analytics\AnalyticsData;
 use WP_REST_Request;
 use WP_REST_Response;
 use WP_REST_Server;
@@ -42,7 +43,7 @@ class AnalyticsController extends AbstractController {
 	 *
 	 * @var array
 	 */
-	private const VALID_PERIODS = array( 'today', 'week', 'month' );
+	private const VALID_PERIODS = [ 'today', 'week', 'month' ];
 
 	/**
 	 * Maximum days allowed for date range queries.
@@ -68,152 +69,152 @@ class AnalyticsController extends AbstractController {
 		register_rest_route(
 			$this->apiNamespace,
 			'/' . $this->rest_base . '/summary',
-			array(
-				array(
+			[
+				[
 					'methods'             => WP_REST_Server::READABLE,
-					'callback'            => array( $this, 'getSummary' ),
-					'permission_callback' => array( $this, 'checkAdminPermission' ),
-					'args'                => array(
-						'period' => array(
+					'callback'            => [ $this, 'getSummary' ],
+					'permission_callback' => [ $this, 'checkAdminPermission' ],
+					'args'                => [
+						'period' => [
 							'required'          => false,
 							'default'           => 'today',
 							'sanitize_callback' => 'sanitize_text_field',
-							'validate_callback' => array( $this, 'validatePeriod' ),
-						),
-					),
-				),
-			)
+							'validate_callback' => [ $this, 'validatePeriod' ],
+						],
+					],
+				],
+			]
 		);
 
 		// Orders over time endpoint.
 		register_rest_route(
 			$this->apiNamespace,
 			'/' . $this->rest_base . '/orders',
-			array(
-				array(
+			[
+				[
 					'methods'             => WP_REST_Server::READABLE,
-					'callback'            => array( $this, 'getOrders' ),
-					'permission_callback' => array( $this, 'checkAdminPermission' ),
+					'callback'            => [ $this, 'getOrders' ],
+					'permission_callback' => [ $this, 'checkAdminPermission' ],
 					'args'                => $this->getDaysArgs( 30 ),
-				),
-			)
+				],
+			]
 		);
 
 		// Revenue by day endpoint.
 		register_rest_route(
 			$this->apiNamespace,
 			'/' . $this->rest_base . '/revenue',
-			array(
-				array(
+			[
+				[
 					'methods'             => WP_REST_Server::READABLE,
-					'callback'            => array( $this, 'getRevenue' ),
-					'permission_callback' => array( $this, 'checkAdminPermission' ),
+					'callback'            => [ $this, 'getRevenue' ],
+					'permission_callback' => [ $this, 'checkAdminPermission' ],
 					'args'                => $this->getDaysArgs( 30 ),
-				),
-			)
+				],
+			]
 		);
 
 		// Top products endpoint.
 		register_rest_route(
 			$this->apiNamespace,
 			'/' . $this->rest_base . '/products',
-			array(
-				array(
+			[
+				[
 					'methods'             => WP_REST_Server::READABLE,
-					'callback'            => array( $this, 'getTopProducts' ),
-					'permission_callback' => array( $this, 'checkAdminPermission' ),
+					'callback'            => [ $this, 'getTopProducts' ],
+					'permission_callback' => [ $this, 'checkAdminPermission' ],
 					'args'                => array_merge(
 						$this->getDaysArgs( 30 ),
-						array(
-							'limit' => array(
+						[
+							'limit' => [
 								'required'          => false,
 								'default'           => 10,
 								'sanitize_callback' => 'absint',
-								'validate_callback' => array( $this, 'validateLimit' ),
-							),
-						)
+								'validate_callback' => [ $this, 'validateLimit' ],
+							],
+						]
 					),
-				),
-			)
+				],
+			]
 		);
 
 		// Conversation heatmap endpoint.
 		register_rest_route(
 			$this->apiNamespace,
 			'/' . $this->rest_base . '/conversations',
-			array(
-				array(
+			[
+				[
 					'methods'             => WP_REST_Server::READABLE,
-					'callback'            => array( $this, 'getConversations' ),
-					'permission_callback' => array( $this, 'checkAdminPermission' ),
+					'callback'            => [ $this, 'getConversations' ],
+					'permission_callback' => [ $this, 'checkAdminPermission' ],
 					'args'                => $this->getDaysArgs( 7 ),
-				),
-			)
+				],
+			]
 		);
 
 		// Detailed metrics endpoint.
 		register_rest_route(
 			$this->apiNamespace,
 			'/' . $this->rest_base . '/metrics',
-			array(
-				array(
+			[
+				[
 					'methods'             => WP_REST_Server::READABLE,
-					'callback'            => array( $this, 'getMetrics' ),
-					'permission_callback' => array( $this, 'checkAdminPermission' ),
+					'callback'            => [ $this, 'getMetrics' ],
+					'permission_callback' => [ $this, 'checkAdminPermission' ],
 					'args'                => $this->getDaysArgs( 30 ),
-				),
-			)
+				],
+			]
 		);
 
 		// Customer insights endpoint.
 		register_rest_route(
 			$this->apiNamespace,
 			'/' . $this->rest_base . '/customers',
-			array(
-				array(
+			[
+				[
 					'methods'             => WP_REST_Server::READABLE,
-					'callback'            => array( $this, 'getCustomerInsights' ),
-					'permission_callback' => array( $this, 'checkAdminPermission' ),
+					'callback'            => [ $this, 'getCustomerInsights' ],
+					'permission_callback' => [ $this, 'checkAdminPermission' ],
 					'args'                => $this->getDaysArgs( 30 ),
-				),
-			)
+				],
+			]
 		);
 
 		// Funnel data endpoint.
 		register_rest_route(
 			$this->apiNamespace,
 			'/' . $this->rest_base . '/funnel',
-			array(
-				array(
+			[
+				[
 					'methods'             => WP_REST_Server::READABLE,
-					'callback'            => array( $this, 'getFunnel' ),
-					'permission_callback' => array( $this, 'checkAdminPermission' ),
+					'callback'            => [ $this, 'getFunnel' ],
+					'permission_callback' => [ $this, 'checkAdminPermission' ],
 					'args'                => $this->getDaysArgs( 30 ),
-				),
-			)
+				],
+			]
 		);
 
 		// Export endpoint.
 		register_rest_route(
 			$this->apiNamespace,
 			'/' . $this->rest_base . '/export',
-			array(
-				array(
+			[
+				[
 					'methods'             => WP_REST_Server::CREATABLE,
-					'callback'            => array( $this, 'exportData' ),
-					'permission_callback' => array( $this, 'checkAdminPermission' ),
+					'callback'            => [ $this, 'exportData' ],
+					'permission_callback' => [ $this, 'checkAdminPermission' ],
 					'args'                => array_merge(
 						$this->getDaysArgs( 30 ),
-						array(
-							'type' => array(
+						[
+							'type' => [
 								'required'          => true,
 								'sanitize_callback' => 'sanitize_text_field',
-								'validate_callback' => array( $this, 'validateExportType' ),
-							),
-						)
+								'validate_callback' => [ $this, 'validateExportType' ],
+							],
+						]
 					),
-				),
-			)
+				],
+			]
 		);
 	}
 
@@ -224,14 +225,14 @@ class AnalyticsController extends AbstractController {
 	 * @return array
 	 */
 	private function getDaysArgs( int $default = 30 ): array {
-		return array(
-			'days' => array(
+		return [
+			'days' => [
 				'required'          => false,
 				'default'           => $default,
 				'sanitize_callback' => 'absint',
-				'validate_callback' => array( $this, 'validateDays' ),
-			),
-		);
+				'validate_callback' => [ $this, 'validateDays' ],
+			],
+		];
 	}
 
 	/**
@@ -240,7 +241,7 @@ class AnalyticsController extends AbstractController {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error
 	 */
-	public function getSummary( WP_REST_Request $request ) {
+	public function getSummary( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$rateLimitResult = $this->checkRateLimit( 'admin' );
 		if ( is_wp_error( $rateLimitResult ) ) {
 			return $rateLimitResult;
@@ -249,22 +250,22 @@ class AnalyticsController extends AbstractController {
 		$period = $request->get_param( 'period' );
 
 		try {
-			$data = \WCH_Analytics_Data::get_summary( $period );
+			$data = wch( AnalyticsData::class )->getSummary( $period );
 
 			return $this->prepareResponse(
-				array(
+				[
 					'success' => true,
 					'data'    => $data,
-				),
+				],
 				$request
 			);
 		} catch ( Exception $e ) {
-			$this->log( 'Analytics summary error: ' . $e->getMessage(), array(), 'error' );
+			$this->log( 'Analytics summary error: ' . $e->getMessage(), [], 'error' );
 
 			return $this->prepareError(
 				'analytics_error',
 				$e->getMessage(),
-				array(),
+				[],
 				500
 			);
 		}
@@ -276,7 +277,7 @@ class AnalyticsController extends AbstractController {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error
 	 */
-	public function getOrders( WP_REST_Request $request ) {
+	public function getOrders( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$rateLimitResult = $this->checkRateLimit( 'admin' );
 		if ( is_wp_error( $rateLimitResult ) ) {
 			return $rateLimitResult;
@@ -285,22 +286,22 @@ class AnalyticsController extends AbstractController {
 		$days = $request->get_param( 'days' );
 
 		try {
-			$data = \WCH_Analytics_Data::get_orders_over_time( $days );
+			$data = wch( AnalyticsData::class )->getOrdersOverTime( $days );
 
 			return $this->prepareResponse(
-				array(
+				[
 					'success' => true,
 					'data'    => $data,
-				),
+				],
 				$request
 			);
 		} catch ( Exception $e ) {
-			$this->log( 'Analytics orders error: ' . $e->getMessage(), array(), 'error' );
+			$this->log( 'Analytics orders error: ' . $e->getMessage(), [], 'error' );
 
 			return $this->prepareError(
 				'analytics_error',
 				$e->getMessage(),
-				array(),
+				[],
 				500
 			);
 		}
@@ -312,7 +313,7 @@ class AnalyticsController extends AbstractController {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error
 	 */
-	public function getRevenue( WP_REST_Request $request ) {
+	public function getRevenue( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$rateLimitResult = $this->checkRateLimit( 'admin' );
 		if ( is_wp_error( $rateLimitResult ) ) {
 			return $rateLimitResult;
@@ -321,22 +322,22 @@ class AnalyticsController extends AbstractController {
 		$days = $request->get_param( 'days' );
 
 		try {
-			$data = \WCH_Analytics_Data::get_revenue_by_day( $days );
+			$data = wch( AnalyticsData::class )->getRevenueByDay( $days );
 
 			return $this->prepareResponse(
-				array(
+				[
 					'success' => true,
 					'data'    => $data,
-				),
+				],
 				$request
 			);
 		} catch ( Exception $e ) {
-			$this->log( 'Analytics revenue error: ' . $e->getMessage(), array(), 'error' );
+			$this->log( 'Analytics revenue error: ' . $e->getMessage(), [], 'error' );
 
 			return $this->prepareError(
 				'analytics_error',
 				$e->getMessage(),
-				array(),
+				[],
 				500
 			);
 		}
@@ -348,7 +349,7 @@ class AnalyticsController extends AbstractController {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error
 	 */
-	public function getTopProducts( WP_REST_Request $request ) {
+	public function getTopProducts( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$rateLimitResult = $this->checkRateLimit( 'admin' );
 		if ( is_wp_error( $rateLimitResult ) ) {
 			return $rateLimitResult;
@@ -358,22 +359,22 @@ class AnalyticsController extends AbstractController {
 		$days  = $request->get_param( 'days' );
 
 		try {
-			$data = \WCH_Analytics_Data::get_top_products( $limit, $days );
+			$data = wch( AnalyticsData::class )->getTopProducts( $limit, $days );
 
 			return $this->prepareResponse(
-				array(
+				[
 					'success' => true,
 					'data'    => $data,
-				),
+				],
 				$request
 			);
 		} catch ( Exception $e ) {
-			$this->log( 'Analytics products error: ' . $e->getMessage(), array(), 'error' );
+			$this->log( 'Analytics products error: ' . $e->getMessage(), [], 'error' );
 
 			return $this->prepareError(
 				'analytics_error',
 				$e->getMessage(),
-				array(),
+				[],
 				500
 			);
 		}
@@ -385,7 +386,7 @@ class AnalyticsController extends AbstractController {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error
 	 */
-	public function getConversations( WP_REST_Request $request ) {
+	public function getConversations( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$rateLimitResult = $this->checkRateLimit( 'admin' );
 		if ( is_wp_error( $rateLimitResult ) ) {
 			return $rateLimitResult;
@@ -394,22 +395,22 @@ class AnalyticsController extends AbstractController {
 		$days = $request->get_param( 'days' );
 
 		try {
-			$data = \WCH_Analytics_Data::get_conversation_heatmap( $days );
+			$data = wch( AnalyticsData::class )->getConversationHeatmap( $days );
 
 			return $this->prepareResponse(
-				array(
+				[
 					'success' => true,
 					'data'    => $data,
-				),
+				],
 				$request
 			);
 		} catch ( Exception $e ) {
-			$this->log( 'Analytics conversations error: ' . $e->getMessage(), array(), 'error' );
+			$this->log( 'Analytics conversations error: ' . $e->getMessage(), [], 'error' );
 
 			return $this->prepareError(
 				'analytics_error',
 				$e->getMessage(),
-				array(),
+				[],
 				500
 			);
 		}
@@ -421,7 +422,7 @@ class AnalyticsController extends AbstractController {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error
 	 */
-	public function getMetrics( WP_REST_Request $request ) {
+	public function getMetrics( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$rateLimitResult = $this->checkRateLimit( 'admin' );
 		if ( is_wp_error( $rateLimitResult ) ) {
 			return $rateLimitResult;
@@ -430,22 +431,22 @@ class AnalyticsController extends AbstractController {
 		$days = $request->get_param( 'days' );
 
 		try {
-			$data = \WCH_Analytics_Data::get_detailed_metrics( $days );
+			$data = wch( AnalyticsData::class )->getDetailedMetrics( $days );
 
 			return $this->prepareResponse(
-				array(
+				[
 					'success' => true,
 					'data'    => $data,
-				),
+				],
 				$request
 			);
 		} catch ( Exception $e ) {
-			$this->log( 'Analytics metrics error: ' . $e->getMessage(), array(), 'error' );
+			$this->log( 'Analytics metrics error: ' . $e->getMessage(), [], 'error' );
 
 			return $this->prepareError(
 				'analytics_error',
 				$e->getMessage(),
-				array(),
+				[],
 				500
 			);
 		}
@@ -457,7 +458,7 @@ class AnalyticsController extends AbstractController {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error
 	 */
-	public function getCustomerInsights( WP_REST_Request $request ) {
+	public function getCustomerInsights( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$rateLimitResult = $this->checkRateLimit( 'admin' );
 		if ( is_wp_error( $rateLimitResult ) ) {
 			return $rateLimitResult;
@@ -466,22 +467,22 @@ class AnalyticsController extends AbstractController {
 		$days = $request->get_param( 'days' );
 
 		try {
-			$data = \WCH_Analytics_Data::get_customer_insights( $days );
+			$data = wch( AnalyticsData::class )->getCustomerInsights( $days );
 
 			return $this->prepareResponse(
-				array(
+				[
 					'success' => true,
 					'data'    => $data,
-				),
+				],
 				$request
 			);
 		} catch ( Exception $e ) {
-			$this->log( 'Analytics customers error: ' . $e->getMessage(), array(), 'error' );
+			$this->log( 'Analytics customers error: ' . $e->getMessage(), [], 'error' );
 
 			return $this->prepareError(
 				'analytics_error',
 				$e->getMessage(),
-				array(),
+				[],
 				500
 			);
 		}
@@ -493,7 +494,7 @@ class AnalyticsController extends AbstractController {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error
 	 */
-	public function getFunnel( WP_REST_Request $request ) {
+	public function getFunnel( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$rateLimitResult = $this->checkRateLimit( 'admin' );
 		if ( is_wp_error( $rateLimitResult ) ) {
 			return $rateLimitResult;
@@ -502,22 +503,22 @@ class AnalyticsController extends AbstractController {
 		$days = $request->get_param( 'days' );
 
 		try {
-			$data = \WCH_Analytics_Data::get_funnel_data( $days );
+			$data = wch( AnalyticsData::class )->getFunnelData( $days );
 
 			return $this->prepareResponse(
-				array(
+				[
 					'success' => true,
 					'data'    => $data,
-				),
+				],
 				$request
 			);
 		} catch ( Exception $e ) {
-			$this->log( 'Analytics funnel error: ' . $e->getMessage(), array(), 'error' );
+			$this->log( 'Analytics funnel error: ' . $e->getMessage(), [], 'error' );
 
 			return $this->prepareError(
 				'analytics_error',
 				$e->getMessage(),
-				array(),
+				[],
 				500
 			);
 		}
@@ -529,7 +530,7 @@ class AnalyticsController extends AbstractController {
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response|WP_Error
 	 */
-	public function exportData( WP_REST_Request $request ) {
+	public function exportData( WP_REST_Request $request ): WP_REST_Response|WP_Error {
 		$rateLimitResult = $this->checkRateLimit( 'admin' );
 		if ( is_wp_error( $rateLimitResult ) ) {
 			return $rateLimitResult;
@@ -546,25 +547,25 @@ class AnalyticsController extends AbstractController {
 			}
 
 			$filename = 'wch-analytics-' . $type . '-' . gmdate( 'Y-m-d-His' ) . '.csv';
-			\WCH_Analytics_Data::export_to_csv( $data, $filename );
+			wch( AnalyticsData::class )->exportToCsv( $data, $filename );
 
 			return $this->prepareResponse(
-				array(
+				[
 					'success' => true,
-					'data'    => array(
+					'data'    => [
 						'file_url' => wp_upload_dir()['url'] . '/' . $filename,
 						'filename' => $filename,
-					),
-				),
+					],
+				],
 				$request
 			);
 		} catch ( Exception $e ) {
-			$this->log( 'Analytics export error: ' . $e->getMessage(), array(), 'error' );
+			$this->log( 'Analytics export error: ' . $e->getMessage(), [], 'error' );
 
 			return $this->prepareError(
 				'analytics_error',
 				$e->getMessage(),
-				array(),
+				[],
 				500
 			);
 		}
@@ -580,20 +581,20 @@ class AnalyticsController extends AbstractController {
 	private function getExportData( string $type, int $days ) {
 		switch ( $type ) {
 			case 'orders':
-				return \WCH_Analytics_Data::get_orders_over_time( $days );
+				return wch( AnalyticsData::class )->getOrdersOverTime( $days );
 			case 'revenue':
-				return \WCH_Analytics_Data::get_revenue_by_day( $days );
+				return wch( AnalyticsData::class )->getRevenueByDay( $days );
 			case 'products':
-				return \WCH_Analytics_Data::get_top_products( 50, $days );
+				return wch( AnalyticsData::class )->getTopProducts( 50, $days );
 			case 'metrics':
-				return \WCH_Analytics_Data::get_detailed_metrics( $days );
+				return wch( AnalyticsData::class )->getDetailedMetrics( $days );
 			case 'funnel':
-				return \WCH_Analytics_Data::get_funnel_data( $days );
+				return wch( AnalyticsData::class )->getFunnelData( $days );
 			default:
 				return $this->prepareError(
 					'invalid_export_type',
 					__( 'Invalid export type', 'whatsapp-commerce-hub' ),
-					array(),
+					[],
 					400
 				);
 		}
@@ -617,7 +618,7 @@ class AnalyticsController extends AbstractController {
 	 * @param string          $param   Parameter name.
 	 * @return bool|WP_Error
 	 */
-	public function validateDays( $value, WP_REST_Request $request, string $param ) {
+	public function validateDays( $value, WP_REST_Request $request, string $param ): bool|WP_Error {
 		$days = absint( $value );
 
 		if ( $days < 1 ) {
@@ -628,7 +629,7 @@ class AnalyticsController extends AbstractController {
 					__( '%s must be at least 1.', 'whatsapp-commerce-hub' ),
 					$param
 				),
-				array( 'status' => 400 )
+				[ 'status' => 400 ]
 			);
 		}
 
@@ -640,7 +641,7 @@ class AnalyticsController extends AbstractController {
 					__( '%s cannot exceed 365 days.', 'whatsapp-commerce-hub' ),
 					$param
 				),
-				array( 'status' => 400 )
+				[ 'status' => 400 ]
 			);
 		}
 
@@ -655,7 +656,7 @@ class AnalyticsController extends AbstractController {
 	 * @param string          $param   Parameter name.
 	 * @return bool|WP_Error
 	 */
-	public function validateLimit( $value, WP_REST_Request $request, string $param ) {
+	public function validateLimit( $value, WP_REST_Request $request, string $param ): bool|WP_Error {
 		$limit = absint( $value );
 
 		if ( $limit < 1 ) {
@@ -666,7 +667,7 @@ class AnalyticsController extends AbstractController {
 					__( '%s must be at least 1.', 'whatsapp-commerce-hub' ),
 					$param
 				),
-				array( 'status' => 400 )
+				[ 'status' => 400 ]
 			);
 		}
 
@@ -678,7 +679,7 @@ class AnalyticsController extends AbstractController {
 					__( '%s cannot exceed 100.', 'whatsapp-commerce-hub' ),
 					$param
 				),
-				array( 'status' => 400 )
+				[ 'status' => 400 ]
 			);
 		}
 
@@ -692,7 +693,7 @@ class AnalyticsController extends AbstractController {
 	 * @return bool
 	 */
 	public function validateExportType( string $value ): bool {
-		$validTypes = array( 'orders', 'revenue', 'products', 'metrics', 'funnel' );
+		$validTypes = [ 'orders', 'revenue', 'products', 'metrics', 'funnel' ];
 		return in_array( $value, $validTypes, true );
 	}
 
@@ -702,30 +703,30 @@ class AnalyticsController extends AbstractController {
 	 * @return array
 	 */
 	public function getItemSchema(): array {
-		return array(
+		return [
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
 			'title'      => 'analytics',
 			'type'       => 'object',
-			'properties' => array(
-				'total_conversations' => array(
+			'properties' => [
+				'total_conversations' => [
 					'description' => __( 'Total number of conversations', 'whatsapp-commerce-hub' ),
 					'type'        => 'integer',
-					'context'     => array( 'view' ),
+					'context'     => [ 'view' ],
 					'readonly'    => true,
-				),
-				'total_orders'        => array(
+				],
+				'total_orders'        => [
 					'description' => __( 'Total number of orders', 'whatsapp-commerce-hub' ),
 					'type'        => 'integer',
-					'context'     => array( 'view' ),
+					'context'     => [ 'view' ],
 					'readonly'    => true,
-				),
-				'total_revenue'       => array(
+				],
+				'total_revenue'       => [
 					'description' => __( 'Total revenue', 'whatsapp-commerce-hub' ),
 					'type'        => 'number',
-					'context'     => array( 'view' ),
+					'context'     => [ 'view' ],
 					'readonly'    => true,
-				),
-			),
-		);
+				],
+			],
+		];
 	}
 }

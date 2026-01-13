@@ -27,7 +27,7 @@ interface FrequencyCapManagerInterface {
 	/**
 	 * Default caps.
 	 */
-	public const DEFAULT_WEEKLY_CAP = 1;
+	public const DEFAULT_WEEKLY_CAP  = 1;
 	public const DEFAULT_MONTHLY_CAP = 4;
 
 	/**

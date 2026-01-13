@@ -8,6 +8,8 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Entities;
 
 // Exit if accessed directly.
@@ -38,6 +40,7 @@ final class Message {
 	public const TYPE_VIDEO       = 'video';
 	public const TYPE_LOCATION    = 'location';
 	public const TYPE_INTERACTIVE = 'interactive';
+	public const TYPE_BUTTON      = 'button';
 	public const TYPE_TEMPLATE    = 'template';
 	public const TYPE_REACTION    = 'reaction';
 
@@ -91,7 +94,7 @@ final class Message {
 	 */
 	public static function fromArray( array $row ): self {
 		// Parse JSON content safely, handling corruption.
-		$content = array();
+		$content = [];
 		if ( isset( $row['content'] ) && is_string( $row['content'] ) ) {
 			$decoded = json_decode( $row['content'], true );
 			if ( JSON_ERROR_NONE === json_last_error() && is_array( $decoded ) ) {
@@ -143,7 +146,7 @@ final class Message {
 	 * @return array
 	 */
 	public function toArray(): array {
-		return array(
+		return [
 			'id'              => $this->id,
 			'conversation_id' => $this->conversation_id,
 			'wa_message_id'   => $this->wa_message_id,
@@ -157,7 +160,7 @@ final class Message {
 			'sent_at'         => $this->sent_at?->format( 'Y-m-d H:i:s' ),
 			'delivered_at'    => $this->delivered_at?->format( 'Y-m-d H:i:s' ),
 			'read_at'         => $this->read_at?->format( 'Y-m-d H:i:s' ),
-		);
+		];
 	}
 
 	/**

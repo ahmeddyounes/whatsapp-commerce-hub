@@ -9,7 +9,11 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Security;
+
+use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -50,7 +54,7 @@ class SecureVault {
 	 *
 	 * @var array<int, string>
 	 */
-	private array $keys = array();
+	private array $keys = [];
 
 	/**
 	 * Installation-unique HKDF salt.
@@ -116,7 +120,7 @@ class SecureVault {
 
 		if ( empty( $primary_key ) || ! is_string( $primary_key ) ) {
 			// Fallback to WordPress auth key (less secure, for backward compatibility).
-			$primary_key = defined( 'AUTH_KEY' ) ? AUTH_KEY : wp_salt( 'auth' );
+			$primary_key              = defined( 'AUTH_KEY' ) ? AUTH_KEY : wp_salt( 'auth' );
 			$this->using_fallback_key = true;
 
 			// Log security warning about using fallback key.
@@ -128,16 +132,16 @@ class SecureVault {
 		}
 
 		// Load key versions from options.
-		$key_versions = get_option( 'wch_encryption_key_versions', array() );
+		$key_versions = get_option( 'wch_encryption_key_versions', [] );
 
 		if ( empty( $key_versions ) ) {
 			// Initialize with version 1.
-			$key_versions = array(
-				1 => array(
+			$key_versions = [
+				1 => [
 					'created_at' => time(),
 					'active'     => true,
-				),
-			);
+				],
+			];
 			update_option( 'wch_encryption_key_versions', $key_versions );
 		}
 
@@ -145,7 +149,7 @@ class SecureVault {
 		$latest_version = 1;
 		foreach ( $key_versions as $version => $meta ) {
 			$this->keys[ $version ] = $this->deriveKey( $primary_key, "wch-key-v{$version}" );
-			$latest_version = max( $latest_version, (int) $version );
+			$latest_version         = max( $latest_version, (int) $version );
 
 			if ( ! empty( $meta['active'] ) ) {
 				$this->current_key_version = (int) $version;
@@ -187,7 +191,7 @@ class SecureVault {
 	 * @return string The derived key.
 	 */
 	private function deriveFieldKey( string $field, ?int $key_version = null ): string {
-		$version = $key_version ?? $this->current_key_version;
+		$version  = $key_version ?? $this->current_key_version;
 		$base_key = $this->keys[ $version ] ?? $this->keys[ $this->current_key_version ];
 
 		return $this->deriveKey( $base_key, "wch-field-{$field}" );
@@ -216,7 +220,7 @@ class SecureVault {
 		}
 
 		// Encrypt with GCM.
-		$tag = '';
+		$tag        = '';
 		$ciphertext = openssl_encrypt(
 			$plaintext,
 			self::ALGORITHM,
@@ -258,8 +262,7 @@ class SecureVault {
 			return $this->decryptV2( substr( $encrypted, 3 ), $field );
 		}
 
-		// Try legacy decryption (v1 - CBC mode).
-		return $this->decryptLegacy( $encrypted );
+		throw new \RuntimeException( 'Unsupported encryption format' );
 	}
 
 	/**
@@ -278,9 +281,9 @@ class SecureVault {
 		}
 
 		// Unpack components.
-		$version = unpack( 'C', $packed[0] )[1];
-		$iv = substr( $packed, 1, self::IV_LENGTH );
-		$tag = substr( $packed, 1 + self::IV_LENGTH, self::TAG_LENGTH );
+		$version    = unpack( 'C', $packed[0] )[1];
+		$iv         = substr( $packed, 1, self::IV_LENGTH );
+		$tag        = substr( $packed, 1 + self::IV_LENGTH, self::TAG_LENGTH );
 		$ciphertext = substr( $packed, 1 + self::IV_LENGTH + self::TAG_LENGTH );
 
 		// Get the appropriate key.
@@ -310,29 +313,6 @@ class SecureVault {
 	}
 
 	/**
-	 * Decrypt legacy format (CBC mode from v1).
-	 *
-	 * @param string $encrypted The encrypted data.
-	 * @return string The decrypted data.
-	 * @throws \RuntimeException If decryption fails.
-	 */
-	private function decryptLegacy( string $encrypted ): string {
-		// Use legacy encryption class if available.
-		if ( class_exists( 'WCH_Encryption' ) ) {
-			try {
-				$decrypted = \WCH_Encryption::instance()->decrypt( $encrypted );
-				if ( $decrypted ) {
-					return $decrypted;
-				}
-			} catch ( \Exception $e ) {
-				// Fall through to error.
-			}
-		}
-
-		throw new \RuntimeException( 'Unable to decrypt legacy format' );
-	}
-
-	/**
 	 * Rotate to a new key version.
 	 *
 	 * Uses database locking to prevent race conditions when multiple
@@ -344,10 +324,10 @@ class SecureVault {
 	public function rotateKey(): int {
 		global $wpdb;
 
-		$lock_name = 'wch_key_rotation_lock';
+		$lock_name    = 'wch_key_rotation_lock';
 		$lock_timeout = 30; // seconds
-		$max_retries = 3;
-		$retry_delay = 100000; // microseconds (0.1 seconds)
+		$max_retries  = 3;
+		$retry_delay  = 100000; // microseconds (0.1 seconds)
 
 		// Track whether we acquired the lock for proper cleanup.
 		$lock_acquired = false;
@@ -357,7 +337,7 @@ class SecureVault {
 			for ( $attempt = 0; $attempt < $max_retries; $attempt++ ) {
 				$result = $wpdb->get_var(
 					$wpdb->prepare(
-						"SELECT GET_LOCK(%s, %d)",
+						'SELECT GET_LOCK(%s, %d)',
 						$lock_name,
 						$lock_timeout
 					)
@@ -378,8 +358,8 @@ class SecureVault {
 			}
 
 			// Re-read key versions inside lock to get current state.
-			$key_versions = get_option( 'wch_encryption_key_versions', array() );
-			$old_version = $this->current_key_version;
+			$key_versions = get_option( 'wch_encryption_key_versions', [] );
+			$old_version  = $this->current_key_version;
 
 			// Deactivate current key.
 			foreach ( $key_versions as $version => $meta ) {
@@ -387,11 +367,11 @@ class SecureVault {
 			}
 
 			// Create new version.
-			$new_version = empty( $key_versions ) ? 1 : max( array_keys( $key_versions ) ) + 1;
-			$key_versions[ $new_version ] = array(
+			$new_version                  = empty( $key_versions ) ? 1 : max( array_keys( $key_versions ) ) + 1;
+			$key_versions[ $new_version ] = [
 				'created_at' => time(),
 				'active'     => true,
-			);
+			];
 
 			update_option( 'wch_encryption_key_versions', $key_versions );
 
@@ -399,10 +379,14 @@ class SecureVault {
 			$this->loadKeys();
 
 			// Log the rotation.
-			do_action( 'wch_security_log', 'key_rotation', array(
-				'old_version' => $old_version,
-				'new_version' => $new_version,
-			) );
+			do_action(
+				'wch_security_log',
+				'key_rotation',
+				[
+					'old_version' => $old_version,
+					'new_version' => $new_version,
+				]
+			);
 
 			return $new_version;
 		} finally {
@@ -410,7 +394,7 @@ class SecureVault {
 			if ( $lock_acquired ) {
 				$wpdb->query(
 					$wpdb->prepare(
-						"SELECT RELEASE_LOCK(%s)",
+						'SELECT RELEASE_LOCK(%s)',
 						$lock_name
 					)
 				);
@@ -450,7 +434,7 @@ class SecureVault {
 			return false;
 		}
 
-		// Legacy format always needs re-encryption.
+		// Non-v2 format always needs re-encryption.
 		if ( ! str_starts_with( $encrypted, 'v2:' ) ) {
 			return true;
 		}
@@ -509,16 +493,17 @@ class SecureVault {
 	 * @param string|null $detailed_error The detailed error (e.g., from openssl_error_string()).
 	 */
 	private function logSecurityError( string $message, ?string $detailed_error ): void {
-		if ( class_exists( 'WCH_Logger' ) ) {
-			\WCH_Logger::error(
+		$logger = $this->getLogger();
+		if ( $logger ) {
+			$logger->error(
 				$message,
-				array(
-					'category'      => 'security',
+				'security',
+				[
 					'openssl_error' => $detailed_error ?: 'No additional details',
-				)
+				]
 			);
 		} elseif ( function_exists( 'error_log' ) ) {
-			// Fallback to PHP error log if WCH_Logger is not available.
+			// Fallback to PHP error log if logger is not available.
 			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			error_log( sprintf( '[WCH SecureVault] %s: %s', $message, $detailed_error ?: 'No details' ) );
 		}
@@ -535,26 +520,40 @@ class SecureVault {
 	 */
 	private function logSecurityWarning( string $message, string $details ): void {
 		// Only log once per request to avoid flooding logs.
-		static $logged = array();
-		$key = md5( $message );
+		static $logged = [];
+		$key           = md5( $message );
 
 		if ( isset( $logged[ $key ] ) ) {
 			return;
 		}
 		$logged[ $key ] = true;
 
-		if ( class_exists( 'WCH_Logger' ) ) {
-			\WCH_Logger::warning(
+		$logger = $this->getLogger();
+		if ( $logger ) {
+			$logger->warning(
 				$message,
-				array(
-					'category' => 'security',
-					'details'  => $details,
-				)
+				'security',
+				[
+					'details' => $details,
+				]
 			);
 		} elseif ( function_exists( 'error_log' ) && defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			// Only log to PHP error log in debug mode for warnings.
 			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			error_log( sprintf( '[WCH SecureVault Warning] %s: %s', $message, $details ) );
+		}
+	}
+
+	/**
+	 * Resolve logger if available.
+	 *
+	 * @return LoggerInterface|null
+	 */
+	private function getLogger(): ?LoggerInterface {
+		try {
+			return wch( LoggerInterface::class );
+		} catch ( \Throwable $e ) {
+			return null;
 		}
 	}
 

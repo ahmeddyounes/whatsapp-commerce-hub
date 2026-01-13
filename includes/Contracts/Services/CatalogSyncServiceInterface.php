@@ -8,6 +8,8 @@
  * @since 2.1.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Contracts\Services;
 
 // Exit if accessed directly.
@@ -81,7 +83,13 @@ interface CatalogSyncServiceInterface {
 	 * @param array  $errors List of errors.
 	 * @return void
 	 */
-	public function recordSyncHistory( int $product_count, string $triggered_by = 'manual', string $status = 'success', int $duration = 0, array $errors = array() ): void;
+	public function recordSyncHistory(
+		int $product_count,
+		string $triggered_by = 'manual',
+		string $status = 'success',
+		int $duration = 0,
+		array $errors = []
+	): void;
 
 	/**
 	 * Save sync settings.

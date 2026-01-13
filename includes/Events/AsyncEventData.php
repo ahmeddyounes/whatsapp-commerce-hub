@@ -9,6 +9,8 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Events;
 
 // Exit if accessed directly.
@@ -81,7 +83,7 @@ class AsyncEventData {
 	 */
 	public function __construct( array $data ) {
 		$this->name    = $data['name'] ?? 'unknown';
-		$this->payload = $data['payload'] ?? array();
+		$this->payload = $data['payload'] ?? [];
 		$this->id      = $data['id'] ?? $this->generateFallbackId();
 
 		try {
@@ -90,10 +92,10 @@ class AsyncEventData {
 			$this->occurred_at = new \DateTimeImmutable();
 		}
 
-		$this->metadata = $data['metadata'] ?? array(
+		$this->metadata = $data['metadata'] ?? [
 			'source'  => 'async',
 			'version' => defined( 'WCH_VERSION' ) ? WCH_VERSION : '1.0.0',
-		);
+		];
 	}
 
 	/**
@@ -120,13 +122,13 @@ class AsyncEventData {
 	 * @return array The serialized event.
 	 */
 	public function toArray(): array {
-		return array(
+		return [
 			'id'          => $this->id,
 			'name'        => $this->name,
 			'payload'     => $this->payload,
 			'metadata'    => $this->metadata,
 			'occurred_at' => $this->occurred_at->format( 'c' ),
-		);
+		];
 	}
 
 	/**

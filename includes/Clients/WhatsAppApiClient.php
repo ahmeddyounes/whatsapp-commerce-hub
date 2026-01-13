@@ -8,11 +8,13 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Clients;
 
 use WhatsAppCommerceHub\Contracts\Clients\WhatsAppClientInterface;
 use WhatsAppCommerceHub\Resilience\CircuitBreaker;
-use WhatsAppCommerceHub\Resilience\CircuitOpenException;
+use WhatsAppCommerceHub\Resilience\CircuitBreakerRegistry;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -103,22 +105,23 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 		$this->base_url        = 'https://graph.facebook.com/' . $this->api_version . '/';
 	}
 
+
 	/**
 	 * {@inheritdoc}
 	 */
 	public function sendTextMessage( string $to, string $text, bool $preview_url = false ): array {
 		$this->validatePhoneNumber( $to );
 
-		$body = array(
+		$body = [
 			'messaging_product' => 'whatsapp',
 			'recipient_type'    => 'individual',
 			'to'                => $to,
 			'type'              => 'text',
-			'text'              => array(
+			'text'              => [
 				'preview_url' => $preview_url,
 				'body'        => $text,
-			),
-		);
+			],
+		];
 
 		return $this->sendMessage( $body );
 	}
@@ -136,29 +139,29 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 	): array {
 		$this->validatePhoneNumber( $to );
 
-		$message_body = array(
+		$message_body = [
 			'messaging_product' => 'whatsapp',
 			'recipient_type'    => 'individual',
 			'to'                => $to,
 			'type'              => 'interactive',
-			'interactive'       => array(
+			'interactive'       => [
 				'type'   => 'list',
-				'header' => array(
+				'header' => [
 					'type' => 'text',
 					'text' => $header,
-				),
-				'body'   => array(
+				],
+				'body'   => [
 					'text' => $body,
-				),
-				'footer' => array(
+				],
+				'footer' => [
 					'text' => $footer,
-				),
-				'action' => array(
+				],
+				'action' => [
 					'button'   => $button_text,
 					'sections' => $sections,
-				),
-			),
-		);
+				],
+			],
+		];
 
 		return $this->sendMessage( $message_body );
 	}
@@ -175,28 +178,28 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 	): array {
 		$this->validatePhoneNumber( $to );
 
-		$message_body = array(
+		$message_body = [
 			'messaging_product' => 'whatsapp',
 			'recipient_type'    => 'individual',
 			'to'                => $to,
 			'type'              => 'interactive',
-			'interactive'       => array(
+			'interactive'       => [
 				'type'   => 'button',
-				'header' => array(
+				'header' => [
 					'type' => 'text',
 					'text' => $header,
-				),
-				'body'   => array(
+				],
+				'body'   => [
 					'text' => $body,
-				),
-				'footer' => array(
+				],
+				'footer' => [
 					'text' => $footer,
-				),
-				'action' => array(
+				],
+				'action' => [
 					'buttons' => $buttons,
-				),
-			),
-		);
+				],
+			],
+		];
 
 		return $this->sendMessage( $message_body );
 	}
@@ -208,28 +211,28 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 		string $to,
 		string $template_name,
 		string $language_code,
-		array $components = array()
+		array $components = []
 	): array {
 		$this->validatePhoneNumber( $to );
 
-		$template = array(
+		$template = [
 			'name'     => $template_name,
-			'language' => array(
+			'language' => [
 				'code' => $language_code,
-			),
-		);
+			],
+		];
 
 		if ( ! empty( $components ) ) {
 			$template['components'] = $components;
 		}
 
-		$body = array(
+		$body = [
 			'messaging_product' => 'whatsapp',
 			'recipient_type'    => 'individual',
 			'to'                => $to,
 			'type'              => 'template',
 			'template'          => $template,
-		);
+		];
 
 		return $this->sendMessage( $body );
 	}
@@ -240,7 +243,7 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 	public function sendImage( string $to, string $image_url_or_id, ?string $caption = null ): array {
 		$this->validatePhoneNumber( $to );
 
-		$image = array();
+		$image = [];
 		if ( $this->isMediaId( $image_url_or_id ) ) {
 			$image['id'] = $image_url_or_id;
 		} else {
@@ -251,13 +254,13 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 			$image['caption'] = $caption;
 		}
 
-		$body = array(
+		$body = [
 			'messaging_product' => 'whatsapp',
 			'recipient_type'    => 'individual',
 			'to'                => $to,
 			'type'              => 'image',
 			'image'             => $image,
-		);
+		];
 
 		return $this->sendMessage( $body );
 	}
@@ -273,7 +276,7 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 	): array {
 		$this->validatePhoneNumber( $to );
 
-		$document = array();
+		$document = [];
 		if ( $this->isMediaId( $document_url_or_id ) ) {
 			$document['id'] = $document_url_or_id;
 		} else {
@@ -287,13 +290,13 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 			$document['caption'] = $caption;
 		}
 
-		$body = array(
+		$body = [
 			'messaging_product' => 'whatsapp',
 			'recipient_type'    => 'individual',
 			'to'                => $to,
 			'type'              => 'document',
 			'document'          => $document,
-		);
+		];
 
 		return $this->sendMessage( $body );
 	}
@@ -304,19 +307,19 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 	public function sendProductMessage( string $to, string $catalog_id, string $product_retailer_id ): array {
 		$this->validatePhoneNumber( $to );
 
-		$body = array(
+		$body = [
 			'messaging_product' => 'whatsapp',
 			'recipient_type'    => 'individual',
 			'to'                => $to,
 			'type'              => 'interactive',
-			'interactive'       => array(
+			'interactive'       => [
 				'type'   => 'product',
-				'action' => array(
+				'action' => [
 					'catalog_id'          => $catalog_id,
 					'product_retailer_id' => $product_retailer_id,
-				),
-			),
-		);
+				],
+			],
+		];
 
 		return $this->sendMessage( $body );
 	}
@@ -333,26 +336,26 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 	): array {
 		$this->validatePhoneNumber( $to );
 
-		$message_body = array(
+		$message_body = [
 			'messaging_product' => 'whatsapp',
 			'recipient_type'    => 'individual',
 			'to'                => $to,
 			'type'              => 'interactive',
-			'interactive'       => array(
+			'interactive'       => [
 				'type'   => 'product_list',
-				'header' => array(
+				'header' => [
 					'type' => 'text',
 					'text' => $header,
-				),
-				'body'   => array(
+				],
+				'body'   => [
 					'text' => $body,
-				),
-				'action' => array(
+				],
+				'action' => [
 					'catalog_id' => $catalog_id,
 					'sections'   => $sections,
-				),
-			),
-		);
+				],
+			],
+		];
 
 		return $this->sendMessage( $message_body );
 	}
@@ -361,15 +364,15 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 	 * {@inheritdoc}
 	 */
 	public function markAsRead( string $message_id ): array {
-		$body = array(
+		$body = [
 			'messaging_product' => 'whatsapp',
 			'status'            => 'read',
 			'message_id'        => $message_id,
-		);
+		];
 
 		$response = $this->request( 'POST', $this->phone_number_id . '/messages', $body );
 
-		return array( 'status' => true );
+		return [ 'status' => true ];
 	}
 
 	/**
@@ -393,21 +396,30 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 			throw new \InvalidArgumentException( 'File not found: ' . $file_path );
 		}
 
+		// Security: validate file path is within allowed directories.
+		$real_path   = realpath( $file_path );
+		$upload_dir  = wp_upload_dir();
+		$allowed_dir = realpath( $upload_dir['basedir'] ?? '' );
+
+		if ( false === $real_path || false === $allowed_dir || ! str_starts_with( $real_path, $allowed_dir ) ) {
+			throw new \InvalidArgumentException( 'File must be within the WordPress uploads directory' );
+		}
+
 		$boundary = wp_generate_password( 24, false );
 		$body     = $this->buildMultipartBody( $file_path, $mime_type, $boundary );
 
 		$response = $this->circuit_breaker->call(
 			function () use ( $body, $boundary ) {
 				$url  = $this->base_url . $this->phone_number_id . '/media';
-				$args = array(
+				$args = [
 					'method'  => 'POST',
-					'headers' => array(
+					'headers' => [
 						'Authorization' => 'Bearer ' . $this->access_token,
 						'Content-Type'  => 'multipart/form-data; boundary=' . $boundary,
-					),
+					],
 					'body'    => $body,
 					'timeout' => 60,
-				);
+				];
 
 				$response = wp_remote_request( $url, $args );
 
@@ -449,7 +461,7 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 		$fields   = 'about,address,description,email,profile_picture_url,websites,vertical';
 		$response = $this->request( 'GET', $this->phone_number_id . '/whatsapp_business_profile?fields=' . $fields );
 
-		return $response['data'][0] ?? array();
+		return $response['data'][0] ?? [];
 	}
 
 	/**
@@ -476,24 +488,32 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 	 * {@inheritdoc}
 	 */
 	public function updateCatalogProduct( string $catalog_id, string $product_id, array $product_data ): array {
-		return $this->request( 'POST', $catalog_id . '/products', array_merge(
-			$product_data,
-			array( 'retailer_id' => $product_id )
-		) );
+		return $this->request(
+			'POST',
+			$catalog_id . '/products',
+			array_merge(
+				$product_data,
+				[ 'retailer_id' => $product_id ]
+			)
+		);
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
 	public function deleteCatalogProduct( string $catalog_id, string $product_id ): array {
-		return $this->request( 'DELETE', $catalog_id . '/products', array(
-			'requests' => array(
-				array(
-					'method'      => 'DELETE',
-					'retailer_id' => $product_id,
-				),
-			),
-		) );
+		return $this->request(
+			'DELETE',
+			$catalog_id . '/products',
+			[
+				'requests' => [
+					[
+						'method'      => 'DELETE',
+						'retailer_id' => $product_id,
+					],
+				],
+			]
+		);
 	}
 
 	/**
@@ -505,13 +525,13 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 			$catalog_id . '/products?filter=' . rawurlencode( '{"retailer_id":"' . $product_id . '"}' )
 		);
 
-		return $response['data'][0] ?? array();
+		return $response['data'][0] ?? [];
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
-	public function listCatalogProducts( string $catalog_id, array $params = array() ): array {
+	public function listCatalogProducts( string $catalog_id, array $params = [] ): array {
 		$query = http_build_query( $params );
 		$url   = $catalog_id . '/products' . ( $query ? '?' . $query : '' );
 
@@ -544,11 +564,11 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 	public function getHealthStatus(): array {
 		$metrics = $this->circuit_breaker->getMetrics();
 
-		return array(
+		return [
 			'healthy'    => $this->isAvailable(),
 			'latency_ms' => $this->last_request['duration_ms'] ?? null,
 			'last_error' => $metrics['last_failure']['message'] ?? null,
-		);
+		];
 	}
 
 	/**
@@ -557,7 +577,7 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 	 * @param array $body Message body.
 	 * @return array Response with message_id and status.
 	 */
-	private function sendMessage( array $body ): array {
+	public function sendMessage( array $body ): array {
 		$response = $this->request( 'POST', $this->phone_number_id . '/messages', $body );
 
 		$message_id = null;
@@ -565,10 +585,10 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 			$message_id = $response['messages'][0]['id'];
 		}
 
-		return array(
+		return [
 			'message_id' => $message_id,
 			'status'     => 'sent',
-		);
+		];
 	}
 
 	/**
@@ -584,7 +604,7 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 	 * @return array Response data.
 	 * @throws \RuntimeException If request fails and cannot be queued.
 	 */
-	private function request( string $method, string $endpoint, array $body = array() ): array {
+	private function request( string $method, string $endpoint, array $body = [] ): array {
 		return $this->circuit_breaker->call(
 			function () use ( $method, $endpoint, $body ) {
 				return $this->executeRequest( $method, $endpoint, $body );
@@ -598,17 +618,17 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 
 				// Return a queued response instead of throwing.
 				// This allows the caller to continue gracefully.
-				return array(
+				return [
 					'status'    => 'queued',
 					'queued_id' => $queued_id,
 					'message'   => 'WhatsApp API temporarily unavailable. Request queued for retry.',
-					'messages'  => array(
-						array(
+					'messages'  => [
+						[
 							'id'     => 'queued_' . $queued_id,
 							'status' => 'queued',
-						),
-					),
-				);
+						],
+					],
+				];
 			},
 			false // Don't throw when circuit is open - use fallback.
 		);
@@ -630,12 +650,12 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 			as_schedule_single_action(
 				time() + 60, // Retry in 60 seconds.
 				'wch_retry_whatsapp_request',
-				array(
+				[
 					'queued_id' => $queued_id,
 					'method'    => $method,
 					'endpoint'  => $endpoint,
 					'body'      => $body,
-				),
+				],
 				'wch-whatsapp-retry'
 			);
 		} else {
@@ -643,14 +663,14 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 			wp_schedule_single_event(
 				time() + 60,
 				'wch_retry_whatsapp_request',
-				array(
-					array(
+				[
+					[
 						'queued_id' => $queued_id,
 						'method'    => $method,
 						'endpoint'  => $endpoint,
 						'body'      => $body,
-					),
-				)
+					],
+				]
 			);
 		}
 
@@ -666,7 +686,7 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 	 * @return array Response data.
 	 * @throws \RuntimeException If request fails after retries.
 	 */
-	private function executeRequest( string $method, string $endpoint, array $body = array() ): array {
+	private function executeRequest( string $method, string $endpoint, array $body = [] ): array {
 		$url     = $this->base_url . $endpoint;
 		$attempt = 0;
 		$start   = microtime( true );
@@ -674,29 +694,29 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 		while ( $attempt < $this->max_retries ) {
 			++$attempt;
 
-			$args = array(
+			$args = [
 				'method'    => $method,
-				'headers'   => array(
+				'headers'   => [
 					'Authorization' => 'Bearer ' . $this->access_token,
 					'Content-Type'  => 'application/json',
-				),
+				],
 				'timeout'   => $this->timeout,
 				'sslverify' => true,
-			);
+			];
 
-			if ( ! empty( $body ) && in_array( $method, array( 'POST', 'PUT', 'PATCH', 'DELETE' ), true ) ) {
+			if ( ! empty( $body ) && in_array( $method, [ 'POST', 'PUT', 'PATCH', 'DELETE' ], true ) ) {
 				$args['body'] = wp_json_encode( $body );
 			}
 
 			$response = wp_remote_request( $url, $args );
 
-			$duration_ms = (int) ( ( microtime( true ) - $start ) * 1000 );
-			$this->last_request = array(
+			$duration_ms        = (int) ( ( microtime( true ) - $start ) * 1000 );
+			$this->last_request = [
 				'url'         => $url,
 				'method'      => $method,
 				'duration_ms' => $duration_ms,
 				'status_code' => is_wp_error( $response ) ? 0 : wp_remote_retrieve_response_code( $response ),
-			);
+			];
 
 			// Handle network errors.
 			if ( is_wp_error( $response ) ) {
@@ -738,7 +758,7 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 				);
 			}
 
-			return $response_body ?? array();
+			return $response_body ?? [];
 		}
 
 		throw new \RuntimeException( 'Max retries exceeded' );
@@ -786,7 +806,7 @@ class WhatsAppApiClient implements WhatsAppClientInterface {
 			);
 		}
 
-		$body = '--' . $boundary . "\r\n";
+		$body  = '--' . $boundary . "\r\n";
 		$body .= 'Content-Disposition: form-data; name="messaging_product"' . "\r\n\r\n";
 		$body .= 'whatsapp' . "\r\n";
 

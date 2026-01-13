@@ -8,6 +8,11 @@ parameters:
 		- includes
 		- whatsapp-commerce-hub.php
 
+	# Parallel processing - disable to reduce memory usage
+	# Note: Run with --memory-limit=1G if analysis fails
+	parallel:
+		maximumNumberOfProcesses: 1
+
 	# Exclude patterns
 	excludePaths:
 		- includes/class-wch-test.php
@@ -18,6 +23,8 @@ parameters:
 	scanFiles:
 		- vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
 		- vendor/php-stubs/woocommerce-stubs/woocommerce-stubs.php
+		- stubs/action-scheduler.php
+		- stubs/constants.php
 
 	# Enable broader analysis
 	polluteScopeWithLoopInitialAssignments: true

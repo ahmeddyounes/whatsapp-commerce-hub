@@ -41,8 +41,8 @@ class ValidationException extends WchException {
 	 */
 	public function __construct(
 		string $message = 'Validation failed',
-		array $errors = array(),
-		array $context = array(),
+		array $errors = [],
+		array $context = [],
 		?\Throwable $previous = null
 	) {
 		parent::__construct( $message, 'validation_error', 422, $context, 0, $previous );
@@ -66,7 +66,7 @@ class ValidationException extends WchException {
 	 * @return string[] Errors for the field.
 	 */
 	public function getFieldErrors( string $field ): array {
-		return $this->errors[ $field ] ?? array();
+		return $this->errors[ $field ] ?? [];
 	}
 
 	/**
@@ -112,7 +112,7 @@ class ValidationException extends WchException {
 	public static function forField( string $field, string $message ): static {
 		return new static(
 			$message,
-			array( $field => array( $message ) )
+			[ $field => [ $message ] ]
 		);
 	}
 
@@ -123,9 +123,9 @@ class ValidationException extends WchException {
 	 * @return static
 	 */
 	public static function withErrors( array $errors ): static {
-		$normalizedErrors = array();
+		$normalizedErrors = [];
 		foreach ( $errors as $field => $messages ) {
-			$normalizedErrors[ $field ] = is_array( $messages ) ? $messages : array( $messages );
+			$normalizedErrors[ $field ] = is_array( $messages ) ? $messages : [ $messages ];
 		}
 
 		$firstError = '';

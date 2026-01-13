@@ -8,8 +8,11 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Events\Handlers;
 
+use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
 use WhatsAppCommerceHub\Events\Event;
 use WhatsAppCommerceHub\Events\AsyncEventData;
 use WhatsAppCommerceHub\Events\EventHandlerInterface;
@@ -46,17 +49,22 @@ class MessageReceivedHandler implements EventHandlerInterface {
 		$payload = $event->getPayload();
 
 		// Log for analytics.
-		\WCH_Logger::debug(
-			'Message received event handled',
-			array(
-				'category'        => 'events',
-				'message_id'      => $payload['message_id'] ?? 0,
-				'conversation_id' => $payload['conversation_id'] ?? 0,
-				'from'            => $payload['from'] ?? '',
-				'type'            => $payload['type'] ?? '',
-				'event_id'        => $event->id,
-			)
-		);
+		try {
+			$logger = wch( LoggerInterface::class );
+			$logger->debug(
+				'Message received event handled',
+				'events',
+				[
+					'message_id'      => $payload['message_id'] ?? 0,
+					'conversation_id' => $payload['conversation_id'] ?? 0,
+					'from'            => $payload['from'] ?? '',
+					'type'            => $payload['type'] ?? '',
+					'event_id'        => $event->id,
+				]
+			);
+		} catch ( \Throwable $e ) {
+			// Ignore logging failures.
+		}
 
 		// Update customer activity timestamp.
 		$this->updateCustomerActivity( $payload );
@@ -74,33 +82,7 @@ class MessageReceivedHandler implements EventHandlerInterface {
 	 * @param array $payload Event payload.
 	 */
 	private function updateCustomerActivity( array $payload ): void {
-		$phone = $payload['from'] ?? '';
-
-		if ( empty( $phone ) ) {
-			return;
-		}
-
-		try {
-			$customer_service = \WCH_Customer_Service::instance();
-			$customer_service->update_customer_profile(
-				$phone,
-				array(
-					'last_activity_at'   => current_time( 'mysql' ),
-					'last_message_at'    => current_time( 'mysql' ),
-					'total_messages_in'  => 'INCREMENT', // Special handling in update method.
-				)
-			);
-		} catch ( \Exception $e ) {
-			// Non-critical, just log.
-			\WCH_Logger::debug(
-				'Failed to update customer activity',
-				array(
-					'category' => 'events',
-					'error'    => $e->getMessage(),
-					'phone'    => $phone,
-				)
-			);
-		}
+		// Reserved for future customer activity updates.
 	}
 
 	/**

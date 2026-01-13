@@ -18,6 +18,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
+// SQL uses safe table names from $wpdb->prefix. Hook names use wch_ project prefix.
+
 /**
  * Class IdempotencyService
  *
@@ -30,11 +33,11 @@ class IdempotencyService {
 	/**
 	 * Scope constants for different operation types.
 	 */
-	public const SCOPE_WEBHOOK       = 'webhook';
-	public const SCOPE_NOTIFICATION  = 'notification';
-	public const SCOPE_ORDER         = 'order';
-	public const SCOPE_BROADCAST     = 'broadcast';
-	public const SCOPE_SYNC          = 'sync';
+	public const SCOPE_WEBHOOK      = 'webhook';
+	public const SCOPE_NOTIFICATION = 'notification';
+	public const SCOPE_ORDER        = 'order';
+	public const SCOPE_BROADCAST    = 'broadcast';
+	public const SCOPE_SYNC         = 'sync';
 
 	/**
 	 * Default TTL in hours for idempotency keys.
@@ -88,7 +91,7 @@ class IdempotencyService {
 	public function claim( string $key, string $scope = self::SCOPE_WEBHOOK, ?int $ttlHours = null ): bool {
 		$table = $this->getTableName();
 
-		$ttlHours = $ttlHours ?? self::DEFAULT_TTL_HOURS;
+		$ttlHours  = $ttlHours ?? self::DEFAULT_TTL_HOURS;
 		$expiresAt = gmdate( 'Y-m-d H:i:s', strtotime( "+{$ttlHours} hours" ) );
 
 		// Use INSERT IGNORE for atomic claim.
@@ -146,11 +149,11 @@ class IdempotencyService {
 
 		$result = $this->wpdb->delete(
 			$table,
-			array(
+			[
 				'message_id' => $key,
 				'scope'      => $scope,
-			),
-			array( '%s', '%s' )
+			],
+			[ '%s', '%s' ]
 		);
 
 		return false !== $result && $result > 0;
@@ -167,8 +170,8 @@ class IdempotencyService {
 
 		$result = $this->wpdb->delete(
 			$table,
-			array( 'scope' => $scope ),
-			array( '%s' )
+			[ 'scope' => $scope ],
+			[ '%s' ]
 		);
 
 		return false === $result ? 0 : (int) $result;
@@ -179,34 +182,18 @@ class IdempotencyService {
 	 *
 	 * Should be called periodically via cron.
 	 *
-	 * @param int|null $olderThanDays Delete entries older than this many days.
-	 *                                If null, uses expires_at column.
 	 * @return int Number of rows deleted.
 	 */
-	public function cleanup( ?int $olderThanDays = null ): int {
+	public function cleanup(): int {
 		$table = $this->getTableName();
+		$now = current_time( 'mysql', true );
 
-		if ( null !== $olderThanDays ) {
-			// Legacy cleanup based on age.
-			$cutoff = gmdate( 'Y-m-d H:i:s', strtotime( "-{$olderThanDays} days" ) );
-
-			$result = $this->wpdb->query(
-				$this->wpdb->prepare(
-					"DELETE FROM {$table} WHERE processed_at < %s",
-					$cutoff
-				)
-			);
-		} else {
-			// Modern cleanup based on expires_at.
-			$now = current_time( 'mysql', true );
-
-			$result = $this->wpdb->query(
-				$this->wpdb->prepare(
-					"DELETE FROM {$table} WHERE expires_at IS NOT NULL AND expires_at < %s",
-					$now
-				)
-			);
-		}
+		$result = $this->wpdb->query(
+			$this->wpdb->prepare(
+				"DELETE FROM {$table} WHERE expires_at IS NOT NULL AND expires_at < %s",
+				$now
+			)
+		);
 
 		$deleted = false === $result ? 0 : (int) $result;
 
@@ -234,19 +221,19 @@ class IdempotencyService {
 			GROUP BY scope"
 		);
 
-		$stats = array(
+		$stats = [
 			'total'    => 0,
 			'expired'  => 0,
-			'by_scope' => array(),
-		);
+			'by_scope' => [],
+		];
 
 		foreach ( $results as $row ) {
-			$stats['total'] += (int) $row->total;
-			$stats['expired'] += (int) $row->expired;
-			$stats['by_scope'][ $row->scope ] = array(
+			$stats['total']                  += (int) $row->total;
+			$stats['expired']                += (int) $row->expired;
+			$stats['by_scope'][ $row->scope ] = [
 				'total'   => (int) $row->total,
 				'expired' => (int) $row->expired,
-			);
+			];
 		}
 
 		return $stats;
@@ -265,8 +252,8 @@ class IdempotencyService {
 	/**
 	 * Claim with automatic key generation.
 	 *
-	 * @param string   $scope     Operation scope.
-	 * @param string   ...$parts  Parts to combine into a key.
+	 * @param string $scope     Operation scope.
+	 * @param string ...$parts  Parts to combine into a key.
 	 * @return bool True if claim succeeded.
 	 */
 	public function claimWithParts( string $scope, string ...$parts ): bool {

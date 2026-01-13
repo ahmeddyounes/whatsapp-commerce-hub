@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * Holds the current state and data for a customer conversation.
  */
-class ConversationContext {
+final class ConversationContext {
 
 	/**
 	 * Default idle state.
@@ -100,11 +100,11 @@ class ConversationContext {
 	 *
 	 * @param array $data Context data.
 	 */
-	public function __construct( array $data = array() ) {
+	public function __construct( array $data = [] ) {
 		$this->currentState   = $data['current_state'] ?? self::STATE_IDLE;
-		$this->stateData      = $data['state_data'] ?? array();
-		$this->history        = $data['conversation_history'] ?? $data['history'] ?? array();
-		$this->slots          = $data['slots'] ?? array();
+		$this->stateData      = $data['state_data'] ?? [];
+		$this->history        = $data['conversation_history'] ?? $data['history'] ?? [];
+		$this->slots          = $data['slots'] ?? [];
 		$this->customerPhone  = $data['customer_phone'] ?? '';
 		$this->startedAt      = $data['started_at'] ?? gmdate( 'Y-m-d H:i:s' );
 		$this->lastActivityAt = $data['last_activity_at'] ?? gmdate( 'Y-m-d H:i:s' );
@@ -143,6 +143,15 @@ class ConversationContext {
 	 */
 	public function getStateData(): array {
 		return $this->stateData;
+	}
+
+	/**
+	 * Get combined context data.
+	 *
+	 * @return array
+	 */
+	public function getData(): array {
+		return array_merge( $this->stateData, $this->slots );
 	}
 
 	/**
@@ -185,7 +194,7 @@ class ConversationContext {
 	 * @return void
 	 */
 	public function clearStateData(): void {
-		$this->stateData = array();
+		$this->stateData = [];
 		$this->updateActivity();
 	}
 
@@ -267,7 +276,7 @@ class ConversationContext {
 	 * @return void
 	 */
 	public function clearAllSlots(): void {
-		$this->slots = array();
+		$this->slots = [];
 		$this->updateActivity();
 	}
 
@@ -289,14 +298,14 @@ class ConversationContext {
 	 * @param array  $payload   Event payload.
 	 * @return void
 	 */
-	public function addHistoryEntry( string $event, string $fromState, string $toState, array $payload = array() ): void {
-		$this->history[] = array(
+	public function addHistoryEntry( string $event, string $fromState, string $toState, array $payload = [] ): void {
+		$this->history[] = [
 			'timestamp'  => gmdate( 'Y-m-d H:i:s' ),
 			'event'      => $event,
 			'from_state' => $fromState,
 			'to_state'   => $toState,
 			'payload'    => $payload,
-		);
+		];
 
 		// Keep only last N entries.
 		if ( count( $this->history ) > self::MAX_HISTORY_ENTRIES ) {
@@ -314,11 +323,11 @@ class ConversationContext {
 	 * @return void
 	 */
 	public function addExchange( string $userMessage, string $botResponse ): void {
-		$this->history[] = array(
+		$this->history[] = [
 			'timestamp'    => gmdate( 'Y-m-d H:i:s' ),
 			'user_message' => $userMessage,
 			'bot_response' => $botResponse,
-		);
+		];
 
 		if ( count( $this->history ) > self::MAX_HISTORY_ENTRIES ) {
 			$this->history = array_slice( $this->history, -self::MAX_HISTORY_ENTRIES );
@@ -402,8 +411,8 @@ class ConversationContext {
 	 */
 	public function reset(): void {
 		$this->currentState   = self::STATE_IDLE;
-		$this->stateData      = array();
-		$this->history        = array();
+		$this->stateData      = [];
+		$this->history        = [];
 		$this->startedAt      = gmdate( 'Y-m-d H:i:s' );
 		$this->lastActivityAt = gmdate( 'Y-m-d H:i:s' );
 		$this->expiresAt      = gmdate( 'Y-m-d H:i:s', time() + self::DEFAULT_TIMEOUT );
@@ -425,7 +434,7 @@ class ConversationContext {
 	 * @return array
 	 */
 	public function toArray(): array {
-		return array(
+		return [
 			'current_state'        => $this->currentState,
 			'state_data'           => $this->stateData,
 			'conversation_history' => $this->history,
@@ -434,7 +443,7 @@ class ConversationContext {
 			'started_at'           => $this->startedAt,
 			'last_activity_at'     => $this->lastActivityAt,
 			'expires_at'           => $this->expiresAt,
-		);
+		];
 	}
 
 	/**
@@ -452,8 +461,8 @@ class ConversationContext {
 	 * @param array $data Context data.
 	 * @return static
 	 */
-	public static function fromArray( array $data ): static {
-		return new static( $data );
+	public static function fromArray( array $data ): self {
+		return new self( $data );
 	}
 
 	/**
@@ -462,9 +471,9 @@ class ConversationContext {
 	 * @param string $json JSON string.
 	 * @return static
 	 */
-	public static function fromJson( string $json ): static {
+	public static function fromJson( string $json ): self {
 		$data = json_decode( $json, true );
-		return new static( is_array( $data ) ? $data : array() );
+		return new self( is_array( $data ) ? $data : [] );
 	}
 
 	/**
@@ -473,8 +482,8 @@ class ConversationContext {
 	 * @param string $phone Customer phone.
 	 * @return static
 	 */
-	public static function forPhone( string $phone ): static {
-		return new static( array( 'customer_phone' => $phone ) );
+	public static function forPhone( string $phone ): self {
+		return new self( [ 'customer_phone' => $phone ] );
 	}
 
 	/**
@@ -483,7 +492,7 @@ class ConversationContext {
 	 * @return string
 	 */
 	public function buildAiContext(): string {
-		$parts = array();
+		$parts = [];
 
 		// Business information.
 		$businessName = get_bloginfo( 'name' );

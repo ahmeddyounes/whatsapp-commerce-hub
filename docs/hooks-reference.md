@@ -226,15 +226,15 @@ Filter message content before sending.
 
 **Parameters**:
 - `$content` (string) - Message content
-- `$message_type` (string) - Message type (text, image, interactive, etc.)
+- `$type` (string) - Message type (text, image, interactive, etc.)
 - `$conversation` (object) - The conversation object
 
 **Returns**: (string) Modified content
 
 **Example**:
 ```php
-add_filter('wch_message_content', function($content, $message_type, $conversation) {
-    if ($message_type === 'text') {
+add_filter('wch_message_content', function($content, $type, $conversation) {
+    if ($type === 'text') {
         // Add signature to all text messages
         $content .= "\n\n-- " . get_option('wch_business_name');
     }
@@ -1134,8 +1134,8 @@ class WCH_Loyalty_Integration {
         return $intents;
     }
 
-    public function add_points_to_message($content, $message_type, $conversation) {
-        if ($message_type === 'text' && strpos($content, 'Welcome') !== false) {
+    public function add_points_to_message($content, $type, $conversation) {
+        if ($type === 'text' && strpos($content, 'Welcome') !== false) {
             $customer = get_customer($conversation->customer_phone);
             if ($customer) {
                 $points = get_user_meta($customer->id, 'loyalty_points', true);

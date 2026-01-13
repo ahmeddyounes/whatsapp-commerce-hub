@@ -13,9 +13,11 @@ declare(strict_types=1);
 namespace WhatsAppCommerceHub\Actions;
 
 use WhatsAppCommerceHub\Actions\Contracts\ActionHandlerInterface;
-use WhatsAppCommerceHub\ValueObjects\ActionResult;
-use WhatsAppCommerceHub\ValueObjects\ConversationContext;
 use WhatsAppCommerceHub\Contracts\Services\CartServiceInterface;
+use WhatsAppCommerceHub\Core\Logger;
+use WhatsAppCommerceHub\Domain\Customer\CustomerService;
+use WhatsAppCommerceHub\Support\Messaging\MessageBuilder;
+use WhatsAppCommerceHub\ValueObjects\ActionResult;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -53,9 +55,9 @@ abstract class AbstractAction implements ActionHandlerInterface {
 	/**
 	 * Customer service.
 	 *
-	 * @var \WCH_Customer_Service|null
+	 * @var CustomerService|null
 	 */
-	protected ?\WCH_Customer_Service $customerService = null;
+	protected ?CustomerService $customerService = null;
 
 	/**
 	 * Set cart service.
@@ -70,10 +72,10 @@ abstract class AbstractAction implements ActionHandlerInterface {
 	/**
 	 * Set customer service.
 	 *
-	 * @param \WCH_Customer_Service $customerService Customer service.
+	 * @param CustomerService $customerService Customer service.
 	 * @return void
 	 */
-	public function setCustomerService( \WCH_Customer_Service $customerService ): void {
+	public function setCustomerService( CustomerService $customerService ): void {
 		$this->customerService = $customerService;
 	}
 
@@ -115,7 +117,7 @@ abstract class AbstractAction implements ActionHandlerInterface {
 	protected function error( string $errorMessage, ?string $nextState = null ): ActionResult {
 		$message = $this->createMessageBuilder()->text( $errorMessage );
 
-		return ActionResult::failure( array( $message ), $nextState );
+		return ActionResult::failure( $errorMessage, [ $message ], null, $nextState );
 	}
 
 	/**
@@ -126,12 +128,8 @@ abstract class AbstractAction implements ActionHandlerInterface {
 	 * @param string $level   Log level (info, warning, error).
 	 * @return void
 	 */
-	protected function log( string $message, array $data = array(), string $level = 'info' ): void {
-		\WCH_Logger::log(
-			static::class . ': ' . $message,
-			$data,
-			$level
-		);
+	protected function log( string $message, array $data = [], string $level = 'info' ): void {
+		Logger::instance()->log( $level, static::class . ': ' . $message, 'action', $data );
 	}
 
 	/**
@@ -141,32 +139,31 @@ abstract class AbstractAction implements ActionHandlerInterface {
 	 * @return object|null Customer profile or null.
 	 */
 	protected function getCustomerProfile( string $phone ): ?object {
-		$service = $this->customerService ?? \WCH_Customer_Service::instance();
-		return $service->get_or_create_profile( $phone );
+		$service = $this->customerService ?? wch( CustomerService::class );
+		return $service->getOrCreateProfile( $phone );
 	}
 
 	/**
 	 * Get cart for customer.
 	 *
 	 * @param string $phone Customer phone number.
-	 * @return object|null Cart or null.
+	 * @return array|object|null Cart data or null.
 	 */
-	protected function getCart( string $phone ): ?object {
+	protected function getCart( string $phone ): array|object|null {
 		if ( $this->cartService ) {
 			return $this->cartService->getCart( $phone );
 		}
 
-		// Fallback to legacy cart manager.
-		return \WCH_Cart_Manager::instance()->get_cart( $phone );
+		return wch( CartServiceInterface::class )->getCart( $phone );
 	}
 
 	/**
 	 * Create a new message builder instance.
 	 *
-	 * @return \WCH_Message_Builder
+	 * @return MessageBuilder
 	 */
-	protected function createMessageBuilder(): \WCH_Message_Builder {
-		return new \WCH_Message_Builder();
+	protected function createMessageBuilder(): MessageBuilder {
+		return new MessageBuilder();
 	}
 
 	/**
@@ -208,9 +205,9 @@ abstract class AbstractAction implements ActionHandlerInterface {
 	 * @return string|null Image URL or null.
 	 */
 	protected function getProductImageUrl( \WC_Product $product ): ?string {
-		$imageId = $product->get_image_id();
+		$imageId = (int) $product->get_image_id();
 
-		if ( $imageId ) {
+		if ( $imageId > 0 ) {
 			$imageUrl = wp_get_attachment_image_url( $imageId, 'full' );
 			return $imageUrl ?: null;
 		}
@@ -234,7 +231,7 @@ abstract class AbstractAction implements ActionHandlerInterface {
 				continue;
 			}
 
-			$productId = ! empty( $item['variant_id'] ) ? $item['variant_id'] : $item['product_id'];
+			$productId     = ! empty( $item['variant_id'] ) ? $item['variant_id'] : $item['product_id'];
 			$actualProduct = wc_get_product( $productId );
 
 			if ( $actualProduct ) {

@@ -41,7 +41,7 @@ class WCH_Message_Builder_Test extends WCH_Unit_Test_Case {
 		$builder = new WCH_Message_Builder();
 		$message = $builder
 			->body( 'Please choose an option' )
-			->button( 'reply', array( 'id' => 'btn1', 'title' => 'Option 1' ) )
+			->button( 'reply', [ 'id' => 'btn1', 'title' => 'Option 1' ] )
 			->build();
 
 		$this->assertEquals( 'interactive', $message['type'] );
@@ -56,7 +56,7 @@ class WCH_Message_Builder_Test extends WCH_Unit_Test_Case {
 		$message = $builder
 			->header( 'text', 'Welcome' )
 			->body( 'Choose a category' )
-			->button( 'reply', array( 'id' => 'cat1', 'title' => 'Electronics' ) )
+			->button( 'reply', [ 'id' => 'cat1', 'title' => 'Electronics' ] )
 			->build();
 
 		$this->assertArrayHasKey( 'header', $message['interactive'] );
@@ -72,7 +72,7 @@ class WCH_Message_Builder_Test extends WCH_Unit_Test_Case {
 		$message = $builder
 			->body( 'Select an option' )
 			->footer( 'Powered by WhatsApp Commerce Hub' )
-			->button( 'reply', array( 'id' => 'opt1', 'title' => 'Continue' ) )
+			->button( 'reply', [ 'id' => 'opt1', 'title' => 'Continue' ] )
 			->build();
 
 		$this->assertArrayHasKey( 'footer', $message['interactive'] );
@@ -86,9 +86,9 @@ class WCH_Message_Builder_Test extends WCH_Unit_Test_Case {
 		$builder = new WCH_Message_Builder();
 		$message = $builder
 			->body( 'What would you like to do?' )
-			->button( 'reply', array( 'id' => 'shop', 'title' => 'Shop Now' ) )
-			->button( 'reply', array( 'id' => 'track', 'title' => 'Track Order' ) )
-			->button( 'reply', array( 'id' => 'help', 'title' => 'Get Help' ) )
+			->button( 'reply', [ 'id' => 'shop', 'title' => 'Shop Now' ] )
+			->button( 'reply', [ 'id' => 'track', 'title' => 'Track Order' ] )
+			->button( 'reply', [ 'id' => 'help', 'title' => 'Get Help' ] )
 			->build();
 
 		$this->assertCount( 3, $message['interactive']['action']['buttons'] );
@@ -105,10 +105,10 @@ class WCH_Message_Builder_Test extends WCH_Unit_Test_Case {
 		$builder = new WCH_Message_Builder();
 		$builder
 			->body( 'Too many buttons' )
-			->button( 'reply', array( 'id' => 'btn1', 'title' => 'Button 1' ) )
-			->button( 'reply', array( 'id' => 'btn2', 'title' => 'Button 2' ) )
-			->button( 'reply', array( 'id' => 'btn3', 'title' => 'Button 3' ) )
-			->button( 'reply', array( 'id' => 'btn4', 'title' => 'Button 4' ) )
+			->button( 'reply', [ 'id' => 'btn1', 'title' => 'Button 1' ] )
+			->button( 'reply', [ 'id' => 'btn2', 'title' => 'Button 2' ] )
+			->button( 'reply', [ 'id' => 'btn3', 'title' => 'Button 3' ] )
+			->button( 'reply', [ 'id' => 'btn4', 'title' => 'Button 4' ] )
 			->build();
 	}
 
@@ -119,10 +119,10 @@ class WCH_Message_Builder_Test extends WCH_Unit_Test_Case {
 		$builder = new WCH_Message_Builder();
 		$message = $builder
 			->body( 'Browse our categories' )
-			->section( 'Categories', array(
-				array( 'id' => 'cat1', 'title' => 'Electronics', 'description' => 'Phones, Laptops, etc.' ),
-				array( 'id' => 'cat2', 'title' => 'Fashion', 'description' => 'Clothing and Accessories' ),
-			) )
+			->section( 'Categories', [
+				[ 'id' => 'cat1', 'title' => 'Electronics', 'description' => 'Phones, Laptops, etc.' ],
+				[ 'id' => 'cat2', 'title' => 'Fashion', 'description' => 'Clothing and Accessories' ],
+			] )
 			->build();
 
 		$this->assertEquals( 'interactive', $message['type'] );
@@ -137,12 +137,12 @@ class WCH_Message_Builder_Test extends WCH_Unit_Test_Case {
 		$builder = new WCH_Message_Builder();
 		$message = $builder
 			->body( 'Browse products' )
-			->section( 'Featured', array(
-				array( 'id' => 'p1', 'title' => 'Product 1' ),
-			) )
-			->section( 'New Arrivals', array(
-				array( 'id' => 'p2', 'title' => 'Product 2' ),
-			) )
+			->section( 'Featured', [
+				[ 'id' => 'p1', 'title' => 'Product 1' ],
+			] )
+			->section( 'New Arrivals', [
+				[ 'id' => 'p2', 'title' => 'Product 2' ],
+			] )
 			->build();
 
 		$this->assertCount( 2, $message['interactive']['action']['sections'] );
@@ -159,7 +159,7 @@ class WCH_Message_Builder_Test extends WCH_Unit_Test_Case {
 
 		$long_body = str_repeat( 'a', 1500 );
 		$builder = new WCH_Message_Builder();
-		$builder->body( $long_body )->button( 'reply', array( 'id' => 'btn1', 'title' => 'OK' ) )->build();
+		$builder->body( $long_body )->button( 'reply', [ 'id' => 'btn1', 'title' => 'OK' ] )->build();
 	}
 
 	/**
@@ -174,7 +174,7 @@ class WCH_Message_Builder_Test extends WCH_Unit_Test_Case {
 		$builder
 			->body( 'Test' )
 			->footer( $long_footer )
-			->button( 'reply', array( 'id' => 'btn1', 'title' => 'OK' ) )
+			->button( 'reply', [ 'id' => 'btn1', 'title' => 'OK' ] )
 			->build();
 	}
 
@@ -190,7 +190,7 @@ class WCH_Message_Builder_Test extends WCH_Unit_Test_Case {
 		$builder
 			->header( 'text', $long_header )
 			->body( 'Test' )
-			->button( 'reply', array( 'id' => 'btn1', 'title' => 'OK' ) )
+			->button( 'reply', [ 'id' => 'btn1', 'title' => 'OK' ] )
 			->build();
 	}
 
@@ -200,7 +200,7 @@ class WCH_Message_Builder_Test extends WCH_Unit_Test_Case {
 	public function test_build_product_message() {
 		$builder = new WCH_Message_Builder();
 		$message = $builder
-			->product( 'catalog_id', array( 'product_123', 'product_456' ) )
+			->product( 'catalog_id', [ 'product_123', 'product_456' ] )
 			->build();
 
 		$this->assertEquals( 'interactive', $message['type'] );
@@ -215,7 +215,7 @@ class WCH_Message_Builder_Test extends WCH_Unit_Test_Case {
 		$result = $builder
 			->body( 'Test' )
 			->footer( 'Footer' )
-			->button( 'reply', array( 'id' => 'btn1', 'title' => 'Button' ) );
+			->button( 'reply', [ 'id' => 'btn1', 'title' => 'Button' ] );
 
 		$this->assertInstanceOf( WCH_Message_Builder::class, $result );
 	}
@@ -237,7 +237,7 @@ class WCH_Message_Builder_Test extends WCH_Unit_Test_Case {
 		$builder = new WCH_Message_Builder();
 		$message = $builder
 			->body( 'Visit our website' )
-			->button( 'url', array( 'title' => 'Visit', 'url' => 'https://example.com' ) )
+			->button( 'url', [ 'title' => 'Visit', 'url' => 'https://example.com' ] )
 			->build();
 
 		$this->assertEquals( 'url', $message['interactive']['action']['buttons'][0]['type'] );
@@ -250,7 +250,7 @@ class WCH_Message_Builder_Test extends WCH_Unit_Test_Case {
 		$builder = new WCH_Message_Builder();
 		$message = $builder
 			->body( 'Call us' )
-			->button( 'phone', array( 'title' => 'Call Now', 'phone' => '+1234567890' ) )
+			->button( 'phone', [ 'title' => 'Call Now', 'phone' => '+1234567890' ] )
 			->build();
 
 		$this->assertEquals( 'phone_number', $message['interactive']['action']['buttons'][0]['type'] );

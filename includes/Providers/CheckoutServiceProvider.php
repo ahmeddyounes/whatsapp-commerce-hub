@@ -22,14 +22,15 @@ use WhatsAppCommerceHub\Contracts\Services\Checkout\PaymentHandlerInterface;
 use WhatsAppCommerceHub\Contracts\Services\Checkout\CheckoutTotalsCalculatorInterface;
 use WhatsAppCommerceHub\Contracts\Services\Checkout\CouponHandlerInterface;
 use WhatsAppCommerceHub\Contracts\Services\Checkout\CheckoutOrchestratorInterface;
-use WhatsAppCommerceHub\Services\Checkout\CheckoutStateManager;
-use WhatsAppCommerceHub\Services\Checkout\AddressHandler;
-use WhatsAppCommerceHub\Services\Checkout\ShippingCalculator;
-use WhatsAppCommerceHub\Services\Checkout\PaymentHandler;
-use WhatsAppCommerceHub\Services\Checkout\CheckoutTotalsCalculator;
-use WhatsAppCommerceHub\Services\Checkout\CouponHandler;
-use WhatsAppCommerceHub\Services\Checkout\CheckoutOrchestrator;
+use WhatsAppCommerceHub\Application\Services\Checkout\CheckoutStateManager;
+use WhatsAppCommerceHub\Application\Services\Checkout\AddressHandler;
+use WhatsAppCommerceHub\Application\Services\Checkout\ShippingCalculator;
+use WhatsAppCommerceHub\Application\Services\Checkout\PaymentHandler;
+use WhatsAppCommerceHub\Application\Services\Checkout\CheckoutTotalsCalculator;
+use WhatsAppCommerceHub\Application\Services\Checkout\CouponHandler;
+use WhatsAppCommerceHub\Application\Services\Checkout\CheckoutOrchestrator;
 use WhatsAppCommerceHub\Sagas\CheckoutSaga;
+use WhatsAppCommerceHub\Core\Logger;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -48,7 +49,7 @@ class CheckoutServiceProvider extends AbstractServiceProvider {
 	 *
 	 * @return void
 	 */
-	public function register(): void {
+	protected function doRegister(): void {
 		// Register State Manager (no dependencies on other checkout services).
 		$this->container->singleton(
 			CheckoutStateManagerInterface::class,
@@ -131,14 +132,6 @@ class CheckoutServiceProvider extends AbstractServiceProvider {
 			}
 		);
 
-		// Register aliases for backward compatibility.
-		$this->container->alias( 'checkout_state_manager', CheckoutStateManagerInterface::class );
-		$this->container->alias( 'address_handler', AddressHandlerInterface::class );
-		$this->container->alias( 'shipping_calculator', ShippingCalculatorInterface::class );
-		$this->container->alias( 'payment_handler', PaymentHandlerInterface::class );
-		$this->container->alias( 'checkout_totals_calculator', CheckoutTotalsCalculatorInterface::class );
-		$this->container->alias( 'coupon_handler', CouponHandlerInterface::class );
-		$this->container->alias( 'checkout_orchestrator', CheckoutOrchestratorInterface::class );
 	}
 
 	/**
@@ -146,10 +139,10 @@ class CheckoutServiceProvider extends AbstractServiceProvider {
 	 *
 	 * @return void
 	 */
-	public function boot(): void {
+	protected function doBoot(): void {
 		// Register checkout-related hooks.
-		add_action( 'wch_checkout_started', array( $this, 'onCheckoutStarted' ) );
-		add_action( 'wch_checkout_cancelled', array( $this, 'onCheckoutCancelled' ) );
+		add_action( 'wch_checkout_started', [ $this, 'onCheckoutStarted' ] );
+		add_action( 'wch_checkout_cancelled', [ $this, 'onCheckoutCancelled' ] );
 	}
 
 	/**
@@ -158,7 +151,7 @@ class CheckoutServiceProvider extends AbstractServiceProvider {
 	 * @return array
 	 */
 	public function provides(): array {
-		return array(
+		return [
 			CheckoutStateManagerInterface::class,
 			AddressHandlerInterface::class,
 			ShippingCalculatorInterface::class,
@@ -166,7 +159,7 @@ class CheckoutServiceProvider extends AbstractServiceProvider {
 			CheckoutTotalsCalculatorInterface::class,
 			CouponHandlerInterface::class,
 			CheckoutOrchestratorInterface::class,
-		);
+		];
 	}
 
 	/**
@@ -176,10 +169,10 @@ class CheckoutServiceProvider extends AbstractServiceProvider {
 	 * @return void
 	 */
 	public function onCheckoutStarted( string $phone ): void {
-		\WCH_Logger::info(
+		Logger::instance()->info(
 			'Checkout started',
 			'checkout',
-			array( 'phone' => $phone )
+			[ 'phone' => $phone ]
 		);
 	}
 
@@ -190,10 +183,10 @@ class CheckoutServiceProvider extends AbstractServiceProvider {
 	 * @return void
 	 */
 	public function onCheckoutCancelled( string $phone ): void {
-		\WCH_Logger::info(
+		Logger::instance()->info(
 			'Checkout cancelled',
 			'checkout',
-			array( 'phone' => $phone )
+			[ 'phone' => $phone ]
 		);
 	}
 }

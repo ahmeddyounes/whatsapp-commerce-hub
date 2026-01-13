@@ -29,7 +29,7 @@ class WCH_Intent_Classifier_Test extends WCH_Unit_Test_Case {
 	 * Test classifying greeting intent.
 	 */
 	public function test_classifies_greeting_intent() {
-		$intents = array( 'hi', 'hello', 'hey', 'good morning', 'good afternoon' );
+		$intents = [ 'hi', 'hello', 'hey', 'good morning', 'good afternoon' ];
 
 		foreach ( $intents as $text ) {
 			$result = $this->classifier->classify( $text );
@@ -41,13 +41,13 @@ class WCH_Intent_Classifier_Test extends WCH_Unit_Test_Case {
 	 * Test classifying browse intent.
 	 */
 	public function test_classifies_browse_intent() {
-		$intents = array(
+		$intents = [
 			'show products',
 			'browse catalog',
 			'what do you have',
 			'show me items',
 			'view products',
-		);
+		];
 
 		foreach ( $intents as $text ) {
 			$result = $this->classifier->classify( $text );
@@ -59,12 +59,12 @@ class WCH_Intent_Classifier_Test extends WCH_Unit_Test_Case {
 	 * Test classifying search intent.
 	 */
 	public function test_classifies_search_intent() {
-		$intents = array(
+		$intents = [
 			'search for phone',
 			'find laptop',
 			'looking for shoes',
 			'do you have iPhone',
-		);
+		];
 
 		foreach ( $intents as $text ) {
 			$result = $this->classifier->classify( $text );
@@ -76,12 +76,12 @@ class WCH_Intent_Classifier_Test extends WCH_Unit_Test_Case {
 	 * Test classifying add to cart intent.
 	 */
 	public function test_classifies_add_to_cart_intent() {
-		$intents = array(
+		$intents = [
 			'add to cart',
 			'I want this',
 			'buy this',
 			'add this product',
-		);
+		];
 
 		foreach ( $intents as $text ) {
 			$result = $this->classifier->classify( $text );
@@ -93,12 +93,12 @@ class WCH_Intent_Classifier_Test extends WCH_Unit_Test_Case {
 	 * Test classifying view cart intent.
 	 */
 	public function test_classifies_view_cart_intent() {
-		$intents = array(
+		$intents = [
 			'show my cart',
 			'view cart',
 			'what\'s in my cart',
 			'check cart',
-		);
+		];
 
 		foreach ( $intents as $text ) {
 			$result = $this->classifier->classify( $text );
@@ -110,12 +110,12 @@ class WCH_Intent_Classifier_Test extends WCH_Unit_Test_Case {
 	 * Test classifying checkout intent.
 	 */
 	public function test_classifies_checkout_intent() {
-		$intents = array(
+		$intents = [
 			'checkout',
 			'proceed to checkout',
 			'complete order',
 			'place order',
-		);
+		];
 
 		foreach ( $intents as $text ) {
 			$result = $this->classifier->classify( $text );
@@ -127,12 +127,12 @@ class WCH_Intent_Classifier_Test extends WCH_Unit_Test_Case {
 	 * Test classifying track order intent.
 	 */
 	public function test_classifies_track_order_intent() {
-		$intents = array(
+		$intents = [
 			'track my order',
 			'order status',
 			'where is my order',
 			'check order',
-		);
+		];
 
 		foreach ( $intents as $text ) {
 			$result = $this->classifier->classify( $text );
@@ -144,12 +144,12 @@ class WCH_Intent_Classifier_Test extends WCH_Unit_Test_Case {
 	 * Test classifying help intent.
 	 */
 	public function test_classifies_help_intent() {
-		$intents = array(
+		$intents = [
 			'help',
 			'I need help',
 			'support',
 			'customer service',
-		);
+		];
 
 		foreach ( $intents as $text ) {
 			$result = $this->classifier->classify( $text );
@@ -161,12 +161,12 @@ class WCH_Intent_Classifier_Test extends WCH_Unit_Test_Case {
 	 * Test classifying cancel intent.
 	 */
 	public function test_classifies_cancel_intent() {
-		$intents = array(
+		$intents = [
 			'cancel',
 			'go back',
 			'nevermind',
 			'stop',
-		);
+		];
 
 		foreach ( $intents as $text ) {
 			$result = $this->classifier->classify( $text );
@@ -196,7 +196,7 @@ class WCH_Intent_Classifier_Test extends WCH_Unit_Test_Case {
 	 * Test case insensitive classification.
 	 */
 	public function test_case_insensitive_classification() {
-		$variations = array( 'HELLO', 'Hello', 'hello', 'HeLLo' );
+		$variations = [ 'HELLO', 'Hello', 'hello', 'HeLLo' ];
 
 		foreach ( $variations as $text ) {
 			$result = $this->classifier->classify( $text );
@@ -226,11 +226,11 @@ class WCH_Intent_Classifier_Test extends WCH_Unit_Test_Case {
 	 * Test removing cart item intent.
 	 */
 	public function test_classifies_remove_from_cart_intent() {
-		$intents = array(
+		$intents = [
 			'remove from cart',
 			'delete this item',
 			'remove item',
-		);
+		];
 
 		foreach ( $intents as $text ) {
 			$result = $this->classifier->classify( $text );
@@ -250,7 +250,7 @@ class WCH_Intent_Classifier_Test extends WCH_Unit_Test_Case {
 	 * Test affirmative response.
 	 */
 	public function test_classifies_affirmative_response() {
-		$intents = array( 'yes', 'yeah', 'sure', 'ok', 'okay', 'correct' );
+		$intents = [ 'yes', 'yeah', 'sure', 'ok', 'okay', 'correct' ];
 
 		foreach ( $intents as $text ) {
 			$result = $this->classifier->classify( $text );
@@ -262,7 +262,7 @@ class WCH_Intent_Classifier_Test extends WCH_Unit_Test_Case {
 	 * Test negative response.
 	 */
 	public function test_classifies_negative_response() {
-		$intents = array( 'no', 'nope', 'not really', 'nah' );
+		$intents = [ 'no', 'nope', 'not really', 'nah' ];
 
 		foreach ( $intents as $text ) {
 			$result = $this->classifier->classify( $text );
@@ -274,7 +274,7 @@ class WCH_Intent_Classifier_Test extends WCH_Unit_Test_Case {
 	 * Test with context awareness.
 	 */
 	public function test_classification_with_context() {
-		$context = array( 'state' => 'AWAITING_PAYMENT' );
+		$context = [ 'state' => 'AWAITING_PAYMENT' ];
 		$result = $this->classifier->classify( 'pay now', $context );
 
 		$this->assertEquals( 'CONFIRM_PAYMENT', $result->get_type() );

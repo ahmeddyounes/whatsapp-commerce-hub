@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Actions;
 
+use WhatsAppCommerceHub\Support\Messaging\MessageBuilder;
 use WhatsAppCommerceHub\ValueObjects\ActionResult;
 use WhatsAppCommerceHub\ValueObjects\ConversationContext;
 
@@ -52,16 +53,19 @@ class ShowCategoryAction extends AbstractAction {
 	public function handle( string $phone, array $params, ConversationContext $context ): ActionResult {
 		try {
 			if ( empty( $params['category_id'] ) ) {
-				return $this->error( __( 'Category not specified. Please select a category from the menu.', 'whatsapp-commerce-hub' ) );
+				return $this->showCategoryList();
 			}
 
 			$categoryId = (int) $params['category_id'];
 			$page       = ! empty( $params['page'] ) ? (int) $params['page'] : 1;
 
-			$this->log( 'Showing category', array(
-				'category_id' => $categoryId,
-				'page'        => $page,
-			) );
+			$this->log(
+				'Showing category',
+				[
+					'category_id' => $categoryId,
+					'page'        => $page,
+				]
+			);
 
 			// Get category.
 			$category = get_term( $categoryId, 'product_cat' );
@@ -81,18 +85,58 @@ class ShowCategoryAction extends AbstractAction {
 			$message = $this->buildProductList( $category, $products, $page );
 
 			return ActionResult::success(
-				array( $message ),
+				[ $message ],
 				null,
-				array(
+				[
 					'current_category' => $categoryId,
 					'current_page'     => $page,
-				)
+				]
 			);
 
 		} catch ( \Exception $e ) {
-			$this->log( 'Error showing category', array( 'error' => $e->getMessage() ), 'error' );
+			$this->log( 'Error showing category', [ 'error' => $e->getMessage() ], 'error' );
 			return $this->error( __( 'Sorry, we could not load the category. Please try again.', 'whatsapp-commerce-hub' ) );
 		}
+	}
+
+	/**
+	 * Show a category selection list.
+	 *
+	 * @return ActionResult
+	 */
+	private function showCategoryList(): ActionResult {
+		$categories = get_terms(
+			[
+				'taxonomy'   => 'product_cat',
+				'hide_empty' => true,
+				'number'     => 10,
+				'orderby'    => 'name',
+			]
+		);
+
+		if ( empty( $categories ) || is_wp_error( $categories ) ) {
+			return $this->error( __( 'No categories available at the moment.', 'whatsapp-commerce-hub' ) );
+		}
+
+		$message = $this->createMessageBuilder();
+		$message->body( __( 'Select a category to browse products:', 'whatsapp-commerce-hub' ) );
+
+		$rows = [];
+		foreach ( $categories as $category ) {
+			$rows[] = [
+				'id'          => 'category_' . $category->term_id,
+				'title'       => wp_trim_words( $category->name, 3, '...' ),
+				'description' => sprintf(
+					/* translators: %d: product count */
+					_n( '%d product', '%d products', (int) $category->count, 'whatsapp-commerce-hub' ),
+					(int) $category->count
+				),
+			];
+		}
+
+		$message->section( __( 'Categories', 'whatsapp-commerce-hub' ), $rows );
+
+		return ActionResult::success( [ $message ] );
 	}
 
 	/**
@@ -103,29 +147,29 @@ class ShowCategoryAction extends AbstractAction {
 	 * @return array Products and pagination info.
 	 */
 	private function getCategoryProducts( int $categoryId, int $page ): array {
-		$args = array(
+		$args = [
 			'status'   => 'publish',
-			'category' => array( $categoryId ),
+			'category' => [ $categoryId ],
 			'limit'    => self::PRODUCTS_PER_PAGE,
 			'page'     => $page,
 			'orderby'  => 'menu_order',
 			'order'    => 'ASC',
-		);
+		];
 
 		$products = wc_get_products( $args );
 		$total    = wc_get_products(
-			array(
+			[
 				'status'   => 'publish',
-				'category' => array( $categoryId ),
+				'category' => [ $categoryId ],
 				'return'   => 'ids',
-			)
+			]
 		);
 
-		return array(
+		return [
 			'items'       => $products,
 			'total'       => count( $total ),
 			'total_pages' => (int) ceil( count( $total ) / self::PRODUCTS_PER_PAGE ),
-		);
+		];
 	}
 
 	/**
@@ -134,9 +178,9 @@ class ShowCategoryAction extends AbstractAction {
 	 * @param \WP_Term $category Category term.
 	 * @param array    $products Products data.
 	 * @param int      $page     Current page.
-	 * @return \WCH_Message_Builder
+	 * @return MessageBuilder
 	 */
-	private function buildProductList( \WP_Term $category, array $products, int $page ): \WCH_Message_Builder {
+	private function buildProductList( \WP_Term $category, array $products, int $page ): MessageBuilder {
 		$message = $this->createMessageBuilder();
 
 		// Header with category name.
@@ -149,7 +193,7 @@ class ShowCategoryAction extends AbstractAction {
 		$message->header( $header );
 
 		// Build product rows.
-		$rows = array();
+		$rows = [];
 
 		foreach ( $products['items'] as $product ) {
 			$price       = $this->formatPrice( (float) $product->get_price() );
@@ -157,11 +201,11 @@ class ShowCategoryAction extends AbstractAction {
 				? '✅'
 				: __( '❌ Out of stock', 'whatsapp-commerce-hub' );
 
-			$rows[] = array(
+			$rows[] = [
 				'id'          => 'product_' . $product->get_id(),
 				'title'       => wp_trim_words( $product->get_name(), 3, '...' ),
 				'description' => sprintf( '%s | %s', $price, $stockStatus ),
-			);
+			];
 		}
 
 		$message->section( __( 'Products', 'whatsapp-commerce-hub' ), $rows );
@@ -178,20 +222,20 @@ class ShowCategoryAction extends AbstractAction {
 			if ( $page > 1 ) {
 				$message->button(
 					'reply',
-					array(
+					[
 						'id'    => 'prev_page_' . $category->term_id,
 						'title' => __( '← Previous', 'whatsapp-commerce-hub' ),
-					)
+					]
 				);
 			}
 
 			if ( $page < $products['total_pages'] ) {
 				$message->button(
 					'reply',
-					array(
+					[
 						'id'    => 'next_page_' . $category->term_id,
 						'title' => __( 'Next →', 'whatsapp-commerce-hub' ),
-					)
+					]
 				);
 			}
 		}
@@ -199,10 +243,10 @@ class ShowCategoryAction extends AbstractAction {
 		// Back to menu button.
 		$message->button(
 			'reply',
-			array(
+			[
 				'id'    => 'back_to_menu',
 				'title' => __( 'Main Menu', 'whatsapp-commerce-hub' ),
-			)
+			]
 		);
 
 		return $message;
@@ -227,12 +271,12 @@ class ShowCategoryAction extends AbstractAction {
 
 		$message->button(
 			'reply',
-			array(
+			[
 				'id'    => 'back_to_menu',
 				'title' => __( 'Main Menu', 'whatsapp-commerce-hub' ),
-			)
+			]
 		);
 
-		return ActionResult::success( array( $message ) );
+		return ActionResult::success( [ $message ] );
 	}
 }

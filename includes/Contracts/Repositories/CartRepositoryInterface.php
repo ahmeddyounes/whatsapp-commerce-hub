@@ -8,9 +8,11 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Contracts\Repositories;
 
-use WhatsAppCommerceHub\Entities\Cart;
+use WhatsAppCommerceHub\Domain\Cart\Cart;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {

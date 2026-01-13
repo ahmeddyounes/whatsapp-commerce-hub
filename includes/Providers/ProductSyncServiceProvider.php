@@ -19,12 +19,12 @@ use WhatsAppCommerceHub\Contracts\Services\ProductSync\SyncProgressTrackerInterf
 use WhatsAppCommerceHub\Contracts\Services\ProductSync\ProductSyncOrchestratorInterface;
 use WhatsAppCommerceHub\Contracts\Services\SettingsInterface;
 use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
-use WhatsAppCommerceHub\Services\ProductSync\ProductValidatorService;
-use WhatsAppCommerceHub\Services\ProductSync\CatalogTransformerService;
-use WhatsAppCommerceHub\Services\ProductSync\CatalogApiService;
-use WhatsAppCommerceHub\Services\ProductSync\SyncProgressTracker;
-use WhatsAppCommerceHub\Services\ProductSync\ProductSyncOrchestrator;
-use WhatsAppCommerceHub\Services\ProductSync\ProductSyncAdminUI;
+use WhatsAppCommerceHub\Application\Services\ProductSync\ProductValidatorService;
+use WhatsAppCommerceHub\Application\Services\ProductSync\CatalogTransformerService;
+use WhatsAppCommerceHub\Application\Services\ProductSync\CatalogApiService;
+use WhatsAppCommerceHub\Application\Services\ProductSync\SyncProgressTracker;
+use WhatsAppCommerceHub\Application\Services\ProductSync\ProductSyncOrchestrator;
+use WhatsAppCommerceHub\Application\Services\ProductSync\ProductSyncAdminUI;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -43,7 +43,7 @@ class ProductSyncServiceProvider extends AbstractServiceProvider {
 	 *
 	 * @return void
 	 */
-	public function register(): void {
+	protected function doRegister(): void {
 		// Register Product Validator.
 		$this->container->singleton(
 			ProductValidatorInterface::class,
@@ -125,13 +125,6 @@ class ProductSyncServiceProvider extends AbstractServiceProvider {
 			}
 		);
 
-		// Register aliases for backward compatibility.
-		$this->container->alias( 'product_validator', ProductValidatorInterface::class );
-		$this->container->alias( 'catalog_transformer', CatalogTransformerInterface::class );
-		$this->container->alias( 'catalog_api', CatalogApiInterface::class );
-		$this->container->alias( 'sync_progress_tracker', SyncProgressTrackerInterface::class );
-		$this->container->alias( 'product_sync_orchestrator', ProductSyncOrchestratorInterface::class );
-		$this->container->alias( 'product_sync_admin_ui', ProductSyncAdminUI::class );
 	}
 
 	/**
@@ -139,7 +132,7 @@ class ProductSyncServiceProvider extends AbstractServiceProvider {
 	 *
 	 * @return void
 	 */
-	public function boot(): void {
+	protected function doBoot(): void {
 		// Initialize admin UI hooks.
 		if ( is_admin() ) {
 			$adminUI = $this->container->get( ProductSyncAdminUI::class );
@@ -224,13 +217,13 @@ class ProductSyncServiceProvider extends AbstractServiceProvider {
 	 * @return array
 	 */
 	public function provides(): array {
-		return array(
+		return [
 			ProductValidatorInterface::class,
 			CatalogTransformerInterface::class,
 			CatalogApiInterface::class,
 			SyncProgressTrackerInterface::class,
 			ProductSyncOrchestratorInterface::class,
 			ProductSyncAdminUI::class,
-		);
+		];
 	}
 }

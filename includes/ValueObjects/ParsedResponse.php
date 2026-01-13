@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * Container for parsed message data with type, content, and detected intent.
  */
-class ParsedResponse {
+final class ParsedResponse {
 
 	/**
 	 * Message type constants.
@@ -88,7 +88,7 @@ class ParsedResponse {
 	public function __construct(
 		string $type,
 		mixed $rawContent,
-		array $parsedData = array(),
+		array $parsedData = [],
 		?string $intent = null,
 		?int $timestamp = null
 	) {
@@ -219,7 +219,7 @@ class ParsedResponse {
 	public function isMedia(): bool {
 		return in_array(
 			$this->type,
-			array( self::TYPE_IMAGE, self::TYPE_DOCUMENT, self::TYPE_AUDIO, self::TYPE_VIDEO, self::TYPE_STICKER ),
+			[ self::TYPE_IMAGE, self::TYPE_DOCUMENT, self::TYPE_AUDIO, self::TYPE_VIDEO, self::TYPE_STICKER ],
 			true
 		);
 	}
@@ -270,13 +270,13 @@ class ParsedResponse {
 	 * @return array
 	 */
 	public function toArray(): array {
-		return array(
+		return [
 			'type'        => $this->type,
 			'raw_content' => $this->rawContent,
 			'parsed_data' => $this->parsedData,
 			'intent'      => $this->intent,
 			'timestamp'   => $this->timestamp,
-		);
+		];
 	}
 
 	/**
@@ -294,11 +294,11 @@ class ParsedResponse {
 	 * @param array $data Response data.
 	 * @return static
 	 */
-	public static function fromArray( array $data ): static {
-		return new static(
+	public static function fromArray( array $data ): self {
+		return new self(
 			$data['type'] ?? self::TYPE_UNKNOWN,
 			$data['raw_content'] ?? null,
-			$data['parsed_data'] ?? array(),
+			$data['parsed_data'] ?? [],
 			$data['intent'] ?? null,
 			$data['timestamp'] ?? null
 		);
@@ -311,8 +311,8 @@ class ParsedResponse {
 	 * @param string|null $intent Detected intent.
 	 * @return static
 	 */
-	public static function text( string $text, ?string $intent = null ): static {
-		return new static( self::TYPE_TEXT, $text, array( 'text' => $text ), $intent );
+	public static function text( string $text, ?string $intent = null ): self {
+		return new self( self::TYPE_TEXT, $text, [ 'text' => $text ], $intent );
 	}
 
 	/**
@@ -322,14 +322,14 @@ class ParsedResponse {
 	 * @param string $buttonTitle Button title/text.
 	 * @return static
 	 */
-	public static function buttonReply( string $buttonId, string $buttonTitle ): static {
-		return new static(
+	public static function buttonReply( string $buttonId, string $buttonTitle ): self {
+		return new self(
 			self::TYPE_BUTTON_REPLY,
 			$buttonId,
-			array(
+			[
 				'id'    => $buttonId,
 				'title' => $buttonTitle,
-			)
+			]
 		);
 	}
 
@@ -341,15 +341,15 @@ class ParsedResponse {
 	 * @param string|null $listDescription List item description.
 	 * @return static
 	 */
-	public static function listReply( string $listId, string $listTitle, ?string $listDescription = null ): static {
-		return new static(
+	public static function listReply( string $listId, string $listTitle, ?string $listDescription = null ): self {
+		return new self(
 			self::TYPE_LIST_REPLY,
 			$listId,
-			array(
+			[
 				'id'          => $listId,
 				'title'       => $listTitle,
 				'description' => $listDescription,
-			)
+			]
 		);
 	}
 
@@ -362,16 +362,19 @@ class ParsedResponse {
 	 * @param string|null $address   Location address.
 	 * @return static
 	 */
-	public static function location( float $latitude, float $longitude, ?string $name = null, ?string $address = null ): static {
-		return new static(
+	public static function location( float $latitude, float $longitude, ?string $name = null, ?string $address = null ): self {
+		return new self(
 			self::TYPE_LOCATION,
-			array( 'latitude' => $latitude, 'longitude' => $longitude ),
-			array(
+			[
+				'latitude'  => $latitude,
+				'longitude' => $longitude,
+			],
+			[
 				'latitude'  => $latitude,
 				'longitude' => $longitude,
 				'name'      => $name,
 				'address'   => $address,
-			)
+			]
 		);
 	}
 
@@ -381,7 +384,7 @@ class ParsedResponse {
 	 * @param mixed $content Raw content.
 	 * @return static
 	 */
-	public static function unknown( mixed $content ): static {
-		return new static( self::TYPE_UNKNOWN, $content );
+	public static function unknown( mixed $content ): self {
+		return new self( self::TYPE_UNKNOWN, $content );
 	}
 }

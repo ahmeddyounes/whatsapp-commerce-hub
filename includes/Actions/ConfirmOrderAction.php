@@ -12,6 +12,10 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Actions;
 
+use WhatsAppCommerceHub\Domain\Cart\CartService;
+use WhatsAppCommerceHub\Features\AbandonedCart\RecoveryService;
+use WhatsAppCommerceHub\Payments\PaymentGatewayRegistry;
+use WhatsAppCommerceHub\Support\Messaging\MessageBuilder;
 use WhatsAppCommerceHub\ValueObjects\ActionResult;
 use WhatsAppCommerceHub\ValueObjects\ConversationContext;
 
@@ -44,7 +48,7 @@ class ConfirmOrderAction extends AbstractAction {
 	 */
 	public function handle( string $phone, array $params, ConversationContext $context ): ActionResult {
 		try {
-			$this->log( 'Confirming order', array( 'phone' => $phone ) );
+			$this->log( 'Confirming order', [ 'phone' => $phone ] );
 
 			// Get cart.
 			$cart = $this->getCart( $phone );
@@ -53,7 +57,7 @@ class ConfirmOrderAction extends AbstractAction {
 				return $this->error( __( 'Your cart is empty. Please add items before placing an order.', 'whatsapp-commerce-hub' ) );
 			}
 
-			$items = is_array( $cart ) ? ( $cart['items'] ?? array() ) : ( $cart->items ?? array() );
+			$items = is_array( $cart ) ? ( $cart['items'] ?? [] ) : ( $cart->items ?? [] );
 
 			if ( empty( $items ) ) {
 				return $this->error( __( 'Your cart is empty. Please add items before placing an order.', 'whatsapp-commerce-hub' ) );
@@ -77,11 +81,11 @@ class ConfirmOrderAction extends AbstractAction {
 				if ( ! $couponValidation['valid'] ) {
 					$this->log(
 						'Coupon validation failed at checkout',
-						array(
+						[
 							'phone'       => $phone,
 							'coupon_code' => $contextData['coupon_code'],
 							'error'       => $couponValidation['error'],
-						),
+						],
 						'warning'
 					);
 					return $this->error( $couponValidation['message'] );
@@ -92,7 +96,7 @@ class ConfirmOrderAction extends AbstractAction {
 			if ( ! empty( $contextData['order_id'] ) ) {
 				$this->log(
 					'Order already created',
-					array( 'order_id' => $contextData['order_id'] ),
+					[ 'order_id' => $contextData['order_id'] ],
 					'info'
 				);
 
@@ -100,11 +104,11 @@ class ConfirmOrderAction extends AbstractAction {
 			}
 
 			// Prepare cart data array.
-			$cartData = array(
+			$cartData = [
 				'id'    => is_array( $cart ) ? ( $cart['id'] ?? null ) : ( $cart->id ?? null ),
 				'items' => $items,
 				'total' => is_array( $cart ) ? ( $cart['total'] ?? 0 ) : ( $cart->total ?? 0 ),
-			);
+			];
 
 			// SECURITY: Revalidate stock BEFORE claiming idempotency lock.
 			// This prevents overselling due to race conditions where stock changed since cart was created.
@@ -113,10 +117,10 @@ class ConfirmOrderAction extends AbstractAction {
 			if ( ! $stockValidation['valid'] ) {
 				$this->log(
 					'Stock validation failed at checkout',
-					array(
+					[
 						'phone'  => $phone,
 						'errors' => $stockValidation['errors'],
-					),
+					],
 					'warning'
 				);
 				return $this->error( $stockValidation['message'] );
@@ -126,7 +130,7 @@ class ConfirmOrderAction extends AbstractAction {
 			// Uses database-level locking to ensure only one order is created per cart.
 			$idempotencyKey = 'order_confirm_' . $phone . '_' . ( $cartData['id'] ?? '' );
 			if ( ! $this->claimIdempotencyLock( $idempotencyKey ) ) {
-				$this->log( 'Duplicate order creation blocked', array( 'key' => $idempotencyKey ), 'warning' );
+				$this->log( 'Duplicate order creation blocked', [ 'key' => $idempotencyKey ], 'warning' );
 
 				// Check if order was already created by the other request.
 				$existingOrderId = $this->findOrderByCartId( $cartData['id'] );
@@ -141,7 +145,7 @@ class ConfirmOrderAction extends AbstractAction {
 			$orderId = $this->createWcOrder( $cartData, $contextData, $phone );
 
 			if ( ! $orderId ) {
-				$this->log( 'Failed to create WC order', array(), 'error' );
+				$this->log( 'Failed to create WC order', [], 'error' );
 				return $this->error( __( 'Failed to create order. Please try again or contact support.', 'whatsapp-commerce-hub' ) );
 			}
 
@@ -155,17 +159,17 @@ class ConfirmOrderAction extends AbstractAction {
 			$message = $this->buildConfirmationMessage( $orderId );
 
 			return ActionResult::success(
-				array( $message ),
+				[ $message ],
 				'completed',
-				array(
+				[
 					'order_id'       => $orderId,
 					'order_created'  => true,
 					'cart_completed' => true,
-				)
+				]
 			);
 
 		} catch ( \Exception $e ) {
-			$this->log( 'Error confirming order', array( 'error' => $e->getMessage() ), 'error' );
+			$this->log( 'Error confirming order', [ 'error' => $e->getMessage() ], 'error' );
 			return $this->error( __( 'Sorry, we could not process your order. Please try again or contact support.', 'whatsapp-commerce-hub' ) );
 		}
 	}
@@ -227,25 +231,25 @@ class ConfirmOrderAction extends AbstractAction {
 
 			// Process payment through gateway manager.
 			$paymentMethod  = $contextData['payment_method'];
-			$paymentManager = \WCH_Payment_Manager::instance();
+			$paymentManager = wch( PaymentGatewayRegistry::class );
 
-			$paymentResult = $paymentManager->process_order_payment(
+			$paymentResult = $paymentManager->processOrderPayment(
 				$order->get_id(),
 				$paymentMethod,
-				array(
+				[
 					'customer_phone' => $phone,
 					'id'             => $phone,
-				)
+				]
 			);
 
 			if ( ! $paymentResult['success'] ) {
 				$order->update_status( 'cancelled', __( 'Payment processing failed.', 'whatsapp-commerce-hub' ) );
 				$this->log(
 					'Payment processing failed',
-					array(
+					[
 						'order_id' => $order->get_id(),
 						'error'    => $paymentResult['error']['message'] ?? 'Unknown error',
-					),
+					],
 					'error'
 				);
 				return null;
@@ -253,19 +257,19 @@ class ConfirmOrderAction extends AbstractAction {
 
 			$this->log(
 				'Order created with payment',
-				array(
+				[
 					'order_id'       => $order->get_id(),
 					'total'          => $order->get_total(),
 					'payment_method' => $paymentMethod,
 					'transaction_id' => $paymentResult['transaction_id'] ?? 'N/A',
-				),
+				],
 				'info'
 			);
 
 			return $order->get_id();
 
 		} catch ( \Exception $e ) {
-			$this->log( 'Exception creating order', array( 'error' => $e->getMessage() ), 'error' );
+			$this->log( 'Exception creating order', [ 'error' => $e->getMessage() ], 'error' );
 			return null;
 		}
 	}
@@ -279,7 +283,7 @@ class ConfirmOrderAction extends AbstractAction {
 	 * @return void
 	 */
 	private function setOrderAddresses( \WC_Order $order, array $address, ?object $customer ): void {
-		$addressData = array(
+		$addressData = [
 			'first_name' => '',
 			'last_name'  => '',
 			'company'    => '',
@@ -289,7 +293,7 @@ class ConfirmOrderAction extends AbstractAction {
 			'state'      => $address['state'] ?? '',
 			'postcode'   => $address['postal_code'] ?? '',
 			'country'    => $address['country'] ?? '',
-		);
+		];
 
 		// Add customer name if available.
 		if ( $customer && ! empty( $customer->name ) ) {
@@ -307,18 +311,20 @@ class ConfirmOrderAction extends AbstractAction {
 	 * Build order confirmation message.
 	 *
 	 * @param int $orderId Order ID.
-	 * @return \WCH_Message_Builder
+	 * @return MessageBuilder
 	 */
-	private function buildConfirmationMessage( int $orderId ): \WCH_Message_Builder {
+	private function buildConfirmationMessage( int $orderId ): MessageBuilder {
 		$order = wc_get_order( $orderId );
 
 		$message = $this->createMessageBuilder();
 
 		if ( ! $order ) {
-			$message->text( sprintf(
-				__( 'Order confirmed! Your order number is: #%d', 'whatsapp-commerce-hub' ),
-				$orderId
-			) );
+			$message->text(
+				sprintf(
+					__( 'Order confirmed! Your order number is: #%d', 'whatsapp-commerce-hub' ),
+					$orderId
+				)
+			);
 			return $message;
 		}
 
@@ -342,19 +348,19 @@ class ConfirmOrderAction extends AbstractAction {
 		// Add order tracking button.
 		$message->button(
 			'reply',
-			array(
+			[
 				'id'    => 'track_order_' . $orderId,
 				'title' => __( 'Track Order', 'whatsapp-commerce-hub' ),
-			)
+			]
 		);
 
 		// Add new order button.
 		$message->button(
 			'reply',
-			array(
+			[
 				'id'    => 'new_order',
 				'title' => __( 'Shop Again', 'whatsapp-commerce-hub' ),
-			)
+			]
 		);
 
 		return $message;
@@ -370,12 +376,12 @@ class ConfirmOrderAction extends AbstractAction {
 		$message = $this->buildConfirmationMessage( $orderId );
 
 		return ActionResult::success(
-			array( $message ),
+			[ $message ],
 			'completed',
-			array(
+			[
 				'order_id'      => $orderId,
 				'order_created' => true,
-			)
+			]
 		);
 	}
 
@@ -394,7 +400,7 @@ class ConfirmOrderAction extends AbstractAction {
 		if ( $this->cartService ) {
 			$this->cartService->updateCartStatus( (string) $cartId, $status );
 		} else {
-			\WCH_Cart_Manager::instance()->update_cart( $cartId, array( 'status' => $status ) );
+			wch( CartService::class )->updateCartStatus( (string) $cartId, $status );
 		}
 	}
 
@@ -423,20 +429,17 @@ class ConfirmOrderAction extends AbstractAction {
 		$revenue = (float) $order->get_total();
 
 		// Mark cart as recovered.
-		if ( class_exists( 'WCH_Abandoned_Cart_Recovery' ) ) {
-			$recovery = \WCH_Abandoned_Cart_Recovery::getInstance();
-			$recovery->mark_cart_recovered( $cart['id'], $orderId, $revenue );
+		wch( RecoveryService::class )->markCartRecovered( (int) $cart['id'], $orderId, $revenue );
 
-			$this->log(
-				'Cart recovery tracked',
-				array(
-					'cart_id'  => $cart['id'],
-					'order_id' => $orderId,
-					'revenue'  => $revenue,
-				),
-				'info'
-			);
-		}
+		$this->log(
+			'Cart recovery tracked',
+			[
+				'cart_id'  => $cart['id'],
+				'order_id' => $orderId,
+				'revenue'  => $revenue,
+			],
+			'info'
+		);
 	}
 
 	/**
@@ -485,13 +488,13 @@ class ConfirmOrderAction extends AbstractAction {
 
 		// Query WooCommerce orders by cart ID meta.
 		$orders = wc_get_orders(
-			array(
+			[
 				'limit'      => 1,
 				'meta_key'   => '_wch_cart_id',
 				'meta_value' => $cartId,
 				'orderby'    => 'date',
 				'order'      => 'DESC',
-			)
+			]
 		);
 
 		if ( ! empty( $orders ) ) {
@@ -511,9 +514,9 @@ class ConfirmOrderAction extends AbstractAction {
 	 * @return array Validation result with 'valid', 'errors', and 'message' keys.
 	 */
 	private function validateStock( array $items ): array {
-		$errors = array();
-		$outOfStock = array();
-		$insufficientStock = array();
+		$errors            = [];
+		$outOfStock        = [];
+		$insufficientStock = [];
 
 		foreach ( $items as $item ) {
 			$productId = (int) ( $item['product_id'] ?? 0 );
@@ -570,11 +573,11 @@ class ConfirmOrderAction extends AbstractAction {
 						$stockQuantity,
 						$quantity
 					);
-					$insufficientStock[] = array(
+					$insufficientStock[] = [
 						'product_id' => $productId,
 						'available'  => $stockQuantity,
 						'requested'  => $quantity,
-					);
+					];
 					continue;
 				}
 			} else {
@@ -609,19 +612,27 @@ class ConfirmOrderAction extends AbstractAction {
 			if ( count( $errors ) === 1 ) {
 				$message = $errors[0];
 			} else {
-				$message = __( 'Some items in your cart are no longer available:', 'whatsapp-commerce-hub' ) . "\n\n";
-				$message .= implode( "\n", array_map( function( $e ) { return '• ' . $e; }, $errors ) );
+				$message  = __( 'Some items in your cart are no longer available:', 'whatsapp-commerce-hub' ) . "\n\n";
+				$message .= implode(
+					"\n",
+					array_map(
+						function ( $e ) {
+							return '• ' . $e;
+						},
+						$errors
+					)
+				);
 			}
 			$message .= "\n\n" . __( 'Please update your cart and try again.', 'whatsapp-commerce-hub' );
 		}
 
-		return array(
-			'valid'             => empty( $errors ),
-			'errors'            => $errors,
-			'out_of_stock'      => $outOfStock,
+		return [
+			'valid'              => empty( $errors ),
+			'errors'             => $errors,
+			'out_of_stock'       => $outOfStock,
 			'insufficient_stock' => $insufficientStock,
-			'message'           => $message,
-		);
+			'message'            => $message,
+		];
 	}
 
 	/**
@@ -639,7 +650,7 @@ class ConfirmOrderAction extends AbstractAction {
 
 		// Check if coupon exists.
 		if ( ! $coupon->get_id() ) {
-			return array(
+			return [
 				'valid'   => false,
 				'error'   => 'coupon_not_found',
 				'message' => sprintf(
@@ -647,13 +658,13 @@ class ConfirmOrderAction extends AbstractAction {
 					__( 'The coupon "%s" is no longer valid. Please remove it and try again.', 'whatsapp-commerce-hub' ),
 					$couponCode
 				),
-			);
+			];
 		}
 
 		// Check if coupon has expired.
 		$expiryDate = $coupon->get_date_expires();
 		if ( $expiryDate && $expiryDate->getTimestamp() < time() ) {
-			return array(
+			return [
 				'valid'   => false,
 				'error'   => 'coupon_expired',
 				'message' => sprintf(
@@ -661,13 +672,13 @@ class ConfirmOrderAction extends AbstractAction {
 					__( 'The coupon "%s" has expired. Please remove it and try again.', 'whatsapp-commerce-hub' ),
 					$couponCode
 				),
-			);
+			];
 		}
 
 		// Check global usage limit.
 		$usageLimit = $coupon->get_usage_limit();
 		if ( $usageLimit > 0 && $coupon->get_usage_count() >= $usageLimit ) {
-			return array(
+			return [
 				'valid'   => false,
 				'error'   => 'coupon_usage_limit',
 				'message' => sprintf(
@@ -675,14 +686,14 @@ class ConfirmOrderAction extends AbstractAction {
 					__( 'The coupon "%s" has reached its usage limit. Please remove it and try again.', 'whatsapp-commerce-hub' ),
 					$couponCode
 				),
-			);
+			];
 		}
 
 		// Check minimum spend.
 		$minimumAmount = $coupon->get_minimum_amount();
 		$cartTotal     = is_array( $cart ) ? (float) ( $cart['total'] ?? 0 ) : (float) ( $cart->total ?? 0 );
 		if ( $minimumAmount > 0 && $cartTotal < $minimumAmount ) {
-			return array(
+			return [
 				'valid'   => false,
 				'error'   => 'coupon_minimum_spend',
 				'message' => sprintf(
@@ -691,13 +702,13 @@ class ConfirmOrderAction extends AbstractAction {
 					$couponCode,
 					$this->formatPrice( $minimumAmount )
 				),
-			);
+			];
 		}
 
 		// Check maximum spend.
 		$maximumAmount = $coupon->get_maximum_amount();
 		if ( $maximumAmount > 0 && $cartTotal > $maximumAmount ) {
-			return array(
+			return [
 				'valid'   => false,
 				'error'   => 'coupon_maximum_spend',
 				'message' => sprintf(
@@ -706,13 +717,13 @@ class ConfirmOrderAction extends AbstractAction {
 					$couponCode,
 					$this->formatPrice( $maximumAmount )
 				),
-			);
+			];
 		}
 
-		return array(
+		return [
 			'valid'   => true,
 			'error'   => null,
 			'message' => '',
-		);
+		];
 	}
 }

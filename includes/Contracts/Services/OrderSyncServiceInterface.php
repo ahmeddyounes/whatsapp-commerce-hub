@@ -8,6 +8,8 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Contracts\Services;
 
 // Exit if accessed directly.
@@ -106,7 +108,7 @@ interface OrderSyncServiceInterface {
 	 * @param array  $template_data  Template variable data.
 	 * @return bool Success status.
 	 */
-	public function queueNotification( int $order_id, string $template_name, array $template_data = array() ): bool;
+	public function queueNotification( int $order_id, string $template_name, array $template_data = [] ): bool;
 
 	/**
 	 * Get orders by customer phone.
@@ -132,7 +134,7 @@ interface OrderSyncServiceInterface {
 	 * @param array $args Query arguments (status, date_from, date_to, limit, offset).
 	 * @return array{orders: array, total: int}
 	 */
-	public function getWhatsAppOrders( array $args = array() ): array;
+	public function getWhatsAppOrders( array $args = [] ): array;
 
 	/**
 	 * Get order statistics.

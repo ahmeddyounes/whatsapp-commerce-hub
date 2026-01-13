@@ -59,7 +59,7 @@ class WchException extends \Exception {
 		string $message = '',
 		string $errorCode = 'unknown_error',
 		int $httpStatus = 500,
-		array $context = array(),
+		array $context = [],
 		int $code = 0,
 		?\Throwable $previous = null
 	) {
@@ -116,14 +116,14 @@ class WchException extends \Exception {
 	 * @return array<string, mixed>
 	 */
 	public function toArray( bool $includeTrace = false ): array {
-		$data = array(
+		$data = [
 			'message'     => $this->getMessage(),
 			'error_code'  => $this->errorCode,
 			'http_status' => $this->httpStatus,
 			'context'     => $this->context,
 			'file'        => $this->getFile(),
 			'line'        => $this->getLine(),
-		);
+		];
 
 		if ( $includeTrace || ( defined( 'WP_DEBUG' ) && WP_DEBUG ) ) {
 			$data['trace'] = $this->getTraceAsString();
@@ -151,10 +151,10 @@ class WchException extends \Exception {
 		return new \WP_Error(
 			$this->errorCode,
 			$this->getMessage(),
-			array(
+			[
 				'status'  => $this->httpStatus,
 				'context' => $this->context,
-			)
+			]
 		);
 	}
 
@@ -167,13 +167,13 @@ class WchException extends \Exception {
 	public function log( string $level = 'error' ): void {
 		$context = array_merge(
 			$this->context,
-			array(
+			[
 				'exception'   => static::class,
 				'error_code'  => $this->errorCode,
 				'http_status' => $this->httpStatus,
 				'file'        => $this->getFile(),
 				'line'        => $this->getLine(),
-			)
+			]
 		);
 
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
@@ -192,7 +192,7 @@ class WchException extends \Exception {
 	public static function fromWpError( \WP_Error $error ): static {
 		$data       = $error->get_error_data();
 		$httpStatus = isset( $data['status'] ) ? (int) $data['status'] : 500;
-		$context    = isset( $data['context'] ) ? (array) $data['context'] : array();
+		$context    = isset( $data['context'] ) ? (array) $data['context'] : [];
 
 		return new static(
 			$error->get_error_message(),

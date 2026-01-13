@@ -80,8 +80,8 @@ class WCH_Cart_Manager_Test extends WCH_Unit_Test_Case {
 	 * Test adding multiple items.
 	 */
 	public function test_add_multiple_items() {
-		$product1 = $this->create_test_product( array( 'name' => 'Product 1' ) );
-		$product2 = $this->create_test_product( array( 'name' => 'Product 2' ) );
+		$product1 = $this->create_test_product( [ 'name' => 'Product 1' ] );
+		$product2 = $this->create_test_product( [ 'name' => 'Product 2' ] );
 		$cart_id = $this->cart_manager->create_cart( $this->customer_phone );
 
 		$this->cart_manager->add_item( $cart_id, $product1->get_id(), 1 );
@@ -140,8 +140,8 @@ class WCH_Cart_Manager_Test extends WCH_Unit_Test_Case {
 	 * Test calculating cart total.
 	 */
 	public function test_calculate_cart_total() {
-		$product1 = $this->create_test_product( array( 'regular_price' => '10.00' ) );
-		$product2 = $this->create_test_product( array( 'regular_price' => '20.00' ) );
+		$product1 = $this->create_test_product( [ 'regular_price' => '10.00' ] );
+		$product2 = $this->create_test_product( [ 'regular_price' => '20.00' ] );
 		$cart_id = $this->cart_manager->create_cart( $this->customer_phone );
 
 		$this->cart_manager->add_item( $cart_id, $product1->get_id(), 2 ); // 2 * 10 = 20
@@ -155,7 +155,7 @@ class WCH_Cart_Manager_Test extends WCH_Unit_Test_Case {
 	 * Test stock validation when adding to cart.
 	 */
 	public function test_validates_stock_when_adding() {
-		$product = $this->create_test_product( array( 'stock_quantity' => 5 ) );
+		$product = $this->create_test_product( [ 'stock_quantity' => 5 ] );
 		$cart_id = $this->cart_manager->create_cart( $this->customer_phone );
 
 		$this->expectException( WCH_Cart_Exception::class );
@@ -166,7 +166,7 @@ class WCH_Cart_Manager_Test extends WCH_Unit_Test_Case {
 	 * Test preventing adding out of stock products.
 	 */
 	public function test_prevents_adding_out_of_stock_products() {
-		$product = $this->create_test_product( array( 'stock_quantity' => 0 ) );
+		$product = $this->create_test_product( [ 'stock_quantity' => 0 ] );
 		$cart_id = $this->cart_manager->create_cart( $this->customer_phone );
 
 		$this->expectException( WCH_Cart_Exception::class );
@@ -241,8 +241,8 @@ class WCH_Cart_Manager_Test extends WCH_Unit_Test_Case {
 		global $wpdb;
 		$wpdb->update(
 			$wpdb->prefix . 'wch_carts',
-			array( 'created_at' => date( 'Y-m-d H:i:s', strtotime( '-2 days' ) ) ),
-			array( 'id' => $cart_id )
+			[ 'created_at' => date( 'Y-m-d H:i:s', strtotime( '-2 days' ) ) ],
+			[ 'id' => $cart_id ]
 		);
 
 		$expired = $this->cart_manager->get_expired_carts( 24 ); // 24 hours

@@ -8,6 +8,8 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Providers;
 
 use WhatsAppCommerceHub\Container\ContainerInterface;
@@ -21,13 +23,16 @@ use WhatsAppCommerceHub\Contracts\Checkout\CheckoutOrchestratorInterface;
 use WhatsAppCommerceHub\Contracts\Payments\PaymentGatewayRegistryInterface;
 use WhatsAppCommerceHub\Contracts\Repositories\CartRepositoryInterface;
 use WhatsAppCommerceHub\Contracts\Repositories\CustomerRepositoryInterface;
-use WhatsAppCommerceHub\Services\CartService;
-use WhatsAppCommerceHub\Services\CustomerService;
-use WhatsAppCommerceHub\Services\AddressService;
-use WhatsAppCommerceHub\Services\BroadcastService;
-use WhatsAppCommerceHub\Services\CatalogSyncService;
-use WhatsAppCommerceHub\Services\MessageBuilderFactory;
+use WhatsAppCommerceHub\Domain\Cart\CartService;
+use WhatsAppCommerceHub\Domain\Customer\CustomerService;
+use WhatsAppCommerceHub\Application\Services\AddressService;
+use WhatsAppCommerceHub\Application\Services\BroadcastService;
+use WhatsAppCommerceHub\Application\Services\CatalogSyncService;
+use WhatsAppCommerceHub\Application\Services\MessageBuilderFactory;
+use WhatsAppCommerceHub\Infrastructure\Configuration\SettingsManager;
+use WhatsAppCommerceHub\Infrastructure\Queue\QueueManager;
 use WhatsAppCommerceHub\Payments\PaymentGatewayRegistry;
+use WhatsAppCommerceHub\Presentation\Templates\TemplateManager;
 use WhatsAppCommerceHub\Checkout\CheckoutOrchestrator;
 
 // Exit if accessed directly.
@@ -128,7 +133,9 @@ class BusinessServiceProvider implements ServiceProviderInterface {
 				$c->get( MessageBuilderFactory::class ),
 				$c->get( AddressServiceInterface::class ),
 				$c->has( CartRepositoryInterface::class ) ? $c->get( CartRepositoryInterface::class ) : null,
-				$c->has( 'wch.order_sync' ) ? $c->get( 'wch.order_sync' ) : null
+				$c->has( \WhatsAppCommerceHub\Contracts\Services\OrderSyncServiceInterface::class )
+					? $c->get( \WhatsAppCommerceHub\Contracts\Services\OrderSyncServiceInterface::class )
+					: null
 			)
 		);
 
@@ -149,7 +156,7 @@ class BusinessServiceProvider implements ServiceProviderInterface {
 			BroadcastServiceInterface::class,
 			static fn( ContainerInterface $c ) => new BroadcastService(
 				$c->get( \wpdb::class ),
-				$c->has( \WCH_Template_Manager::class ) ? $c->get( \WCH_Template_Manager::class ) : null
+				$c->has( TemplateManager::class ) ? $c->get( TemplateManager::class ) : null
 			)
 		);
 
@@ -170,8 +177,8 @@ class BusinessServiceProvider implements ServiceProviderInterface {
 			CatalogSyncServiceInterface::class,
 			static fn( ContainerInterface $c ) => new CatalogSyncService(
 				$c->get( \wpdb::class ),
-				$c->has( \WCH_Settings::class ) ? $c->get( \WCH_Settings::class ) : null,
-				$c->has( \WCH_Queue::class ) ? $c->get( \WCH_Queue::class ) : null
+				$c->has( SettingsManager::class ) ? $c->get( SettingsManager::class ) : null,
+				$c->has( QueueManager::class ) ? $c->get( QueueManager::class ) : null
 			)
 		);
 
@@ -218,21 +225,27 @@ class BusinessServiceProvider implements ServiceProviderInterface {
 			wp_schedule_event( time(), 'hourly', 'wch_cleanup_expired_carts' );
 		}
 
-		add_action( 'wch_cleanup_expired_carts', function () use ( $container ) {
-			try {
-				$cart_service = $container->get( CartServiceInterface::class );
-				$count = $cart_service->cleanupExpiredCarts();
+		add_action(
+			'wch_cleanup_expired_carts',
+			function () use ( $container ) {
+				try {
+					$cart_service = $container->get( CartServiceInterface::class );
+					$count        = $cart_service->cleanupExpiredCarts();
 
-				if ( $count > 0 ) {
-					do_action( 'wch_log_info', sprintf(
-						'Cleaned up %d expired carts',
-						$count
-					) );
+					if ( $count > 0 ) {
+						do_action(
+							'wch_log_info',
+							sprintf(
+								'Cleaned up %d expired carts',
+								$count
+							)
+						);
+					}
+				} catch ( \Throwable $e ) {
+					do_action( 'wch_log_error', 'Failed to cleanup carts: ' . $e->getMessage() );
 				}
-			} catch ( \Throwable $e ) {
-				do_action( 'wch_log_error', 'Failed to cleanup carts: ' . $e->getMessage() );
 			}
-		} );
+		);
 	}
 
 	/**
@@ -241,7 +254,7 @@ class BusinessServiceProvider implements ServiceProviderInterface {
 	 * @return array<string>
 	 */
 	public function provides(): array {
-		return array(
+		return [
 			CartServiceInterface::class,
 			CartService::class,
 			'wch.cart',
@@ -265,6 +278,6 @@ class BusinessServiceProvider implements ServiceProviderInterface {
 			PaymentGatewayRegistryInterface::class,
 			PaymentGatewayRegistry::class,
 			'wch.payment_gateways',
-		);
+		];
 	}
 }

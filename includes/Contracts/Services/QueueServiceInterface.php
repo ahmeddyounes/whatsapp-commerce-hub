@@ -8,6 +8,8 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Contracts\Services;
 
 // Exit if accessed directly.
@@ -39,7 +41,7 @@ interface QueueServiceInterface {
 	 * @param string $priority Priority group (use PRIORITY_* constants).
 	 * @return int|false Action ID or false on failure.
 	 */
-	public function dispatch( string $hook, array $args = array(), string $priority = self::PRIORITY_NORMAL );
+	public function dispatch( string $hook, array $args = [], string $priority = self::PRIORITY_NORMAL ): int|false;
 
 	/**
 	 * Schedule a job for later execution.
@@ -50,7 +52,7 @@ interface QueueServiceInterface {
 	 * @param string $priority  Priority group.
 	 * @return int|false Action ID or false on failure.
 	 */
-	public function schedule( string $hook, array $args, int $timestamp, string $priority = self::PRIORITY_NORMAL );
+	public function schedule( string $hook, array $args, int $timestamp, string $priority = self::PRIORITY_NORMAL ): int|false;
 
 	/**
 	 * Schedule a recurring job.
@@ -61,7 +63,7 @@ interface QueueServiceInterface {
 	 * @param string $priority  Priority group.
 	 * @return int|false Action ID or false on failure.
 	 */
-	public function scheduleRecurring( string $hook, array $args, int $interval, string $priority = self::PRIORITY_NORMAL );
+	public function scheduleRecurring( string $hook, array $args, int $interval, string $priority = self::PRIORITY_NORMAL ): int|false;
 
 	/**
 	 * Cancel a scheduled job.
@@ -70,7 +72,7 @@ interface QueueServiceInterface {
 	 * @param array  $args Job arguments (must match).
 	 * @return bool Success status.
 	 */
-	public function cancel( string $hook, array $args = array() ): bool;
+	public function cancel( string $hook, array $args = [] ): bool;
 
 	/**
 	 * Cancel all jobs for a hook.
@@ -87,7 +89,7 @@ interface QueueServiceInterface {
 	 * @param array  $args Job arguments.
 	 * @return bool True if scheduled.
 	 */
-	public function isScheduled( string $hook, array $args = array() ): bool;
+	public function isScheduled( string $hook, array $args = [] ): bool;
 
 	/**
 	 * Get next scheduled time for a job.
@@ -96,7 +98,7 @@ interface QueueServiceInterface {
 	 * @param array  $args Job arguments.
 	 * @return int|null Unix timestamp or null if not scheduled.
 	 */
-	public function getNextScheduled( string $hook, array $args = array() ): ?int;
+	public function getNextScheduled( string $hook, array $args = [] ): ?int;
 
 	/**
 	 * Get pending jobs for a hook.

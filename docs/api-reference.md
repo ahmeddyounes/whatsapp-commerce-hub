@@ -323,7 +323,7 @@ curl -X GET https://yoursite.com/wp-json/wch/v1/conversations/123/messages \
       "id": 1001,
       "conversation_id": 123,
       "direction": "inbound",
-      "message_type": "text",
+      "type": "text",
       "content": {
         "text": "Show me smartphones"
       },
@@ -335,7 +335,7 @@ curl -X GET https://yoursite.com/wp-json/wch/v1/conversations/123/messages \
       "id": 1002,
       "conversation_id": 123,
       "direction": "outbound",
-      "message_type": "interactive",
+      "type": "interactive",
       "content": {
         "text": "Here are our smartphones:",
         "buttons": [
@@ -369,7 +369,7 @@ Send a message in conversation.
 **Request Body**:
 ```json
 {
-  "message_type": "text",
+  "type": "text",
   "content": {
     "text": "Thank you for contacting us. A human agent will be with you shortly."
   }
@@ -382,7 +382,7 @@ Send a message in conversation.
   "id": 1003,
   "conversation_id": 123,
   "direction": "outbound",
-  "message_type": "text",
+  "type": "text",
   "content": {
     "text": "Thank you for contacting us..."
   },

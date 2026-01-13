@@ -8,11 +8,15 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Checkout;
 
+use WhatsAppCommerceHub\Application\Services\MessageBuilderFactory;
 use WhatsAppCommerceHub\Contracts\Checkout\StepInterface;
 use WhatsAppCommerceHub\Contracts\Services\AddressServiceInterface;
-use WhatsAppCommerceHub\Services\MessageBuilderFactory;
+use WhatsAppCommerceHub\Core\Logger;
+use WhatsAppCommerceHub\Support\Messaging\MessageBuilder;
 use WhatsAppCommerceHub\ValueObjects\CheckoutResponse;
 
 // Exit if accessed directly.
@@ -28,31 +32,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 abstract class AbstractStep implements StepInterface {
 
 	/**
-	 * Message builder factory.
-	 *
-	 * @var MessageBuilderFactory
-	 */
-	protected MessageBuilderFactory $message_builder;
-
-	/**
-	 * Address service.
-	 *
-	 * @var AddressServiceInterface
-	 */
-	protected AddressServiceInterface $address_service;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param MessageBuilderFactory   $message_builder Message builder factory.
 	 * @param AddressServiceInterface $address_service Address service.
 	 */
 	public function __construct(
-		MessageBuilderFactory $message_builder,
-		AddressServiceInterface $address_service
+		protected MessageBuilderFactory $message_builder,
+		protected AddressServiceInterface $address_service
 	) {
-		$this->message_builder = $message_builder;
-		$this->address_service = $address_service;
 	}
 
 	/**
@@ -75,10 +63,10 @@ abstract class AbstractStep implements StepInterface {
 	 * @return CheckoutResponse
 	 */
 	protected function success(
-		array $messages = array(),
-		array $data = array(),
+		array $messages = [],
+		array $data = [],
 		?string $next_step = null,
-		array $step_data = array()
+		array $step_data = []
 	): CheckoutResponse {
 		return CheckoutResponse::success(
 			$this->getStepId(),
@@ -101,8 +89,8 @@ abstract class AbstractStep implements StepInterface {
 	protected function failure(
 		string $error,
 		?string $error_code = null,
-		array $messages = array(),
-		array $data = array()
+		array $messages = [],
+		array $data = []
 	): CheckoutResponse {
 		return CheckoutResponse::failure(
 			$this->getStepId(),
@@ -117,10 +105,10 @@ abstract class AbstractStep implements StepInterface {
 	 * Create an error message to send to the customer.
 	 *
 	 * @param string $message The error message text.
-	 * @return \WCH_Message_Builder
+	 * @return MessageBuilder
 	 */
-	protected function errorMessage( string $message ): \WCH_Message_Builder {
-		return $this->message_builder->text( "⚠️ " . $message );
+	protected function errorMessage( string $message ): MessageBuilder {
+		return $this->message_builder->text( '⚠️ ' . $message );
 	}
 
 	/**
@@ -150,7 +138,7 @@ abstract class AbstractStep implements StepInterface {
 	 * @return array
 	 */
 	protected function getCheckoutData( array $context ): array {
-		return $context['checkout_data'] ?? array();
+		return $context['checkout_data'] ?? [];
 	}
 
 	/**
@@ -170,12 +158,10 @@ abstract class AbstractStep implements StepInterface {
 	 * @param array  $data    Additional log data.
 	 * @return void
 	 */
-	protected function log( string $message, array $data = array() ): void {
+	protected function log( string $message, array $data = [] ): void {
 		$data['step'] = $this->getStepId();
 
-		if ( class_exists( '\WCH_Logger' ) ) {
-			\WCH_Logger::info( $message, 'checkout', $data );
-		}
+		Logger::instance()->info( $message, 'checkout', $data );
 	}
 
 	/**
@@ -185,12 +171,10 @@ abstract class AbstractStep implements StepInterface {
 	 * @param array  $data    Additional log data.
 	 * @return void
 	 */
-	protected function logError( string $message, array $data = array() ): void {
+	protected function logError( string $message, array $data = [] ): void {
 		$data['step'] = $this->getStepId();
 
-		if ( class_exists( '\WCH_Logger' ) ) {
-			\WCH_Logger::error( $message, 'checkout', $data );
-		}
+		Logger::instance()->error( $message, 'checkout', $data );
 	}
 
 	/**

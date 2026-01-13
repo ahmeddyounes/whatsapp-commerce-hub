@@ -8,7 +8,11 @@
  * @since 2.1.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Contracts\Payments;
+
+use WhatsAppCommerceHub\Payments\Contracts\PaymentGatewayInterface;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -25,19 +29,19 @@ interface PaymentGatewayRegistryInterface {
 	/**
 	 * Register a payment gateway.
 	 *
-	 * @param string                $id Gateway identifier.
-	 * @param \WCH_Payment_Gateway $gateway Gateway instance.
+	 * @param string               $id Gateway identifier.
+	 * @param PaymentGatewayInterface $gateway Gateway instance.
 	 * @return void
 	 */
-	public function register( string $id, \WCH_Payment_Gateway $gateway ): void;
+	public function register( string $id, PaymentGatewayInterface $gateway ): void;
 
 	/**
 	 * Get a gateway by ID.
 	 *
 	 * @param string $id Gateway identifier.
-	 * @return \WCH_Payment_Gateway|null Gateway instance or null if not found.
+	 * @return PaymentGatewayInterface|null Gateway instance or null if not found.
 	 */
-	public function get( string $id ): ?\WCH_Payment_Gateway;
+	public function get( string $id ): ?PaymentGatewayInterface;
 
 	/**
 	 * Check if a gateway is registered.
@@ -50,14 +54,14 @@ interface PaymentGatewayRegistryInterface {
 	/**
 	 * Get all registered gateways.
 	 *
-	 * @return array<string, \WCH_Payment_Gateway> All registered gateways.
+	 * @return array<string, PaymentGatewayInterface> All registered gateways.
 	 */
 	public function all(): array;
 
 	/**
 	 * Get all enabled gateways.
 	 *
-	 * @return array<string, \WCH_Payment_Gateway> Enabled gateways.
+	 * @return array<string, PaymentGatewayInterface> Enabled gateways.
 	 */
 	public function getEnabled(): array;
 
@@ -65,7 +69,7 @@ interface PaymentGatewayRegistryInterface {
 	 * Get available gateways for a specific country.
 	 *
 	 * @param string $country Two-letter country code.
-	 * @return array<string, \WCH_Payment_Gateway> Available gateways.
+	 * @return array<string, PaymentGatewayInterface> Available gateways.
 	 */
 	public function getAvailable( string $country ): array;
 

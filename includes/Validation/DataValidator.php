@@ -9,6 +9,8 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Validation;
 
 // Exit if accessed directly.
@@ -238,10 +240,10 @@ final class DataValidator {
 	 * @return array Array with 'valid' and 'invalid' keys.
 	 */
 	public static function validatePhones( array $phones, bool $sanitize = true ): array {
-		$result = array(
-			'valid'   => array(),
-			'invalid' => array(),
-		);
+		$result = [
+			'valid'   => [],
+			'invalid' => [],
+		];
 
 		foreach ( $phones as $phone ) {
 			$validated = self::validatePhone( (string) $phone, $sanitize );

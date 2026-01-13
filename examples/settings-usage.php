@@ -125,9 +125,9 @@ function wch_example_filter() {
 		$defaults['general']['welcome_message'] = 'Custom Welcome Message!';
 
 		// Add custom section and defaults.
-		$defaults['custom'] = array(
+		$defaults['custom'] = [
 			'custom_key' => 'custom_value',
-		);
+		];
 
 		return $defaults;
 	});
@@ -150,13 +150,13 @@ function wch_example_complete_config() {
 	$settings = WCH_Settings::getInstance();
 
 	// Configure all API settings.
-	$api_config = array(
+	$api_config = [
 		'whatsapp_phone_number_id'     => '123456789',
 		'whatsapp_business_account_id' => '987654321',
 		'access_token'                 => 'EAABCDEFGHIJKLMNOPQRSTUVWXYZabcdefg',
 		'webhook_verify_token'         => 'my_webhook_verify_token',
 		'api_version'                  => 'v18.0',
-	);
+	];
 
 	foreach ( $api_config as $key => $value ) {
 		$settings->set( "api.$key", $value );

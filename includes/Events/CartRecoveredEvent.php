@@ -8,9 +8,11 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Events;
 
-use WhatsAppCommerceHub\Entities\Cart;
+use WhatsAppCommerceHub\Domain\Cart\Cart;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -46,7 +48,7 @@ class CartRecoveredEvent extends Event {
 	 */
 	public function __construct( Cart $cart, int $order_id ) {
 		parent::__construct();
-		$this->cart = $cart;
+		$this->cart     = $cart;
 		$this->order_id = $order_id;
 	}
 
@@ -61,12 +63,12 @@ class CartRecoveredEvent extends Event {
 	 * {@inheritdoc}
 	 */
 	public function getPayload(): array {
-		return array(
-			'cart_id'         => $this->cart->id,
-			'order_id'        => $this->order_id,
-			'customer_phone'  => $this->cart->customer_phone,
-			'total'           => $this->cart->total,
-			'reminders_sent'  => $this->cart->getRemindersSent(),
-		);
+		return [
+			'cart_id'        => $this->cart->id,
+			'order_id'       => $this->order_id,
+			'customer_phone' => $this->cart->customer_phone,
+			'total'          => $this->cart->total,
+			'reminders_sent' => $this->cart->getRemindersSent(),
+		];
 	}
 }

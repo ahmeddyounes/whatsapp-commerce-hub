@@ -8,6 +8,8 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Contracts\Clients;
 
 // Exit if accessed directly.
@@ -88,7 +90,7 @@ interface WhatsAppClientInterface {
 		string $to,
 		string $template_name,
 		string $language_code,
-		array $components = array()
+		array $components = []
 	): array;
 
 	/**
@@ -244,7 +246,7 @@ interface WhatsAppClientInterface {
 	 * @return array Products list with paging info.
 	 * @throws \RuntimeException If request fails.
 	 */
-	public function listCatalogProducts( string $catalog_id, array $params = array() ): array;
+	public function listCatalogProducts( string $catalog_id, array $params = [] ): array;
 
 	/**
 	 * Validate phone number format.

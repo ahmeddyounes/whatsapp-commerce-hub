@@ -38,10 +38,10 @@ class WCH_Webhook_Test extends WCH_Integration_Test_Case {
 		$this->assertTrue( $result );
 
 		// Verify message was stored.
-		$this->assertDatabaseHas( 'wch_messages', array(
-			'message_type' => 'text',
+		$this->assertDatabaseHas( 'wch_messages', [
+			'type' => 'text',
 			'direction' => 'incoming',
-		) );
+		] );
 	}
 
 	/**
@@ -70,7 +70,7 @@ class WCH_Webhook_Test extends WCH_Integration_Test_Case {
 	 * Test webhook signature verification.
 	 */
 	public function test_verify_webhook_signature() {
-		$payload = json_encode( array( 'test' => 'data' ) );
+		$payload = json_encode( [ 'test' => 'data' ] );
 		$secret = 'test_secret_key';
 
 		$signature = hash_hmac( 'sha256', $payload, $secret );
@@ -84,7 +84,7 @@ class WCH_Webhook_Test extends WCH_Integration_Test_Case {
 	 * Test rejecting invalid signature.
 	 */
 	public function test_reject_invalid_signature() {
-		$payload = json_encode( array( 'test' => 'data' ) );
+		$payload = json_encode( [ 'test' => 'data' ] );
 		$secret = 'test_secret_key';
 		$invalid_signature = 'invalid_signature';
 
@@ -108,10 +108,10 @@ class WCH_Webhook_Test extends WCH_Integration_Test_Case {
 	 * Test creating conversation from new contact.
 	 */
 	public function test_create_conversation_from_new_contact() {
-		$payload = array(
+		$payload = [
 			'object' => 'whatsapp_business_account',
-			'entry' => array(
-				array(
+			'entry' => [
+				[
 					'changes' => array(
 						array(
 							'value' => array(
@@ -127,15 +127,15 @@ class WCH_Webhook_Test extends WCH_Integration_Test_Case {
 							),
 						),
 					),
-				),
-			),
-		);
+				],
+			],
+		];
 
 		$this->webhook_handler->process( $payload );
 
-		$this->assertDatabaseHas( 'wch_conversations', array(
+		$this->assertDatabaseHas( 'wch_conversations', [
 			'customer_phone' => '+9876543210',
-		) );
+		] );
 	}
 
 	/**
@@ -199,10 +199,10 @@ class WCH_Webhook_Test extends WCH_Integration_Test_Case {
 
 		if ( ! file_exists( $file_path ) ) {
 			// Return minimal valid payload.
-			return array(
+			return [
 				'object' => 'whatsapp_business_account',
-				'entry' => array(
-					array(
+				'entry' => [
+					[
 						'changes' => array(
 							array(
 								'value' => array(
@@ -218,9 +218,9 @@ class WCH_Webhook_Test extends WCH_Integration_Test_Case {
 								),
 							),
 						),
-					),
-				),
-			);
+					],
+				],
+			];
 		}
 
 		return json_decode( file_get_contents( $file_path ), true );

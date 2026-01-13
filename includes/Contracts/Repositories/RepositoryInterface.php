@@ -8,6 +8,8 @@
  * @since 2.0.0
  */
 
+declare(strict_types=1);
+
 namespace WhatsAppCommerceHub\Contracts\Repositories;
 
 // Exit if accessed directly.
@@ -41,15 +43,15 @@ interface RepositoryInterface {
 	/**
 	 * Find all entities matching criteria.
 	 *
-	 * @param array<string, mixed> $criteria The search criteria.
+	 * @param array<string, mixed>  $criteria The search criteria.
 	 * @param array<string, string> $orderBy  Column => direction pairs.
-	 * @param int|null             $limit    Maximum number of results.
-	 * @param int                  $offset   Number of results to skip.
+	 * @param int|null              $limit    Maximum number of results.
+	 * @param int                   $offset   Number of results to skip.
 	 * @return array<object> Array of entities.
 	 */
 	public function findAll(
-		array $criteria = array(),
-		array $orderBy = array(),
+		array $criteria = [],
+		array $orderBy = [],
 		?int $limit = null,
 		int $offset = 0
 	): array;
@@ -85,7 +87,7 @@ interface RepositoryInterface {
 	 * @param array<string, mixed> $criteria The search criteria.
 	 * @return int The count.
 	 */
-	public function count( array $criteria = array() ): int;
+	public function count( array $criteria = [] ): int;
 
 	/**
 	 * Check if an entity exists.

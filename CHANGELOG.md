@@ -15,6 +15,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A/B testing for message templates
 - Customer segmentation improvements
 
+## [3.0.0] - 2025-01-22
+
+### Changed
+- **Architecture Overhaul**
+  - Complete PSR-4 namespace migration
+  - Clean Architecture implementation with Domain/Application/Infrastructure/Presentation layers
+  - Dependency Injection container using PHP-DI
+  - Service Provider pattern for modular initialization
+
+### Improved
+- **Code Quality**
+  - PHPCS compliance (0 errors, reduced from 1,800+)
+  - PHPStan static analysis passing
+  - PSR-12 coding standard compliance
+  - Comprehensive file-level documentation
+
+### Fixed
+- SQL query preparation patterns
+- Nonce verification for read-only operations
+- Output escaping for admin pages
+- File header ordering per PSR-12
+
 ## [1.0.0] - 2024-01-15
 
 ### Added
