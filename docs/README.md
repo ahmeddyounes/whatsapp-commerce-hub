@@ -57,6 +57,7 @@ For detailed installation instructions, see [Installation Guide](installation.md
 
 - **[Installation Guide](installation.md)**: System requirements, installation steps, and WhatsApp API setup
 - **[Configuration](configuration.md)**: Complete settings reference and recommendations
+- **[Security Model](security-model.md)**: Encryption, PII protection, rate limiting, and security logging
 - **[Troubleshooting](troubleshooting.md)**: Common issues, debugging, and support resources
 
 ### For Developers

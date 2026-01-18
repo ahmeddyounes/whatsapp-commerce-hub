@@ -401,10 +401,10 @@ None (provides on-demand health checks)
 - **Provider**: `SecurityServiceProvider` ([includes/Providers/SecurityServiceProvider.php](includes/Providers/SecurityServiceProvider.php))
 
 ### Key Components
-- **SecureVault** - Encrypts sensitive data using WordPress salts
-- **PIIEncryptor** - Encrypts personally identifiable information
-- **RateLimiter** - Prevents abuse with sliding window rate limits
-- **Security Logger** - Logs security events to database
+- **SecureVault** - Encrypts sensitive data (AES-256-GCM, derived keys)
+- **PIIEncryptor** - Encrypts personally identifiable information (with blind indexes)
+- **RateLimiter** - Prevents abuse with database-backed rate limits
+- **Security Logger** - Logs security events to database (when table exists)
 
 ### Key Contracts
 - `SecureVault::encrypt()` - Encrypt sensitive data

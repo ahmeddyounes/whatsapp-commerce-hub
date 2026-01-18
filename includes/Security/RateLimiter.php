@@ -141,43 +141,49 @@ class RateLimiter {
 
 		$limit  = $limit ?? $config['limit'];
 		$window = $window ?? $config['window'];
+		$now    = time();
+
+		if ( ! $this->tableExists() ) {
+			return [
+				'allowed'   => true,
+				'remaining' => $limit,
+				'reset_at'  => $now + $window,
+			];
+		}
 
 		$identifier_hash = $this->hashIdentifier( $identifier );
-		$now             = time();
-		$window_start    = $now - $window;
 
-		// Clean old entries.
-		$this->cleanOldEntries( $identifier_hash, $limit_type, $window_start );
+		// Block checks are stored as a single row keyed by window_start = 'blocked'.
+		$blocked_until = $this->getBlockUntilTimestamp( $identifier_hash );
+		if ( null !== $blocked_until && $blocked_until > $now ) {
+			return [
+				'allowed'   => false,
+				'remaining' => 0,
+				'reset_at'  => $blocked_until,
+			];
+		}
 
-		$count = (int) $this->wpdb->get_var(
+		$window_start_ts  = $this->getWindowStartTimestamp( $now, $window );
+		$window_start_str = gmdate( 'Y-m-d H:i', $window_start_ts );
+
+		// Clean expired entries for this identifier/type.
+		$this->cleanExpiredEntries( $identifier_hash, $limit_type, gmdate( 'Y-m-d H:i:s', $now ) );
+
+		$request_count = (int) $this->wpdb->get_var(
 			$this->wpdb->prepare(
-				"SELECT COUNT(*) FROM {$this->table}
+				"SELECT request_count FROM {$this->table}
 				WHERE identifier_hash = %s
 				AND limit_type = %s
-				AND created_at >= %s",
+				AND window_start = %s",
 				$identifier_hash,
 				$limit_type,
-				gmdate( 'Y-m-d H:i:s', $window_start )
+				$window_start_str
 			)
 		);
 
-		$allowed   = $count < $limit;
-		$remaining = max( 0, $limit - $count );
-
-		// Calculate reset time (when the oldest entry expires).
-		$oldest = $this->wpdb->get_var(
-			$this->wpdb->prepare(
-				"SELECT MIN(created_at) FROM {$this->table}
-				WHERE identifier_hash = %s
-				AND limit_type = %s
-				AND created_at >= %s",
-				$identifier_hash,
-				$limit_type,
-				gmdate( 'Y-m-d H:i:s', $window_start )
-			)
-		);
-
-		$reset_at = $this->calculateResetTime( $oldest, $window, $now );
+		$allowed   = $request_count < $limit;
+		$remaining = max( 0, $limit - min( $request_count, $limit ) );
+		$reset_at  = $window_start_ts + $window;
 
 		return [
 			'allowed'   => $allowed,
@@ -212,58 +218,104 @@ class RateLimiter {
 
 		$limit  = $limit ?? $config['limit'];
 		$window = $window ?? $config['window'];
+		$now    = time();
+
+		if ( ! $this->tableExists() ) {
+			return [
+				'allowed'   => true,
+				'remaining' => $limit,
+				'reset_at'  => $now + $window,
+			];
+		}
 
 		$identifier_hash = $this->hashIdentifier( $identifier );
-		$now             = time();
-		$window_start    = gmdate( 'Y-m-d H:i:s', $now - $window );
-		$now_mysql       = gmdate( 'Y-m-d H:i:s', $now );
 
-		// Start transaction for atomicity.
+		$blocked_until = $this->getBlockUntilTimestamp( $identifier_hash );
+		if ( null !== $blocked_until && $blocked_until > $now ) {
+			return [
+				'allowed'   => false,
+				'remaining' => 0,
+				'reset_at'  => $blocked_until,
+			];
+		}
+
+		$window_start_ts   = $this->getWindowStartTimestamp( $now, $window );
+		$window_start_str  = gmdate( 'Y-m-d H:i', $window_start_ts );
+		$now_mysql         = gmdate( 'Y-m-d H:i:s', $now );
+		$expires_at_mysql  = gmdate( 'Y-m-d H:i:s', $window_start_ts + $window );
+		$reset_at          = $window_start_ts + $window;
+
 		$this->wpdb->query( 'START TRANSACTION' );
 
 		try {
-			// Clean old entries.
+			// Remove expired window entries for this identifier/type.
 			$this->wpdb->query(
 				$this->wpdb->prepare(
 					"DELETE FROM {$this->table}
 					WHERE identifier_hash = %s
 					AND limit_type = %s
-					AND created_at < %s",
+					AND window_start != %s
+					AND expires_at IS NOT NULL
+					AND expires_at < %s",
 					$identifier_hash,
 					$limit_type,
-					$window_start
+					'blocked',
+					$now_mysql
 				)
 			);
 
-			// Get current count with FOR UPDATE lock to prevent concurrent reads.
-			$count = (int) $this->wpdb->get_var(
+			// Ensure the current window row exists.
+			$this->wpdb->query(
 				$this->wpdb->prepare(
-					"SELECT COUNT(*) FROM {$this->table}
+					"INSERT INTO {$this->table} (identifier_hash, limit_type, request_count, window_start, created_at, expires_at)
+					VALUES (%s, %s, 0, %s, %s, %s)
+					ON DUPLICATE KEY UPDATE expires_at = VALUES(expires_at)",
+					$identifier_hash,
+					$limit_type,
+					$window_start_str,
+					$now_mysql,
+					$expires_at_mysql
+				)
+			);
+
+			// Atomically increment ONLY if under limit.
+			$rows_affected = $this->wpdb->query(
+				$this->wpdb->prepare(
+					"UPDATE {$this->table}
+					SET request_count = request_count + 1
 					WHERE identifier_hash = %s
 					AND limit_type = %s
-					AND created_at >= %s
-					FOR UPDATE",
+					AND window_start = %s
+					AND request_count < %d",
 					$identifier_hash,
 					$limit_type,
-					$window_start
+					$window_start_str,
+					$limit
 				)
 			);
 
-			$allowed = $count < $limit;
-
-			if ( $allowed ) {
-				// Insert the new hit while still holding the lock.
-				$this->wpdb->insert(
-					$this->table,
-					[
-						'identifier_hash' => $identifier_hash,
-						'limit_type'      => $limit_type,
-						'created_at'      => $now_mysql,
-					],
-					[ '%s', '%s', '%s' ]
-				);
-				++$count; // Increment for the just-inserted record.
+			if ( false === $rows_affected ) {
+				$this->wpdb->query( 'ROLLBACK' );
+				return [
+					'allowed'   => true,
+					'remaining' => $limit,
+					'reset_at'  => $reset_at,
+				];
 			}
+
+			$allowed = $rows_affected > 0;
+
+			$request_count = (int) $this->wpdb->get_var(
+				$this->wpdb->prepare(
+					"SELECT request_count FROM {$this->table}
+					WHERE identifier_hash = %s
+					AND limit_type = %s
+					AND window_start = %s",
+					$identifier_hash,
+					$limit_type,
+					$window_start_str
+				)
+			);
 
 			$this->wpdb->query( 'COMMIT' );
 		} catch ( \Throwable $e ) {
@@ -271,8 +323,7 @@ class RateLimiter {
 			throw $e;
 		}
 
-		$remaining = max( 0, $limit - $count );
-		$reset_at  = $now + $window;
+		$remaining  = max( 0, $limit - min( $request_count, $limit ) );
 
 		return [
 			'allowed'   => $allowed,
@@ -299,16 +350,37 @@ class RateLimiter {
 	 * @return bool True if recorded successfully.
 	 */
 	public function hit( string $identifier, string $limit_type ): bool {
-		$identifier_hash = $this->hashIdentifier( $identifier );
+		if ( ! $this->tableExists() ) {
+			return true;
+		}
 
-		$result = $this->wpdb->insert(
-			$this->table,
-			[
-				'identifier_hash' => $identifier_hash,
-				'limit_type'      => $limit_type,
-				'created_at'      => current_time( 'mysql', true ),
-			],
-			[ '%s', '%s', '%s' ]
+		$config = $this->limits[ $limit_type ] ?? [
+			'limit'  => 100,
+			'window' => 60,
+		];
+
+		$window = $config['window'];
+		$now    = time();
+
+		$identifier_hash  = $this->hashIdentifier( $identifier );
+		$window_start_ts  = $this->getWindowStartTimestamp( $now, $window );
+		$window_start_str = gmdate( 'Y-m-d H:i', $window_start_ts );
+		$now_mysql        = gmdate( 'Y-m-d H:i:s', $now );
+		$expires_at_mysql = gmdate( 'Y-m-d H:i:s', $window_start_ts + $window );
+
+		$result = $this->wpdb->query(
+			$this->wpdb->prepare(
+				"INSERT INTO {$this->table} (identifier_hash, limit_type, request_count, window_start, created_at, expires_at)
+				VALUES (%s, %s, 1, %s, %s, %s)
+				ON DUPLICATE KEY UPDATE
+				request_count = request_count + 1,
+				expires_at = VALUES(expires_at)",
+				$identifier_hash,
+				$limit_type,
+				$window_start_str,
+				$now_mysql,
+				$expires_at_mysql
+			)
 		);
 
 		return false !== $result;
@@ -356,6 +428,10 @@ class RateLimiter {
 	public function reset( string $identifier, string $limit_type = '' ): int {
 		$identifier_hash = $this->hashIdentifier( $identifier );
 
+		if ( ! $this->tableExists() ) {
+			return 0;
+		}
+
 		if ( $limit_type ) {
 			$this->wpdb->delete(
 				$this->table,
@@ -385,18 +461,25 @@ class RateLimiter {
 	 * @return bool True if blocked.
 	 */
 	public function block( string $identifier, int $duration = 3600, string $reason = '' ): bool {
+		if ( ! $this->tableExists() ) {
+			return true;
+		}
+
 		$identifier_hash = $this->hashIdentifier( $identifier );
+		$now             = time();
 
 		$result = $this->wpdb->replace(
 			$this->table,
 			[
 				'identifier_hash' => $identifier_hash,
 				'limit_type'      => 'blocked',
-				'created_at'      => current_time( 'mysql', true ),
-				'expires_at'      => gmdate( 'Y-m-d H:i:s', time() + $duration ),
+				'request_count'   => 0,
+				'window_start'    => 'blocked',
+				'created_at'      => gmdate( 'Y-m-d H:i:s', $now ),
+				'expires_at'      => gmdate( 'Y-m-d H:i:s', $now + $duration ),
 				'metadata'        => wp_json_encode( [ 'reason' => $reason ] ),
 			],
-			[ '%s', '%s', '%s', '%s', '%s' ]
+			[ '%s', '%s', '%d', '%s', '%s', '%s', '%s' ]
 		);
 
 		if ( $result ) {
@@ -421,17 +504,24 @@ class RateLimiter {
 	 * @return bool True if blocked.
 	 */
 	public function isBlocked( string $identifier ): bool {
+		if ( ! $this->tableExists() ) {
+			return false;
+		}
+
 		$identifier_hash = $this->hashIdentifier( $identifier );
+		$now_mysql       = gmdate( 'Y-m-d H:i:s', time() );
 
 		$blocked = $this->wpdb->get_var(
 			$this->wpdb->prepare(
 				"SELECT 1 FROM {$this->table}
 				WHERE identifier_hash = %s
 				AND limit_type = 'blocked'
+				AND window_start = %s
 				AND expires_at > %s
 				LIMIT 1",
 				$identifier_hash,
-				current_time( 'mysql', true )
+				'blocked',
+				$now_mysql
 			)
 		);
 
@@ -445,6 +535,10 @@ class RateLimiter {
 	 * @return bool True if unblocked.
 	 */
 	public function unblock( string $identifier ): bool {
+		if ( ! $this->tableExists() ) {
+			return true;
+		}
+
 		$identifier_hash = $this->hashIdentifier( $identifier );
 
 		$this->wpdb->delete(
@@ -452,8 +546,9 @@ class RateLimiter {
 			[
 				'identifier_hash' => $identifier_hash,
 				'limit_type'      => 'blocked',
+				'window_start'    => 'blocked',
 			],
-			[ '%s', '%s' ]
+			[ '%s', '%s', '%s' ]
 		);
 
 		return $this->wpdb->rows_affected > 0;
@@ -495,16 +590,19 @@ class RateLimiter {
 	 * @param int    $window_start    The window start timestamp.
 	 * @return void
 	 */
-	private function cleanOldEntries( string $identifier_hash, string $limit_type, int $window_start ): void {
+	private function cleanExpiredEntries( string $identifier_hash, string $limit_type, string $now_mysql ): void {
 		$this->wpdb->query(
 			$this->wpdb->prepare(
 				"DELETE FROM {$this->table}
 				WHERE identifier_hash = %s
 				AND limit_type = %s
-				AND created_at < %s",
+				AND window_start != %s
+				AND expires_at IS NOT NULL
+				AND expires_at < %s",
 				$identifier_hash,
 				$limit_type,
-				gmdate( 'Y-m-d H:i:s', $window_start )
+				'blocked',
+				$now_mysql
 			)
 		);
 	}
@@ -517,6 +615,69 @@ class RateLimiter {
 	 */
 	private function hashIdentifier( string $identifier ): string {
 		return hash( 'sha256', $identifier );
+	}
+
+	/**
+	 * Check whether the rate limits table exists.
+	 *
+	 * @return bool
+	 */
+	private function tableExists(): bool {
+		static $exists = null;
+		if ( null !== $exists ) {
+			return $exists;
+		}
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		$result = $this->wpdb->get_var(
+			$this->wpdb->prepare( 'SHOW TABLES LIKE %s', $this->table )
+		);
+
+		$exists = ! empty( $result );
+		return $exists;
+	}
+
+	/**
+	 * Get the start of the current window.
+	 *
+	 * @param int $now    Current UNIX timestamp.
+	 * @param int $window Window size in seconds.
+	 * @return int
+	 */
+	private function getWindowStartTimestamp( int $now, int $window ): int {
+		if ( $window <= 0 ) {
+			return $now;
+		}
+
+		return (int) ( floor( $now / $window ) * $window );
+	}
+
+	/**
+	 * Get block expiry timestamp for identifier hash.
+	 *
+	 * @param string $identifier_hash Hashed identifier.
+	 * @return int|null
+	 */
+	private function getBlockUntilTimestamp( string $identifier_hash ): ?int {
+		$expires_at = $this->wpdb->get_var(
+			$this->wpdb->prepare(
+				"SELECT expires_at FROM {$this->table}
+				WHERE identifier_hash = %s
+				AND limit_type = 'blocked'
+				AND window_start = %s
+				AND expires_at IS NOT NULL
+				LIMIT 1",
+				$identifier_hash,
+				'blocked'
+			)
+		);
+
+		if ( empty( $expires_at ) || ! is_string( $expires_at ) ) {
+			return null;
+		}
+
+		$timestamp = strtotime( $expires_at );
+		return false === $timestamp ? null : $timestamp;
 	}
 
 	/**
@@ -572,6 +733,10 @@ class RateLimiter {
 	 * @return int Number of entries deleted.
 	 */
 	public function cleanup(): int {
+		if ( ! $this->tableExists() ) {
+			return 0;
+		}
+
 		// Delete all entries older than the longest window.
 		$max_window = max( array_column( $this->limits, 'window' ) );
 		$threshold  = gmdate( 'Y-m-d H:i:s', time() - $max_window );
@@ -598,13 +763,21 @@ class RateLimiter {
 	 * @return array Statistics.
 	 */
 	public function getStats( string $limit_type = '' ): array {
+		if ( ! $this->tableExists() ) {
+			return [
+				'total_hits'         => 0,
+				'unique_identifiers' => 0,
+				'top_identifiers'    => [],
+			];
+		}
+
 		// Use separate fully parameterized queries for each case.
 		if ( $limit_type ) {
 			// Query for specific limit type.
 			$stats = $this->wpdb->get_row(
 				$this->wpdb->prepare(
 					"SELECT
-						COUNT(*) as total_hits,
+						SUM(request_count) as total_hits,
 						COUNT(DISTINCT identifier_hash) as unique_identifiers
 					FROM {$this->table}
 					WHERE limit_type = %s
@@ -616,7 +789,7 @@ class RateLimiter {
 
 			$top_identifiers = $this->wpdb->get_results(
 				$this->wpdb->prepare(
-					"SELECT identifier_hash, COUNT(*) as hits
+					"SELECT identifier_hash, SUM(request_count) as hits
 					FROM {$this->table}
 					WHERE limit_type = %s
 					AND created_at >= DATE_SUB(NOW(), INTERVAL 1 HOUR)
@@ -632,7 +805,7 @@ class RateLimiter {
 			$stats = $this->wpdb->get_row(
 				$this->wpdb->prepare(
 					"SELECT
-						COUNT(*) as total_hits,
+						SUM(request_count) as total_hits,
 						COUNT(DISTINCT identifier_hash) as unique_identifiers
 					FROM {$this->table}
 					WHERE limit_type != %s
@@ -644,7 +817,7 @@ class RateLimiter {
 
 			$top_identifiers = $this->wpdb->get_results(
 				$this->wpdb->prepare(
-					"SELECT identifier_hash, COUNT(*) as hits
+					"SELECT identifier_hash, SUM(request_count) as hits
 					FROM {$this->table}
 					WHERE limit_type != %s
 					AND created_at >= DATE_SUB(NOW(), INTERVAL 1 HOUR)

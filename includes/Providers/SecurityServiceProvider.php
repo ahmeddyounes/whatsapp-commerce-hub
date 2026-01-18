@@ -90,11 +90,23 @@ class SecurityServiceProvider implements ServiceProviderInterface {
 					private \wpdb $wpdb;
 					private object $logger;
 					private string $table;
+					private ?bool $table_exists = null;
 
 					public function __construct( \wpdb $wpdb, object $logger ) {
 						$this->wpdb   = $wpdb;
 						$this->logger = $logger;
 						$this->table  = $wpdb->prefix . 'wch_security_log';
+					}
+
+					private function tableExists(): bool {
+						if ( null !== $this->table_exists ) {
+							return $this->table_exists;
+						}
+
+						// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+						$result             = $this->wpdb->get_var( $this->wpdb->prepare( 'SHOW TABLES LIKE %s', $this->table ) );
+						$this->table_exists = ! empty( $result );
+						return $this->table_exists;
 					}
 
 					/**
@@ -110,7 +122,7 @@ class SecurityServiceProvider implements ServiceProviderInterface {
 						$this->logger->$level( "Security: {$event}", $context );
 
 						// Log to database for important events.
-						if ( in_array( $level, [ 'warning', 'error' ], true ) ) {
+						if ( in_array( $level, [ 'warning', 'error' ], true ) && $this->tableExists() ) {
 							$this->wpdb->insert(
 								$this->table,
 								[
@@ -135,6 +147,10 @@ class SecurityServiceProvider implements ServiceProviderInterface {
 					 * @return array Security events.
 					 */
 					public function getEvents( array $filters = [], int $limit = 50, int $offset = 0 ): array {
+						if ( ! $this->tableExists() ) {
+							return [];
+						}
+
 						$where  = [ '1=1' ];
 						$params = [];
 
@@ -206,6 +222,10 @@ class SecurityServiceProvider implements ServiceProviderInterface {
 					 * @return int Number deleted.
 					 */
 					public function cleanup( int $days_old = 90 ): int {
+						if ( ! $this->tableExists() ) {
+							return 0;
+						}
+
 						$threshold = ( new \DateTimeImmutable() )
 							->modify( "-{$days_old} days" )
 							->format( 'Y-m-d H:i:s' );

@@ -26,3 +26,10 @@ Thumbs.db
 # Environment files
 .env
 .env.local
+
+# Task planner artifacts
+.t2/
+.plans/
+
+# Local task logs
+.logs/
