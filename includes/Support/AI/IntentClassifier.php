@@ -5,14 +5,14 @@
  * AI service for classifying user intent from messages.
  *
  * @package WhatsApp_Commerce_Hub
- * @since 2.0.0
+ * @since 3.0.0
  */
 
 declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Support\AI;
 
-use WhatsAppCommerceHub\Domain\Conversation\Intent;
+use WhatsAppCommerceHub\ValueObjects\Intent;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -22,10 +22,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Class IntentClassifier
  *
- * Classifies user messages into intents using pattern matching and AI.
- *
- * Note: This is a transitional class. Full migration will integrate
- * with proper AI services in a future phase.
+ * Classifies user messages into intents using pattern matching.
+ * Uses canonical ValueObjects\Intent for all intent representations.
  */
 class IntentClassifier {
 	/**
@@ -37,14 +35,14 @@ class IntentClassifier {
 	 * Pattern-based intent rules.
 	 */
 	private array $patterns = [
-		Intent::INTENT_GREETING     => [ '/^(hi|hello|hey|good\s+(morning|afternoon|evening))/i' ],
-		Intent::INTENT_BROWSE       => [ '/^(browse|show|list|catalog|products)/i' ],
-		Intent::INTENT_SEARCH       => [ '/^(search|find|looking for)/i' ],
-		Intent::INTENT_VIEW_CART    => [ '/^(cart|basket|my cart)/i' ],
-		Intent::INTENT_CHECKOUT     => [ '/^(checkout|buy|purchase|order)/i' ],
-		Intent::INTENT_ORDER_STATUS => [ '/^(order|status|where|track)/i' ],
-		Intent::INTENT_HELP         => [ '/^(help|support|assist)/i' ],
-		Intent::INTENT_CANCEL       => [ '/^(cancel|stop|nevermind)/i' ],
+		Intent::GREETING     => [ '/^(hi|hello|hey|good\s+(morning|afternoon|evening))/i' ],
+		Intent::BROWSE       => [ '/^(browse|show|list|catalog|products)/i' ],
+		Intent::SEARCH       => [ '/^(search|find|looking for)/i' ],
+		Intent::VIEW_CART    => [ '/^(cart|basket|my cart)/i' ],
+		Intent::CHECKOUT     => [ '/^(checkout|buy|purchase|order)/i' ],
+		Intent::ORDER_STATUS => [ '/^(order|status|where|track)/i' ],
+		Intent::HELP         => [ '/^(help|support|assist)/i' ],
+		Intent::CANCEL       => [ '/^(cancel|stop|nevermind)/i' ],
 	];
 
 	/**
@@ -64,8 +62,7 @@ class IntentClassifier {
 					return new Intent(
 						$intentName,
 						0.9,
-						$this->extractEntities( $message ),
-						[ 'method' => 'pattern_matching' ]
+						$this->convertEntitiesToStructuredFormat( $this->extractEntities( $message ) )
 					);
 				}
 			}
@@ -73,10 +70,9 @@ class IntentClassifier {
 
 		// Fallback to unknown intent.
 		return new Intent(
-			Intent::INTENT_UNKNOWN,
+			Intent::UNKNOWN,
 			0.5,
-			[],
-			[ 'method' => 'fallback' ]
+			[]
 		);
 	}
 
@@ -105,6 +101,36 @@ class IntentClassifier {
 		}
 
 		return $entities;
+	}
+
+	/**
+	 * Convert entities from associative array to structured format.
+	 *
+	 * @param array $entities Entities as associative array.
+	 * @return array<int, array{type: string, value: mixed, position?: int}>
+	 */
+	private function convertEntitiesToStructuredFormat( array $entities ): array {
+		$structured = [];
+
+		foreach ( $entities as $type => $value ) {
+			if ( is_array( $value ) ) {
+				// Handle multiple values (e.g., numbers).
+				foreach ( $value as $val ) {
+					$structured[] = [
+						'type'  => $type,
+						'value' => $val,
+					];
+				}
+			} else {
+				// Handle single value.
+				$structured[] = [
+					'type'  => $type,
+					'value' => $value,
+				];
+			}
+		}
+
+		return $structured;
 	}
 
 	/**
