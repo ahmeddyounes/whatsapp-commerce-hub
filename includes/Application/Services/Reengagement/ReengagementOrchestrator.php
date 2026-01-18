@@ -85,6 +85,20 @@ class ReengagementOrchestrator implements ReengagementOrchestratorInterface {
 	protected ?WhatsAppApiClient $apiClient = null;
 
 	/**
+	 * Job dispatcher.
+	 *
+	 * @var JobDispatcher
+	 */
+	protected JobDispatcher $jobDispatcher;
+
+	/**
+	 * Logger instance.
+	 *
+	 * @var LoggerInterface
+	 */
+	protected LoggerInterface $logger;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param SettingsInterface                   $settings           Settings service.
@@ -92,20 +106,38 @@ class ReengagementOrchestrator implements ReengagementOrchestratorInterface {
 	 * @param CampaignTypeResolverInterface       $campaignResolver   Campaign resolver.
 	 * @param ReengagementMessageBuilderInterface $messageBuilder     Message builder.
 	 * @param FrequencyCapManagerInterface        $frequencyCap       Frequency cap manager.
+	 * @param CustomerServiceInterface            $customerService    Customer service.
+	 * @param JobDispatcher                       $jobDispatcher      Job dispatcher.
+	 * @param LoggerInterface                     $logger             Logger.
 	 */
 	public function __construct(
 		SettingsInterface $settings,
 		InactiveCustomerIdentifierInterface $customerIdentifier,
 		CampaignTypeResolverInterface $campaignResolver,
 		ReengagementMessageBuilderInterface $messageBuilder,
-		FrequencyCapManagerInterface $frequencyCap
+		FrequencyCapManagerInterface $frequencyCap,
+		CustomerServiceInterface $customerService,
+		JobDispatcher $jobDispatcher,
+		LoggerInterface $logger
 	) {
 		$this->settings           = $settings;
 		$this->customerIdentifier = $customerIdentifier;
 		$this->campaignResolver   = $campaignResolver;
 		$this->messageBuilder     = $messageBuilder;
 		$this->frequencyCap       = $frequencyCap;
-		$this->customerService    = wch( CustomerServiceInterface::class );
+		$this->customerService    = $customerService;
+		$this->jobDispatcher      = $jobDispatcher;
+		$this->logger             = $logger;
+	}
+
+	/**
+	 * Set the WhatsApp API client (optional dependency).
+	 *
+	 * @param WhatsAppApiClient $apiClient API client.
+	 * @return void
+	 */
+	public function setApiClient( WhatsAppApiClient $apiClient ): void {
+		$this->apiClient = $apiClient;
 	}
 
 	/**
@@ -114,8 +146,6 @@ class ReengagementOrchestrator implements ReengagementOrchestratorInterface {
 	 * @return void
 	 */
 	public function init(): void {
-		// Initialize API client.
-		add_action( 'init', [ $this, 'initApiClient' ] );
 
 		// Schedule daily task to identify and engage inactive customers.
 		if ( ! as_next_scheduled_action( 'wch_process_reengagement_campaigns', [], 'wch' ) ) {
@@ -151,22 +181,6 @@ class ReengagementOrchestrator implements ReengagementOrchestratorInterface {
 		}
 	}
 
-	/**
-	 * Initialize WhatsApp API client.
-	 *
-	 * @return void
-	 */
-	public function initApiClient(): void {
-		try {
-			$this->apiClient = wch( WhatsAppApiClient::class );
-		} catch ( \Throwable $e ) {
-			$this->log(
-				'error',
-				'Failed to initialize WhatsApp API client for re-engagement',
-				[ 'error' => $e->getMessage() ]
-			);
-		}
-	}
 
 	/**
 	 * Process re-engagement campaigns.
@@ -207,7 +221,7 @@ class ReengagementOrchestrator implements ReengagementOrchestratorInterface {
 	public function queueMessage( array $customer ): bool {
 		$campaignType = $this->campaignResolver->resolve( $customer );
 
-		wch( JobDispatcher::class )->dispatch(
+		$this->jobDispatcher->dispatch(
 			'wch_send_reengagement_message',
 			[
 				'customer_phone' => $customer['phone'],
@@ -320,10 +334,6 @@ class ReengagementOrchestrator implements ReengagementOrchestratorInterface {
 	 */
 	protected function sendCampaignMessage( object $customer, string $campaignType ): array {
 		if ( ! $this->apiClient ) {
-			$this->initApiClient();
-		}
-
-		if ( ! $this->apiClient ) {
 			return [
 				'success' => false,
 				'error'   => 'WhatsApp API client not initialized',
@@ -376,12 +386,6 @@ class ReengagementOrchestrator implements ReengagementOrchestratorInterface {
 	 * @return void
 	 */
 	private function log( string $level, string $message, array $context = [] ): void {
-		try {
-			$logger = wch( LoggerInterface::class );
-		} catch ( \Throwable $e ) {
-			return;
-		}
-
-		$logger->log( $level, $message, 'reengagement', $context );
+		$this->logger->log( $level, $message, 'reengagement', $context );
 	}
 }

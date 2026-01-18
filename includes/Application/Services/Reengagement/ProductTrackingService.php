@@ -61,19 +61,29 @@ class ProductTrackingService implements ProductTrackingServiceInterface {
 	protected ?FrequencyCapManagerInterface $frequencyCap;
 
 	/**
+	 * Job dispatcher.
+	 *
+	 * @var JobDispatcher
+	 */
+	protected JobDispatcher $jobDispatcher;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param DatabaseManager                   $dbManager    Database manager.
-	 * @param FrequencyCapManagerInterface|null $frequencyCap Frequency cap manager.
+	 * @param DatabaseManager                   $dbManager     Database manager.
+	 * @param JobDispatcher                     $jobDispatcher Job dispatcher.
+	 * @param FrequencyCapManagerInterface|null $frequencyCap  Frequency cap manager.
 	 */
 	public function __construct(
 		DatabaseManager $dbManager,
+		JobDispatcher $jobDispatcher,
 		?FrequencyCapManagerInterface $frequencyCap = null
 	) {
 		global $wpdb;
-		$this->wpdb         = $wpdb;
-		$this->dbManager    = $dbManager;
-		$this->frequencyCap = $frequencyCap;
+		$this->wpdb          = $wpdb;
+		$this->dbManager     = $dbManager;
+		$this->jobDispatcher = $jobDispatcher;
+		$this->frequencyCap  = $frequencyCap;
 	}
 
 	/**
@@ -303,7 +313,7 @@ class ProductTrackingService implements ProductTrackingServiceInterface {
 			}
 
 			// Queue back-in-stock notification.
-			wch( JobDispatcher::class )->dispatch(
+			$this->jobDispatcher->dispatch(
 				'wch_send_reengagement_message',
 				[
 					'customer_phone' => $row['customer_phone'],

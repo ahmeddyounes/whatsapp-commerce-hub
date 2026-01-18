@@ -64,13 +64,27 @@ class LoyaltyCouponGenerator implements LoyaltyCouponGeneratorInterface {
 	protected CustomerServiceInterface $customerService;
 
 	/**
+	 * Logger instance.
+	 *
+	 * @var LoggerInterface
+	 */
+	protected LoggerInterface $logger;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param SettingsInterface $settings Settings service.
+	 * @param SettingsInterface        $settings        Settings service.
+	 * @param CustomerServiceInterface $customerService Customer service.
+	 * @param LoggerInterface          $logger          Logger.
 	 */
-	public function __construct( SettingsInterface $settings ) {
+	public function __construct(
+		SettingsInterface $settings,
+		CustomerServiceInterface $customerService,
+		LoggerInterface $logger
+	) {
 		$this->settings        = $settings;
-		$this->customerService = wch( CustomerServiceInterface::class );
+		$this->customerService = $customerService;
+		$this->logger          = $logger;
 	}
 
 	/**
@@ -106,23 +120,14 @@ class LoyaltyCouponGenerator implements LoyaltyCouponGeneratorInterface {
 
 			return $couponCode;
 		} catch ( \Exception $e ) {
-			$logger = null;
-			try {
-				$logger = wch( LoggerInterface::class );
-			} catch ( \Throwable $loggerError ) {
-				$logger = null;
-			}
-
-			if ( $logger ) {
-				$logger->error(
-					'Failed to create loyalty discount coupon',
-					'reengagement',
-					[
-						'phone' => $customer->phone,
-						'error' => $e->getMessage(),
-					]
-				);
-			}
+			$this->logger->error(
+				'Failed to create loyalty discount coupon',
+				'reengagement',
+				[
+					'phone' => $customer->phone,
+					'error' => $e->getMessage(),
+				]
+			);
 			return null;
 		}
 	}

@@ -64,16 +64,18 @@ class ReengagementMessageBuilder implements ReengagementMessageBuilderInterface 
 	 * @param SettingsInterface               $settings         Settings service.
 	 * @param ProductTrackingServiceInterface $productTracking  Product tracking.
 	 * @param LoyaltyCouponGeneratorInterface $loyaltyGenerator Loyalty generator.
+	 * @param CustomerServiceInterface        $customerService  Customer service.
 	 */
 	public function __construct(
 		SettingsInterface $settings,
 		ProductTrackingServiceInterface $productTracking,
-		LoyaltyCouponGeneratorInterface $loyaltyGenerator
+		LoyaltyCouponGeneratorInterface $loyaltyGenerator,
+		CustomerServiceInterface $customerService
 	) {
 		$this->settings         = $settings;
 		$this->productTracking  = $productTracking;
 		$this->loyaltyGenerator = $loyaltyGenerator;
-		$this->customerService  = wch( CustomerServiceInterface::class );
+		$this->customerService  = $customerService;
 	}
 
 	/**

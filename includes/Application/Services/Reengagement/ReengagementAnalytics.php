@@ -48,14 +48,23 @@ class ReengagementAnalytics implements ReengagementAnalyticsInterface {
 	protected DatabaseManager $dbManager;
 
 	/**
+	 * Logger instance.
+	 *
+	 * @var LoggerInterface
+	 */
+	protected LoggerInterface $logger;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param DatabaseManager $dbManager Database manager.
+	 * @param DatabaseManager   $dbManager Database manager.
+	 * @param LoggerInterface   $logger    Logger.
 	 */
-	public function __construct( DatabaseManager $dbManager ) {
+	public function __construct( DatabaseManager $dbManager, LoggerInterface $logger ) {
 		global $wpdb;
 		$this->wpdb      = $wpdb;
 		$this->dbManager = $dbManager;
+		$this->logger    = $logger;
 	}
 
 	/**
@@ -140,24 +149,15 @@ class ReengagementAnalytics implements ReengagementAnalyticsInterface {
 		);
 
 		if ( false !== $result ) {
-			$logger = null;
-			try {
-				$logger = wch( LoggerInterface::class );
-			} catch ( \Throwable $loggerError ) {
-				$logger = null;
-			}
-
-			if ( $logger ) {
-				$logger->info(
-					'Re-engagement conversion tracked',
-					'reengagement',
-					[
-						'phone'    => $customerPhone,
-						'order_id' => $orderId,
-						'log_id'   => $logId,
-					]
-				);
-			}
+			$this->logger->info(
+				'Re-engagement conversion tracked',
+				'reengagement',
+				[
+					'phone'    => $customerPhone,
+					'order_id' => $orderId,
+					'log_id'   => $logId,
+				]
+			);
 			return true;
 		}
 

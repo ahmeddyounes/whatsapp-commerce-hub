@@ -64,16 +64,18 @@ class CampaignTypeResolver implements CampaignTypeResolverInterface {
 	 * @param ProductTrackingServiceInterface     $productTracking  Product tracking.
 	 * @param LoyaltyCouponGeneratorInterface     $loyaltyGenerator Loyalty generator.
 	 * @param ReengagementMessageBuilderInterface $messageBuilder   Message builder.
+	 * @param CustomerServiceInterface            $customerService  Customer service.
 	 */
 	public function __construct(
 		ProductTrackingServiceInterface $productTracking,
 		LoyaltyCouponGeneratorInterface $loyaltyGenerator,
-		ReengagementMessageBuilderInterface $messageBuilder
+		ReengagementMessageBuilderInterface $messageBuilder,
+		CustomerServiceInterface $customerService
 	) {
 		$this->productTracking  = $productTracking;
 		$this->loyaltyGenerator = $loyaltyGenerator;
 		$this->messageBuilder   = $messageBuilder;
-		$this->customerService  = wch( CustomerServiceInterface::class );
+		$this->customerService  = $customerService;
 	}
 
 	/**

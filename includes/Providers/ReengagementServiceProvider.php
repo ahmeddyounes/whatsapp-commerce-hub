@@ -32,6 +32,10 @@ use WhatsAppCommerceHub\Application\Services\Reengagement\FrequencyCapManager;
 use WhatsAppCommerceHub\Application\Services\Reengagement\ReengagementAnalytics;
 use WhatsAppCommerceHub\Application\Services\Reengagement\ReengagementOrchestrator;
 use WhatsAppCommerceHub\Infrastructure\Database\DatabaseManager;
+use WhatsAppCommerceHub\Contracts\Services\CustomerServiceInterface;
+use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
+use WhatsAppCommerceHub\Infrastructure\Queue\JobDispatcher;
+use WhatsAppCommerceHub\Clients\WhatsAppApiClient;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -67,6 +71,7 @@ class ReengagementServiceProvider extends AbstractServiceProvider {
 			function ( $container ) {
 				$service = new ProductTrackingService(
 					$container->get( DatabaseManager::class ),
+					$container->get( JobDispatcher::class ),
 					$container->get( FrequencyCapManagerInterface::class )
 				);
 				return $service;
@@ -78,7 +83,9 @@ class ReengagementServiceProvider extends AbstractServiceProvider {
 			LoyaltyCouponGeneratorInterface::class,
 			function ( $container ) {
 				return new LoyaltyCouponGenerator(
-					$container->get( SettingsInterface::class )
+					$container->get( SettingsInterface::class ),
+					$container->get( CustomerServiceInterface::class ),
+					$container->get( LoggerInterface::class )
 				);
 			}
 		);
@@ -101,7 +108,8 @@ class ReengagementServiceProvider extends AbstractServiceProvider {
 				return new ReengagementMessageBuilder(
 					$container->get( SettingsInterface::class ),
 					$container->get( ProductTrackingServiceInterface::class ),
-					$container->get( LoyaltyCouponGeneratorInterface::class )
+					$container->get( LoyaltyCouponGeneratorInterface::class ),
+					$container->get( CustomerServiceInterface::class )
 				);
 			}
 		);
@@ -113,7 +121,8 @@ class ReengagementServiceProvider extends AbstractServiceProvider {
 				return new CampaignTypeResolver(
 					$container->get( ProductTrackingServiceInterface::class ),
 					$container->get( LoyaltyCouponGeneratorInterface::class ),
-					$container->get( ReengagementMessageBuilderInterface::class )
+					$container->get( ReengagementMessageBuilderInterface::class ),
+					$container->get( CustomerServiceInterface::class )
 				);
 			}
 		);
@@ -123,7 +132,8 @@ class ReengagementServiceProvider extends AbstractServiceProvider {
 			ReengagementAnalyticsInterface::class,
 			function ( $container ) {
 				return new ReengagementAnalytics(
-					$container->get( DatabaseManager::class )
+					$container->get( DatabaseManager::class ),
+					$container->get( LoggerInterface::class )
 				);
 			}
 		);
@@ -132,13 +142,26 @@ class ReengagementServiceProvider extends AbstractServiceProvider {
 		$this->container->singleton(
 			ReengagementOrchestratorInterface::class,
 			function ( $container ) {
-				return new ReengagementOrchestrator(
+				$orchestrator = new ReengagementOrchestrator(
 					$container->get( SettingsInterface::class ),
 					$container->get( InactiveCustomerIdentifierInterface::class ),
 					$container->get( CampaignTypeResolverInterface::class ),
 					$container->get( ReengagementMessageBuilderInterface::class ),
-					$container->get( FrequencyCapManagerInterface::class )
+					$container->get( FrequencyCapManagerInterface::class ),
+					$container->get( CustomerServiceInterface::class ),
+					$container->get( JobDispatcher::class ),
+					$container->get( LoggerInterface::class )
 				);
+
+				// Optionally inject WhatsApp API client if available.
+				try {
+					$apiClient = $container->get( WhatsAppApiClient::class );
+					$orchestrator->setApiClient( $apiClient );
+				} catch ( \Throwable $e ) {
+					// API client not available yet, will be set later via init action.
+				}
+
+				return $orchestrator;
 			}
 		);
 
