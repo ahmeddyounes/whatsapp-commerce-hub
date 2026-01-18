@@ -1,0 +1,10 @@
+[main 90810de] C00-12: implement
+ 10 files changed, 1075 insertions(+), 3 deletions(-)
+ create mode 100644 .logs/C00-11.gitcommit.txt
+ create mode 100644 .logs/C00-12.claude.impl.last.md
+ create mode 100644 .logs/C00-12.claude.impl.raw.txt
+ create mode 100644 .plans/C00-12.md
+ create mode 100644 .t2/handoff/C00-12.md
+ create mode 100644 docs/UNINSTALL.md
+ create mode 100644 tests/Unit/Infrastructure/Database/DatabaseManagerUninstallTest.php
+

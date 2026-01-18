@@ -18,6 +18,9 @@ use WhatsAppCommerceHub\Core\Logger;
  * Class JobDispatcher
  *
  * Dispatches and manages background jobs using Action Scheduler.
+ *
+ * @deprecated Since 3.1.0 - Use PriorityQueue directly for new code.
+ *             This class now wraps PriorityQueue for backward compatibility.
  */
 class JobDispatcher {
 
@@ -43,11 +46,24 @@ class JobDispatcher {
 	];
 
 	/**
+	 * Priority queue instance for job scheduling
+	 */
+	private \WhatsAppCommerceHub\Queue\PriorityQueue $priority_queue;
+
+	/**
 	 * Constructor
 	 */
 	public function __construct(
-		private readonly Logger $logger
+		private readonly Logger $logger,
+		?\WhatsAppCommerceHub\Queue\PriorityQueue $priority_queue = null
 	) {
+		// Initialize priority queue if not provided
+		if ( null === $priority_queue ) {
+			$dlq = new \WhatsAppCommerceHub\Queue\DeadLetterQueue();
+			$this->priority_queue = new \WhatsAppCommerceHub\Queue\PriorityQueue( $dlq );
+		} else {
+			$this->priority_queue = $priority_queue;
+		}
 	}
 	/**
 	 * Dispatch a single job immediately or after a delay.
@@ -60,20 +76,6 @@ class JobDispatcher {
 	 * Dispatch a single job immediately or after a delay.
 	 */
 	private function dispatchInternal( string $hook, array $args = [], int $delay = 0, int $priority = 10 ): int {
-		if ( $delay > 0 ) {
-			if ( function_exists( 'as_schedule_single_action' ) ) {
-				return $this->schedule( $hook, time() + $delay, $args );
-			}
-
-			$this->logger->warning(
-				'Action Scheduler single action API unavailable; dispatching immediately',
-				[
-					'hook'  => $hook,
-					'delay' => $delay,
-				]
-			);
-		}
-
 		// Security check
 		if ( ! $this->canDispatchJobs( $hook ) ) {
 			$this->logger->warning(
@@ -87,32 +89,35 @@ class JobDispatcher {
 			return 0;
 		}
 
-		if ( ! function_exists( 'as_enqueue_async_action' ) ) {
+		// Use PriorityQueue with NORMAL priority by default
+		$queuePriority = \WhatsAppCommerceHub\Queue\PriorityQueue::PRIORITY_NORMAL;
+
+		$actionId = $this->priority_queue->schedule(
+			$hook,
+			$args,
+			$queuePriority,
+			$delay
+		);
+
+		if ( false === $actionId ) {
 			$this->logger->warning(
-				'Action Scheduler async API unavailable; job dispatch skipped',
+				'Job dispatch failed via PriorityQueue',
 				[
-					'hook' => $hook,
+					'hook'  => $hook,
+					'delay' => $delay,
 				]
 			);
 			return 0;
 		}
 
-		// Schedule the action immediately
-		$actionId = as_enqueue_async_action(
-			$hook,
-			$args,
-			self::GROUP_NAME,
-			true,
-			$priority
-		);
-
 		$this->logger->debug(
-			'Job dispatched',
+			'Job dispatched via PriorityQueue',
 			[
 				'hook'      => $hook,
 				'action_id' => $actionId,
 				'args'      => $args,
-				'delay'     => 0,
+				'delay'     => $delay,
+				'priority'  => $queuePriority,
 			]
 		);
 
@@ -136,31 +141,35 @@ class JobDispatcher {
 			return 0;
 		}
 
-		if ( ! function_exists( 'as_schedule_single_action' ) ) {
+		$delay = max( 0, $timestamp - time() );
+		$queuePriority = \WhatsAppCommerceHub\Queue\PriorityQueue::PRIORITY_NORMAL;
+
+		// Use scheduleUnique or regular schedule based on $unique flag
+		if ( $unique ) {
+			$actionId = $this->priority_queue->scheduleUnique( $hook, $args, $queuePriority, $delay );
+		} else {
+			$actionId = $this->priority_queue->schedule( $hook, $args, $queuePriority, $delay );
+		}
+
+		if ( false === $actionId ) {
 			$this->logger->warning(
-				'Action Scheduler single action API unavailable; job schedule skipped',
+				'Job schedule failed via PriorityQueue',
 				[
 					'hook'      => $hook,
 					'timestamp' => $timestamp,
+					'unique'    => $unique,
 				]
 			);
 			return 0;
 		}
 
-		$actionId = as_schedule_single_action(
-			$timestamp,
-			$hook,
-			$args,
-			self::GROUP_NAME,
-			$unique
-		);
-
 		$this->logger->debug(
-			'Job scheduled',
+			'Job scheduled via PriorityQueue',
 			[
 				'hook'      => $hook,
 				'timestamp' => $timestamp,
 				'action_id' => $actionId,
+				'unique'    => $unique,
 			]
 		);
 
@@ -184,9 +193,18 @@ class JobDispatcher {
 			return 0;
 		}
 
-		if ( ! function_exists( 'as_schedule_recurring_action' ) ) {
+		$queuePriority = \WhatsAppCommerceHub\Queue\PriorityQueue::PRIORITY_NORMAL;
+
+		$actionId = $this->priority_queue->scheduleRecurring(
+			$hook,
+			$args,
+			$interval,
+			$queuePriority
+		);
+
+		if ( false === $actionId ) {
 			$this->logger->warning(
-				'Action Scheduler recurring API unavailable; recurring schedule skipped',
+				'Recurring job schedule failed via PriorityQueue',
 				[
 					'hook'     => $hook,
 					'interval' => $interval,
@@ -195,16 +213,8 @@ class JobDispatcher {
 			return 0;
 		}
 
-		$actionId = as_schedule_recurring_action(
-			$timestamp,
-			$interval,
-			$hook,
-			$args,
-			self::GROUP_NAME
-		);
-
 		$this->logger->info(
-			'Recurring job scheduled',
+			'Recurring job scheduled via PriorityQueue',
 			[
 				'hook'      => $hook,
 				'interval'  => $interval,
@@ -233,6 +243,7 @@ class JobDispatcher {
 
 		$batches = array_chunk( $items, $batchSize );
 		$count   = 0;
+		$queuePriority = \WhatsAppCommerceHub\Queue\PriorityQueue::PRIORITY_NORMAL;
 
 		foreach ( $batches as $index => $batch ) {
 			$args = [
@@ -241,12 +252,14 @@ class JobDispatcher {
 				'total_batches' => count( $batches ),
 			];
 
-			as_enqueue_async_action( $hook, $args, self::GROUP_NAME );
-			++$count;
+			$actionId = $this->priority_queue->schedule( $hook, $args, $queuePriority, 0 );
+			if ( false !== $actionId ) {
+				++$count;
+			}
 		}
 
 		$this->logger->info(
-			'Batch jobs dispatched',
+			'Batch jobs dispatched via PriorityQueue',
 			[
 				'hook'        => $hook,
 				'total_items' => count( $items ),
@@ -495,22 +508,54 @@ class JobDispatcher {
 			$args = [];
 		}
 
-		$retryCount = $args['retry_count'] ?? 0;
-		$group      = method_exists( $action, 'get_group' ) ? $action->get_group() : self::GROUP_NAME;
+		// Extract the wrapped payload if it exists
+		$payload = $args[0] ?? $args;
 
-		// Schedule retry with delay
-		$newActionId = as_schedule_single_action(
-			time() + $delay,
+		// Check if payload is wrapped (v2 format)
+		if ( isset( $payload['_wch_version'] ) && 2 === (int) $payload['_wch_version'] ) {
+			// Use PriorityQueue's retry method for wrapped payloads
+			$retrySuccess = $this->priority_queue->retry(
+				$action->get_hook(),
+				$payload,
+				$payload['_wch_meta']['attempt'] ?? 1,
+				3 // max retries
+			);
+
+			if ( $retrySuccess ) {
+				$this->logger->info(
+					'Job retry scheduled via PriorityQueue',
+					[
+						'original_action_id' => $actionId,
+						'hook'               => $action->get_hook(),
+					]
+				);
+				return 1; // Return success indicator
+			}
+
+			return 0;
+		}
+
+		// Legacy fallback: Reschedule with PriorityQueue using NORMAL priority
+		$retryCount = $args['retry_count'] ?? 0;
+		$queuePriority = \WhatsAppCommerceHub\Queue\PriorityQueue::PRIORITY_NORMAL;
+
+		$newActionId = $this->priority_queue->schedule(
 			$action->get_hook(),
 			array_merge(
 				$args,
 				[ 'retry_count' => $retryCount + 1 ]
 			),
-			$group
+			$queuePriority,
+			$delay
 		);
 
+		if ( false === $newActionId ) {
+			$this->logger->error( 'Job retry failed', [ 'action_id' => $actionId ] );
+			return 0;
+		}
+
 		$this->logger->info(
-			'Job retry scheduled',
+			'Job retry scheduled (legacy)',
 			[
 				'original_action_id' => $actionId,
 				'new_action_id'      => $newActionId,

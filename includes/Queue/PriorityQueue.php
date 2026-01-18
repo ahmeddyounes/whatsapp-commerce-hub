@@ -150,6 +150,41 @@ class PriorityQueue {
 	}
 
 	/**
+	 * Unwrap payload with backward compatibility.
+	 *
+	 * Handles both v2 wrapped payloads and legacy unwrapped payloads.
+	 * This provides a compatibility layer for handlers that may receive
+	 * both old and new payload formats during migration.
+	 *
+	 * @param array $payload The job payload from Action Scheduler.
+	 *
+	 * @return array{args: array, meta: array} User args and metadata.
+	 */
+	public static function unwrapPayloadCompat( array $payload ): array {
+		// Check if this is a v2 wrapped payload
+		if ( isset( $payload['_wch_version'] ) && 2 === (int) $payload['_wch_version'] ) {
+			return self::unwrapPayload( $payload );
+		}
+
+		// Legacy unwrapped payload - return as-is with empty metadata
+		return [
+			'args' => $payload,
+			'meta' => [],
+		];
+	}
+
+	/**
+	 * Check if a payload is in v2 wrapped format.
+	 *
+	 * @param array $payload The job payload to check.
+	 *
+	 * @return bool True if payload is v2 wrapped format.
+	 */
+	public static function isWrappedPayload( array $payload ): bool {
+		return isset( $payload['_wch_version'] ) && 2 === (int) $payload['_wch_version'];
+	}
+
+	/**
 	 * Schedule a recurring job with priority.
 	 *
 	 * @param string $hook      The action hook name.

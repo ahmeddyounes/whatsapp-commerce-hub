@@ -13,13 +13,23 @@ declare(strict_types=1);
 namespace WhatsAppCommerceHub\Infrastructure\Queue;
 
 use WhatsAppCommerceHub\Core\Logger;
+use WhatsAppCommerceHub\Queue\PriorityQueue;
+use WhatsAppCommerceHub\Queue\DeadLetterQueue;
 
 /**
  * Class QueueManager
  *
  * Manages async job processing using Action Scheduler bundled with WooCommerce.
+ *
+ * @deprecated Since 3.1.0 - Now delegates to PriorityQueue for all job scheduling.
+ *             Use PriorityQueue directly for new code.
  */
 class QueueManager {
+	/**
+	 * Priority queue instance
+	 */
+	private PriorityQueue $priority_queue;
+
 	/**
 	 * Registered action hooks
 	 */
@@ -49,8 +59,17 @@ class QueueManager {
 	 * Constructor
 	 */
 	public function __construct(
-		private readonly Logger $logger
+		private readonly Logger $logger,
+		?PriorityQueue $priority_queue = null
 	) {
+		// Initialize priority queue if not provided
+		if ( null === $priority_queue ) {
+			$dlq = new DeadLetterQueue();
+			$this->priority_queue = new PriorityQueue( $dlq );
+		} else {
+			$this->priority_queue = $priority_queue;
+		}
+
 		$this->init();
 	}
 
@@ -111,43 +130,40 @@ class QueueManager {
 	 * Schedule recurring jobs
 	 */
 	public function scheduleRecurringJobs(): void {
-		// Cleanup expired carts hourly
-		if ( ! as_next_scheduled_action( 'wch_cleanup_expired_carts' ) ) {
-			as_schedule_recurring_action(
-				time(),
-				HOUR_IN_SECONDS,
+		// Cleanup expired carts hourly - use MAINTENANCE priority
+		if ( ! $this->priority_queue->isPending( 'wch_cleanup_expired_carts' ) ) {
+			$this->priority_queue->scheduleRecurring(
 				'wch_cleanup_expired_carts',
 				[],
-				'wch'
+				HOUR_IN_SECONDS,
+				PriorityQueue::PRIORITY_MAINTENANCE
 			);
 
-			$this->logger->info( 'Scheduled recurring job: cleanup_expired_carts' );
+			$this->logger->info( 'Scheduled recurring job via PriorityQueue: cleanup_expired_carts' );
 		}
 
-		// Check stock discrepancies daily
-		if ( ! as_next_scheduled_action( 'wch_detect_stock_discrepancies' ) ) {
-			as_schedule_recurring_action(
-				time(),
-				DAY_IN_SECONDS,
+		// Check stock discrepancies daily - use MAINTENANCE priority
+		if ( ! $this->priority_queue->isPending( 'wch_detect_stock_discrepancies' ) ) {
+			$this->priority_queue->scheduleRecurring(
 				'wch_detect_stock_discrepancies',
 				[],
-				'wch'
+				DAY_IN_SECONDS,
+				PriorityQueue::PRIORITY_MAINTENANCE
 			);
 
-			$this->logger->info( 'Scheduled recurring job: detect_stock_discrepancies' );
+			$this->logger->info( 'Scheduled recurring job via PriorityQueue: detect_stock_discrepancies' );
 		}
 
-		// Process abandoned cart recovery every 15 minutes
-		if ( ! as_next_scheduled_action( 'wch_schedule_recovery_reminders' ) ) {
-			as_schedule_recurring_action(
-				time(),
-				15 * MINUTE_IN_SECONDS,
+		// Process abandoned cart recovery every 15 minutes - use NORMAL priority
+		if ( ! $this->priority_queue->isPending( 'wch_schedule_recovery_reminders' ) ) {
+			$this->priority_queue->scheduleRecurring(
 				'wch_schedule_recovery_reminders',
 				[],
-				'wch'
+				15 * MINUTE_IN_SECONDS,
+				PriorityQueue::PRIORITY_NORMAL
 			);
 
-			$this->logger->info( 'Scheduled recurring job: schedule_recovery_reminders' );
+			$this->logger->info( 'Scheduled recurring job via PriorityQueue: schedule_recovery_reminders' );
 		}
 	}
 
@@ -165,19 +181,11 @@ class QueueManager {
 			return 0;
 		}
 
-		if ( ! function_exists( 'as_enqueue_async_action' ) && ! function_exists( 'as_schedule_single_action' ) ) {
-			$this->logger->warning(
-				'Action Scheduler unavailable for bulk action scheduling',
-				[
-					'hook'  => $hook,
-					'count' => count( $items ),
-				]
-			);
-			return 0;
-		}
-
 		$itemKey = $itemKey ?: $this->resolveBulkItemKey( $hook );
 		$scheduled = 0;
+
+		// Use BULK priority for batch operations
+		$priority = PriorityQueue::PRIORITY_BULK;
 
 		foreach ( $items as $item ) {
 			$args = $baseArgs;
@@ -190,23 +198,20 @@ class QueueManager {
 				$args[] = $item;
 			}
 
-			if ( function_exists( 'as_enqueue_async_action' ) ) {
-				$actionId = as_enqueue_async_action( $hook, $args, 'wch' );
-			} else {
-				$actionId = as_schedule_single_action( time(), $hook, $args, 'wch' );
-			}
+			$actionId = $this->priority_queue->schedule( $hook, $args, $priority, 0 );
 
-			if ( $actionId ) {
+			if ( false !== $actionId ) {
 				++$scheduled;
 			}
 		}
 
 		if ( $scheduled > 0 ) {
 			$this->logger->info(
-				'Bulk actions scheduled',
+				'Bulk actions scheduled via PriorityQueue',
 				[
-					'hook'  => $hook,
-					'count' => $scheduled,
+					'hook'     => $hook,
+					'count'    => $scheduled,
+					'priority' => $priority,
 				]
 			);
 		}
@@ -233,15 +238,20 @@ class QueueManager {
 	public function processJob( array $args = [] ): void {
 		$hook = current_action();
 
+		// Use compatibility unwrapper to handle both v2 wrapped and legacy unwrapped payloads
+		$unwrapped = PriorityQueue::unwrapPayloadCompat( $args );
+		$unwrapped_args = $unwrapped['args'];
+
 		$this->logger->debug(
 			"Processing queue job: {$hook}",
 			[
-				'args' => $args,
+				'args'     => $unwrapped_args,
+				'is_v2'    => PriorityQueue::isWrappedPayload( $args ),
 			]
 		);
 
 		// Dispatch to appropriate handler based on hook name
-		do_action( "wch_queue_process_{$hook}", $args );
+		do_action( "wch_queue_process_{$hook}", $unwrapped_args );
 	}
 
 	/**
