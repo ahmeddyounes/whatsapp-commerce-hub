@@ -64,6 +64,21 @@ spl_autoload_register( 'wch_psr4_autoloader' );
  *
  * Initializes the container on first call and registers all service providers.
  *
+ * BOOTSTRAP PROCESS:
+ * 1. Container is created
+ * 2. Service providers are registered (bindings created, but not initialized)
+ * 3. Action 'wch_container_registered' fires (for third-party extensions)
+ * 4. Container boot() is called, which calls boot() on each provider
+ * 5. During boot(), providers:
+ *    - Initialize admin pages (AdminServiceProvider)
+ *    - Initialize queue processors and schedules (QueueServiceProvider)
+ *    - Initialize service hooks and schedulers (various providers)
+ * 6. Action 'wch_container_booted' fires
+ * 7. WhatsAppCommerceHubPlugin singleton is created (minimal initialization)
+ *
+ * This ensures a single, clear initialization path with no duplication.
+ * Service providers OWN the initialization of their services.
+ *
  * @since 2.0.0
  * @return \WhatsAppCommerceHub\Container\ContainerInterface The container instance.
  */
@@ -119,6 +134,7 @@ function wch_get_container(): \WhatsAppCommerceHub\Container\ContainerInterface 
 
 		// Boot all providers using Container's boot method.
 		// This ensures the booted flag is set and providers are booted consistently.
+		// Each provider's boot() method initializes its services, admin pages, hooks, and schedulers.
 		$wch_container->boot();
 
 		do_action( 'wch_container_booted', $wch_container );
@@ -202,8 +218,9 @@ class WhatsAppCommerceHubPlugin {
 	/**
 	 * Initialize the plugin.
 	 *
-	 * Sets up all core services, admin interfaces, and hooks.
-	 * This method is called automatically when the singleton is instantiated.
+	 * Sets up WordPress hooks and lifecycle events.
+	 * All services, admin pages, queues, and schedulers are initialized
+	 * by their respective service providers during the container boot phase.
 	 *
 	 * @since 1.0.0
 	 */
@@ -213,41 +230,6 @@ class WhatsAppCommerceHubPlugin {
 
 		// Check for database migrations on admin init.
 		add_action( 'admin_init', [ $this, 'check_database_migrations' ] );
-
-		// Initialize admin pages.
-		if ( is_admin() ) {
-			wch( \WhatsAppCommerceHub\Presentation\Admin\Pages\InboxPage::class )->init();
-			wch( \WhatsAppCommerceHub\Presentation\Admin\Pages\LogsPage::class )->init();
-			wch( \WhatsAppCommerceHub\Presentation\Admin\Pages\JobsPage::class )->init();
-			wch( \WhatsAppCommerceHub\Presentation\Admin\Pages\TemplatesPage::class )->init();
-			wch( \WhatsAppCommerceHub\Presentation\Admin\Pages\SettingsPage::class )->init();
-			wch( \WhatsAppCommerceHub\Presentation\Admin\Pages\AnalyticsPage::class )->init();
-			wch( \WhatsAppCommerceHub\Presentation\Admin\Pages\CatalogSyncPage::class )->init();
-			wch( \WhatsAppCommerceHub\Presentation\Admin\Pages\BroadcastsPage::class )->init();
-			wch( \WhatsAppCommerceHub\Presentation\Admin\Widgets\DashboardWidgets::class )->init();
-		}
-
-		// Initialize background job queue.
-		wch( \WhatsAppCommerceHub\Infrastructure\Queue\QueueManager::class );
-
-		// Schedule inventory discrepancy check.
-		wch( \WhatsAppCommerceHub\Application\Services\InventorySyncService::class )
-			->schedule_discrepancy_check();
-
-		// Initialize payment system.
-		wch( \WhatsAppCommerceHub\Payments\PaymentGatewayRegistry::class );
-
-		// Initialize refund handler.
-		wch( \WhatsAppCommerceHub\Application\Services\RefundService::class );
-
-		// Initialize order notifications.
-		wch( \WhatsAppCommerceHub\Application\Services\NotificationService::class );
-
-		// Initialize abandoned cart recovery system.
-		wch( \WhatsAppCommerceHub\Features\AbandonedCart\RecoveryService::class )->init();
-
-		// Initialize re-engagement service.
-		wch( \WhatsAppCommerceHub\Contracts\Services\Reengagement\ReengagementOrchestratorInterface::class )->init();
 
 		// Hook into WooCommerce order creation for conversion tracking.
 		add_action( 'woocommerce_checkout_order_created', [ $this, 'track_order_conversion' ], 10, 1 );

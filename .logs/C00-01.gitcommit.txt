@@ -1,0 +1,9 @@
+[main cdea0ac] C00-01: implement
+ 8 files changed, 606 insertions(+), 82 deletions(-)
+ create mode 100644 .logs/C00-01.claude.impl.last.md
+ create mode 100644 .logs/C00-01.claude.impl.raw.txt
+ create mode 100644 .plans/C00-01.md
+ create mode 100644 .t2/handoff/C00-01.md
+ create mode 100644 docs/architecture-improvement-plan.md
+ create mode 100644 plan_tasks.csv
+
