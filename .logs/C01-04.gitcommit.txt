@@ -1,0 +1,45 @@
+C01-04: enforce domain layer purity with PHPStan rules
+
+Add PHPStan custom rules to forbid WordPress/global functions in Domain layer.
+This enforces architectural boundaries and maintains clean separation of concerns.
+
+Changes:
+- Created custom PHPStan rules:
+  - NoWordPressFunctionsInDomainRule: Prevents WordPress function calls
+  - NoWordPressGlobalsInDomainRule: Prevents global variable access ($wpdb, etc.)
+- Updated phpstan.neon to include custom rules
+- Added autoloader configuration for phpstan-rules/
+
+Refactored Domain layer violations:
+- Domain/Customer/Customer.php:
+  - Removed do_action logging calls
+  - Replaced wp_json_encode with json_encode
+- Domain/Cart/Cart.php:
+  - Removed do_action logging calls
+  - Replaced wp_json_encode with json_encode
+- Domain/Cart/CartService.php:
+  - Removed do_action logging calls
+  - Extracted database access to Infrastructure/Persistence/CouponUsageTracker
+  - Injected CouponUsageTracker dependency
+- Domain/Customer/CustomerService.php:
+  - Replaced current_time with DateTimeImmutable
+- Domain/Conversation/Conversation.php:
+  - Replaced wp_json_encode with json_encode
+
+New Infrastructure component:
+- Infrastructure/Persistence/CouponUsageTracker:
+  - Moved $wpdb database access from Domain layer
+  - Handles coupon usage tracking by phone number
+  - Includes findCustomerByPhone, getUsageCount, recordUsage methods
+
+Documentation:
+- Created docs/architecture/domain-layer-purity.md
+- Comprehensive guide on domain purity rules
+- Migration examples and best practices
+
+Verification:
+- PHPStan passes with no domain purity violations (wch.domainPurity)
+- All WordPress/global function calls removed from Domain layer
+- Maintains backward compatibility
+
+Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>

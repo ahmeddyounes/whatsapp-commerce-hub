@@ -483,7 +483,7 @@ class CustomerService implements CustomerServiceInterface {
 				'order_number' => $order->get_order_number(),
 				'status'       => $order->get_status(),
 				'total'        => (float) $order->get_total(),
-				'date'         => $order->get_date_created()?->format( 'Y-m-d H:i:s' ) ?? current_time( 'mysql' ),
+				'date'         => $order->get_date_created()?->format( 'Y-m-d H:i:s' ) ?? ( new \DateTimeImmutable() )->format( 'Y-m-d H:i:s' ),
 				'items_count'  => $order->get_item_count(),
 			];
 		}
@@ -518,7 +518,7 @@ class CustomerService implements CustomerServiceInterface {
 					'order_number' => $order->get_order_number(),
 					'status'       => $order->get_status(),
 					'total'        => (float) $order->get_total(),
-					'date'         => $order->get_date_created()?->format( 'Y-m-d H:i:s' ) ?? current_time( 'mysql' ),
+					'date'         => $order->get_date_created()?->format( 'Y-m-d H:i:s' ) ?? ( new \DateTimeImmutable() )->format( 'Y-m-d H:i:s' ),
 					'items_count'  => $order->get_item_count(),
 				];
 			}

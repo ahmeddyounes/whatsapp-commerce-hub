@@ -32,7 +32,8 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "WhatsAppCommerceHub\\Tests\\": "tests/"
+      "WhatsAppCommerceHub\\Tests\\": "tests/",
+      "WhatsAppCommerceHub\\PHPStan\\Rules\\": "phpstan-rules/"
     }
   },
   "scripts": {

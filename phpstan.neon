@@ -2,6 +2,11 @@ includes:
 	- vendor/szepeviktor/phpstan-wordpress/extension.neon
 	- phpstan-baseline.neon
 
+# Custom rules for Domain layer purity
+rules:
+	- WhatsAppCommerceHub\PHPStan\Rules\NoWordPressFunctionsInDomainRule
+	- WhatsAppCommerceHub\PHPStan\Rules\NoWordPressGlobalsInDomainRule
+
 parameters:
 	level: 5
 	paths:

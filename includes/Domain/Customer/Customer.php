@@ -176,7 +176,9 @@ final class Customer {
 	/**
 	 * Safely parse a JSON string.
 	 *
-	 * Logs an error if JSON parsing fails to aid in debugging corrupted data.
+	 * Note: Error logging removed from Domain layer per architectural guidelines.
+	 * Invalid JSON returns the default value silently. Logging should be done
+	 * at the Infrastructure/Application layer if needed.
 	 *
 	 * @param string|null $json    The JSON string to parse.
 	 * @param mixed       $default Default value if parsing fails.
@@ -191,16 +193,7 @@ final class Customer {
 		$decoded = json_decode( $json, true );
 
 		if ( JSON_ERROR_NONE !== json_last_error() ) {
-			// Log the error for debugging - helps identify corrupted data in the database.
-			do_action(
-				'wch_log_warning',
-				'Customer: JSON decode failed',
-				[
-					'field'     => $field,
-					'error'     => json_last_error_msg(),
-					'json_head' => mb_substr( $json, 0, 100 ), // First 100 chars for debugging.
-				]
-			);
+			// Return default silently. Logging should be handled at Infrastructure layer.
 			return $default;
 		}
 
@@ -219,13 +212,13 @@ final class Customer {
 			'name'                => $this->name,
 			'email'               => $this->email,
 			'wc_customer_id'      => $this->wc_customer_id,
-			'preferences'         => wp_json_encode( $this->preferences ),
-			'tags'                => wp_json_encode( $this->tags ),
+			'preferences'         => json_encode( $this->preferences, JSON_THROW_ON_ERROR ),
+			'tags'                => json_encode( $this->tags, JSON_THROW_ON_ERROR ),
 			'opt_in_marketing'    => $this->opt_in_marketing ? 1 : 0,
 			'language'            => $this->language,
 			'timezone'            => $this->timezone,
 			'last_known_address'  => $this->last_known_address
-				? wp_json_encode( $this->last_known_address )
+				? json_encode( $this->last_known_address, JSON_THROW_ON_ERROR )
 				: null,
 			'total_orders'        => $this->total_orders,
 			'total_spent'         => $this->total_spent,

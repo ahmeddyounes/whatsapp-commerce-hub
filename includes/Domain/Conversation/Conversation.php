@@ -203,7 +203,7 @@ final class Conversation {
 			'wa_conversation_id' => $this->wa_conversation_id,
 			'status'             => $this->status,
 			'state'              => $this->state,
-			'context'            => wp_json_encode( $this->context ),
+			'context'            => json_encode( $this->context, JSON_THROW_ON_ERROR ),
 			'assigned_agent_id'  => $this->assigned_agent_id,
 			'created_at'         => $this->created_at->format( 'Y-m-d H:i:s' ),
 			'updated_at'         => $this->updated_at->format( 'Y-m-d H:i:s' ),

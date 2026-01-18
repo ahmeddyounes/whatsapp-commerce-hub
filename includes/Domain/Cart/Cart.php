@@ -135,19 +135,9 @@ final class Cart {
 			return $status;
 		}
 
-		// Log invalid status for debugging/security auditing.
-		if ( function_exists( 'do_action' ) ) {
-			do_action(
-				'wch_log_warning',
-				'Invalid cart status attempted',
-				[
-					'status'  => $status,
-					'allowed' => self::ALLOWED_STATUSES,
-				]
-			);
-		}
-
-		// Return safe default.
+		// Invalid status - return safe default.
+		// Note: Logging removed from Domain layer per architectural guidelines.
+		// Logging should be handled at Infrastructure/Application layer if needed.
 		return self::STATUS_ACTIVE;
 	}
 
@@ -176,7 +166,11 @@ final class Cart {
 	}
 
 	/**
-	 * Safely decode a JSON string to array with error logging.
+	 * Safely decode a JSON string to array.
+	 *
+	 * Note: Error logging removed from Domain layer per architectural guidelines.
+	 * Invalid JSON returns an empty array. Logging should be done at
+	 * Infrastructure/Application layer if needed.
 	 *
 	 * @param string $json    The JSON string to decode.
 	 * @param string $field   The field name for error reporting.
@@ -191,17 +185,7 @@ final class Cart {
 		$decoded = json_decode( $json, true );
 
 		if ( JSON_ERROR_NONE !== json_last_error() ) {
-			if ( function_exists( 'do_action' ) ) {
-				do_action(
-					'wch_log_warning',
-					'JSON decode failed in Cart entity',
-					[
-						'field'   => $field,
-						'cart_id' => $cart_id,
-						'error'   => json_last_error_msg(),
-					]
-				);
-			}
+			// Return empty array silently. Logging should be handled at Infrastructure layer.
 			return [];
 		}
 
@@ -234,18 +218,8 @@ final class Cart {
 		try {
 			return new \DateTimeImmutable( $date );
 		} catch ( \Exception $e ) {
-			// Log the invalid date for debugging.
-			if ( function_exists( 'do_action' ) ) {
-				do_action(
-					'wch_log_warning',
-					'Invalid date encountered in Cart entity',
-					[
-						'date'  => $date,
-						'error' => $e->getMessage(),
-					]
-				);
-			}
-
+			// Invalid date - return default.
+			// Note: Logging removed from Domain layer per architectural guidelines.
 			return false === $default ? new \DateTimeImmutable() : $default;
 		}
 	}
@@ -259,11 +233,11 @@ final class Cart {
 		return [
 			'id'                 => $this->id,
 			'customer_phone'     => $this->customer_phone,
-			'items'              => wp_json_encode( $this->items ),
+			'items'              => json_encode( $this->items, JSON_THROW_ON_ERROR ),
 			'total'              => $this->total,
 			'coupon_code'        => $this->coupon_code,
 			'shipping_address'   => $this->shipping_address
-				? wp_json_encode( $this->shipping_address )
+				? json_encode( $this->shipping_address, JSON_THROW_ON_ERROR )
 				: null,
 			'status'             => $this->status,
 			'expires_at'         => $this->expires_at->format( 'Y-m-d H:i:s' ),
