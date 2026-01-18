@@ -17,6 +17,7 @@ use WhatsAppCommerceHub\Container\ServiceProviderInterface;
 use WhatsAppCommerceHub\Application\Services\NotificationService;
 use WhatsAppCommerceHub\Clients\WhatsAppApiClient;
 use WhatsAppCommerceHub\Presentation\Templates\TemplateManager;
+use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -41,10 +42,29 @@ class NotificationServiceProvider implements ServiceProviderInterface {
 		$container->singleton(
 			NotificationService::class,
 			static function ( ContainerInterface $c ) {
-				$apiClient       = $c->has( WhatsAppApiClient::class ) ? $c->get( WhatsAppApiClient::class ) : null;
-				$templateManager = $c->has( TemplateManager::class ) ? $c->get( TemplateManager::class ) : null;
+				$apiClient       = null;
+				$templateManager = null;
+				$logger          = null;
 
-				return new NotificationService( $apiClient, $templateManager );
+				try {
+					$apiClient = $c->get( WhatsAppApiClient::class );
+				} catch ( \Throwable ) {
+					// Leave null if API client is not configured.
+				}
+
+				try {
+					$templateManager = $c->get( TemplateManager::class );
+				} catch ( \Throwable ) {
+					// Leave null if templates are not available.
+				}
+
+				try {
+					$logger = $c->get( LoggerInterface::class );
+				} catch ( \Throwable ) {
+					// Leave null if logger is not available.
+				}
+
+				return new NotificationService( $apiClient, $templateManager, $logger );
 			}
 		);
 

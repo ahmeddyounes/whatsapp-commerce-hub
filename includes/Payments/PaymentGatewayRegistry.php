@@ -6,6 +6,7 @@
  *
  * @package WhatsApp_Commerce_Hub
  * @since 2.1.0
+ * @deprecated 3.1.0 Use PaymentServiceProvider::getAvailableForCountry() and container-based gateway resolution instead.
  */
 
 declare(strict_types=1);
@@ -30,6 +31,15 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Class PaymentGatewayRegistry
  *
  * Plugin-based architecture for managing payment gateways.
+ *
+ * @deprecated 3.1.0 Use PaymentServiceProvider::getAvailableForCountry() and container-based gateway resolution instead.
+ *
+ * Migration Guide:
+ * - Instead of: $registry = wch( PaymentGatewayRegistry::class ); $gateways = $registry->getAvailable( $country );
+ * - Use: $gateways = PaymentServiceProvider::getAvailableForCountry( $country );
+ *
+ * - Instead of: $gateway = $registry->get( 'stripe' );
+ * - Use: $container = Container::getInstance(); $gateway = $container->get( 'payment.gateway.stripe' );
  */
 class PaymentGatewayRegistry implements PaymentGatewayRegistryInterface {
 	/**
@@ -64,8 +74,17 @@ class PaymentGatewayRegistry implements PaymentGatewayRegistryInterface {
 	 * Constructor.
 	 *
 	 * @param bool $auto_register Whether to auto-register default gateways.
+	 * @deprecated 3.1.0 Use container-based gateway resolution instead.
 	 */
 	public function __construct( bool $auto_register = true ) {
+		// Trigger deprecation notice.
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			trigger_error(
+				'PaymentGatewayRegistry is deprecated since version 3.1.0. Use PaymentServiceProvider::getAvailableForCountry() and container-based gateway resolution instead.',
+				E_USER_DEPRECATED
+			);
+		}
+
 		if ( $auto_register ) {
 			$this->loadDefaultGateways();
 		}

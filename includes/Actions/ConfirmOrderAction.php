@@ -14,7 +14,7 @@ namespace WhatsAppCommerceHub\Actions;
 
 use WhatsAppCommerceHub\Domain\Cart\CartService;
 use WhatsAppCommerceHub\Features\AbandonedCart\RecoveryService;
-use WhatsAppCommerceHub\Payments\PaymentGatewayRegistry;
+use WhatsAppCommerceHub\Container\Container;
 use WhatsAppCommerceHub\Support\Messaging\MessageBuilder;
 use WhatsAppCommerceHub\ValueObjects\ActionResult;
 use WhatsAppCommerceHub\ValueObjects\ConversationContext;
@@ -229,18 +229,35 @@ class ConfirmOrderAction extends AbstractAction {
 			// Save order before payment processing.
 			$order->save();
 
-			// Process payment through gateway manager.
-			$paymentMethod  = $contextData['payment_method'];
-			$paymentManager = wch( PaymentGatewayRegistry::class );
+			// Process payment through gateway.
+			$paymentMethod = $contextData['payment_method'];
 
-			$paymentResult = $paymentManager->processOrderPayment(
+			// Get gateway from container.
+			$container = Container::getInstance();
+			$gateway   = null;
+
+			if ( $container->has( "payment.gateway.{$paymentMethod}" ) ) {
+				$gateway = $container->get( "payment.gateway.{$paymentMethod}" );
+			}
+
+			if ( ! $gateway ) {
+				return $this->error(
+					__( 'Payment gateway not available. Please try a different payment method.', 'whatsapp-commerce-hub' )
+				);
+			}
+
+			$paymentResult = $gateway->processPayment(
 				$order->get_id(),
-				$paymentMethod,
 				[
 					'customer_phone' => $phone,
 					'id'             => $phone,
 				]
 			);
+
+			// Convert to array if it's a PaymentResult object.
+			if ( is_object( $paymentResult ) && method_exists( $paymentResult, 'toArray' ) ) {
+				$paymentResult = $paymentResult->toArray();
+			}
 
 			if ( ! $paymentResult['success'] ) {
 				$order->update_status( 'cancelled', __( 'Payment processing failed.', 'whatsapp-commerce-hub' ) );

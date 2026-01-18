@@ -1,0 +1,12 @@
+[main 94b2b91] C02-06: implement
+ 15 files changed, 580 insertions(+), 630 deletions(-)
+ create mode 100644 .logs/C02-05.gitcommit.txt
+ create mode 100644 .logs/C02-06.claude.impl.last.md
+ create mode 100644 .logs/C02-06.claude.impl.raw.txt
+ create mode 100644 .logs/C02-06.implementation.md
+ create mode 100644 .plans/C02-06.md
+ create mode 100644 .t2/handoff/C02-06.md
+ create mode 100644 docs/CHECKOUT_ARCHITECTURE.md
+ delete mode 100644 includes/Checkout/CheckoutOrchestrator.php
+ delete mode 100644 includes/Contracts/Checkout/CheckoutOrchestratorInterface.php
+

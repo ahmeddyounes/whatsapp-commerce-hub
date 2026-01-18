@@ -540,10 +540,12 @@ class DatabaseManager {
 			status VARCHAR(20) NOT NULL,
 			created_at DATETIME NOT NULL,
 			completed_at DATETIME NULL,
+			updated_at DATETIME NOT NULL,
 			PRIMARY KEY (id),
 			UNIQUE KEY event_id (event_id),
 			KEY status (status),
-			KEY created_at (created_at)
+			KEY created_at (created_at),
+			KEY updated_at (updated_at)
 		) $charsetCollate;";
 	}
 

@@ -24,7 +24,6 @@ use WhatsAppCommerceHub\Controllers\PaymentWebhookController;
 use WhatsAppCommerceHub\Application\Services\RefundService;
 use WhatsAppCommerceHub\Clients\WhatsAppApiClient;
 use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
-use WhatsAppCommerceHub\Presentation\Templates\TemplateManager;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -134,36 +133,6 @@ class PaymentServiceProvider implements ServiceProviderInterface {
 			'payment.refund',
 			static fn( ContainerInterface $c ) => $c->get( RefundService::class )
 		);
-
-		// Register NotificationService.
-		$container->singleton(
-			NotificationService::class,
-			static function ( ContainerInterface $c ) {
-				$apiClient       = null;
-				$templateManager = null;
-
-				try {
-					$apiClient = $c->get( WhatsAppApiClient::class );
-				} catch ( \Throwable ) {
-					// Leave null if API client is not configured.
-				}
-
-				try {
-					$templateManager = $c->get( TemplateManager::class );
-				} catch ( \Throwable ) {
-					// Leave null if templates are not available.
-				}
-
-				$logger = $c->get( LoggerInterface::class );
-				return new NotificationService( $apiClient, $templateManager, $logger );
-			}
-		);
-
-		// Alias for NotificationService.
-		$container->singleton(
-			'payment.notifications',
-			static fn( ContainerInterface $c ) => $c->get( NotificationService::class )
-		);
 	}
 
 	/**
@@ -227,10 +196,8 @@ class PaymentServiceProvider implements ServiceProviderInterface {
 			PaymentGatewayInterface::class,
 			PaymentWebhookController::class,
 			RefundService::class,
-			NotificationService::class,
 			'payment.gateways',
 			'payment.refund',
-			'payment.notifications',
 			'payment.webhook.controller',
 		];
 
@@ -263,6 +230,58 @@ class PaymentServiceProvider implements ServiceProviderInterface {
 	 */
 	public function getAvailableGateways(): array {
 		return array_keys( $this->gatewayClasses );
+	}
+
+	/**
+	 * Get available gateways for a country.
+	 *
+	 * Mimics PaymentGatewayRegistry::getAvailable() for backward compatibility.
+	 *
+	 * @param string $country Country code.
+	 * @return array<string, PaymentGatewayInterface>
+	 */
+	public static function getAvailableForCountry( string $country = '' ): array {
+		try {
+			$container = \WhatsAppCommerceHub\Container\Container::getInstance();
+			if ( ! $container->has( 'payment.gateways' ) ) {
+				return [];
+			}
+
+			$gateways  = $container->get( 'payment.gateways' );
+			$enabled   = self::getEnabledGatewayIds();
+			$available = [];
+
+			foreach ( $gateways as $id => $gateway ) {
+				// Check if gateway is enabled.
+				if ( ! in_array( $id, $enabled, true ) ) {
+					continue;
+				}
+
+				// Check if gateway is available for country.
+				if ( $gateway->isAvailable( $country ) ) {
+					$available[ $id ] = $gateway;
+				}
+			}
+
+			return apply_filters( 'wch_available_payment_gateways', $available, $country );
+		} catch ( \Throwable ) {
+			return [];
+		}
+	}
+
+	/**
+	 * Get enabled gateway IDs from options.
+	 *
+	 * @return array<string>
+	 */
+	private static function getEnabledGatewayIds(): array {
+		$enabled = get_option( 'wch_enabled_payment_methods', [ 'cod', 'stripe' ] );
+
+		if ( ! is_array( $enabled ) ) {
+			return [ 'cod', 'stripe' ];
+		}
+
+		return $enabled;
 	}
 
 	/**

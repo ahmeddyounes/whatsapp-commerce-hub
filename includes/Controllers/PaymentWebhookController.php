@@ -455,7 +455,16 @@ class PaymentWebhookController {
 				return $data['id'] ?? null;
 
 			case 'razorpay':
-				return $data['payload']['payment']['entity']['id'] ?? ( $data['event'] . '_' . ( $data['created_at'] ?? time() ) );
+				// Use entity ID if available, else build unique ID from event metadata.
+				if ( isset( $data['payload']['payment']['entity']['id'] ) ) {
+					return 'razorpay_' . $data['payload']['payment']['entity']['id'];
+				}
+				// Build unique ID from event + account + timestamp.
+				$eventName = $data['event'] ?? 'unknown';
+				$accountId = $data['account_id'] ?? 'unknown';
+				$createdAt = $data['created_at'] ?? time();
+				$payloadId = $data['payload']['payment']['entity']['id'] ?? '';
+				return "razorpay_{$eventName}_{$accountId}_{$createdAt}_{$payloadId}";
 
 			case 'pix':
 				if ( isset( $data['id'] ) ) {
@@ -467,8 +476,9 @@ class PaymentWebhookController {
 				return null;
 
 			default:
-				// Generate hash as fallback.
-				return $gatewayId . '_' . md5( wp_json_encode( $data ) );
+				// Generate stable hash from gateway + sorted payload.
+				ksort( $data );
+				return $gatewayId . '_' . hash( 'sha256', wp_json_encode( $data ) );
 		}
 	}
 
@@ -508,9 +518,10 @@ class PaymentWebhookController {
 		$now    = current_time( 'mysql', true );
 		$result = $wpdb->query(
 			$wpdb->prepare(
-				"INSERT IGNORE INTO {$tableName} (event_id, status, created_at) VALUES (%s, %s, %s)",
+				"INSERT IGNORE INTO {$tableName} (event_id, status, created_at, updated_at) VALUES (%s, %s, %s, %s)",
 				$eventId,
 				'processing',
+				$now,
 				$now
 			)
 		);
@@ -520,15 +531,41 @@ class PaymentWebhookController {
 		}
 
 		// Check existing status.
-		$status = $wpdb->get_var(
+		$row = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT status FROM {$tableName} WHERE event_id = %s",
+				"SELECT status, updated_at FROM {$tableName} WHERE event_id = %s",
 				$eventId
 			)
 		);
 
-		if ( 'completed' === $status ) {
+		if ( ! $row ) {
+			return 'already_processing';
+		}
+
+		if ( 'completed' === $row->status ) {
 			return 'already_processed';
+		}
+
+		// Check if processing event is stale (older than 5 minutes).
+		if ( 'processing' === $row->status ) {
+			$updated = strtotime( $row->updated_at );
+			$now     = time();
+
+			// If stale, attempt to reclaim by updating.
+			if ( ( $now - $updated ) > 300 ) {
+				$wpdb->update(
+					$tableName,
+					[ 'updated_at' => current_time( 'mysql', true ) ],
+					[ 'event_id' => $eventId, 'status' => 'processing' ],
+					[ '%s' ],
+					[ '%s', '%s' ]
+				);
+
+				// If we updated a row, we claimed it.
+				if ( 1 === $wpdb->rows_affected ) {
+					return 'claimed';
+				}
+			}
 		}
 
 		return 'already_processing';
@@ -554,14 +591,16 @@ class PaymentWebhookController {
 			return;
 		}
 
+		$now = current_time( 'mysql', true );
 		$wpdb->update(
 			$tableName,
 			[
 				'status'       => 'completed',
-				'completed_at' => current_time( 'mysql', true ),
+				'completed_at' => $now,
+				'updated_at'   => $now,
 			],
 			[ 'event_id' => $eventId ],
-			[ '%s', '%s' ],
+			[ '%s', '%s', '%s' ],
 			[ '%s' ]
 		);
 	}

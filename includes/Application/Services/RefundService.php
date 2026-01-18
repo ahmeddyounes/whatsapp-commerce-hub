@@ -14,8 +14,8 @@ namespace WhatsAppCommerceHub\Application\Services;
 
 use WhatsAppCommerceHub\Clients\WhatsAppApiClient;
 use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
-use WhatsAppCommerceHub\Payments\PaymentGatewayRegistry;
 use WhatsAppCommerceHub\Payments\Contracts\RefundResult;
+use WhatsAppCommerceHub\Container\Container;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -36,13 +36,6 @@ class RefundService {
 	private ?WhatsAppApiClient $apiClient;
 
 	/**
-	 * Payment gateway registry.
-	 *
-	 * @var PaymentGatewayRegistry|null
-	 */
-	private ?PaymentGatewayRegistry $paymentRegistry;
-
-	/**
 	 * Logger instance.
 	 *
 	 * @var LoggerInterface
@@ -52,18 +45,15 @@ class RefundService {
 	/**
 	 * Constructor.
 	 *
-	 * @param WhatsAppApiClient|null     $apiClient WhatsApp API client.
-	 * @param LoggerInterface|null        $logger Logger instance.
-	 * @param PaymentGatewayRegistry|null $paymentRegistry Payment gateway registry.
+	 * @param WhatsAppApiClient|null $apiClient WhatsApp API client.
+	 * @param LoggerInterface|null   $logger Logger instance.
 	 */
 	public function __construct(
 		?WhatsAppApiClient $apiClient = null,
-		?LoggerInterface $logger = null,
-		?PaymentGatewayRegistry $paymentRegistry = null
+		?LoggerInterface $logger = null
 	) {
-		$this->apiClient       = $apiClient;
-		$this->logger          = $logger ?? wch( LoggerInterface::class );
-		$this->paymentRegistry = $paymentRegistry;
+		$this->apiClient = $apiClient;
+		$this->logger    = $logger ?? wch( LoggerInterface::class );
 	}
 
 	/**
@@ -339,17 +329,29 @@ class RefundService {
 	 * @return \WhatsAppCommerceHub\Payments\Contracts\PaymentGatewayInterface|null
 	 */
 	private function getPaymentGateway( string $gatewayId ) {
-		if ( $this->paymentRegistry && $this->paymentRegistry->has( $gatewayId ) ) {
-			return $this->paymentRegistry->get( $gatewayId );
-		}
-
 		try {
-			$container = \WhatsAppCommerceHub\Container\Container::getInstance();
-			if ( $container->has( PaymentGatewayRegistry::class ) ) {
-				return $container->get( PaymentGatewayRegistry::class )->get( $gatewayId );
+			$container = Container::getInstance();
+
+			// Try to get gateway directly by alias.
+			$gatewayKey = "payment.gateway.{$gatewayId}";
+			if ( $container->has( $gatewayKey ) ) {
+				return $container->get( $gatewayKey );
 			}
-		} catch ( \Throwable ) {
-			// Ignore and fall through.
+
+			// Fall back to getting from collection.
+			if ( $container->has( 'payment.gateways' ) ) {
+				$gateways = $container->get( 'payment.gateways' );
+				return $gateways[ $gatewayId ] ?? null;
+			}
+		} catch ( \Throwable $e ) {
+			$this->log(
+				'Failed to resolve payment gateway from container',
+				[
+					'gateway_id' => $gatewayId,
+					'error'      => $e->getMessage(),
+				],
+				'error'
+			);
 		}
 
 		return null;

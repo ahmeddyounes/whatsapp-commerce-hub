@@ -13,7 +13,7 @@ declare(strict_types=1);
 namespace WhatsAppCommerceHub\Checkout\Steps;
 
 use WhatsAppCommerceHub\Checkout\AbstractStep;
-use WhatsAppCommerceHub\Payments\PaymentGatewayRegistry;
+use WhatsAppCommerceHub\Providers\PaymentServiceProvider;
 use WhatsAppCommerceHub\Support\Messaging\MessageBuilder;
 use WhatsAppCommerceHub\ValueObjects\CheckoutResponse;
 
@@ -208,8 +208,7 @@ class PaymentStep extends AbstractStep {
 	 */
 	private function getAvailablePaymentMethods( string $country ): array {
 		try {
-			$registry  = wch( PaymentGatewayRegistry::class );
-			$available = $registry->getAvailable( $country );
+			$available = PaymentServiceProvider::getAvailableForCountry( $country );
 		} catch ( \Throwable $e ) {
 			return [];
 		}
@@ -217,7 +216,7 @@ class PaymentStep extends AbstractStep {
 		$methods = [];
 
 		if ( isset( $available['cod'] ) ) {
-			$gateway     = $available['cod'];
+			$gateway   = $available['cod'];
 			$methods[] = [
 				'id'          => $gateway->getId(),
 				'label'       => $gateway->getTitle(),

@@ -14,7 +14,7 @@ namespace WhatsAppCommerceHub\Actions;
 
 use WhatsAppCommerceHub\Actions\ActionRegistry;
 use WhatsAppCommerceHub\Infrastructure\Configuration\SettingsManager;
-use WhatsAppCommerceHub\Payments\PaymentGatewayRegistry;
+use WhatsAppCommerceHub\Providers\PaymentServiceProvider;
 use WhatsAppCommerceHub\ValueObjects\ActionResult;
 use WhatsAppCommerceHub\ValueObjects\ConversationContext;
 
@@ -75,8 +75,7 @@ class ProcessPaymentAction extends AbstractAction {
 
 			$paymentMethod    = $this->normalizePaymentMethod( (string) $paymentMethod );
 			$country          = $contextData['shipping_address']['country'] ?? '';
-			$gateway          = wch( PaymentGatewayRegistry::class );
-			$availableGateway = $gateway->getAvailable( $country );
+			$availableGateway = PaymentServiceProvider::getAvailableForCountry( $country );
 
 			$this->log(
 				'Processing payment',
@@ -148,9 +147,8 @@ class ProcessPaymentAction extends AbstractAction {
 		$message->body( __( 'How would you like to pay?', 'whatsapp-commerce-hub' ) );
 
 		// Get available payment gateways.
-		$paymentManager = wch( PaymentGatewayRegistry::class );
-		$country        = WC()->countries->get_base_country();
-		$gateways       = $paymentManager->getAvailable( $country );
+		$country  = WC()->countries->get_base_country();
+		$gateways = PaymentServiceProvider::getAvailableForCountry( $country );
 
 		// Build payment options.
 		$options = [];
