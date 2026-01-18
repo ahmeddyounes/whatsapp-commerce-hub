@@ -61,6 +61,7 @@ For detailed installation instructions, see [Installation Guide](installation.md
 
 ### For Developers
 
+- **[Boot Sequence](boot-sequence.md)**: Plugin initialization flow, requirements, container, and context management
 - **[API Reference](api-reference.md)**: REST API endpoints, authentication, and examples
 - **[Hooks Reference](hooks-reference.md)**: WordPress actions and filters for customization
 - **[Extending the Plugin](extending.md)**: Build custom intents, payment gateways, and add-ons
