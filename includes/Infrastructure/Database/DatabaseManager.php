@@ -124,7 +124,19 @@ class DatabaseManager {
 	}
 
 	/**
+	 * Run pending migrations (snake_case alias).
+	 *
+	 * @return void
+	 */
+	public function run_migrations(): void {
+		$this->runMigrations();
+	}
+
+	/**
 	 * Run pending migrations.
+	 *
+	 * Executes migrations in order, ensuring idempotency via dbDelta where appropriate.
+	 * Each migration updates the database version upon successful completion.
 	 *
 	 * @return void
 	 */
@@ -135,6 +147,7 @@ class DatabaseManager {
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
+		// First, ensure base tables exist using dbDelta (idempotent).
 		$charsetCollate = $this->wpdb->get_charset_collate();
 		foreach ( $this->getTableSchemas( $charsetCollate ) as $sql ) {
 			dbDelta( $sql );
@@ -142,18 +155,29 @@ class DatabaseManager {
 
 		$currentVersion = $this->getCurrentVersion();
 
-		// Load and run migration files.
+		// Load and run migration files in version order.
 		$migrations = $this->getMigrations();
 
-		foreach ( $migrations as $version => $migration ) {
-			if ( version_compare( $currentVersion, $version, '<' ) ) {
+		foreach ( $migrations as $migration ) {
+			// Check if migration should run based on version and custom logic.
+			if ( $migration->shouldRun( $this ) ) {
+				// Execute the migration.
 				$migration->up( $this );
-				$this->updateVersion( $version );
+
+				// Update version after successful migration.
+				$migrationVersion = $migration->getVersion();
+				$this->updateVersion( $migrationVersion );
+
+				// Log migration execution.
+				do_action( 'wch_migration_executed', $migrationVersion );
 			}
 		}
 
 		// Ensure we're at the latest version.
 		$this->updateVersion( self::DB_VERSION );
+
+		// Log completion.
+		do_action( 'wch_migrations_completed', self::DB_VERSION );
 	}
 
 	/**
@@ -432,12 +456,44 @@ class DatabaseManager {
 	/**
 	 * Get available migrations.
 	 *
-	 * @return array<string, MigrationInterface> Version => Migration instance.
+	 * Scans the Migrations directory and loads all migration classes.
+	 * Returns them sorted by version.
+	 *
+	 * @return array<string, Migrations\MigrationInterface> Version => Migration instance.
 	 */
 	private function getMigrations(): array {
-		// Future: Load migration files from Infrastructure/Database/Migrations/
-		// For now, return empty array as all migrations are in install()
-		return [];
+		$migrations     = [];
+		$migrationsPath = plugin_dir_path( __DIR__ ) . 'Database/Migrations/';
+
+		// Scan for migration files.
+		if ( ! is_dir( $migrationsPath ) ) {
+			return $migrations;
+		}
+
+		$files = glob( $migrationsPath . 'Migration_*.php' );
+		if ( false === $files ) {
+			return $migrations;
+		}
+
+		foreach ( $files as $file ) {
+			$className = 'WhatsAppCommerceHub\\Infrastructure\\Database\\Migrations\\' . basename( $file, '.php' );
+
+			if ( ! class_exists( $className ) ) {
+				require_once $file;
+			}
+
+			if ( class_exists( $className ) ) {
+				$migration = new $className();
+				if ( $migration instanceof Migrations\MigrationInterface ) {
+					$migrations[ $migration->getVersion() ] = $migration;
+				}
+			}
+		}
+
+		// Sort migrations by version.
+		uksort( $migrations, 'version_compare' );
+
+		return $migrations;
 	}
 
 	/**
