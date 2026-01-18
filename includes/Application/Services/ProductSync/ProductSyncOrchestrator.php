@@ -19,7 +19,7 @@ use WhatsAppCommerceHub\Contracts\Services\ProductSync\CatalogApiInterface;
 use WhatsAppCommerceHub\Contracts\Services\ProductSync\SyncProgressTrackerInterface;
 use WhatsAppCommerceHub\Contracts\Services\SettingsInterface;
 use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
-use WhatsAppCommerceHub\Core\Logger;
+use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
 use WhatsAppCommerceHub\Infrastructure\Queue\JobDispatcher;
 
 // Exit if accessed directly.
@@ -554,6 +554,6 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 			return;
 		}
 
-		Logger::instance()->log( $level, $message, 'product_sync', $context );
+		wch( LoggerInterface::class )->log( $level, $message, 'product_sync', $context );
 	}
 }

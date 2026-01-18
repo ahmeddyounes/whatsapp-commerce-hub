@@ -17,7 +17,7 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Infrastructure\Configuration;
 
-use WhatsAppCommerceHub\Core\Logger;
+use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
 use WhatsAppCommerceHub\Infrastructure\Security\Encryption;
 
 // Exit if accessed directly.
@@ -104,7 +104,7 @@ class SettingsManager {
 				// Decryption failed - likely key rotation or data corruption.
 				// Return false instead of ciphertext to prevent using encrypted data as credentials.
 				try {
-					Logger::instance()->error(
+					wch( LoggerInterface::class )->error(
 						sprintf( 'Failed to decrypt field %s - possible key rotation or data corruption', $key ),
 						'settings',
 						[ 'component' => 'SettingsManager' ]
@@ -161,7 +161,7 @@ class SettingsManager {
 			if ( false === $encrypted ) {
 				// Encryption failed - reject the write to prevent storing plaintext credentials.
 				try {
-					Logger::instance()->error(
+					wch( LoggerInterface::class )->error(
 						sprintf( 'CRITICAL - Failed to encrypt sensitive field %s, rejecting write', $key ),
 						'settings',
 						[ 'component' => 'SettingsManager' ]
@@ -191,7 +191,7 @@ class SettingsManager {
 
 		if ( ! $result ) {
 			try {
-				Logger::instance()->warning(
+				wch( LoggerInterface::class )->warning(
 					sprintf( 'Failed to update setting %s - check database permissions', $key ),
 					'settings',
 					[ 'component' => 'SettingsManager' ]

@@ -18,7 +18,7 @@ use WhatsAppCommerceHub\Contracts\Services\AddressServiceInterface;
 use WhatsAppCommerceHub\Contracts\Services\CartServiceInterface;
 use WhatsAppCommerceHub\Contracts\Services\CustomerServiceInterface;
 use WhatsAppCommerceHub\Application\Services\MessageBuilderFactory;
-use WhatsAppCommerceHub\Core\Logger;
+use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
 use WhatsAppCommerceHub\ValueObjects\CheckoutResponse;
 use WhatsAppCommerceHub\Checkout\Steps\AddressStep;
 use WhatsAppCommerceHub\Checkout\Steps\ShippingStep;
@@ -54,6 +54,7 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 	 * @param AddressServiceInterface  $address_service    Address service.
 	 * @param mixed                    $cart_repository    Cart repository (optional).
 	 * @param mixed                    $order_sync_service Order sync service (optional).
+	 * @param LoggerInterface|null     $logger             Logger instance (optional).
 	 */
 	public function __construct(
 		private CartServiceInterface $cart_service,
@@ -61,9 +62,10 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 		private MessageBuilderFactory $message_builder,
 		private AddressServiceInterface $address_service,
 		private mixed $cart_repository = null,
-		private mixed $order_sync_service = null
+		private mixed $order_sync_service = null,
+		private ?LoggerInterface $logger = null
 	) {
-
+		$this->logger = $logger ?? wch( LoggerInterface::class );
 		$this->initializeSteps();
 	}
 
@@ -453,7 +455,7 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 	 * @return void
 	 */
 	private function log( string $message, array $data = [] ): void {
-		Logger::instance()->info( $message, 'checkout', $data );
+		$this->logger->info( $message, 'checkout', $data );
 	}
 
 	/**
@@ -464,6 +466,6 @@ class CheckoutOrchestrator implements CheckoutOrchestratorInterface {
 	 * @return void
 	 */
 	private function logError( string $message, array $data = [] ): void {
-		Logger::instance()->error( $message, 'checkout', $data );
+		$this->logger->error( $message, 'checkout', $data );
 	}
 }

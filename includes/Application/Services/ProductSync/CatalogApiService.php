@@ -16,7 +16,7 @@ use WhatsAppCommerceHub\Clients\WhatsAppApiClient;
 use WhatsAppCommerceHub\Contracts\Services\ProductSync\CatalogApiInterface;
 use WhatsAppCommerceHub\Contracts\Services\SettingsInterface;
 use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
-use WhatsAppCommerceHub\Core\Logger;
+use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
 use Exception;
 
 // Exit if accessed directly.
@@ -297,6 +297,6 @@ class CatalogApiService implements CatalogApiInterface {
 			return;
 		}
 
-		Logger::instance()->log( $level, $message, 'product-sync', $context );
+		wch( LoggerInterface::class )->log( $level, $message, 'product-sync', $context );
 	}
 }

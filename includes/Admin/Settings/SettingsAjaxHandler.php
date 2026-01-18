@@ -18,7 +18,7 @@ use WhatsAppCommerceHub\Contracts\Admin\Settings\SettingsImportExporterInterface
 use WhatsAppCommerceHub\Contracts\Services\ProductSync\ProductSyncOrchestratorInterface;
 use WhatsAppCommerceHub\Contracts\Services\SettingsInterface;
 use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
-use WhatsAppCommerceHub\Core\Logger;
+use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
 use Exception;
 
 // Exit if accessed directly.
@@ -289,7 +289,7 @@ class SettingsAjaxHandler {
 		$this->verifyRequest();
 
 		try {
-			$logger = Logger::instance();
+			$logger = wch( LoggerInterface::class );
 			foreach ( $logger->getLogFiles() as $file ) {
 				$logger->clearLog( $file['filename'] );
 			}
@@ -404,6 +404,6 @@ class SettingsAjaxHandler {
 			return;
 		}
 
-		Logger::instance()->log( $level, $message, 'admin', $context );
+		wch( LoggerInterface::class )->log( $level, $message, 'admin', $context );
 	}
 }

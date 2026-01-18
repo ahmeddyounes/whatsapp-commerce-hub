@@ -13,7 +13,7 @@ declare(strict_types=1);
 namespace WhatsAppCommerceHub\Application\Services;
 
 use WhatsAppCommerceHub\Clients\WhatsAppApiClient;
-use WhatsAppCommerceHub\Core\Logger;
+use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
 use WhatsAppCommerceHub\Infrastructure\Configuration\SettingsManager;
 use WhatsAppCommerceHub\Infrastructure\Queue\JobDispatcher;
 use WhatsAppCommerceHub\Presentation\Templates\TemplateManager;
@@ -62,6 +62,13 @@ class NotificationService {
 	 * @var TemplateManager|null
 	 */
 	private ?TemplateManager $templateManager;
+
+	/**
+	 * Logger instance.
+	 *
+	 * @var LoggerInterface
+	 */
+	private LoggerInterface $logger;
 
 	/**
 	 * Status to notification info mapping.
@@ -130,13 +137,16 @@ class NotificationService {
 	 *
 	 * @param WhatsAppApiClient|null $apiClient       WhatsApp API client.
 	 * @param TemplateManager|null    $templateManager Template manager.
+	 * @param LoggerInterface|null    $logger          Logger instance.
 	 */
 	public function __construct(
 		?WhatsAppApiClient $apiClient = null,
-		?TemplateManager $templateManager = null
+		?TemplateManager $templateManager = null,
+		?LoggerInterface $logger = null
 	) {
 		$this->apiClient       = $apiClient ?? wch( WhatsAppApiClient::class );
 		$this->templateManager = $templateManager ?? wch( TemplateManager::class );
+		$this->logger          = $logger ?? wch( LoggerInterface::class );
 	}
 
 	/**
@@ -956,6 +966,6 @@ class NotificationService {
 	 * @return void
 	 */
 	private function log( string $message, array $context = [], string $level = 'info' ): void {
-		Logger::instance()->log( $level, $message, 'notifications', $context );
+		$this->logger->log( $level, $message, 'notifications', $context );
 	}
 }

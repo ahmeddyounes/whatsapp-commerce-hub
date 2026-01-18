@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Application\Services\Broadcasts;
 
-use WhatsAppCommerceHub\Core\Logger;
+use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
 use WhatsAppCommerceHub\Contracts\Services\Broadcasts\AudienceCalculatorInterface;
 
 // Exit if accessed directly.
@@ -336,6 +336,6 @@ class AudienceCalculator implements AudienceCalculatorInterface {
 	protected function logWarning( string $message, array $context = [] ): void {
 		$context['category'] = 'broadcasts';
 
-		Logger::instance()->warning( $message, 'broadcasts', $context );
+		wch( LoggerInterface::class )->warning( $message, 'broadcasts', $context );
 	}
 }

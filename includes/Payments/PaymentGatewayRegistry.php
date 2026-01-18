@@ -14,7 +14,7 @@ namespace WhatsAppCommerceHub\Payments;
 
 use WhatsAppCommerceHub\Contracts\Payments\PaymentGatewayRegistryInterface;
 use WhatsAppCommerceHub\Payments\Contracts\PaymentGatewayInterface;
-use WhatsAppCommerceHub\Core\Logger;
+use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
 use WhatsAppCommerceHub\Payments\Gateways\CodGateway;
 use WhatsAppCommerceHub\Payments\Gateways\StripeGateway;
 use WhatsAppCommerceHub\Payments\Gateways\RazorpayGateway;
@@ -307,7 +307,7 @@ class PaymentGatewayRegistry implements PaymentGatewayRegistryInterface {
 						$this->register( $id, $gateway );
 					}
 				} catch ( \Throwable $e ) {
-					Logger::instance()->error(
+					wch( LoggerInterface::class )->error(
 						"Failed to instantiate payment gateway: {$id}",
 						'payments',
 						[

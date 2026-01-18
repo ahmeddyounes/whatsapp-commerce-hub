@@ -14,7 +14,6 @@ namespace WhatsAppCommerceHub\Application\Services;
 
 use WhatsAppCommerceHub\Contracts\Services\ContextManagerInterface;
 use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
-use WhatsAppCommerceHub\Core\Logger;
 use WhatsAppCommerceHub\ValueObjects\ConversationContext;
 
 // Exit if accessed directly.
@@ -49,9 +48,9 @@ class ContextManagerService implements ContextManagerInterface {
 	/**
 	 * Logger service.
 	 *
-	 * @var LoggerInterface|null
+	 * @var LoggerInterface
 	 */
-	protected ?LoggerInterface $logger;
+	protected LoggerInterface $logger;
 
 	/**
 	 * Cache group name.
@@ -76,7 +75,7 @@ class ContextManagerService implements ContextManagerInterface {
 	public function __construct( ?\wpdb $wpdb = null, ?LoggerInterface $logger = null ) {
 		global $wpdb;
 		$this->wpdb   = $wpdb ?? $wpdb;
-		$this->logger = $logger;
+		$this->logger = $logger ?? wch( LoggerInterface::class );
 	}
 
 	/**
@@ -356,11 +355,6 @@ class ContextManagerService implements ContextManagerInterface {
 	 * @return void
 	 */
 	protected function log( string $level, string $message, array $context = [] ): void {
-		if ( null !== $this->logger ) {
-			$this->logger->log( $level, $message, 'context_manager', $context );
-			return;
-		}
-
-		Logger::instance()->log( $level, $message, 'context_manager', $context );
+		$this->logger->log( $level, $message, 'context_manager', $context );
 	}
 }

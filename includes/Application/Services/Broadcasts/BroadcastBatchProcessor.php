@@ -14,7 +14,7 @@ namespace WhatsAppCommerceHub\Application\Services\Broadcasts;
 
 use WhatsAppCommerceHub\Clients\WhatsAppApiClient;
 use WhatsAppCommerceHub\Contracts\Services\Broadcasts\CampaignRepositoryInterface;
-use WhatsAppCommerceHub\Core\Logger;
+use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -76,7 +76,7 @@ class BroadcastBatchProcessor {
 		$message    = $args['message'] ?? [];
 
 		if ( empty( $batch ) || 0 === $campaignId || ! is_array( $message ) ) {
-			Logger::instance()->warning(
+			wch( LoggerInterface::class )->warning(
 				'Invalid broadcast batch payload',
 				[
 					'campaign_id' => $campaignId,
@@ -92,7 +92,7 @@ class BroadcastBatchProcessor {
 		$languageCode    = $this->templateBuilder->getLanguageCode( $templateData );
 
 		if ( '' === $templateName ) {
-			Logger::instance()->warning(
+			wch( LoggerInterface::class )->warning(
 				'Broadcast batch missing template name',
 				[ 'campaign_id' => $campaignId ]
 			);
@@ -163,7 +163,7 @@ class BroadcastBatchProcessor {
 		$campaign = $this->repository->getById( $campaignId );
 
 		if ( null === $campaign ) {
-			Logger::instance()->warning(
+			wch( LoggerInterface::class )->warning(
 				'Broadcast campaign not found for stats update',
 				[ 'campaign_id' => $campaignId ]
 			);

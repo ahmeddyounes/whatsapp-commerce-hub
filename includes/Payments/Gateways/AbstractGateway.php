@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Payments\Gateways;
 
-use WhatsAppCommerceHub\Core\Logger;
+use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
 use WhatsAppCommerceHub\Payments\Contracts\PaymentResult;
 use WhatsAppCommerceHub\Payments\Contracts\PaymentStatus;
 use WhatsAppCommerceHub\Payments\Contracts\PaymentGatewayInterface;
@@ -57,6 +57,22 @@ abstract class AbstractGateway implements PaymentGatewayInterface {
 	 * @var string[]
 	 */
 	protected array $supportedCountries = [];
+
+	/**
+	 * Logger instance.
+	 *
+	 * @var LoggerInterface|null
+	 */
+	protected ?LoggerInterface $logger = null;
+
+	/**
+	 * Constructor.
+	 *
+	 * @param LoggerInterface|null $logger Logger instance.
+	 */
+	public function __construct( ?LoggerInterface $logger = null ) {
+		$this->logger = $logger ?? wch( LoggerInterface::class );
+	}
 
 	/**
 	 * Get gateway ID.
@@ -207,7 +223,7 @@ abstract class AbstractGateway implements PaymentGatewayInterface {
 	 */
 	protected function log( string $message, array $context = [], string $level = 'info' ): void {
 		$context['gateway'] = $this->getId();
-		Logger::instance()->log( $level, $message, 'payments', $context );
+		$this->logger->log( $level, $message, 'payments', $context );
 	}
 
 	/**

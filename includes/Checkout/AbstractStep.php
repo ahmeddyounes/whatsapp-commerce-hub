@@ -15,7 +15,7 @@ namespace WhatsAppCommerceHub\Checkout;
 use WhatsAppCommerceHub\Application\Services\MessageBuilderFactory;
 use WhatsAppCommerceHub\Contracts\Checkout\StepInterface;
 use WhatsAppCommerceHub\Contracts\Services\AddressServiceInterface;
-use WhatsAppCommerceHub\Core\Logger;
+use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
 use WhatsAppCommerceHub\Support\Messaging\MessageBuilder;
 use WhatsAppCommerceHub\ValueObjects\CheckoutResponse;
 
@@ -36,11 +36,14 @@ abstract class AbstractStep implements StepInterface {
 	 *
 	 * @param MessageBuilderFactory   $message_builder Message builder factory.
 	 * @param AddressServiceInterface $address_service Address service.
+	 * @param LoggerInterface|null    $logger          Logger instance.
 	 */
 	public function __construct(
 		protected MessageBuilderFactory $message_builder,
-		protected AddressServiceInterface $address_service
+		protected AddressServiceInterface $address_service,
+		protected ?LoggerInterface $logger = null
 	) {
+		$this->logger = $logger ?? wch( LoggerInterface::class );
 	}
 
 	/**
@@ -161,7 +164,7 @@ abstract class AbstractStep implements StepInterface {
 	protected function log( string $message, array $data = [] ): void {
 		$data['step'] = $this->getStepId();
 
-		Logger::instance()->info( $message, 'checkout', $data );
+		$this->logger->info( $message, 'checkout', $data );
 	}
 
 	/**
@@ -174,7 +177,7 @@ abstract class AbstractStep implements StepInterface {
 	protected function logError( string $message, array $data = [] ): void {
 		$data['step'] = $this->getStepId();
 
-		Logger::instance()->error( $message, 'checkout', $data );
+		$this->logger->error( $message, 'checkout', $data );
 	}
 
 	/**

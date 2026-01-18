@@ -30,7 +30,7 @@ use WhatsAppCommerceHub\Application\Services\Checkout\CheckoutTotalsCalculator;
 use WhatsAppCommerceHub\Application\Services\Checkout\CouponHandler;
 use WhatsAppCommerceHub\Application\Services\Checkout\CheckoutOrchestrator;
 use WhatsAppCommerceHub\Sagas\CheckoutSaga;
-use WhatsAppCommerceHub\Core\Logger;
+use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -169,7 +169,8 @@ class CheckoutServiceProvider extends AbstractServiceProvider {
 	 * @return void
 	 */
 	public function onCheckoutStarted( string $phone ): void {
-		Logger::instance()->info(
+		$logger = $this->container->get( LoggerInterface::class );
+		$logger->info(
 			'Checkout started',
 			'checkout',
 			[ 'phone' => $phone ]
@@ -183,7 +184,8 @@ class CheckoutServiceProvider extends AbstractServiceProvider {
 	 * @return void
 	 */
 	public function onCheckoutCancelled( string $phone ): void {
-		Logger::instance()->info(
+		$logger = $this->container->get( LoggerInterface::class );
+		$logger->info(
 			'Checkout cancelled',
 			'checkout',
 			[ 'phone' => $phone ]

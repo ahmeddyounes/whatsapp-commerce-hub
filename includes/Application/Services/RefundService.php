@@ -13,7 +13,7 @@ declare(strict_types=1);
 namespace WhatsAppCommerceHub\Application\Services;
 
 use WhatsAppCommerceHub\Clients\WhatsAppApiClient;
-use WhatsAppCommerceHub\Core\Logger;
+use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
 use WhatsAppCommerceHub\Payments\PaymentGatewayRegistry;
 use WhatsAppCommerceHub\Payments\Contracts\RefundResult;
 
@@ -45,25 +45,25 @@ class RefundService {
 	/**
 	 * Logger instance.
 	 *
-	 * @var Logger
+	 * @var LoggerInterface
 	 */
-	private Logger $logger;
+	private LoggerInterface $logger;
 
 	/**
 	 * Constructor.
 	 *
 	 * @param WhatsAppApiClient|null     $apiClient WhatsApp API client.
+	 * @param LoggerInterface|null        $logger Logger instance.
 	 * @param PaymentGatewayRegistry|null $paymentRegistry Payment gateway registry.
-	 * @param Logger|null                 $logger Logger instance.
 	 */
 	public function __construct(
 		?WhatsAppApiClient $apiClient = null,
-		?PaymentGatewayRegistry $paymentRegistry = null,
-		?Logger $logger = null
+		?LoggerInterface $logger = null,
+		?PaymentGatewayRegistry $paymentRegistry = null
 	) {
-		$this->apiClient      = $apiClient;
+		$this->apiClient       = $apiClient;
+		$this->logger          = $logger ?? wch( LoggerInterface::class );
 		$this->paymentRegistry = $paymentRegistry;
-		$this->logger         = $logger ?? Logger::instance();
 	}
 
 	/**

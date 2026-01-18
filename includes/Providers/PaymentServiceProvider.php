@@ -23,7 +23,7 @@ use WhatsAppCommerceHub\Payments\Gateways\WhatsAppPayGateway;
 use WhatsAppCommerceHub\Controllers\PaymentWebhookController;
 use WhatsAppCommerceHub\Application\Services\RefundService;
 use WhatsAppCommerceHub\Clients\WhatsAppApiClient;
-use WhatsAppCommerceHub\Core\Logger;
+use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
 use WhatsAppCommerceHub\Presentation\Templates\TemplateManager;
 
 // Exit if accessed directly.
@@ -124,7 +124,8 @@ class PaymentServiceProvider implements ServiceProviderInterface {
 				} catch ( \Throwable ) {
 					// Leave null if API client is not configured.
 				}
-				return new RefundService( $apiClient );
+				$logger = $c->get( LoggerInterface::class );
+				return new RefundService( $apiClient, $logger );
 			}
 		);
 
@@ -153,7 +154,8 @@ class PaymentServiceProvider implements ServiceProviderInterface {
 					// Leave null if templates are not available.
 				}
 
-				return new NotificationService( $apiClient, $templateManager );
+				$logger = $c->get( LoggerInterface::class );
+				return new NotificationService( $apiClient, $templateManager, $logger );
 			}
 		);
 
@@ -280,7 +282,8 @@ class PaymentServiceProvider implements ServiceProviderInterface {
 			}
 		}
 
-		Logger::instance()->debug(
+		$logger = $container->get( LoggerInterface::class );
+		$logger->debug(
 			'Payment services registered',
 			'payments',
 			[

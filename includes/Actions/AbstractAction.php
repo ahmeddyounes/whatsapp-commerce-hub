@@ -14,7 +14,7 @@ namespace WhatsAppCommerceHub\Actions;
 
 use WhatsAppCommerceHub\Actions\Contracts\ActionHandlerInterface;
 use WhatsAppCommerceHub\Contracts\Services\CartServiceInterface;
-use WhatsAppCommerceHub\Core\Logger;
+use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
 use WhatsAppCommerceHub\Domain\Customer\CustomerService;
 use WhatsAppCommerceHub\Support\Messaging\MessageBuilder;
 use WhatsAppCommerceHub\ValueObjects\ActionResult;
@@ -58,6 +58,23 @@ abstract class AbstractAction implements ActionHandlerInterface {
 	 * @var CustomerService|null
 	 */
 	protected ?CustomerService $customerService = null;
+
+	/**
+	 * Logger instance.
+	 *
+	 * @var LoggerInterface|null
+	 */
+	protected ?LoggerInterface $logger = null;
+
+	/**
+	 * Set logger.
+	 *
+	 * @param LoggerInterface $logger Logger instance.
+	 * @return void
+	 */
+	public function setLogger( LoggerInterface $logger ): void {
+		$this->logger = $logger;
+	}
 
 	/**
 	 * Set cart service.
@@ -129,7 +146,8 @@ abstract class AbstractAction implements ActionHandlerInterface {
 	 * @return void
 	 */
 	protected function log( string $message, array $data = [], string $level = 'info' ): void {
-		Logger::instance()->log( $level, static::class . ': ' . $message, 'action', $data );
+		$logger = $this->logger ?? wch( LoggerInterface::class );
+		$logger->log( $level, static::class . ': ' . $message, 'action', $data );
 	}
 
 	/**

@@ -24,7 +24,7 @@ use WhatsAppCommerceHub\Actions\ConfirmOrderAction;
 use WhatsAppCommerceHub\Actions\ProcessPaymentAction;
 use WhatsAppCommerceHub\Contracts\Services\CartServiceInterface;
 use WhatsAppCommerceHub\Contracts\Services\CustomerServiceInterface;
-use WhatsAppCommerceHub\Core\Logger;
+use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -106,7 +106,8 @@ class ActionServiceProvider extends AbstractServiceProvider {
 		// Allow external handlers to register.
 		do_action( 'wch_register_action_handlers', $registry, $this->container );
 
-		Logger::instance()->debug(
+		$logger = $this->container->get( LoggerInterface::class );
+		$logger->debug(
 			'Action handlers registered',
 			'actions',
 			[

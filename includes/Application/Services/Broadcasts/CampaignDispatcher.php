@@ -17,7 +17,7 @@ use WhatsAppCommerceHub\Contracts\Services\Broadcasts\CampaignDispatcherInterfac
 use WhatsAppCommerceHub\Contracts\Services\Broadcasts\CampaignRepositoryInterface;
 use WhatsAppCommerceHub\Contracts\Services\Broadcasts\AudienceCalculatorInterface;
 use WhatsAppCommerceHub\Contracts\Services\SettingsInterface;
-use WhatsAppCommerceHub\Core\Logger;
+use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
 use WhatsAppCommerceHub\Infrastructure\Queue\JobDispatcher;
 
 // Exit if accessed directly.
@@ -285,6 +285,6 @@ class CampaignDispatcher implements CampaignDispatcherInterface {
 	protected function log( string $level, string $message, array $context = [] ): void {
 		$context['category'] = 'broadcasts';
 
-		Logger::instance()->log( $level, $message, 'broadcasts', $context );
+		wch( LoggerInterface::class )->log( $level, $message, 'broadcasts', $context );
 	}
 }

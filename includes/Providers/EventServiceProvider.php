@@ -23,7 +23,7 @@ use WhatsAppCommerceHub\Events\Handlers\MessageReceivedHandler;
 use WhatsAppCommerceHub\Events\Handlers\MessageSentHandler;
 use WhatsAppCommerceHub\Events\Handlers\OrderCreatedHandler;
 use WhatsAppCommerceHub\Queue\PriorityQueue;
-use WhatsAppCommerceHub\Core\Logger;
+use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -82,9 +82,9 @@ class EventServiceProvider implements ServiceProviderInterface {
 			function ( ContainerInterface $c ): EventBus {
 				$queue = $c->has( PriorityQueue::class ) ? $c->get( PriorityQueue::class ) : null;
 
-				$loggerService = $c->has( Logger::class ) ? $c->get( Logger::class ) : Logger::instance();
+				$loggerService = $c->get( LoggerInterface::class );
 				$logger        = new class( $loggerService ) {
-					public function __construct( private Logger $logger ) {
+					public function __construct( private LoggerInterface $logger ) {
 					}
 
 					public function info( string $message, array $context = [] ): void {

@@ -16,7 +16,7 @@ use WhatsAppCommerceHub\Contracts\Services\CheckoutServiceInterface;
 use WhatsAppCommerceHub\Contracts\Services\CartServiceInterface;
 use WhatsAppCommerceHub\Contracts\Services\OrderSyncServiceInterface;
 use WhatsAppCommerceHub\Contracts\Repositories\CustomerRepositoryInterface;
-use WhatsAppCommerceHub\Core\Logger;
+use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
 use WhatsAppCommerceHub\Sagas\CheckoutSaga;
 
 // Exit if accessed directly.
@@ -808,7 +808,7 @@ class CheckoutService implements CheckoutServiceInterface {
 		// This prevents percentage coupons from giving more discount than intended.
 		$maxAmount = $coupon->get_maximum_amount();
 		if ( $maxAmount > 0 && $discount > $maxAmount ) {
-			Logger::instance()->debug(
+			wch( LoggerInterface::class )->debug(
 				'Coupon discount capped by maximum_amount',
 				'checkout',
 				[
