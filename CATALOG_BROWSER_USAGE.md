@@ -1,305 +1,396 @@
-# WCH_Catalog_Browser Usage Guide
+# Catalog Browser Usage Guide
 
 ## Overview
 
-The `WCH_Catalog_Browser` class provides a comprehensive product browsing experience for WhatsApp Commerce Hub. It enables customers to browse products, search, view details, and select variants through WhatsApp's interactive messaging interface.
+The catalog browsing functionality in WhatsApp Commerce Hub provides a comprehensive product browsing experience. It enables customers to browse products, search, view details, and select variants through WhatsApp's interactive messaging interface.
 
-## Class Location
+## Architecture
 
-`includes/class-wch-catalog-browser.php`
+The catalog browsing implementation follows a modern action-based architecture:
+
+- **Domain Service**: `WhatsAppCommerceHub\Domain\Catalog\CatalogBrowser` (located at `includes/Domain/Catalog/CatalogBrowser.php`)
+- **Action Handlers**: Individual action classes in `includes/Actions/`
+  - `ShowMainMenuAction` - Main navigation menu
+  - `ShowCategoryAction` - Category browsing with pagination
+  - `ShowProductAction` - Product details and variants
+
+The `CatalogBrowser` class serves as a facade that delegates to registered action handlers via the `ActionRegistry`.
 
 ## Public Methods
 
-### 1. show_main_menu()
+The `CatalogBrowser` class provides the following public methods:
 
-Displays the main catalog browsing menu with dynamic categories, featured products, search, and quick reorder options.
+### 1. showMainMenu($conversation): array
+
+Displays the main catalog browsing menu with navigation options.
 
 ```php
-$browser = new WCH_Catalog_Browser();
-$messages = $browser->show_main_menu( $conversation );
+use WhatsAppCommerceHub\Domain\Catalog\CatalogBrowser;
+
+$browser = wch(CatalogBrowser::class);
+$messages = $browser->showMainMenu($conversation);
 ```
 
-**Features:**
-- Dynamically loads categories from WooCommerce
-- Shows Featured Products option
-- Shows Search Products option
-- Shows Quick Reorder for returning customers
-- Product count displayed for each category
+**Delegates to**: `ShowMainMenuAction` (action name: `show_main_menu`)
 
-### 2. show_category()
+**Features:**
+- Personalized greeting for returning customers
+- Shopping options: Shop by Category, Search Products
+- Orders & Support: View Cart, Track Order, Talk to Support
+- Main menu navigation button
+
+**Returns**: Array of `MessageBuilder` instances
+
+### 2. showCategory(int $categoryId, int $page, $conversation): array
 
 Shows products in a specific category with pagination support.
 
 ```php
-$browser = new WCH_Catalog_Browser();
-$messages = $browser->show_category( $conversation, $category_id, $page = 1 );
+$browser = wch(CatalogBrowser::class);
+$messages = $browser->showCategory($categoryId, $page, $conversation);
 ```
 
 **Parameters:**
-- `$conversation`: WCH_Conversation_Context object
-- `$category_id`: WooCommerce category term ID
-- `$page`: Page number (default: 1, 10 products per page)
+- `$categoryId`: WooCommerce category term ID
+- `$page`: Page number (starts at 1)
+- `$conversation`: Conversation context (object or array)
+
+**Delegates to**: `ShowCategoryAction` (action name: `show_category`)
 
 **Features:**
-- Products grouped by subcategory or alphabetically
-- Each product shows: name (max 50 chars), price, short description (max 72 chars)
-- Stock status indicator (✅/❌)
-- Navigation buttons: Previous Page, Next Page, Back to Categories
-- Page indicator in footer
+- If no category_id provided: Shows category selection list
+- Products displayed with name, price, and stock status (✅/❌)
+- Pagination buttons (Previous/Next)
+- Shows "Page X of Y" in footer
+- 10 products per page
+- Back to menu navigation
 
-### 3. show_product_detail()
+**Returns**: Array of `MessageBuilder` instances
 
-Displays comprehensive product information in a sequence of messages.
+### 3. showProduct(int $productId, $conversation): array
+
+Displays comprehensive product information.
 
 ```php
-$browser = new WCH_Catalog_Browser();
-$messages = $browser->show_product_detail( $conversation, $product_id );
+$browser = wch(CatalogBrowser::class);
+$messages = $browser->showProduct($productId, $conversation);
 ```
+
+**Parameters:**
+- `$productId`: WooCommerce product ID
+- `$conversation`: Conversation context (object or array)
+
+**Delegates to**: `ShowProductAction` (action name: `show_product`)
 
 **Message Sequence:**
-1. **Image message** - Main product photo (optimized 500x500)
-2. **Product details** - Name, full description, price, availability
-3. **Variant information** - For variable products (numbered list)
-4. **Interactive buttons** - Add to Cart, View More Images, Back
+1. **Image message** (if available) - Product image URL
+2. **Product details** - Name, description, price, stock
+3. **Variant selector** (for variable products) - Interactive list of variants
 
 **Features:**
-- Sale price highlighted with "was $X" format
-- Low stock warning for quantities < 10
-- Gallery support for multiple images
-- Smart variant selection for variable products
+- Product image display with URL
+- Formatted description (max 1024 chars, HTML stripped)
+- Price and stock information with emojis
+- "Add to Cart" button for simple products
+- Variant selection for variable products (up to 10 variants)
+- Stock quantity display if managed
+- Back navigation button
 
-### 4. show_variant_selector()
+**Returns**: Array of `MessageBuilder` instances
 
-Shows variant selection interface for variable products.
+### 4. searchProducts(string $query, int $page, $conversation): array
+
+Searches products by name and returns matching products.
 
 ```php
-$browser = new WCH_Catalog_Browser();
-$messages = $browser->show_variant_selector( $conversation, $product_id, $attribute = null );
+$browser = wch(CatalogBrowser::class);
+$messages = $browser->searchProducts($query, $page, $conversation);
 ```
 
 **Parameters:**
-- `$conversation`: WCH_Conversation_Context object
-- `$product_id`: WooCommerce product ID
-- `$attribute`: Specific attribute name (optional, defaults to first attribute)
+- `$query`: Search term
+- `$page`: Page number (starts at 1)
+- `$conversation`: Conversation context
 
 **Features:**
-- Lists available options for selected attribute (color, size, etc.)
-- Displays up to 10 options per message
-- Formatted attribute names (removes 'pa_' prefix, converts to title case)
+- Uses WooCommerce's native `wc_get_products()` search
+- Returns up to 10 products per page
+- Simple text-based product list with prices
 
-### 5. search_products()
+**Returns**: Array of `MessageBuilder` instances
 
-Searches products by name and SKU, returning top 10 matches.
+### 5. showFeaturedProducts(int $page, $conversation): array
+
+Displays featured products.
 
 ```php
-$browser = new WCH_Catalog_Browser();
-$messages = $browser->search_products( $conversation, $query );
+$browser = wch(CatalogBrowser::class);
+$messages = $browser->showFeaturedProducts($page, $conversation);
 ```
 
+**Parameters:**
+- `$page`: Page number (starts at 1)
+- `$conversation`: Conversation context
+
 **Features:**
-- Searches product names and SKUs
-- Returns up to 10 most relevant results
-- Suggests categories if no matches found
-- Uses WooCommerce's native search functionality
+- Queries products with `featured` flag
+- Returns up to 10 products per page
+- Simple text-based product list with prices
 
-### 6. show_featured()
+**Returns**: Array of `MessageBuilder` instances
 
-Displays featured and on-sale products.
+### 6. getProductsPerPage(): int
+
+Returns the number of products displayed per page.
 
 ```php
-$browser = new WCH_Catalog_Browser();
-$messages = $browser->show_featured( $conversation );
+$browser = wch(CatalogBrowser::class);
+$perPage = $browser->getProductsPerPage(); // Returns 10
 ```
 
-**Features:**
-- Prioritizes products with `_featured` meta
-- Falls back to on-sale products
-- Shows up to 10 featured products
-- Sorted by date (newest first)
+**Returns**: int (constant value: 10)
 
-## Image Optimization
+## Implementation Details
 
-The class implements automatic image optimization for WhatsApp:
+### Action-Based Architecture
 
-**Features:**
-- Generates 500x500 pixel thumbnails
-- Caches optimized image URLs in post meta (`_wch_optimized_image_url`)
-- Falls back to full-size images if optimization fails
-- Uses WordPress's native image resizing
+The catalog browser uses an action-based architecture where:
 
-**Cache Key:** `_wch_optimized_image_url` (stored on attachment)
+1. **CatalogBrowser** facade methods accept a conversation context
+2. Methods extract the phone number from the conversation
+3. Methods call `ActionRegistry::execute()` with:
+   - Action name (e.g., `show_main_menu`, `show_category`, `show_product`)
+   - Customer phone number
+   - Action parameters (e.g., `category_id`, `product_id`, `page`)
+   - Conversation context as `ConversationContext` value object
+4. The action handler executes and returns an `ActionResult`
+5. The facade returns the messages from the action result
+
+### Conversation Context Handling
+
+The `CatalogBrowser` class accepts flexible conversation formats:
+- **Array**: `['customer_phone' => '...', 'context' => [...]]`
+- **Object**: `$obj->customer_phone`, `$obj->context`
+- **Context data**: Can be array or JSON string, automatically decoded
+
+This flexibility allows integration with various conversation storage formats.
 
 ## Constants
 
+The `CatalogBrowser` class defines the following private constants:
+
 ```php
-const PRODUCTS_PER_PAGE = 10;           // Products shown per page
-const MAX_PRODUCT_NAME_LENGTH = 50;     // Max chars for product name in lists
-const MAX_PRODUCT_DESC_LENGTH = 72;     // Max chars for description in lists
-const IMAGE_SIZE = 500;                 // Thumbnail size for optimization (500x500)
+private const PRODUCTS_PER_PAGE = 10;           // Products shown per page
+private const MAX_PRODUCT_NAME_LENGTH = 50;     // Max chars for product name in lists
+private const MAX_PRODUCT_DESC_LENGTH = 72;     // Max chars for description in lists
+private const IMAGE_SIZE = 500;                 // Thumbnail size for optimization (500x500)
 ```
+
+**Note**: These constants are private. Use `getProductsPerPage()` to access the products per page value.
 
 ## Integration Examples
 
 ### Example 1: Catalog Main Menu
 
 ```php
-// In an action handler or webhook processor
-$browser = new WCH_Catalog_Browser();
-$messages = $browser->show_main_menu( $conversation );
+use WhatsAppCommerceHub\Domain\Catalog\CatalogBrowser;
+
+// In a webhook processor or action handler
+$browser = wch(CatalogBrowser::class);
+$messages = $browser->showMainMenu($conversation);
 
 // Send messages via WhatsApp API
-foreach ( $messages as $message ) {
-    $api_client->send_message( $conversation->customer_phone, $message->build() );
+foreach ($messages as $messageBuilder) {
+    $built = $messageBuilder->build();
+    // Send via WhatsApp API client
+    $apiClient->sendMessage($conversation['customer_phone'], $built);
 }
 ```
 
 ### Example 2: Category Browsing with Pagination
 
 ```php
-// Handle category selection
-$category_id = 42; // From user selection
+use WhatsAppCommerceHub\Domain\Catalog\CatalogBrowser;
+
+$browser = wch(CatalogBrowser::class);
+
+// Show category products (page 1)
+$categoryId = 42; // From user selection
 $page = 1;
+$messages = $browser->showCategory($categoryId, $page, $conversation);
 
-$browser = new WCH_Catalog_Browser();
-$messages = $browser->show_category( $conversation, $category_id, $page );
-
-// Handle next page
+// Navigate to next page
 $page = 2;
-$messages = $browser->show_category( $conversation, $category_id, $page );
+$messages = $browser->showCategory($categoryId, $page, $conversation);
 ```
 
 ### Example 3: Product Search Flow
 
 ```php
-// User searches for "blue shoes"
-$query = 'blue shoes';
+use WhatsAppCommerceHub\Domain\Catalog\CatalogBrowser;
 
-$browser = new WCH_Catalog_Browser();
-$messages = $browser->search_products( $conversation, $query );
+$browser = wch(CatalogBrowser::class);
+
+// User searches for "shoes"
+$query = 'shoes';
+$page = 1;
+$messages = $browser->searchProducts($query, $page, $conversation);
 
 // If user selects a product from results
-$product_id = 123; // From user selection
-$messages = $browser->show_product_detail( $conversation, $product_id );
+$productId = 123; // From user selection
+$messages = $browser->showProduct($productId, $conversation);
 ```
 
-### Example 4: Variable Product Flow
+### Example 4: Featured Products
 
 ```php
-// Show product detail (detects variable product automatically)
-$browser = new WCH_Catalog_Browser();
-$messages = $browser->show_product_detail( $conversation, $product_id );
+use WhatsAppCommerceHub\Domain\Catalog\CatalogBrowser;
 
-// User clicks "Select Options"
-$messages = $browser->show_variant_selector( $conversation, $product_id );
+$browser = wch(CatalogBrowser::class);
 
-// User selects a specific attribute option
-// (This would typically trigger variant filtering or direct add-to-cart)
+// Show featured products
+$page = 1;
+$messages = $browser->showFeaturedProducts($page, $conversation);
+```
+
+### Example 5: Direct Action Registry Usage
+
+You can also use the action handlers directly via the `ActionRegistry`:
+
+```php
+use WhatsAppCommerceHub\Actions\ActionRegistry;
+use WhatsAppCommerceHub\ValueObjects\ConversationContext;
+
+$registry = wch(ActionRegistry::class);
+
+// Show main menu
+$result = $registry->execute(
+    'show_main_menu',
+    '+1234567890',
+    [],
+    new ConversationContext([])
+);
+
+// Show category
+$result = $registry->execute(
+    'show_category',
+    '+1234567890',
+    ['category_id' => 42, 'page' => 1],
+    new ConversationContext([])
+);
+
+// Show product
+$result = $registry->execute(
+    'show_product',
+    '+1234567890',
+    ['product_id' => 123],
+    new ConversationContext([])
+);
+
+// Get messages from result
+$messages = $result->getMessages();
 ```
 
 ## Message Format
 
-All methods return an array of `WCH_Message_Builder` instances that need to be built and sent:
+All methods return an array of `MessageBuilder` instances (from `WhatsAppCommerceHub\Support\Messaging\MessageBuilder`):
 
 ```php
-$messages = $browser->show_category( $conversation, $category_id );
+use WhatsAppCommerceHub\Domain\Catalog\CatalogBrowser;
 
-foreach ( $messages as $message_builder ) {
-    $built_message = $message_builder->build();
+$browser = wch(CatalogBrowser::class);
+$messages = $browser->showCategory($categoryId, $page, $conversation);
+
+foreach ($messages as $messageBuilder) {
+    $builtMessage = $messageBuilder->build();
     // Send via WhatsApp API
-    $api_client->send_interactive_message( $phone, $built_message );
+    $apiClient->sendInteractiveMessage($phone, $builtMessage);
 }
 ```
 
+The `MessageBuilder` class provides methods for building WhatsApp message payloads:
+- `text(string)` - Simple text message
+- `header(string)` - Message header
+- `body(string)` - Message body
+- `footer(string)` - Message footer
+- `section(string, array)` - Interactive list section with rows
+- `button(string, array)` - Reply buttons
+- `build()` - Build final message array for API
+
 ## Database Integration
 
-The class integrates with WooCommerce's native data structures:
+The catalog browsing functionality integrates with WooCommerce's native data structures:
 
-- **Categories**: `wp_terms` (taxonomy: `product_cat`)
-- **Products**: `wp_posts` (post_type: `product`)
-- **Product Meta**: `wp_postmeta` (image optimization cache)
-- **Orders**: `wp_wch_orders` (for quick reorder detection)
+- **Categories**: Uses `get_terms()` and `get_term()` with taxonomy `product_cat`
+- **Products**: Uses `wc_get_products()` with various filters (status, category, featured, search)
+- **Customer Data**: Action handlers may fetch customer profiles for personalization
 
 ## Error Handling
 
-All methods handle errors gracefully:
+Action handlers implement error handling:
 
-- Returns error messages as `WCH_Message_Builder` instances
-- Logs errors via `WCH_Logger`
-- Validates input parameters
+- Returns error messages as `MessageBuilder` instances wrapped in `ActionResult::error()`
+- Logs errors via the `AbstractAction::log()` method
+- Validates input parameters (product_id, category_id)
 - Checks product visibility and availability
+- Returns user-friendly error messages on failures
 
 ## Logging
 
-The class logs all significant actions:
+Action handlers log significant events via the `AbstractAction::log()` method:
 
-```php
-// Logged events
-- Main catalog menu shown
-- Category products shown (with count)
-- Product detail shown
-- Variant selector shown
-- Product search completed (with result count)
-- Featured products shown
-```
+- Main menu shown (with customer phone)
+- Category browsing (category_id, page)
+- Product details shown (product_id)
+- Errors with exception messages
+
+Logs are available through the plugin's logging infrastructure.
 
 ## Performance Considerations
 
 1. **Pagination**: Limits to 10 products per page to stay within WhatsApp message limits
-2. **Image Caching**: Optimized images cached in post meta to avoid repeated processing
-3. **Query Optimization**: Uses WooCommerce's native `wc_get_products()` with proper filters
-4. **Text Truncation**: All text fields truncated to stay within WhatsApp limits
+2. **Query Optimization**: Uses WooCommerce's native `wc_get_products()` with proper filters
+3. **Text Truncation**: Product names and descriptions truncated with `wp_trim_words()` to stay within WhatsApp limits
+4. **Action Registry**: Efficient action lookup and execution through centralized registry
 
 ## WhatsApp Message Limits
 
-The class respects all WhatsApp API constraints:
+Action handlers respect WhatsApp API constraints:
 
-- **Sections**: Max 10 per message
-- **Rows per section**: Max 10
-- **Product name**: 50 characters
-- **Description**: 72 characters
-- **Header**: 60 characters
-- **Footer**: 60 characters
-- **Body**: 1024 characters
+- **Sections**: Max 10 per message (enforced by MessageBuilder)
+- **Rows per section**: Max 10 (limited in action handlers)
+- **Product name**: Truncated to 3 words with `wp_trim_words()`
+- **Description**: Max 1024 characters for product descriptions
+- **Header**: Standard WhatsApp limits
+- **Footer**: Standard WhatsApp limits
+- **Body**: Standard WhatsApp limits
 
-## Acceptance Criteria ✓
+## Action Handlers Reference
 
-- ✅ Categories load dynamically from WC
-- ✅ Products display correctly with pagination
-- ✅ Pagination works (Previous/Next buttons)
-- ✅ Variants selectable via interactive lists
-- ✅ Search returns relevant results (top 10)
-- ✅ Images optimized (500x500 thumbnails with caching)
+The following action handlers power catalog browsing:
 
-## Next Steps
+### ShowMainMenuAction
+- **File**: `includes/Actions/ShowMainMenuAction.php`
+- **Action name**: `show_main_menu`
+- **Namespace**: `WhatsAppCommerceHub\Actions\ShowMainMenuAction`
+- **Features**: Personalized greetings, category shopping, search, cart, order tracking, support
 
-To integrate into the conversation flow:
+### ShowCategoryAction
+- **File**: `includes/Actions/ShowCategoryAction.php`
+- **Action name**: `show_category`
+- **Namespace**: `WhatsAppCommerceHub\Actions\ShowCategoryAction`
+- **Features**: Category listing, product browsing, pagination, stock indicators
 
-1. **Create Action Handlers**: Create `WCH_Action_*` classes that use the browser methods
-2. **Update FSM**: Add states and transitions for catalog browsing
-3. **Map User Inputs**: Map button IDs and list selections to browser methods
-4. **Send Messages**: Use `WCH_WhatsApp_API_Client` to send the built messages
-5. **Track Context**: Store current category/page in conversation context
+### ShowProductAction
+- **File**: `includes/Actions/ShowProductAction.php`
+- **Action name**: `show_product`
+- **Namespace**: `WhatsAppCommerceHub\Actions\ShowProductAction`
+- **Features**: Product images, details, variants, add to cart buttons
 
-## Example Integration with Action Handler
+## Related Classes
 
-```php
-class WCH_Action_BrowseCatalog extends WCH_Flow_Action {
-    public function execute( $conversation, $context, $payload ) {
-        $browser = new WCH_Catalog_Browser();
-
-        // Determine action from payload
-        if ( isset( $payload['category_id'] ) ) {
-            $page = $payload['page'] ?? 1;
-            $messages = $browser->show_category(
-                $conversation,
-                $payload['category_id'],
-                $page
-            );
-        } else {
-            $messages = $browser->show_main_menu( $conversation );
-        }
-
-        return WCH_Action_Result::success( $messages );
-    }
-}
-```
+- **ActionRegistry**: `WhatsAppCommerceHub\Actions\ActionRegistry` - Registers and executes actions
+- **MessageBuilder**: `WhatsAppCommerceHub\Support\Messaging\MessageBuilder` - Builds WhatsApp message payloads
+- **ActionResult**: `WhatsAppCommerceHub\ValueObjects\ActionResult` - Encapsulates action execution results
+- **ConversationContext**: `WhatsAppCommerceHub\ValueObjects\ConversationContext` - Value object for conversation state
+- **AbstractAction**: `WhatsAppCommerceHub\Actions\AbstractAction` - Base class for action handlers
