@@ -54,9 +54,9 @@ class ReengagementServiceProvider extends AbstractServiceProvider {
 		// Register Frequency Cap Manager (no dependencies on other reengagement services).
 		$this->container->singleton(
 			FrequencyCapManagerInterface::class,
-			function () {
+			function ( $container ) {
 				return new FrequencyCapManager(
-					wch( DatabaseManager::class )
+					$container->get( DatabaseManager::class )
 				);
 			}
 		);
@@ -66,7 +66,7 @@ class ReengagementServiceProvider extends AbstractServiceProvider {
 			ProductTrackingServiceInterface::class,
 			function ( $container ) {
 				$service = new ProductTrackingService(
-					wch( DatabaseManager::class ),
+					$container->get( DatabaseManager::class ),
 					$container->get( FrequencyCapManagerInterface::class )
 				);
 				return $service;
@@ -89,7 +89,7 @@ class ReengagementServiceProvider extends AbstractServiceProvider {
 			function ( $container ) {
 				return new InactiveCustomerIdentifier(
 					$container->get( SettingsInterface::class ),
-					wch( DatabaseManager::class )
+					$container->get( DatabaseManager::class )
 				);
 			}
 		);
@@ -121,9 +121,9 @@ class ReengagementServiceProvider extends AbstractServiceProvider {
 		// Register Analytics.
 		$this->container->singleton(
 			ReengagementAnalyticsInterface::class,
-			function () {
+			function ( $container ) {
 				return new ReengagementAnalytics(
-					wch( DatabaseManager::class )
+					$container->get( DatabaseManager::class )
 				);
 			}
 		);

@@ -25,6 +25,8 @@ use WhatsAppCommerceHub\Application\Services\ProductSync\CatalogApiService;
 use WhatsAppCommerceHub\Application\Services\ProductSync\SyncProgressTracker;
 use WhatsAppCommerceHub\Application\Services\ProductSync\ProductSyncOrchestrator;
 use WhatsAppCommerceHub\Application\Services\ProductSync\ProductSyncAdminUI;
+use WhatsAppCommerceHub\Application\Services\InventorySyncService;
+use WhatsAppCommerceHub\Clients\WhatsAppApiClient;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -121,6 +123,18 @@ class ProductSyncServiceProvider extends AbstractServiceProvider {
 				return new ProductSyncAdminUI(
 					$container->get( ProductValidatorInterface::class ),
 					$container->get( ProductSyncOrchestratorInterface::class )
+				);
+			}
+		);
+
+		// Register Inventory Sync Service.
+		$this->container->singleton(
+			InventorySyncService::class,
+			function ( $container ) {
+				return new InventorySyncService(
+					$container->get( SettingsInterface::class ),
+					$container->get( LoggerInterface::class ),
+					$container->get( WhatsAppApiClient::class )
 				);
 			}
 		);
@@ -224,6 +238,7 @@ class ProductSyncServiceProvider extends AbstractServiceProvider {
 			SyncProgressTrackerInterface::class,
 			ProductSyncOrchestratorInterface::class,
 			ProductSyncAdminUI::class,
+			InventorySyncService::class,
 		];
 	}
 }

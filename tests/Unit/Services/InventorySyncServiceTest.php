@@ -11,6 +11,7 @@
 use WhatsAppCommerceHub\Application\Services\InventorySyncService;
 use WhatsAppCommerceHub\Infrastructure\Configuration\SettingsManager;
 use WhatsAppCommerceHub\Core\Logger;
+use WhatsAppCommerceHub\Clients\WhatsAppApiClient;
 use Mockery;
 
 /**
@@ -32,14 +33,15 @@ class InventorySyncServiceTest extends WCH_Unit_Test_Case {
 		);
 
 		// Mock dependencies.
-		$settings = Mockery::mock( SettingsManager::class );
-		$logger   = Mockery::mock( Logger::class );
+		$settings  = Mockery::mock( SettingsManager::class );
+		$logger    = Mockery::mock( Logger::class );
+		$apiClient = Mockery::mock( WhatsAppApiClient::class );
 
 		$logger->shouldReceive( 'debug' )->andReturn( null );
 		$logger->shouldReceive( 'info' )->andReturn( null );
 		$logger->shouldReceive( 'warning' )->once()->andReturn( null );
 
-		$service = new InventorySyncService( $settings, $logger );
+		$service = new InventorySyncService( $settings, $logger, $apiClient );
 
 		// Set transient for debounce data.
 		set_transient(

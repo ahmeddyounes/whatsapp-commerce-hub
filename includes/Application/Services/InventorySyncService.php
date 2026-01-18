@@ -32,12 +32,14 @@ class InventorySyncService {
 	/**
 	 * Constructor.
 	 *
-	 * @param SettingsManager $settings Plugin settings.
-	 * @param Logger          $logger   Logger service.
+	 * @param SettingsManager   $settings  Plugin settings.
+	 * @param Logger            $logger    Logger service.
+	 * @param WhatsAppApiClient $apiClient WhatsApp API client.
 	 */
 	public function __construct(
 		private readonly SettingsManager $settings,
-		private readonly Logger $logger
+		private readonly Logger $logger,
+		private readonly WhatsAppApiClient $apiClient
 	) {
 		$this->initHooks();
 	}
@@ -460,7 +462,7 @@ class InventorySyncService {
 	/**
 	 * Get WhatsApp API client
 	 */
-	private function getApiClient(): object {
-		return wch( WhatsAppApiClient::class );
+	private function getApiClient(): WhatsAppApiClient {
+		return $this->apiClient;
 	}
 }

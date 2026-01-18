@@ -224,7 +224,7 @@ class BusinessServiceProvider implements ServiceProviderInterface {
 			}
 		);
 
-		$recovery = wch( RecoveryService::class );
+		$recovery = $container->get( RecoveryService::class );
 		$recovery->init();
 
 		add_action( 'wch_schedule_recovery_reminders', [ $recovery, 'scheduleRecoveryReminders' ] );
