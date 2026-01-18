@@ -125,6 +125,13 @@ function wch_get_container(): \WhatsAppCommerceHub\Container\ContainerInterface 
 			new \WhatsAppCommerceHub\Providers\AdminServiceProvider(),
 		];
 
+		// Fail fast on missing/cyclic provider dependencies.
+		require_once WCH_PLUGIN_DIR . 'includes/Container/ProviderSorter.php';
+		require_once WCH_PLUGIN_DIR . 'includes/Container/DependentServiceProviderInterface.php';
+
+		// Sort providers by declared dependencies (if any).
+		$providers = \WhatsAppCommerceHub\Container\ProviderSorter::sort( $providers );
+
 		foreach ( $providers as $provider ) {
 			$wch_container->register( $provider );
 		}

@@ -169,10 +169,14 @@ class ActionServiceProvider extends AbstractServiceProvider {
 	}
 
 	/**
-	 * Get services provided by this provider.
-	 *
-	 * @return array
+	 * @return array<class-string<\WhatsAppCommerceHub\Container\ServiceProviderInterface>>
 	 */
+	public function dependsOn(): array {
+		return [
+			\WhatsAppCommerceHub\Providers\BusinessServiceProvider::class,
+		];
+	}
+
 	public function provides(): array {
 		return array_merge(
 			[ ActionRegistry::class ],

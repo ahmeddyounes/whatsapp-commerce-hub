@@ -200,10 +200,14 @@ class MonitoringServiceProvider implements ServiceProviderInterface {
 	}
 
 	/**
-	 * Get the services provided by this provider.
-	 *
-	 * @return array<string>
+	 * @return array<class-string<\WhatsAppCommerceHub\Container\ServiceProviderInterface>>
 	 */
+	public function dependsOn(): array {
+		return [
+			\WhatsAppCommerceHub\Providers\CoreServiceProvider::class,
+		];
+	}
+
 	public function provides(): array {
 		return [
 			HealthCheck::class,

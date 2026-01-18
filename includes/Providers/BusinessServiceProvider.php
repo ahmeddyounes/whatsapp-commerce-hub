@@ -26,7 +26,6 @@ use WhatsAppCommerceHub\Domain\Customer\CustomerService;
 use WhatsAppCommerceHub\Application\Services\AddressService;
 use WhatsAppCommerceHub\Application\Services\CatalogSyncService;
 use WhatsAppCommerceHub\Application\Services\MessageBuilderFactory;
-use WhatsAppCommerceHub\Features\AbandonedCart\RecoveryService;
 use WhatsAppCommerceHub\Infrastructure\Configuration\SettingsManager;
 use WhatsAppCommerceHub\Infrastructure\Queue\QueueManager;
 use WhatsAppCommerceHub\Payments\PaymentGatewayRegistry;
@@ -198,11 +197,13 @@ class BusinessServiceProvider implements ServiceProviderInterface {
 			}
 		);
 
-		$recovery = $container->get( RecoveryService::class );
-		$recovery->init();
+		if ( class_exists( \WhatsAppCommerceHub\Features\AbandonedCart\RecoveryService::class ) ) {
+			$recovery = $container->get( \WhatsAppCommerceHub\Features\AbandonedCart\RecoveryService::class );
+			$recovery->init();
 
-		add_action( 'wch_schedule_recovery_reminders', [ $recovery, 'scheduleRecoveryReminders' ] );
-		add_action( 'wch_process_recovery_message', [ $recovery, 'processRecoveryMessage' ], 10, 1 );
+			add_action( 'wch_schedule_recovery_reminders', [ $recovery, 'scheduleRecoveryReminders' ] );
+			add_action( 'wch_process_recovery_message', [ $recovery, 'processRecoveryMessage' ], 10, 1 );
+		}
 	}
 
 	/**
@@ -210,6 +211,17 @@ class BusinessServiceProvider implements ServiceProviderInterface {
 	 *
 	 * @return array<string>
 	 */
+	/**
+	 * @return array<class-string<\WhatsAppCommerceHub\Container\ServiceProviderInterface>>
+	 */
+	public function dependsOn(): array {
+		return [
+			\WhatsAppCommerceHub\Providers\CoreServiceProvider::class,
+			\WhatsAppCommerceHub\Providers\RepositoryServiceProvider::class,
+			\WhatsAppCommerceHub\Providers\QueueServiceProvider::class,
+		];
+	}
+
 	public function provides(): array {
 		return [
 			CartServiceInterface::class,

@@ -309,6 +309,16 @@ class QueueServiceProvider implements ServiceProviderInterface {
 	 *
 	 * @return array<string>
 	 */
+	/**
+	 * @return array<class-string<\WhatsAppCommerceHub\Container\ServiceProviderInterface>>
+	 */
+	public function dependsOn(): array {
+		return [
+			\WhatsAppCommerceHub\Providers\CoreServiceProvider::class,
+			\WhatsAppCommerceHub\Providers\RepositoryServiceProvider::class,
+		];
+	}
+
 	public function provides(): array {
 		return [
 			DeadLetterQueue::class,

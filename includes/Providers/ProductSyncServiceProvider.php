@@ -230,6 +230,17 @@ class ProductSyncServiceProvider extends AbstractServiceProvider {
 	 *
 	 * @return array
 	 */
+	/**
+	 * @return array<class-string<\WhatsAppCommerceHub\Container\ServiceProviderInterface>>
+	 */
+	public function dependsOn(): array {
+		return [
+			\WhatsAppCommerceHub\Providers\CoreServiceProvider::class,
+			\WhatsAppCommerceHub\Providers\ApiClientServiceProvider::class,
+			\WhatsAppCommerceHub\Providers\QueueServiceProvider::class,
+		];
+	}
+
 	public function provides(): array {
 		return [
 			ProductValidatorInterface::class,

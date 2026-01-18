@@ -114,6 +114,15 @@ class RepositoryServiceProvider implements ServiceProviderInterface {
 	 *
 	 * @return array<string>
 	 */
+	/**
+	 * @return array<class-string<\WhatsAppCommerceHub\Container\ServiceProviderInterface>>
+	 */
+	public function dependsOn(): array {
+		return [
+			\WhatsAppCommerceHub\Providers\CoreServiceProvider::class,
+		];
+	}
+
 	public function provides(): array {
 		return [
 			CartRepositoryInterface::class,

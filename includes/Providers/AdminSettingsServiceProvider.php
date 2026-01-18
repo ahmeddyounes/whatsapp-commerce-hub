@@ -118,6 +118,15 @@ class AdminSettingsServiceProvider extends AbstractServiceProvider {
 	 *
 	 * @return array
 	 */
+	/**
+	 * @return array<class-string<\WhatsAppCommerceHub\Container\ServiceProviderInterface>>
+	 */
+	public function dependsOn(): array {
+		return [
+			\WhatsAppCommerceHub\Providers\CoreServiceProvider::class,
+		];
+	}
+
 	public function provides(): array {
 		return [
 			SettingsTabRendererInterface::class,

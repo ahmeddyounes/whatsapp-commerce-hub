@@ -334,6 +334,13 @@ class CoreServiceProvider implements ServiceProviderInterface {
 	}
 
 	/**
+	 * @return array<class-string<\WhatsAppCommerceHub\Container\ServiceProviderInterface>>
+	 */
+	public function dependsOn(): array {
+		return [];
+	}
+
+	/**
 	 * Get the services provided by this provider.
 	 *
 	 * @return array<string>

@@ -187,10 +187,15 @@ class PaymentServiceProvider implements ServiceProviderInterface {
 	}
 
 	/**
-	 * Get services provided by this provider.
-	 *
-	 * @return array<string>
+	 * @return array<class-string<\WhatsAppCommerceHub\Container\ServiceProviderInterface>>
 	 */
+	public function dependsOn(): array {
+		return [
+			\WhatsAppCommerceHub\Providers\CoreServiceProvider::class,
+			\WhatsAppCommerceHub\Providers\ApiClientServiceProvider::class,
+		];
+	}
+
 	public function provides(): array {
 		$provides = [
 			PaymentGatewayInterface::class,

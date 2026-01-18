@@ -166,6 +166,18 @@ class CheckoutServiceProvider extends AbstractServiceProvider {
 	 *
 	 * @return array
 	 */
+	/**
+	 * @return array<class-string<\WhatsAppCommerceHub\Container\ServiceProviderInterface>>
+	 */
+	public function dependsOn(): array {
+		return [
+			\WhatsAppCommerceHub\Providers\CoreServiceProvider::class,
+			\WhatsAppCommerceHub\Providers\RepositoryServiceProvider::class,
+			\WhatsAppCommerceHub\Providers\BusinessServiceProvider::class,
+			\WhatsAppCommerceHub\Providers\SagaServiceProvider::class,
+		];
+	}
+
 	public function provides(): array {
 		return [
 			CheckoutStateManagerInterface::class,

@@ -102,6 +102,17 @@ class NotificationServiceProvider implements ServiceProviderInterface {
 	 *
 	 * @return array<string>
 	 */
+	/**
+	 * @return array<class-string<\WhatsAppCommerceHub\Container\ServiceProviderInterface>>
+	 */
+	public function dependsOn(): array {
+		return [
+			\WhatsAppCommerceHub\Providers\CoreServiceProvider::class,
+			\WhatsAppCommerceHub\Providers\QueueServiceProvider::class,
+			\WhatsAppCommerceHub\Providers\ApiClientServiceProvider::class,
+		];
+	}
+
 	public function provides(): array {
 		return [
 			NotificationService::class,

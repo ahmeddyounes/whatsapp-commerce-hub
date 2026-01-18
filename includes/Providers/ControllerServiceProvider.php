@@ -114,6 +114,17 @@ class ControllerServiceProvider implements ServiceProviderInterface {
 	 *
 	 * @return array<string>
 	 */
+	/**
+	 * @return array<class-string<\WhatsAppCommerceHub\Container\ServiceProviderInterface>>
+	 */
+	public function dependsOn(): array {
+		return [
+			\WhatsAppCommerceHub\Providers\CoreServiceProvider::class,
+			\WhatsAppCommerceHub\Providers\SecurityServiceProvider::class,
+			\WhatsAppCommerceHub\Providers\QueueServiceProvider::class,
+		];
+	}
+
 	public function provides(): array {
 		return [
 			AnalyticsController::class,

@@ -103,4 +103,36 @@ class ContainerException extends \Exception {
 			)
 		);
 	}
+
+	/**
+	 * Create an exception for a missing provider dependency.
+	 *
+	 * @param string $provider   Provider class.
+	 * @param string $dependency Dependency provider class.
+	 * @return self
+	 */
+	public static function missingProviderDependency( string $provider, string $dependency ): self {
+		return new self(
+			sprintf(
+				'Service provider dependency missing: %s depends on %s, but it is not registered.',
+				$provider,
+				$dependency
+			)
+		);
+	}
+
+	/**
+	 * Create an exception for a circular provider dependency.
+	 *
+	 * @param array<string> $chain Provider class chain.
+	 * @return self
+	 */
+	public static function providerDependencyCycle( array $chain ): self {
+		return new self(
+			sprintf(
+				'Circular service provider dependency detected: %s',
+				implode( ' -> ', $chain )
+			)
+		);
+	}
 }
