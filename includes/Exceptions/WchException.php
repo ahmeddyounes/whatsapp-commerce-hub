@@ -201,4 +201,16 @@ class WchException extends \Exception {
 			$context
 		);
 	}
+
+	/**
+	 * Check if this exception should be retried.
+	 *
+	 * Override in subclasses to provide specific retry logic based on
+	 * exception type and context.
+	 *
+	 * @return bool Default to false for safety (don't retry unless explicitly allowed).
+	 */
+	public function isRetryable(): bool {
+		return false;
+	}
 }

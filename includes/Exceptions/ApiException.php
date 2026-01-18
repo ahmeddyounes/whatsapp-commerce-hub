@@ -21,8 +21,12 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Class ApiException
  *
  * Custom exception for WhatsApp Graph API errors.
+ *
+ * This is an InfrastructureException because it represents failures in
+ * external API calls. Many API errors (rate limits, 5xx errors) are
+ * retryable, while others (auth errors, validation) are not.
  */
-class ApiException extends WchException {
+class ApiException extends InfrastructureException {
 
 	/**
 	 * Graph API error code.
@@ -127,17 +131,35 @@ class ApiException extends WchException {
 	/**
 	 * Check if this is a temporary error that can be retried.
 	 *
+	 * Infrastructure exceptions are generally retryable, but some API errors
+	 * represent permanent failures (auth errors, recipient errors, etc).
+	 *
 	 * @return bool
 	 */
 	public function isRetryable(): bool {
-		// Rate limits and temporary failures are retryable.
+		// Auth errors are NOT retryable (configuration issue).
+		if ( $this->isAuthError() ) {
+			return false;
+		}
+
+		// Rate limits are retryable (temporary throttling).
 		if ( $this->isRateLimitError() ) {
 			return true;
 		}
 
-		// 5xx errors are generally retryable.
+		// 5xx errors are generally retryable (server-side issues).
 		if ( $this->httpStatus >= 500 && $this->httpStatus < 600 ) {
 			return true;
+		}
+
+		// Recipient errors (131000-131999) are NOT retryable.
+		if ( $this->apiErrorCode >= 131000 && $this->apiErrorCode <= 131999 ) {
+			return false;
+		}
+
+		// 4xx errors are generally NOT retryable (client errors).
+		if ( $this->httpStatus >= 400 && $this->httpStatus < 500 ) {
+			return false;
 		}
 
 		return false;

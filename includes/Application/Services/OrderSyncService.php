@@ -15,6 +15,8 @@ namespace WhatsAppCommerceHub\Application\Services;
 use WhatsAppCommerceHub\Contracts\Services\OrderSyncServiceInterface;
 use WhatsAppCommerceHub\Contracts\Services\QueueServiceInterface;
 use WhatsAppCommerceHub\Contracts\Repositories\CustomerRepositoryInterface;
+use WhatsAppCommerceHub\Exceptions\ApplicationException;
+use WhatsAppCommerceHub\Exceptions\InfrastructureException;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -117,14 +119,22 @@ class OrderSyncService implements OrderSyncServiceInterface {
 
 		// Check WooCommerce availability.
 		if ( ! function_exists( 'wc_create_order' ) ) {
-			throw new \RuntimeException( 'WooCommerce is not available' );
+			throw new InfrastructureException(
+				'WooCommerce is not available',
+				'woocommerce_unavailable',
+				503
+			);
 		}
 
 		try {
 			// Create order.
 			$order = wc_create_order();
 			if ( is_wp_error( $order ) ) {
-				throw new \RuntimeException( 'Failed to create order: ' . $order->get_error_message() );
+				throw new ApplicationException(
+					'Failed to create order: ' . $order->get_error_message(),
+					'order_creation_failed',
+					500
+				);
 			}
 
 			// Add items.
@@ -193,7 +203,13 @@ class OrderSyncService implements OrderSyncServiceInterface {
 				]
 			);
 
-			throw new \RuntimeException( 'Order creation failed: ' . $e->getMessage(), 0, $e );
+			throw new ApplicationException(
+				'Order creation failed: ' . $e->getMessage(),
+				'order_creation_exception',
+				500,
+				[],
+				$e
+			);
 		}
 	}
 

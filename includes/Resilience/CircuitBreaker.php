@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Resilience;
 
+use WhatsAppCommerceHub\Exceptions\InfrastructureException;
+
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -157,7 +159,8 @@ class CircuitBreaker {
 						}
 						if ( $throw_on_open ) {
 							throw new CircuitOpenException(
-								"Circuit breaker recovery in progress for service: {$this->service}"
+								$this->service,
+								[ 'reason' => 'recovery_in_progress' ]
 							);
 						}
 						return null;
@@ -172,9 +175,7 @@ class CircuitBreaker {
 					return $fallback();
 				}
 				if ( $throw_on_open ) {
-					throw new CircuitOpenException(
-						"Circuit breaker is open for service: {$this->service}"
-					);
+					throw new CircuitOpenException( $this->service );
 				}
 				return null;
 			}
@@ -835,6 +836,24 @@ class CircuitBreaker {
 
 /**
  * Exception thrown when circuit is open.
+ *
+ * This is an InfrastructureException as it indicates that an external
+ * service is unavailable. These should be retried after the circuit
+ * timeout period.
  */
-class CircuitOpenException extends \Exception {
+class CircuitOpenException extends InfrastructureException {
+	/**
+	 * Constructor.
+	 *
+	 * @param string $service Service name.
+	 * @param array $context Additional context.
+	 */
+	public function __construct( string $service, array $context = [] ) {
+		parent::__construct(
+			sprintf( 'Circuit breaker is open for service: %s', $service ),
+			'circuit_open',
+			503,
+			array_merge( [ 'service' => $service ], $context )
+		);
+	}
 }

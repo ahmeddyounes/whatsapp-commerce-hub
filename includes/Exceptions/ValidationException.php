@@ -21,8 +21,12 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Class ValidationException
  *
  * Exception thrown when validation fails.
+ *
+ * This is an ApplicationException because validation is an application-layer
+ * concern. Validation errors should NOT be retried as the same input will
+ * always fail validation.
  */
-class ValidationException extends WchException {
+class ValidationException extends ApplicationException {
 
 	/**
 	 * Validation errors by field.
@@ -91,6 +95,13 @@ class ValidationException extends WchException {
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function isRetryable(): bool {
+		return false;
 	}
 
 	/**

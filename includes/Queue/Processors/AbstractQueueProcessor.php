@@ -16,6 +16,10 @@ namespace WhatsAppCommerceHub\Queue\Processors;
 use WhatsAppCommerceHub\Queue\Contracts\QueueProcessorInterface;
 use WhatsAppCommerceHub\Queue\DeadLetterQueue;
 use WhatsAppCommerceHub\Queue\PriorityQueue;
+use WhatsAppCommerceHub\Exceptions\DomainException;
+use WhatsAppCommerceHub\Exceptions\ApplicationException;
+use WhatsAppCommerceHub\Exceptions\InfrastructureException;
+use WhatsAppCommerceHub\Exceptions\WchException;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -290,13 +294,41 @@ abstract class AbstractQueueProcessor implements QueueProcessorInterface {
 	/**
 	 * Determine if the job should be retried based on the exception.
 	 *
+	 * Uses the exception taxonomy to make retry decisions:
+	 * - DomainException: NEVER retry (business rule violations)
+	 * - ApplicationException: Check isRetryable() method (validation = no, state errors = maybe)
+	 * - InfrastructureException: Check isRetryable() method (transient failures = yes, auth errors = no)
+	 * - WchException: Check isRetryable() method
+	 * - Standard PHP exceptions: Retry RuntimeException, NOT InvalidArgumentException/DomainException
+	 *
 	 * Override in subclasses for custom retry logic.
 	 *
 	 * @param \Throwable $exception The exception that caused the failure.
 	 * @return bool True if should retry.
 	 */
 	public function shouldRetry( \Throwable $exception ): bool {
-		// By default, retry on all exceptions except validation errors.
+		// Check taxonomy-based exceptions with isRetryable() method.
+		if ( $exception instanceof DomainException ) {
+			// Domain exceptions are NEVER retryable (business rule violations).
+			return false;
+		}
+
+		if ( $exception instanceof ApplicationException ) {
+			// Application exceptions have specific retry logic.
+			return $exception->isRetryable();
+		}
+
+		if ( $exception instanceof InfrastructureException ) {
+			// Infrastructure exceptions have specific retry logic.
+			return $exception->isRetryable();
+		}
+
+		if ( $exception instanceof WchException ) {
+			// Other WchExceptions may have custom isRetryable() logic.
+			return $exception->isRetryable();
+		}
+
+		// Standard PHP exceptions: Retry RuntimeException, NOT validation/domain errors.
 		$noRetryExceptions = [
 			\InvalidArgumentException::class,
 			\DomainException::class,

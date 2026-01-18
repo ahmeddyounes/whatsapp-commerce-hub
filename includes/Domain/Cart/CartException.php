@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace WhatsAppCommerceHub\Domain\Cart;
 
-use WhatsAppCommerceHub\Exceptions\WchException;
+use WhatsAppCommerceHub\Exceptions\DomainException;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -23,8 +23,12 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Class CartException
  *
  * Exception thrown when cart operations fail.
+ *
+ * This is a DomainException because cart errors represent business rule
+ * violations. These should NOT be retried as the same operation will
+ * always fail.
  */
-class CartException extends WchException {
+class CartException extends DomainException {
 	/**
 	 * Constructor.
 	 *
