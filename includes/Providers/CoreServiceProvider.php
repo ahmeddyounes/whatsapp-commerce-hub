@@ -260,14 +260,8 @@ class CoreServiceProvider implements ServiceProviderInterface {
 			static fn( ContainerInterface $c ) => $c->get( Logger::class )
 		);
 
-		// Register ErrorHandler (new PSR-4 location).
-		$container->singleton(
-			ErrorHandler::class,
-			static function ( ContainerInterface $c ) {
-				$logger = $c->get( Logger::class );
-				return new ErrorHandler( $logger );
-			}
-		);
+		// Note: ErrorHandler is initialized in boot() phase, not here.
+		// This ensures logger is fully initialized before error handler registration.
 
 		// Register Encryption (new PSR-4 location).
 		$container->singleton(
@@ -344,6 +338,14 @@ class CoreServiceProvider implements ServiceProviderInterface {
 	public function boot( ContainerInterface $container ): void {
 		// Initialize the logger with proper settings.
 		$container->get( 'wch.logger' );
+
+		// Initialize ErrorHandler with the logger.
+		// This is done during boot to ensure:
+		// 1. Logger is fully initialized first
+		// 2. No container access during file load
+		// 3. WP is fully ready when error handler is registered
+		$logger = $container->get( LoggerInterface::class );
+		ErrorHandler::init( $logger );
 	}
 
 	/**

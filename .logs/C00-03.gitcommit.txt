@@ -1,0 +1,8 @@
+[main b33d026] C00-03: implement
+ 7 files changed, 232 insertions(+), 4 deletions(-)
+ create mode 100644 .logs/C00-02.gitcommit.txt
+ create mode 100644 .logs/C00-03.claude.impl.last.md
+ create mode 100644 .logs/C00-03.claude.impl.raw.txt
+ create mode 100644 .plans/C00-03.md
+ create mode 100644 .t2/handoff/C00-03.md
+

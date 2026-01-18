@@ -169,9 +169,6 @@ function wch_is_woocommerce_active(): bool {
 	return class_exists( 'WooCommerce' ) && function_exists( 'WC' );
 }
 
-// Initialize error handler early.
-\WhatsAppCommerceHub\Core\ErrorHandler::init();
-
 /**
  * Main plugin class using singleton pattern.
  *

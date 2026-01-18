@@ -45,16 +45,16 @@ class ErrorHandler {
 	/**
 	 * Initialize error handlers.
 	 *
-	 * @param LoggerInterface|null $logger Logger instance (optional, will use container if not provided).
+	 * @param LoggerInterface $logger Logger instance (required).
 	 * @return void
 	 */
-	public static function init( ?LoggerInterface $logger = null ): void {
+	public static function init( LoggerInterface $logger ): void {
 		if ( self::$initialized ) {
 			return;
 		}
 
-		// Store logger or get from container.
-		self::$logger = $logger ?? self::getLogger();
+		// Store the logger instance.
+		self::$logger = $logger;
 
 		// Register exception handler.
 		set_exception_handler( [ __CLASS__, 'handleException' ] );
@@ -75,8 +75,6 @@ class ErrorHandler {
 	 * @return void
 	 */
 	public static function handleException( Throwable $throwable ): void {
-		$logger = self::getLogger();
-
 		// Prepare context.
 		$context = [
 			'exception' => get_class( $throwable ),
@@ -90,8 +88,10 @@ class ErrorHandler {
 			$context['trace'] = $throwable->getTraceAsString();
 		}
 
-		// Log the exception.
-		$logger->critical( $throwable->getMessage(), 'errors', $context );
+		// Log the exception if logger is available.
+		if ( null !== self::$logger ) {
+			self::$logger->critical( $throwable->getMessage(), 'errors', $context );
+		}
 
 		// Display error based on environment.
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG && defined( 'WP_DEBUG_DISPLAY' ) && WP_DEBUG_DISPLAY ) {
@@ -121,8 +121,6 @@ class ErrorHandler {
 			return false;
 		}
 
-		$logger = self::getLogger();
-
 		// Map error level to log level.
 		$logLevel = self::getLogLevelForError( $errno );
 
@@ -134,14 +132,16 @@ class ErrorHandler {
 			'type'  => self::getErrorTypeName( $errno ),
 		];
 
-		// Log based on severity.
-		match ( $logLevel ) {
-			'critical' => $logger->critical( $errstr, 'errors', $context ),
-			'error'    => $logger->error( $errstr, 'errors', $context ),
-			'warning'  => $logger->warning( $errstr, 'errors', $context ),
-			'info'     => $logger->info( $errstr, 'errors', $context ),
-			default    => $logger->debug( $errstr, 'errors', $context ),
-		};
+		// Log based on severity if logger is available.
+		if ( null !== self::$logger ) {
+			match ( $logLevel ) {
+				'critical' => self::$logger->critical( $errstr, 'errors', $context ),
+				'error'    => self::$logger->error( $errstr, 'errors', $context ),
+				'warning'  => self::$logger->warning( $errstr, 'errors', $context ),
+				'info'     => self::$logger->info( $errstr, 'errors', $context ),
+				default    => self::$logger->debug( $errstr, 'errors', $context ),
+			};
+		}
 
 		// Convert to exception in debug mode for fatal errors.
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
@@ -173,9 +173,7 @@ class ErrorHandler {
 			return;
 		}
 
-		$logger = self::getLogger();
-
-		// Log the fatal error.
+		// Log the fatal error if logger is available.
 		$context = [
 			'type'     => self::getErrorTypeName( $error['type'] ),
 			'file'     => $error['file'],
@@ -183,7 +181,9 @@ class ErrorHandler {
 			'is_fatal' => true,
 		];
 
-		$logger->critical( $error['message'], 'errors', $context );
+		if ( null !== self::$logger ) {
+			self::$logger->critical( $error['message'], 'errors', $context );
+		}
 
 		// Display error based on environment.
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG && defined( 'WP_DEBUG_DISPLAY' ) && WP_DEBUG_DISPLAY ) {
@@ -296,30 +296,6 @@ class ErrorHandler {
 
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo $html;
-	}
-
-	/**
-	 * Get logger instance.
-	 *
-	 * @return LoggerInterface
-	 */
-	private static function getLogger(): LoggerInterface {
-		if ( null === self::$logger ) {
-			// Try to get from container.
-			if ( function_exists( 'wch' ) ) {
-				try {
-					self::$logger = wch( LoggerInterface::class );
-				} catch ( \Exception $e ) {
-					// Fallback to Logger directly.
-					self::$logger = wch( Logger::class );
-				}
-			} else {
-				// Last resort - create new instance.
-				self::$logger = new Logger();
-			}
-		}
-
-		return self::$logger;
 	}
 
 	/**
