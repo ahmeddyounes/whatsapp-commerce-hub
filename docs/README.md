@@ -61,10 +61,20 @@ For detailed installation instructions, see [Installation Guide](installation.md
 
 ### For Developers
 
+#### Getting Started
+
+- **[Extending Actions Guide](guides/EXTENDING_ACTIONS.md)**: Practical guide with examples for creating custom action handlers
+- **[Action Routing Architecture](architecture/ACTION_ROUTING_FSM.md)**: Complete reference for action routing, FSM, and conversation management
+
+#### Core Architecture
+
 - **[Module Map](module-map.md)**: Complete module overview with providers, contracts, tables, jobs, and hooks
 - **[Boot Sequence](boot-sequence.md)**: Plugin initialization flow, requirements, container, and context management
 - **[Webhooks Ingestion Pipeline](webhooks-ingestion-pipeline.md)**: Complete webhook processing flow from REST controller to actions
 - **[Queue System](queue-system.md)**: Priority queue, unified payload format, and extension points
+
+#### API & Extension
+
 - **[API Reference](api-reference.md)**: REST API endpoints, authentication, and examples
 - **[Hooks Reference](hooks-reference.md)**: WordPress actions and filters for customization
 - **[Extending the Plugin](extending.md)**: Build custom intents, payment gateways, and add-ons

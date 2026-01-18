@@ -2,10 +2,42 @@
 /**
  * Action Service Provider
  *
- * Registers action handlers with the DI container.
+ * Registers action handlers and provides extension points for custom actions.
+ *
+ * This provider is responsible for:
+ * - Registering ActionRegistry as a singleton
+ * - Binding core action handler classes with dependency injection
+ * - Registering handlers with the ActionRegistry during boot
+ * - Providing the 'wch_register_action_handlers' hook for external handler registration
+ *
+ * EXTENSION POINT:
+ * Use the 'wch_register_action_handlers' WordPress action hook to register custom handlers:
+ *
+ * ```php
+ * add_action('wch_register_action_handlers', function($registry, $container) {
+ *     // Create custom handler
+ *     $handler = new MyCustomAction();
+ *
+ *     // Inject dependencies (optional)
+ *     $handler->setLogger($container->get('logger'));
+ *     $handler->setCartService($container->get(CartServiceInterface::class));
+ *
+ *     // Register with registry
+ *     $registry->register($handler);
+ * }, 10, 2);
+ * ```
+ *
+ * Or use the addHandler() method before boot:
+ *
+ * ```php
+ * $actionProvider = $container->get(ActionServiceProvider::class);
+ * $actionProvider->addHandler(MyCustomAction::class);
+ * ```
  *
  * @package WhatsApp_Commerce_Hub
  * @since 3.0.0
+ * @see ActionRegistry Handler registry
+ * @see ActionHandlerInterface Handler contract
  */
 
 declare(strict_types=1);
@@ -34,7 +66,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Class ActionServiceProvider
  *
- * Registers and configures action handlers.
+ * Registers and configures action handlers with dependency injection and extension hooks.
  */
 class ActionServiceProvider extends AbstractServiceProvider {
 
@@ -92,18 +124,37 @@ class ActionServiceProvider extends AbstractServiceProvider {
 	/**
 	 * Bootstrap services after all providers are registered.
 	 *
+	 * Registers core action handlers and fires the 'wch_register_action_handlers' hook
+	 * for external code to register custom handlers.
+	 *
 	 * @return void
 	 */
 	protected function doBoot(): void {
 		$registry = $this->container->get( ActionRegistry::class );
 
-		// Register all action handlers with the registry.
+		// Register all core action handlers with the registry.
 		foreach ( $this->actionHandlers as $handlerClass ) {
 			$handler = $this->container->get( $handlerClass );
 			$registry->register( $handler );
 		}
 
-		// Allow external handlers to register.
+		/**
+		 * Fires after core action handlers are registered.
+		 *
+		 * This is the PRIMARY EXTENSION POINT for registering custom action handlers.
+		 * Use this hook to add your own handlers to the ActionRegistry.
+		 *
+		 * @since 3.0.0
+		 * @param ActionRegistry $registry  The action registry instance.
+		 * @param Container      $container The DI container for resolving dependencies.
+		 *
+		 * @example
+		 * add_action('wch_register_action_handlers', function($registry, $container) {
+		 *     $handler = new MyCustomAction();
+		 *     $handler->setLogger($container->get('logger'));
+		 *     $registry->register($handler);
+		 * }, 10, 2);
+		 */
 		do_action( 'wch_register_action_handlers', $registry, $this->container );
 
 		$logger = $this->container->get( LoggerInterface::class );
@@ -151,10 +202,20 @@ class ActionServiceProvider extends AbstractServiceProvider {
 	/**
 	 * Add custom action handler class.
 	 *
-	 * Allows external code to register additional handlers before boot.
+	 * ALTERNATIVE EXTENSION POINT: Use this method to register action handlers
+	 * early in the plugin lifecycle, before the boot phase.
 	 *
-	 * @param string $handlerClass Fully qualified class name.
+	 * This is useful when you need to ensure your handler is registered alongside
+	 * core handlers with full dependency injection support.
+	 *
+	 * @since 3.0.0
+	 * @param string $handlerClass Fully qualified class name implementing ActionHandlerInterface.
 	 * @return void
+	 *
+	 * @example
+	 * // In your plugin initialization
+	 * $actionProvider = $container->get(ActionServiceProvider::class);
+	 * $actionProvider->addHandler(MyCustomAction::class);
 	 */
 	public function addHandler( string $handlerClass ): void {
 		if ( ! in_array( $handlerClass, $this->actionHandlers, true ) ) {

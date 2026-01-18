@@ -2,10 +2,34 @@
 /**
  * Action Registry
  *
- * Manages registration and lookup of action handlers.
+ * Manages registration and lookup of action handlers with priority-based dispatch.
+ *
+ * The ActionRegistry is the central orchestrator for all action handlers in the system.
+ * It provides:
+ *
+ * - Priority-based handler selection (higher priority executes first)
+ * - Multiple handlers per action (allows overriding and fallback handlers)
+ * - Automatic sorting and caching for performance
+ * - Query capabilities for registered actions
+ *
+ * Extension Points:
+ * - Register handlers via ActionServiceProvider::addHandler() or
+ * - Use the 'wch_register_action_handlers' WordPress hook
+ *
+ * Example Usage:
+ * ```php
+ * // Register a custom handler
+ * add_action('wch_register_action_handlers', function($registry, $container) {
+ *     $handler = new MyCustomAction();
+ *     $handler->setLogger($container->get('logger'));
+ *     $registry->register($handler);
+ * }, 10, 2);
+ * ```
  *
  * @package WhatsApp_Commerce_Hub
  * @since 3.0.0
+ * @see ActionHandlerInterface For handler contract
+ * @see ActionServiceProvider For registration hooks
  */
 
 declare(strict_types=1);
