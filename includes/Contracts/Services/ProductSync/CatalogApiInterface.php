@@ -53,4 +53,31 @@ interface CatalogApiInterface {
 	 * @return bool True if API is configured.
 	 */
 	public function isConfigured(): bool;
+
+	/**
+	 * Update product sync status and metadata.
+	 *
+	 * @param int    $productId     Product ID.
+	 * @param string $status        Sync status (synced/error/partial/pending/not_synced).
+	 * @param string $catalogItemId WhatsApp catalog item ID (optional).
+	 * @param string $message       Status message or error (optional).
+	 * @return void
+	 */
+	public function updateSyncStatus( int $productId, string $status, string $catalogItemId = '', string $message = '' ): void;
+
+	/**
+	 * Clear all sync metadata from a product.
+	 *
+	 * @param int $productId Product ID.
+	 * @return void
+	 */
+	public function clearSyncMetadata( int $productId ): void;
+
+	/**
+	 * Get WhatsApp catalog item ID for a product.
+	 *
+	 * @param int $productId Product ID.
+	 * @return string|null Catalog item ID or null if not synced.
+	 */
+	public function getCatalogItemId( int $productId ): ?string;
 }

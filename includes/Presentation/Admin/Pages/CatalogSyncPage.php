@@ -14,6 +14,8 @@ namespace WhatsAppCommerceHub\Presentation\Admin\Pages;
 
 use WhatsAppCommerceHub\Contracts\Services\ProductSync\ProductSyncOrchestratorInterface;
 use WhatsAppCommerceHub\Contracts\Services\ProductSync\SyncProgressTrackerInterface;
+use WhatsAppCommerceHub\Contracts\Services\ProductSync\ProductSyncMetadata;
+use WhatsAppCommerceHub\Contracts\Services\ProductSync\ProductSyncStatus;
 use WhatsAppCommerceHub\Infrastructure\Configuration\SettingsManager;
 use WhatsAppCommerceHub\Infrastructure\Queue\QueueManager;
 
@@ -188,16 +190,16 @@ class CatalogSyncPage {
 
 		$totalSynced = (int) $wpdb->get_var(
 			"SELECT COUNT(*) FROM {$wpdb->prefix}postmeta
-			WHERE meta_key = '_wch_sync_status'
-			AND meta_value = 'synced'"
+			WHERE meta_key = '" . ProductSyncMetadata::SYNC_STATUS . "'
+			AND meta_value = '" . ProductSyncStatus::SYNCED . "'"
 		);
 
 		$lastSync = $settings->get( 'sync.last_full_sync', '' );
 
 		$errorCount = (int) $wpdb->get_var(
 			"SELECT COUNT(*) FROM {$wpdb->prefix}postmeta
-			WHERE meta_key = '_wch_sync_status'
-			AND meta_value = 'error'"
+			WHERE meta_key = '" . ProductSyncMetadata::SYNC_STATUS . "'
+			AND meta_value = '" . ProductSyncStatus::ERROR . "'"
 		);
 
 		return [
@@ -667,7 +669,7 @@ class CatalogSyncPage {
 				$args['meta_query'] = [];
 			}
 			$args['meta_query'][] = [
-				'key'   => '_wch_sync_status',
+				'key'   => ProductSyncMetadata::SYNC_STATUS,
 				'value' => $syncStatus,
 			];
 		}
@@ -681,9 +683,9 @@ class CatalogSyncPage {
 				$product = wc_get_product( get_the_ID() );
 
 				if ( $product ) {
-					$productSyncStatus = get_post_meta( $product->get_id(), '_wch_sync_status', true );
-					$lastSynced        = get_post_meta( $product->get_id(), '_wch_last_synced', true );
-					$syncError         = get_post_meta( $product->get_id(), '_wch_sync_error', true );
+					$productSyncStatus = get_post_meta( $product->get_id(), ProductSyncMetadata::SYNC_STATUS, true );
+					$lastSynced        = get_post_meta( $product->get_id(), ProductSyncMetadata::LAST_SYNCED, true );
+					$syncError         = get_post_meta( $product->get_id(), ProductSyncMetadata::SYNC_MESSAGE, true );
 
 					$products[] = [
 						'id'          => $product->get_id(),
@@ -736,7 +738,7 @@ class CatalogSyncPage {
 				$syncService->syncAllProducts();
 			} else {
 				foreach ( $productIds as $productId ) {
-					update_post_meta( $productId, '_wch_sync_status', 'pending' );
+					update_post_meta( $productId, ProductSyncMetadata::SYNC_STATUS, ProductSyncStatus::PENDING );
 				}
 				wch( QueueManager::class )->schedule_bulk_action( 'wch_sync_single_product', $productIds );
 			}
@@ -777,17 +779,17 @@ class CatalogSyncPage {
 			$result      = $syncService->syncProduct( $productId );
 
 			if ( ! empty( $result['success'] ) ) {
-				update_post_meta( $productId, '_wch_sync_status', 'synced' );
-				update_post_meta( $productId, '_wch_last_synced', current_time( 'mysql' ) );
-				delete_post_meta( $productId, '_wch_sync_error' );
+				update_post_meta( $productId, ProductSyncMetadata::SYNC_STATUS, ProductSyncStatus::SYNCED );
+				update_post_meta( $productId, ProductSyncMetadata::LAST_SYNCED, current_time( 'mysql' ) );
+				delete_post_meta( $productId, ProductSyncMetadata::SYNC_MESSAGE );
 
 				wp_send_json_success( [ 'message' => __( 'Product synced successfully', 'whatsapp-commerce-hub' ) ] );
 			} else {
 				wp_send_json_error( [ 'message' => __( 'Sync failed', 'whatsapp-commerce-hub' ) ] );
 			}
 		} catch ( \Exception $e ) {
-			update_post_meta( $productId, '_wch_sync_status', 'error' );
-			update_post_meta( $productId, '_wch_sync_error', $e->getMessage() );
+			update_post_meta( $productId, ProductSyncMetadata::SYNC_STATUS, ProductSyncStatus::ERROR );
+			update_post_meta( $productId, ProductSyncMetadata::SYNC_MESSAGE, $e->getMessage() );
 			wp_send_json_error( [ 'message' => $e->getMessage() ] );
 		}
 	}
@@ -812,9 +814,9 @@ class CatalogSyncPage {
 
 		try {
 			foreach ( $productIds as $productId ) {
-				delete_post_meta( $productId, '_wch_sync_status' );
-				delete_post_meta( $productId, '_wch_last_synced' );
-				delete_post_meta( $productId, '_wch_sync_error' );
+				delete_post_meta( $productId, ProductSyncMetadata::SYNC_STATUS );
+				delete_post_meta( $productId, ProductSyncMetadata::LAST_SYNCED );
+				delete_post_meta( $productId, ProductSyncMetadata::SYNC_MESSAGE );
 			}
 
 			wp_send_json_success(
@@ -966,8 +968,8 @@ class CatalogSyncPage {
 
 		$productIds = $wpdb->get_col(
 			"SELECT post_id FROM {$wpdb->prefix}postmeta
-			WHERE meta_key = '_wch_sync_status'
-			AND meta_value = 'error'"
+			WHERE meta_key = '" . ProductSyncMetadata::SYNC_STATUS . "'
+			AND meta_value = '" . ProductSyncStatus::ERROR . "'"
 		);
 
 		if ( empty( $productIds ) ) {

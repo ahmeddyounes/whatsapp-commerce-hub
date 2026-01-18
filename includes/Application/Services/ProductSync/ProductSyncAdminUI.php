@@ -14,6 +14,8 @@ namespace WhatsAppCommerceHub\Application\Services\ProductSync;
 
 use WhatsAppCommerceHub\Contracts\Services\ProductSync\ProductValidatorInterface;
 use WhatsAppCommerceHub\Contracts\Services\ProductSync\ProductSyncOrchestratorInterface;
+use WhatsAppCommerceHub\Contracts\Services\ProductSync\ProductSyncMetadata;
+use WhatsAppCommerceHub\Contracts\Services\ProductSync\ProductSyncStatus;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -88,17 +90,17 @@ class ProductSyncAdminUI {
 			return;
 		}
 
-		$status      = get_post_meta( $postId, CatalogApiService::META_SYNC_STATUS, true );
-		$catalogId   = get_post_meta( $postId, CatalogApiService::META_CATALOG_ID, true );
-		$lastSynced  = get_post_meta( $postId, CatalogApiService::META_LAST_SYNCED, true );
-		$syncMessage = get_post_meta( $postId, '_wch_sync_message', true );
+		$status      = get_post_meta( $postId, ProductSyncMetadata::SYNC_STATUS, true );
+		$catalogId   = get_post_meta( $postId, ProductSyncMetadata::CATALOG_ID, true );
+		$lastSynced  = get_post_meta( $postId, ProductSyncMetadata::LAST_SYNCED, true );
+		$syncMessage = get_post_meta( $postId, ProductSyncMetadata::SYNC_MESSAGE, true );
 
 		$icon  = '';
 		$title = '';
 		$color = '';
 
 		switch ( $status ) {
-			case 'synced':
+			case ProductSyncStatus::SYNCED:
 				$icon  = '&#10003;'; // Checkmark.
 				$color = '#46b450';
 				$title = __( 'Synced', 'whatsapp-commerce-hub' );
@@ -109,7 +111,7 @@ class ProductSyncAdminUI {
 				}
 				break;
 
-			case 'error':
+			case ProductSyncStatus::ERROR:
 				$icon  = '&#10007;'; // X mark.
 				$color = '#dc3232';
 				$title = __( 'Sync error', 'whatsapp-commerce-hub' );
@@ -118,7 +120,7 @@ class ProductSyncAdminUI {
 				}
 				break;
 
-			case 'partial':
+			case ProductSyncStatus::PARTIAL:
 				$icon  = '&#9680;'; // Half-filled circle.
 				$color = '#ffb900';
 				$title = __( 'Partially synced', 'whatsapp-commerce-hub' );
@@ -254,17 +256,17 @@ class ProductSyncAdminUI {
 	 * @return array{status: string, synced: bool, last_synced: string|null, error: string|null}
 	 */
 	public function getProductSyncStatus( int $productId ): array {
-		$status      = get_post_meta( $productId, CatalogApiService::META_SYNC_STATUS, true );
-		$catalogId   = get_post_meta( $productId, CatalogApiService::META_CATALOG_ID, true );
-		$lastSynced  = get_post_meta( $productId, CatalogApiService::META_LAST_SYNCED, true );
-		$syncMessage = get_post_meta( $productId, '_wch_sync_message', true );
+		$status      = get_post_meta( $productId, ProductSyncMetadata::SYNC_STATUS, true );
+		$catalogId   = get_post_meta( $productId, ProductSyncMetadata::CATALOG_ID, true );
+		$lastSynced  = get_post_meta( $productId, ProductSyncMetadata::LAST_SYNCED, true );
+		$syncMessage = get_post_meta( $productId, ProductSyncMetadata::SYNC_MESSAGE, true );
 
 		return [
-			'status'      => $status ?: 'not_synced',
-			'synced'      => 'synced' === $status,
+			'status'      => $status ?: ProductSyncStatus::NOT_SYNCED,
+			'synced'      => ProductSyncStatus::SYNCED === $status,
 			'catalog_id'  => $catalogId ?: null,
 			'last_synced' => $lastSynced ?: null,
-			'error'       => 'error' === $status ? ( $syncMessage ?: null ) : null,
+			'error'       => ProductSyncStatus::ERROR === $status ? ( $syncMessage ?: null ) : null,
 		];
 	}
 }

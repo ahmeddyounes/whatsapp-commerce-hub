@@ -14,8 +14,10 @@ namespace WhatsAppCommerceHub\Application\Services\ProductSync;
 
 use WhatsAppCommerceHub\Clients\WhatsAppApiClient;
 use WhatsAppCommerceHub\Contracts\Services\ProductSync\CatalogApiInterface;
+use WhatsAppCommerceHub\Contracts\Services\ProductSync\ProductSyncMetadata;
+use WhatsAppCommerceHub\Contracts\Services\ProductSync\ProductSyncStatus;
+use WhatsAppCommerceHub\Contracts\Services\ProductSync\ProductSyncSettings;
 use WhatsAppCommerceHub\Contracts\Services\SettingsInterface;
-use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
 use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
 use Exception;
 
@@ -30,21 +32,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Handles WhatsApp Catalog API calls.
  */
 class CatalogApiService implements CatalogApiInterface {
-
-	/**
-	 * Meta key for catalog item ID.
-	 */
-	public const META_CATALOG_ID = '_wch_catalog_id';
-
-	/**
-	 * Meta key for last sync timestamp.
-	 */
-	public const META_LAST_SYNCED = '_wch_last_synced';
-
-	/**
-	 * Meta key for sync status.
-	 */
-	public const META_SYNC_STATUS = '_wch_sync_status';
 
 	/**
 	 * WhatsApp API client.
@@ -174,7 +161,7 @@ class CatalogApiService implements CatalogApiInterface {
 	 * {@inheritdoc}
 	 */
 	public function getCatalogId(): ?string {
-		$catalogId = $this->getSetting( 'catalog.catalog_id' );
+		$catalogId = $this->getSetting( ProductSyncSettings::CATALOG_ID );
 		return ! empty( $catalogId ) ? (string) $catalogId : null;
 	}
 
@@ -182,8 +169,8 @@ class CatalogApiService implements CatalogApiInterface {
 	 * {@inheritdoc}
 	 */
 	public function isConfigured(): bool {
-		$phoneNumberId = $this->getSetting( 'api.whatsapp_phone_number_id' );
-		$accessToken   = $this->getSetting( 'api.access_token' );
+		$phoneNumberId = $this->getSetting( ProductSyncSettings::PHONE_NUMBER_ID );
+		$accessToken   = $this->getSetting( ProductSyncSettings::ACCESS_TOKEN );
 		$catalogId     = $this->getCatalogId();
 
 		return ! empty( $phoneNumberId ) && ! empty( $accessToken ) && ! empty( $catalogId );
@@ -199,17 +186,17 @@ class CatalogApiService implements CatalogApiInterface {
 	 * @return void
 	 */
 	public function updateSyncStatus( int $productId, string $status, string $catalogItemId = '', string $message = '' ): void {
-		update_post_meta( $productId, self::META_SYNC_STATUS, $status );
-		update_post_meta( $productId, self::META_LAST_SYNCED, current_time( 'mysql' ) );
+		update_post_meta( $productId, ProductSyncMetadata::SYNC_STATUS, $status );
+		update_post_meta( $productId, ProductSyncMetadata::LAST_SYNCED, current_time( 'mysql' ) );
 
 		if ( ! empty( $catalogItemId ) ) {
-			update_post_meta( $productId, self::META_CATALOG_ID, $catalogItemId );
+			update_post_meta( $productId, ProductSyncMetadata::CATALOG_ID, $catalogItemId );
 		}
 
 		if ( ! empty( $message ) ) {
-			update_post_meta( $productId, '_wch_sync_message', $message );
+			update_post_meta( $productId, ProductSyncMetadata::SYNC_MESSAGE, $message );
 		} else {
-			delete_post_meta( $productId, '_wch_sync_message' );
+			delete_post_meta( $productId, ProductSyncMetadata::SYNC_MESSAGE );
 		}
 	}
 
@@ -220,11 +207,11 @@ class CatalogApiService implements CatalogApiInterface {
 	 * @return void
 	 */
 	public function clearSyncMetadata( int $productId ): void {
-		delete_post_meta( $productId, self::META_CATALOG_ID );
-		delete_post_meta( $productId, self::META_LAST_SYNCED );
-		delete_post_meta( $productId, self::META_SYNC_STATUS );
-		delete_post_meta( $productId, '_wch_sync_hash' );
-		delete_post_meta( $productId, '_wch_sync_message' );
+		delete_post_meta( $productId, ProductSyncMetadata::CATALOG_ID );
+		delete_post_meta( $productId, ProductSyncMetadata::LAST_SYNCED );
+		delete_post_meta( $productId, ProductSyncMetadata::SYNC_STATUS );
+		delete_post_meta( $productId, ProductSyncMetadata::SYNC_HASH );
+		delete_post_meta( $productId, ProductSyncMetadata::SYNC_MESSAGE );
 	}
 
 	/**
@@ -234,7 +221,7 @@ class CatalogApiService implements CatalogApiInterface {
 	 * @return string|null Catalog item ID or null.
 	 */
 	public function getCatalogItemId( int $productId ): ?string {
-		$catalogItemId = get_post_meta( $productId, self::META_CATALOG_ID, true );
+		$catalogItemId = get_post_meta( $productId, ProductSyncMetadata::CATALOG_ID, true );
 		return ! empty( $catalogItemId ) ? (string) $catalogItemId : null;
 	}
 

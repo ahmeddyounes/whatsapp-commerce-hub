@@ -76,4 +76,14 @@ interface ProductSyncOrchestratorInterface {
 	 * @return void
 	 */
 	public function handleProductDelete( int $postId ): void;
+
+	/**
+	 * Process a batch of products for sync.
+	 *
+	 * This method is called by the queue system to process product batches.
+	 *
+	 * @param array $args Array with 'product_ids' key containing array of product IDs.
+	 * @return void
+	 */
+	public function processBatch( array $args ): void;
 }

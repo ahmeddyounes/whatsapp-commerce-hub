@@ -1,0 +1,11 @@
+[main 7c2013f] C02-04: implement
+ 10 files changed, 1410 insertions(+), 183 deletions(-)
+ create mode 100644 .logs/C02-03.gitcommit.txt
+ create mode 100644 .logs/C02-04.claude.impl.last.md
+ create mode 100644 .logs/C02-04.claude.impl.raw.txt
+ create mode 100644 .plans/C02-04.md
+ create mode 100644 .t2/handoff/C02-04.md
+ create mode 100644 docs/IMPLEMENTATION-SUMMARY-C02-04.md
+ create mode 100644 tests/Integration/CatalogBrowsingActionsTest.php
+ create mode 100644 tests/Unit/CatalogBrowserTest.php
+

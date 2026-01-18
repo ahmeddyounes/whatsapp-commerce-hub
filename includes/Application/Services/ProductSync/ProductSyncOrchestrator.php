@@ -17,8 +17,9 @@ use WhatsAppCommerceHub\Contracts\Services\ProductSync\ProductValidatorInterface
 use WhatsAppCommerceHub\Contracts\Services\ProductSync\CatalogTransformerInterface;
 use WhatsAppCommerceHub\Contracts\Services\ProductSync\CatalogApiInterface;
 use WhatsAppCommerceHub\Contracts\Services\ProductSync\SyncProgressTrackerInterface;
+use WhatsAppCommerceHub\Contracts\Services\ProductSync\ProductSyncStatus;
+use WhatsAppCommerceHub\Contracts\Services\ProductSync\ProductSyncSettings;
 use WhatsAppCommerceHub\Contracts\Services\SettingsInterface;
-use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
 use WhatsAppCommerceHub\Contracts\Services\LoggerInterface;
 use WhatsAppCommerceHub\Infrastructure\Queue\JobDispatcher;
 
@@ -110,7 +111,7 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 		if ( $result['success'] ) {
 			$this->catalogApi->updateSyncStatus(
 				$productId,
-				'synced',
+				ProductSyncStatus::SYNCED,
 				$result['catalog_item_id'] ?? ''
 			);
 
@@ -124,13 +125,13 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 		} else {
 			$this->catalogApi->updateSyncStatus(
 				$productId,
-				'error',
+				ProductSyncStatus::ERROR,
 				'',
 				$result['error'] ?? 'Unknown error'
 			);
 
 			$this->log(
-				'error',
+				ProductSyncStatus::ERROR,
 				'Failed to sync product',
 				[
 					'product_id' => $productId,
@@ -163,14 +164,14 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 			if ( $result['success'] ) {
 				$this->catalogApi->updateSyncStatus(
 					$variationId,
-					'synced',
+					ProductSyncStatus::SYNCED,
 					$result['catalog_item_id'] ?? ''
 				);
 				++$synced;
 			} else {
 				$this->catalogApi->updateSyncStatus(
 					$variationId,
-					'error',
+					ProductSyncStatus::ERROR,
 					'',
 					$result['error'] ?? 'Unknown error'
 				);
@@ -180,11 +181,11 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 
 		// Update parent sync status.
 		if ( empty( $errors ) ) {
-			$this->catalogApi->updateSyncStatus( $parentId, 'synced' );
+			$this->catalogApi->updateSyncStatus( $parentId, ProductSyncStatus::SYNCED );
 		} else {
 			$this->catalogApi->updateSyncStatus(
 				$parentId,
-				'partial',
+				ProductSyncStatus::PARTIAL,
 				'',
 				implode( '; ', $errors )
 			);
@@ -293,7 +294,7 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 	 * {@inheritdoc}
 	 */
 	public function getProductsToSync(): array {
-		$syncProducts = $this->getSetting( 'catalog.sync_products', 'all' );
+		$syncProducts = $this->getSetting( ProductSyncSettings::SYNC_PRODUCTS, 'all' );
 
 		// If specific products are configured.
 		if ( 'all' !== $syncProducts && is_array( $syncProducts ) ) {
@@ -312,7 +313,7 @@ class ProductSyncOrchestrator implements ProductSyncOrchestratorInterface {
 		];
 
 		// Exclude out of stock if setting enabled.
-		$includeOutOfStock = $this->getSetting( 'catalog.include_out_of_stock', false );
+		$includeOutOfStock = $this->getSetting( ProductSyncSettings::INCLUDE_OUT_OF_STOCK, false );
 		if ( ! $includeOutOfStock ) {
 			$baseArgs['stock_status'] = 'instock';
 		}

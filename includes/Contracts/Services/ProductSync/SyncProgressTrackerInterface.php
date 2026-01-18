@@ -83,4 +83,18 @@ interface SyncProgressTrackerInterface {
 	 * @return array Array of failed product IDs.
 	 */
 	public function getFailedItems(): array;
+
+	/**
+	 * Check if a sync is currently in progress.
+	 *
+	 * @return bool True if sync is in progress.
+	 */
+	public function isSyncInProgress(): bool;
+
+	/**
+	 * Get the current sync session ID if sync is in progress.
+	 *
+	 * @return string|null Sync ID or null if no sync in progress.
+	 */
+	public function getCurrentSyncId(): ?string;
 }

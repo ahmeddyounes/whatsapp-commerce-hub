@@ -13,6 +13,8 @@ declare(strict_types=1);
 namespace WhatsAppCommerceHub\Application\Services\ProductSync;
 
 use WhatsAppCommerceHub\Contracts\Services\ProductSync\ProductValidatorInterface;
+use WhatsAppCommerceHub\Contracts\Services\ProductSync\ProductSyncMetadata;
+use WhatsAppCommerceHub\Contracts\Services\ProductSync\ProductSyncSettings;
 use WhatsAppCommerceHub\Contracts\Services\SettingsInterface;
 use WC_Product;
 
@@ -27,11 +29,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Handles product validation logic for catalog sync.
  */
 class ProductValidatorService implements ProductValidatorInterface {
-
-	/**
-	 * Meta key for sync hash.
-	 */
-	public const META_SYNC_HASH = '_wch_sync_hash';
 
 	/**
 	 * Constructor.
@@ -54,7 +51,7 @@ class ProductValidatorService implements ProductValidatorInterface {
 		}
 
 		// Check stock if setting enabled.
-		$includeOutOfStock = $this->getSetting( 'catalog.include_out_of_stock', false );
+		$includeOutOfStock = $this->getSetting( ProductSyncSettings::INCLUDE_OUT_OF_STOCK, false );
 		if ( ! $includeOutOfStock && ! $product->is_in_stock() ) {
 			return [
 				'valid'  => false,
@@ -63,7 +60,7 @@ class ProductValidatorService implements ProductValidatorInterface {
 		}
 
 		// Check if product is in allowed list.
-		$syncProducts = $this->getSetting( 'catalog.sync_products', 'all' );
+		$syncProducts = $this->getSetting( ProductSyncSettings::SYNC_PRODUCTS, 'all' );
 		if ( 'all' !== $syncProducts && is_array( $syncProducts ) ) {
 			if ( ! in_array( $product->get_id(), $syncProducts, true ) ) {
 				return [
@@ -109,10 +106,10 @@ class ProductValidatorService implements ProductValidatorInterface {
 		}
 
 		$currentHash = $this->generateProductHash( $product );
-		$storedHash  = get_post_meta( $productId, self::META_SYNC_HASH, true );
+		$storedHash  = get_post_meta( $productId, ProductSyncMetadata::SYNC_HASH, true );
 
 		// Update stored hash.
-		update_post_meta( $productId, self::META_SYNC_HASH, $currentHash );
+		update_post_meta( $productId, ProductSyncMetadata::SYNC_HASH, $currentHash );
 
 		// Return true if hash changed or no previous hash.
 		return empty( $storedHash ) || $storedHash !== $currentHash;
@@ -138,7 +135,7 @@ class ProductValidatorService implements ProductValidatorInterface {
 	 * {@inheritdoc}
 	 */
 	public function isSyncEnabled(): bool {
-		return (bool) $this->getSetting( 'catalog.sync_enabled', false );
+		return (bool) $this->getSetting( ProductSyncSettings::SYNC_ENABLED, false );
 	}
 
 	/**
