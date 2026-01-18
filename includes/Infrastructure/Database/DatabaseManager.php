@@ -635,4 +635,194 @@ class DatabaseManager {
 			$this->wpdb->prepare( 'SHOW TABLES LIKE %s', $tableName )
 		) === $tableName;
 	}
+
+	/**
+	 * Uninstall plugin data.
+	 *
+	 * Removes all plugin tables, options, transients, post meta, and scheduled events.
+	 * This is called during plugin uninstallation.
+	 *
+	 * WARNING: This permanently deletes all plugin data and cannot be undone.
+	 *
+	 * @return void
+	 */
+	public function uninstall(): void {
+		// Drop all plugin tables.
+		$this->dropTables();
+
+		// Delete all plugin options.
+		$this->deleteOptions();
+
+		// Delete all plugin transients.
+		$this->deleteTransients();
+
+		// Delete all plugin post meta.
+		$this->deletePostMeta();
+
+		// Clear all scheduled events.
+		$this->clearScheduledEvents();
+
+		// Log uninstall action.
+		do_action( 'wch_database_uninstalled' );
+	}
+
+	/**
+	 * Delete all plugin options.
+	 *
+	 * Removes all WordPress options created by the plugin.
+	 *
+	 * @return void
+	 */
+	private function deleteOptions(): void {
+		// Core plugin options.
+		$options = [
+			// Database version.
+			'wch_db_version',
+
+			// Settings and configuration.
+			'wch_settings',
+			'wch_settings_schema_version',
+			'wch_message_templates',
+			'wch_templates_last_sync',
+			'wch_bulk_sync_progress',
+			'wch_sync_history',
+			'wch_cart_cleanup_last_result',
+
+			// API and integration settings.
+			'wch_catalog_id',
+			'wch_whatsapp_catalog_id',
+			'wch_openai_api_key',
+			'wch_admin_email',
+			'wch_notify_admin_on_errors',
+
+			// Payment gateway settings.
+			'wch_default_payment_gateway',
+			'wch_enabled_payment_methods',
+			'wch_stripe_secret_key',
+			'wch_stripe_webhook_secret',
+			'wch_razorpay_key_id',
+			'wch_razorpay_key_secret',
+			'wch_razorpay_webhook_secret',
+			'wch_pix_processor',
+			'wch_pix_api_token',
+			'wch_whatsapppay_config_name',
+
+			// Feature settings.
+			'wch_ai_enabled',
+			'wch_catalog_sync_enabled',
+			'wch_checkout_timeout',
+			'wch_sync_out_of_stock',
+			'wch_cod_fee_amount',
+			'wch_cod_disabled_countries',
+
+			// Security and encryption.
+			'wch_encryption_hkdf_salt',
+			'wch_encryption_key_versions',
+
+			// Inventory and sync.
+			'wch_stock_discrepancies',
+			'wch_stock_discrepancy_count',
+			'wch_stock_discrepancy_last_check',
+
+			// Broadcast campaigns.
+			'wch_broadcast_campaigns',
+		];
+
+		foreach ( $options as $option ) {
+			delete_option( $option );
+		}
+
+		// Delete dynamic payment options (wch_payment_*).
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		$this->wpdb->query(
+			"DELETE FROM {$this->wpdb->options} WHERE option_name LIKE 'wch_payment_%'"
+		);
+	}
+
+	/**
+	 * Delete all plugin transients.
+	 *
+	 * Removes all temporary cache data created by the plugin.
+	 *
+	 * @return void
+	 */
+	private function deleteTransients(): void {
+		// Delete transients by prefix pattern.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		$this->wpdb->query(
+			"DELETE FROM {$this->wpdb->options}
+			WHERE option_name LIKE '_transient_wch_%'
+			OR option_name LIKE '_transient_timeout_wch_%'"
+		);
+
+		// Common transient patterns used by the plugin:
+		// - wch_fallback_*
+		// - wch_settings_backup
+		// - wch_webhook_*
+		// - wch_circuit_*
+		// - wch_template_usage_*
+		// - wch_stock_sync_debounce_*
+		// - wch_cart_*
+		// All are covered by the wildcard deletion above.
+	}
+
+	/**
+	 * Delete all plugin post meta.
+	 *
+	 * Removes all product metadata created by the plugin for catalog sync.
+	 * This only removes WhatsApp sync metadata, not the products themselves.
+	 *
+	 * @return void
+	 */
+	private function deletePostMeta(): void {
+		// Delete all post meta fields created by the plugin.
+		// These are primarily used for product catalog sync tracking.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		$this->wpdb->query(
+			"DELETE FROM {$this->wpdb->postmeta}
+			WHERE meta_key LIKE '_wch_%'"
+		);
+
+		// Post meta fields removed:
+		// - _wch_sync_status: Product sync status
+		// - _wch_last_synced: Last sync timestamp
+		// - _wch_sync_error: Sync error message
+		// - _wch_sync_message: Sync status message
+		// - _wch_last_stock_sync: Last stock sync timestamp
+		// - _wch_previous_stock: Previous stock level
+	}
+
+	/**
+	 * Clear all scheduled events.
+	 *
+	 * Removes all cron jobs registered by the plugin.
+	 *
+	 * @return void
+	 */
+	private function clearScheduledEvents(): void {
+		// List of all scheduled events created by the plugin.
+		$events = [
+			'wch_cleanup_expired_carts',
+			'wch_rate_limit_cleanup',
+			'wch_security_log_cleanup',
+			'wch_recover_pending_sagas',
+			'wch_cleanup_dead_letter_queue',
+			'wch_cleanup_idempotency_keys',
+			'wch_detect_stock_discrepancies',
+			'wch_schedule_recovery_reminders',
+			'wch_process_reengagement_campaigns',
+			'wch_check_back_in_stock',
+			'wch_check_price_drops',
+		];
+
+		foreach ( $events as $event ) {
+			$timestamp = wp_next_scheduled( $event );
+			if ( false !== $timestamp ) {
+				wp_unschedule_event( $timestamp, $event );
+			}
+
+			// Clear all instances of the event.
+			wp_clear_scheduled_hook( $event );
+		}
+	}
 }
