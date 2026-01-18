@@ -132,6 +132,25 @@ class MonitoringServiceProvider implements ServiceProviderInterface {
 						],
 					]
 				);
+
+				// List available health checks.
+				register_rest_route(
+					'wch/v1',
+					'/health/checks',
+					[
+						'methods'             => 'GET',
+						'callback'            => function () use ( $container ) {
+							$health = $container->get( HealthCheck::class );
+							return rest_ensure_response(
+								[
+									'checks' => $health->getAvailableChecks(),
+									'count'  => count( $health->getAvailableChecks() ),
+								]
+							);
+						},
+						'permission_callback' => '__return_true',
+					]
+				);
 			}
 		);
 

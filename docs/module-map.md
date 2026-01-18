@@ -362,13 +362,17 @@ None (admin interface only)
 - `HealthCheck::liveness()` - Liveness probe for load balancers
 - `HealthCheck::readiness()` - Readiness probe for load balancers
 - `HealthCheck::checkOne()` - Individual component check
+- `HealthCheck::getAvailableChecks()` - List all registered health checks
+- `HealthCheck::register()` - Register custom health check
 
 ### Health Check Components
-- **database** - Database connectivity and schema version
-- **whatsapp_api** - WhatsApp API connectivity
-- **woocommerce** - WooCommerce availability
-- **queue** - Queue system health
-- **storage** - Disk space and permissions
+- **database** - Database connectivity and query latency
+- **woocommerce** - WooCommerce plugin availability and version
+- **action_scheduler** - Action Scheduler queue status and pending jobs
+- **queue** - Job queue health, throughput, and dead letter queue (optional)
+- **circuit_breakers** - Circuit breaker states for external services (optional)
+- **disk** - Disk space availability in upload directory
+- **memory** - PHP memory usage and limits
 
 ### Tables
 None (uses existing tables for health checks)
@@ -378,12 +382,14 @@ None (provides on-demand health checks)
 
 ### Hooks
 - **REST Endpoints**:
-  - `GET /wch/v1/health` - Full health check (authenticated)
+  - `GET /wch/v1/health` - Full health check (authenticated, requires `manage_woocommerce`)
   - `GET /wch/v1/health/live` - Liveness probe (public)
-  - `GET /wch/v1/health/ready` - Readiness probe (public)
-  - `GET /wch/v1/health/{component}` - Component check (authenticated)
+  - `GET /wch/v1/health/ready` - Readiness probe (public, returns 503 if not ready)
+  - `GET /wch/v1/health/checks` - List available health checks (public)
+  - `GET /wch/v1/health/{component}` - Individual component check (authenticated, requires `manage_woocommerce`)
 - **Actions**:
   - `wp_dashboard_setup` - Adds health widget to dashboard
+  - `rest_api_init` - Registers health check REST endpoints
 
 ---
 

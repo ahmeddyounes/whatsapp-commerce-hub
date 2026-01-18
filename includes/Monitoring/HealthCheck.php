@@ -125,6 +125,14 @@ class HealthCheck {
 			'queue',
 			function (): array {
 				try {
+					// Only check if queue system is available.
+					if ( ! $this->container->has( JobMonitor::class ) ) {
+						return [
+							'status'  => 'unavailable',
+							'message' => 'Queue monitoring not enabled',
+						];
+					}
+
 					$monitor = $this->container->get( JobMonitor::class );
 					$health  = $monitor->getHealthStatus();
 
@@ -135,8 +143,8 @@ class HealthCheck {
 					];
 				} catch ( \Throwable $e ) {
 					return [
-						'status' => 'error',
-						'error'  => $e->getMessage(),
+						'status'  => 'error',
+						'message' => $e->getMessage(),
 					];
 				}
 			}
@@ -147,6 +155,14 @@ class HealthCheck {
 			'circuit_breakers',
 			function (): array {
 				try {
+					// Only check if circuit breaker system is available.
+					if ( ! $this->container->has( CircuitBreakerRegistry::class ) ) {
+						return [
+							'status'  => 'unavailable',
+							'message' => 'Circuit breaker system not enabled',
+						];
+					}
+
 					$registry = $this->container->get( CircuitBreakerRegistry::class );
 					$summary  = $registry->getHealthSummary();
 
@@ -157,7 +173,8 @@ class HealthCheck {
 					];
 				} catch ( \Throwable $e ) {
 					return [
-						'status' => 'unknown',
+						'status'  => 'error',
+						'message' => $e->getMessage(),
 					];
 				}
 			}
@@ -247,13 +264,14 @@ class HealthCheck {
 		$results         = [];
 		$overall_status  = 'healthy';
 		$status_priority = [
-			'healthy'   => 0,
-			'unknown'   => 1,
-			'warning'   => 2,
-			'degraded'  => 3,
-			'unhealthy' => 4,
-			'critical'  => 5,
-			'error'     => 6,
+			'healthy'     => 0,
+			'unavailable' => 0, // Unavailable is OK - optional feature not enabled.
+			'unknown'     => 1,
+			'warning'     => 2,
+			'degraded'    => 3,
+			'unhealthy'   => 4,
+			'critical'    => 5,
+			'error'       => 6,
 		];
 
 		foreach ( $this->checks as $name => $check ) {
@@ -266,14 +284,17 @@ class HealthCheck {
 				$results[ $name ]      = $result;
 
 				// Update overall status.
+				// Skip unavailable checks when calculating overall status.
 				$check_status = $result['status'] ?? 'unknown';
-				if ( ( $status_priority[ $check_status ] ?? 0 ) > ( $status_priority[ $overall_status ] ?? 0 ) ) {
-					$overall_status = $check_status;
+				if ( 'unavailable' !== $check_status ) {
+					if ( ( $status_priority[ $check_status ] ?? 0 ) > ( $status_priority[ $overall_status ] ?? 0 ) ) {
+						$overall_status = $check_status;
+					}
 				}
 			} catch ( \Throwable $e ) {
 				$results[ $name ] = [
-					'status' => 'error',
-					'error'  => $e->getMessage(),
+					'status'  => 'error',
+					'message' => $e->getMessage(),
 				];
 				$overall_status   = 'error';
 			}
@@ -369,5 +390,68 @@ class HealthCheck {
 			'database'    => $db['status'] ?? 'unknown',
 			'woocommerce' => $wc['status'] ?? 'unknown',
 		];
+	}
+
+	/**
+	 * Get list of available health checks.
+	 *
+	 * Returns an array of all registered health check names with metadata.
+	 *
+	 * @return array List of available checks.
+	 */
+	public function getAvailableChecks(): array {
+		$checks = [];
+
+		foreach ( array_keys( $this->checks ) as $name ) {
+			$checks[] = [
+				'name'        => $name,
+				'description' => $this->getCheckDescription( $name ),
+				'category'    => $this->getCheckCategory( $name ),
+			];
+		}
+
+		return $checks;
+	}
+
+	/**
+	 * Get description for a health check.
+	 *
+	 * @param string $name Check name.
+	 *
+	 * @return string Description.
+	 */
+	private function getCheckDescription( string $name ): string {
+		$descriptions = [
+			'database'         => 'Database connectivity and query latency',
+			'woocommerce'      => 'WooCommerce plugin availability and version',
+			'action_scheduler' => 'Action Scheduler queue status and pending jobs',
+			'queue'            => 'Job queue health, throughput, and dead letter queue',
+			'circuit_breakers' => 'Circuit breaker states for external services',
+			'disk'             => 'Disk space availability in upload directory',
+			'memory'           => 'PHP memory usage and limits',
+		];
+
+		return $descriptions[ $name ] ?? 'Custom health check';
+	}
+
+	/**
+	 * Get category for a health check.
+	 *
+	 * @param string $name Check name.
+	 *
+	 * @return string Category.
+	 */
+	private function getCheckCategory( string $name ): string {
+		$categories = [
+			'database'         => 'infrastructure',
+			'woocommerce'      => 'dependencies',
+			'action_scheduler' => 'background_jobs',
+			'queue'            => 'background_jobs',
+			'circuit_breakers' => 'resilience',
+			'disk'             => 'infrastructure',
+			'memory'           => 'infrastructure',
+		];
+
+		return $categories[ $name ] ?? 'custom';
 	}
 }
