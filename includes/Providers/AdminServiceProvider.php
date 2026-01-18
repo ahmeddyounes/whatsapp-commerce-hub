@@ -14,6 +14,7 @@ namespace WhatsAppCommerceHub\Providers;
 
 use WhatsAppCommerceHub\Presentation\Admin\Pages\AnalyticsPage;
 use WhatsAppCommerceHub\Presentation\Admin\Pages\CatalogSyncPage;
+use WhatsAppCommerceHub\Presentation\Admin\Pages\DiagnosticsPage;
 use WhatsAppCommerceHub\Presentation\Admin\Pages\InboxPage;
 use WhatsAppCommerceHub\Presentation\Admin\Pages\JobsPage;
 use WhatsAppCommerceHub\Presentation\Admin\Pages\LogsPage;
@@ -77,6 +78,12 @@ class AdminServiceProvider implements ServiceProviderInterface {
 			static fn() => new CatalogSyncPage()
 		);
 
+		// Register Diagnostics Page.
+		$container->singleton(
+			DiagnosticsPage::class,
+			static fn() => new DiagnosticsPage()
+		);
+
 		// Register Dashboard Widgets.
 		$container->singleton(
 			DashboardWidgets::class,
@@ -115,6 +122,11 @@ class AdminServiceProvider implements ServiceProviderInterface {
 		);
 
 		$container->singleton(
+			'wch.admin.diagnostics',
+			static fn( ContainerInterface $c ) => $c->get( DiagnosticsPage::class )
+		);
+
+		$container->singleton(
 			'wch.admin.dashboard_widgets',
 			static fn( ContainerInterface $c ) => $c->get( DashboardWidgets::class )
 		);
@@ -139,15 +151,13 @@ class AdminServiceProvider implements ServiceProviderInterface {
 		$container->get( AnalyticsPage::class )->init();
 		$container->get( TemplatesPage::class )->init();
 		$container->get( CatalogSyncPage::class )->init();
+		$container->get( DiagnosticsPage::class )->init();
 		$container->get( DashboardWidgets::class )->init();
 	}
 
 	/**
-	 * Get the services provided by this provider.
+	 * Get the service providers this provider depends on.
 	 *
-	 * @return array<string>
-	 */
-	/**
 	 * @return array<class-string<\WhatsAppCommerceHub\Container\ServiceProviderInterface>>
 	 */
 	public function dependsOn(): array {
@@ -156,6 +166,11 @@ class AdminServiceProvider implements ServiceProviderInterface {
 		];
 	}
 
+	/**
+	 * Get the services provided by this provider.
+	 *
+	 * @return array<string>
+	 */
 	public function provides(): array {
 		return [
 			LogsPage::class,
@@ -164,6 +179,7 @@ class AdminServiceProvider implements ServiceProviderInterface {
 			AnalyticsPage::class,
 			TemplatesPage::class,
 			CatalogSyncPage::class,
+			DiagnosticsPage::class,
 			DashboardWidgets::class,
 			'wch.admin.logs',
 			'wch.admin.jobs',
@@ -171,6 +187,7 @@ class AdminServiceProvider implements ServiceProviderInterface {
 			'wch.admin.analytics',
 			'wch.admin.templates',
 			'wch.admin.catalog_sync',
+			'wch.admin.diagnostics',
 			'wch.admin.dashboard_widgets',
 		];
 	}

@@ -412,6 +412,15 @@ class Container implements ContainerInterface {
 	}
 
 	/**
+	 * Get all registered service providers.
+	 *
+	 * @return ServiceProviderInterface[]
+	 */
+	public function getProviders(): array {
+		return $this->providers;
+	}
+
+	/**
 	 * Flush the container of all bindings and resolved instances.
 	 *
 	 * Clears all state including the resolving stack to prevent stale
