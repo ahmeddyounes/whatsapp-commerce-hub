@@ -336,10 +336,11 @@ All core tables are managed by `DatabaseManager` class and are created/dropped d
 - `expires_at` (datetime)
 
 **Indexes:**
-- UNIQUE KEY on (`message_id`, `scope`)
+- PRIMARY KEY (`message_id`, `scope`)
+- KEY `idx_expires` (`expires_at`)
 
-**Created:** Referenced but no explicit `createTable()` method found in codebase
-**Installation:** May be created dynamically or missing from installation routine
+**Created:** `DatabaseManager::getWebhookIdempotencyTableSchema()` line 517-526
+**Dropped:** `DatabaseManager::dropTables()` line 600-623
 **Usage:** Atomic INSERT IGNORE pattern for idempotency claims
 
 ---
@@ -353,33 +354,90 @@ All core tables are managed by `DatabaseManager` class and are created/dropped d
 - `includes/Security/RateLimiter.php` - Security rate limiting
 
 **Key Columns:**
-- `identifier_hash` (char 64) - SHA-256 hash of identifier
-- `limit_type` (varchar 50) - e.g., 'webhook', 'api', 'admin', 'message_send'
-- `request_count` (bigint unsigned)
-- `window_start` (datetime, indexed)
+- `identifier_hash` (varchar 64) - SHA-256 hash of identifier
+- `limit_type` (varchar 32) - e.g., 'webhook', 'api', 'admin', 'message_send'
+- `request_count` (int unsigned)
+- `window_start` (varchar 16)
+- `created_at` (datetime)
+- `expires_at` (datetime)
+- `metadata` (json)
 
 **Indexes:**
 - PRIMARY KEY (`identifier_hash`, `limit_type`, `window_start`)
 - KEY `idx_window` (`window_start`)
+- KEY `idx_expires` (`expires_at`)
 
-**Created:** `PriorityQueue::createRateLimitsTable()` line 646-663
-**Installation:** Must be called manually (static method)
-**Dropped:** Not included in `DatabaseManager::dropTables()` - may need manual cleanup
+**Created:** `DatabaseManager::getRateLimitsTableSchema()` line 468-481
+**Dropped:** `DatabaseManager::dropTables()` line 600-623
 
 **Rate Limit Configurations:**
-- webhook: 100 requests / 60s
-- api: 60 requests / 60s
-- admin: 30 requests / 60s
+- webhook: 1000 requests / 60s
+- api: 100 requests / 60s
+- admin: 60 requests / 60s
 - auth: 5 requests / 300s
-- message_send: 50 requests / 60s
+- message_send: 30 requests / 60s
 - broadcast: 10 requests / 3600s
-- export: 3 requests / 3600s
+- export: 5 requests / 3600s
+
+---
+
+### 13. wch_security_log
+
+**Purpose:** Tracks security events for auditing and monitoring.
+
+**Owner:** `includes/Providers/SecurityServiceProvider.php`
+
+**Key Columns:**
+- `id` (bigint, auto-increment, primary key)
+- `event` (varchar 100) - Event type (e.g., 'rate_limit_block', 'vault_access')
+- `level` (varchar 20) - Log level ('info', 'warning', 'error')
+- `context` (json) - Event context data
+- `ip_address` (varchar 45) - Client IP address
+- `user_id` (bigint) - WordPress user ID (if applicable)
+- `created_at` (datetime)
+
+**Indexes:**
+- PRIMARY KEY (`id`)
+- KEY `event` (`event`)
+- KEY `level` (`level`)
+- KEY `created_at` (`created_at`)
+- KEY `user_id` (`user_id`)
+- KEY `ip_address` (`ip_address`)
+
+**Created:** `DatabaseManager::getSecurityLogTableSchema()` line 491-507
+**Dropped:** `DatabaseManager::dropTables()` line 600-623
+**Usage:** Logs important security events (warnings and errors) to database for audit trail
+
+---
+
+### 14. wch_webhook_events
+
+**Purpose:** Tracks payment webhook processing status for idempotency and debugging.
+
+**Owner:** `includes/Controllers/PaymentWebhookController.php`
+
+**Key Columns:**
+- `id` (bigint, auto-increment, primary key)
+- `event_id` (varchar 255, unique) - External event ID from payment gateway
+- `status` (varchar 20) - Processing status ('processing', 'completed')
+- `created_at` (datetime) - When event was first received
+- `completed_at` (datetime) - When processing completed
+
+**Indexes:**
+- PRIMARY KEY (`id`)
+- UNIQUE KEY `event_id` (`event_id`)
+- KEY `status` (`status`)
+- KEY `created_at` (`created_at`)
+
+**Created:** `DatabaseManager::getWebhookEventsTableSchema()` line 536-548
+**Dropped:** `DatabaseManager::dropTables()` line 600-623
+**Usage:** Atomic INSERT IGNORE for webhook processing claim, prevents duplicate payment webhook processing
 
 ---
 
 ## Resilience & Distributed Transaction Tables
 
-### 13. wch_circuit_breakers
+### 15. wch_circuit_breakers
 
 **Purpose:** Implements circuit breaker pattern for external service fault tolerance.
 
@@ -403,7 +461,7 @@ All core tables are managed by `DatabaseManager` class and are created/dropped d
 
 ---
 
-### 14. wch_saga_state
+### 16. wch_saga_state
 
 **Purpose:** Manages distributed transaction (saga) orchestration state.
 
@@ -467,17 +525,22 @@ All plugin tables use the prefix: `{$wpdb->prefix}wch_`
 - **Version Option Key:** `wch_db_version` (stored in WordPress options table)
 - **Version Check:** Performed on `admin_init` to trigger migrations if version mismatch
 
-### Missing from Installation Flow
+### Migration Summary
 
-The following tables have `createTable()` static methods but are NOT called from the main installation routine:
+**Previously Missing Tables (now integrated):**
+1. `wch_rate_limits` - ✓ Now in DatabaseManager (was in PriorityQueue::createRateLimitsTable())
+2. `wch_webhook_idempotency` - ✓ Now in DatabaseManager (was missing)
+3. `wch_security_log` - ✓ Now in DatabaseManager (was missing)
+4. `wch_webhook_events` - ✓ Now in DatabaseManager (was missing)
+
+**Remaining Auxiliary Tables:**
+The following tables still have `createTable()` static methods and are NOT called from the main installation routine:
 
 1. `wch_dead_letter_queue` - `DeadLetterQueue::createTable()`
 2. `wch_circuit_breakers` - `CircuitBreaker::createTable()`
 3. `wch_saga_state` - `SagaOrchestrator::createTable()`
-4. `wch_rate_limits` - `PriorityQueue::createRateLimitsTable()`
-5. `wch_webhook_idempotency` - No explicit creation method found
 
-**Recommendation:** These tables should be integrated into `DatabaseManager::install()` or called from service providers during application boot to ensure they exist before use.
+These tables are optional/advanced features and may be created on-demand when those features are first used.
 
 ---
 
@@ -569,25 +632,46 @@ The following tables have `createTable()` static methods but are NOT called from
 
 ## Summary
 
-**Total Tables:** 14
+**Total Tables:** 16
 
-**Core Tables (managed by DatabaseManager):** 9
-- Created on activation
-- Dropped on uninstallation
+**Core Tables (managed by DatabaseManager):** 13
+- Created on activation via `DatabaseManager::install()`
+- Dropped on uninstallation via `DatabaseManager::dropTables()`
 - Version-controlled migrations
 
-**Auxiliary Tables (static createTable() methods):** 5
+**Auxiliary Tables (static createTable() methods):** 3
 - Created manually or on-demand
-- May need integration into installation flow
+- Not integrated into main installation flow
 - Not automatically dropped on uninstallation
+
+**Core Tables List:**
+1. wch_conversations
+2. wch_messages
+3. wch_carts
+4. wch_customer_profiles
+5. wch_broadcast_recipients
+6. wch_sync_queue
+7. wch_notification_log
+8. wch_product_views
+9. wch_reengagement
+10. wch_rate_limits
+11. wch_webhook_idempotency
+12. wch_security_log
+13. wch_webhook_events
+
+**Auxiliary Tables List:**
+14. wch_dead_letter_queue (DeadLetterQueue::createTable())
+15. wch_circuit_breakers (CircuitBreaker::createTable())
+16. wch_saga_state (SagaOrchestrator::createTable())
 
 **Shared Tables:**
 - `wch_rate_limits` - Used by both PriorityQueue and RateLimiter
 - `wch_webhook_idempotency` - Used across multiple modules (webhooks, notifications, orders, broadcasts, sync)
 
 **Table Ownership Distribution:**
-- DatabaseManager: 9 tables
-- Queue module: 3 tables (1 shared)
-- Security module: 1 table (shared)
-- Resilience module: 2 tables
-- Total unique tables: 14
+- DatabaseManager: 13 tables
+- Queue module: 2 tables (1 shared, 1 auxiliary)
+- Security module: 2 tables (1 shared)
+- Payments module: 1 table
+- Resilience module: 2 tables (auxiliary)
+- Total unique tables: 16

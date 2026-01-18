@@ -197,6 +197,10 @@ class DatabaseManager {
 			$this->getNotificationLogTableSchema( $charsetCollate ),
 			$this->getProductViewsTableSchema( $charsetCollate ),
 			$this->getReengagementTableSchema( $charsetCollate ),
+			$this->getRateLimitsTableSchema( $charsetCollate ),
+			$this->getSecurityLogTableSchema( $charsetCollate ),
+			$this->getWebhookIdempotencyTableSchema( $charsetCollate ),
+			$this->getWebhookEventsTableSchema( $charsetCollate ),
 		];
 	}
 
@@ -454,6 +458,96 @@ class DatabaseManager {
 	}
 
 	/**
+	 * Get rate limits table schema.
+	 *
+	 * Used by RateLimiter and PriorityQueue for sliding window rate limiting.
+	 *
+	 * @param string $charsetCollate Charset collation.
+	 * @return string SQL statement.
+	 */
+	private function getRateLimitsTableSchema( string $charsetCollate ): string {
+		return 'CREATE TABLE ' . $this->getTableName( 'rate_limits' ) . " (
+			identifier_hash VARCHAR(64) NOT NULL,
+			limit_type VARCHAR(32) NOT NULL,
+			request_count INT UNSIGNED DEFAULT 0,
+			window_start VARCHAR(16) NOT NULL,
+			created_at DATETIME NULL,
+			expires_at DATETIME NULL,
+			metadata JSON NULL,
+			PRIMARY KEY (identifier_hash, limit_type, window_start),
+			KEY idx_window (window_start),
+			KEY idx_expires (expires_at)
+		) $charsetCollate;";
+	}
+
+	/**
+	 * Get security log table schema.
+	 *
+	 * Used by SecurityServiceProvider logger to track security events.
+	 *
+	 * @param string $charsetCollate Charset collation.
+	 * @return string SQL statement.
+	 */
+	private function getSecurityLogTableSchema( string $charsetCollate ): string {
+		return 'CREATE TABLE ' . $this->getTableName( 'security_log' ) . " (
+			id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+			event VARCHAR(100) NOT NULL,
+			level VARCHAR(20) NOT NULL,
+			context JSON NULL,
+			ip_address VARCHAR(45) NULL,
+			user_id BIGINT(20) UNSIGNED NULL,
+			created_at DATETIME NOT NULL,
+			PRIMARY KEY (id),
+			KEY event (event),
+			KEY level (level),
+			KEY created_at (created_at),
+			KEY user_id (user_id),
+			KEY ip_address (ip_address)
+		) $charsetCollate;";
+	}
+
+	/**
+	 * Get webhook idempotency table schema.
+	 *
+	 * Used by IdempotencyService to prevent duplicate webhook processing.
+	 *
+	 * @param string $charsetCollate Charset collation.
+	 * @return string SQL statement.
+	 */
+	private function getWebhookIdempotencyTableSchema( string $charsetCollate ): string {
+		return 'CREATE TABLE ' . $this->getTableName( 'webhook_idempotency' ) . " (
+			message_id VARCHAR(255) NOT NULL,
+			scope VARCHAR(100) NOT NULL,
+			processed_at DATETIME NOT NULL,
+			expires_at DATETIME NULL,
+			PRIMARY KEY (message_id, scope),
+			KEY idx_expires (expires_at)
+		) $charsetCollate;";
+	}
+
+	/**
+	 * Get webhook events table schema.
+	 *
+	 * Used by PaymentWebhookController to track payment webhook processing status.
+	 *
+	 * @param string $charsetCollate Charset collation.
+	 * @return string SQL statement.
+	 */
+	private function getWebhookEventsTableSchema( string $charsetCollate ): string {
+		return 'CREATE TABLE ' . $this->getTableName( 'webhook_events' ) . " (
+			id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+			event_id VARCHAR(255) NOT NULL,
+			status VARCHAR(20) NOT NULL,
+			created_at DATETIME NOT NULL,
+			completed_at DATETIME NULL,
+			PRIMARY KEY (id),
+			UNIQUE KEY event_id (event_id),
+			KEY status (status),
+			KEY created_at (created_at)
+		) $charsetCollate;";
+	}
+
+	/**
 	 * Get available migrations.
 	 *
 	 * Scans the Migrations directory and loads all migration classes.
@@ -505,6 +599,10 @@ class DatabaseManager {
 	 */
 	public function dropTables(): void {
 		$tables = [
+			'webhook_events',
+			'webhook_idempotency',
+			'security_log',
+			'rate_limits',
 			'reengagement',
 			'product_views',
 			'notification_log',
