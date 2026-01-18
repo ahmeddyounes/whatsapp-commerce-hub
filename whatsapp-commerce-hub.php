@@ -238,16 +238,16 @@ class WhatsAppCommerceHubPlugin {
 		wch( \WhatsAppCommerceHub\Payments\PaymentGatewayRegistry::class );
 
 		// Initialize refund handler.
-		wch( \WhatsAppCommerceHub\Features\Payments\RefundService::class );
+		wch( \WhatsAppCommerceHub\Application\Services\RefundService::class );
 
 		// Initialize order notifications.
-		wch( \WhatsAppCommerceHub\Features\Notifications\OrderNotifications::class );
+		wch( \WhatsAppCommerceHub\Application\Services\NotificationService::class );
 
 		// Initialize abandoned cart recovery system.
 		wch( \WhatsAppCommerceHub\Features\AbandonedCart\RecoveryService::class )->init();
 
 		// Initialize re-engagement service.
-		wch( \WhatsAppCommerceHub\Features\Reengagement\ReengagementService::class )->init();
+		wch( \WhatsAppCommerceHub\Contracts\Services\Reengagement\ReengagementOrchestratorInterface::class )->init();
 
 		// Hook into WooCommerce order creation for conversion tracking.
 		add_action( 'woocommerce_checkout_order_created', [ $this, 'track_order_conversion' ], 10, 1 );
@@ -266,8 +266,8 @@ class WhatsAppCommerceHubPlugin {
 		$customer_phone = $order->get_billing_phone();
 
 		if ( $customer_phone ) {
-			wch( \WhatsAppCommerceHub\Features\Reengagement\ReengagementService::class )
-				->track_conversion( $customer_phone, $order->get_id() );
+			wch( \WhatsAppCommerceHub\Contracts\Services\Reengagement\ReengagementAnalyticsInterface::class )
+				->trackConversion( $customer_phone, $order->get_id() );
 		}
 	}
 
