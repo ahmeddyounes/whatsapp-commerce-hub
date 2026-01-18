@@ -9,7 +9,7 @@
 
 namespace WhatsAppCommerceHub\Tests\Factories;
 
-use WhatsAppCommerceHub\Entities\Customer;
+use WhatsAppCommerceHub\Domain\Customer\Customer;
 
 /**
  * Class CustomerFactory

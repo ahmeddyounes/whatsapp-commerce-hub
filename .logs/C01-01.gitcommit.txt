@@ -1,0 +1,9 @@
+[main 7acd570] C01-01: implement
+ 9 files changed, 756 insertions(+), 5 deletions(-)
+ create mode 100644 .logs/C00-16.gitcommit.txt
+ create mode 100644 .logs/C01-01.claude.impl.last.md
+ create mode 100644 .logs/C01-01.claude.impl.raw.txt
+ create mode 100644 .plans/C01-01.md
+ create mode 100644 .t2/handoff/C01-01.md
+ create mode 100644 docs/adr-001-canonical-model-layer.md
+

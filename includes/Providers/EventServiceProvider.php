@@ -243,7 +243,7 @@ class EventServiceProvider implements ServiceProviderInterface {
 		add_action(
 			'wch_cart_marked_abandoned',
 			function ( $cart ) use ( $event_bus ) {
-				if ( ! $cart instanceof \WhatsAppCommerceHub\Entities\Cart ) {
+				if ( ! $cart instanceof \WhatsAppCommerceHub\Domain\Cart\Cart ) {
 					return;
 				}
 
@@ -256,7 +256,7 @@ class EventServiceProvider implements ServiceProviderInterface {
 		add_action(
 			'wch_cart_recovered',
 			function ( $cart, $order_id ) use ( $event_bus ) {
-				if ( ! $cart instanceof \WhatsAppCommerceHub\Entities\Cart ) {
+				if ( ! $cart instanceof \WhatsAppCommerceHub\Domain\Cart\Cart ) {
 					return;
 				}
 

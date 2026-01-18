@@ -9,7 +9,7 @@
 
 namespace WhatsAppCommerceHub\Tests\Factories;
 
-use WhatsAppCommerceHub\Entities\Cart;
+use WhatsAppCommerceHub\Domain\Cart\Cart;
 use WhatsAppCommerceHub\Entities\CartItem;
 
 /**
