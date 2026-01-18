@@ -145,7 +145,8 @@ class EventServiceProvider implements ServiceProviderInterface {
 		}
 
 		// Hook into WordPress for async event processing.
-		add_action( 'wch_process_async_event', [ $this, 'processAsyncEvent' ], 10, 2 );
+		// Note: Receives 1 arg (wrapped v2 payload) not 2 separate args.
+		add_action( 'wch_process_async_event', [ $this, 'processAsyncEvent' ], 10, 1 );
 
 		// Register WordPress hooks for event dispatch.
 		$this->registerWordPressHooks( $event_bus );
@@ -154,13 +155,36 @@ class EventServiceProvider implements ServiceProviderInterface {
 	/**
 	 * Process an async event from Action Scheduler.
 	 *
-	 * Uses the EventBus's native processAsyncEvent() method which handles
-	 * array-based event data directly, avoiding complex event reconstruction.
+	 * Receives a wrapped v2 payload containing [$event_name, $event_data] and
+	 * uses EventBus's native processAsyncEvent() method to handle the event.
 	 *
-	 * @param string $event_name The event name (e.g., 'wch.cart.abandoned').
-	 * @param array  $event_data The serialized event data from Event::toArray().
+	 * @param array $payload Wrapped v2 payload containing event name and data.
 	 */
-	public function processAsyncEvent( string $event_name, array $event_data ): void {
+	public function processAsyncEvent( array $payload ): void {
+		// Unwrap v2 payload to extract event name and data.
+		if ( isset( $payload['_wch_version'] ) && 2 === (int) $payload['_wch_version'] ) {
+			$args = $payload['args'] ?? [];
+		} else {
+			// Legacy format - assume direct args.
+			$args = $payload;
+		}
+
+		// Validate we have both event name and data.
+		if ( ! isset( $args[0] ) || ! isset( $args[1] ) || ! is_string( $args[0] ) || ! is_array( $args[1] ) ) {
+			do_action(
+				'wch_log_error',
+				'Invalid async event payload structure',
+				[
+					'payload_keys' => array_keys( $payload ),
+					'args_count'   => is_array( $args ) ? count( $args ) : 0,
+				]
+			);
+			return;
+		}
+
+		$event_name = $args[0];
+		$event_data = $args[1];
+
 		try {
 			$event_bus = wch_get_container()->get( EventBus::class );
 

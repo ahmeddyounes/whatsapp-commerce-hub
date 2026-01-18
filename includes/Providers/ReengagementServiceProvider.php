@@ -191,12 +191,15 @@ class ReengagementServiceProvider extends AbstractServiceProvider {
 	/**
 	 * Handle send message job.
 	 *
-	 * @param array $args Job arguments.
+	 * @param array $args Job arguments (may be wrapped v2 payload).
 	 * @return void
 	 */
 	public function handleSendMessage( array $args ): void {
+		// Unwrap v2 payload format if present.
+		$unwrapped = $this->unwrapPayload( $args );
+
 		$orchestrator = $this->container->get( ReengagementOrchestratorInterface::class );
-		$orchestrator->sendMessage( $args );
+		$orchestrator->sendMessage( $unwrapped );
 	}
 
 	/**
@@ -207,6 +210,43 @@ class ReengagementServiceProvider extends AbstractServiceProvider {
 	public function handleCheckBackInStock(): void {
 		$productTracking = $this->container->get( ProductTrackingServiceInterface::class );
 		$productTracking->processBackInStockNotifications();
+	}
+
+	/**
+	 * Unwrap queue payload (v2 format support).
+	 *
+	 * Handles both wrapped v2 payloads and legacy unwrapped payloads.
+	 *
+	 * @param array $payload The job payload (may be wrapped).
+	 * @return array The unwrapped user args.
+	 */
+	private function unwrapPayload( array $payload ): array {
+		// Check if this is a v2 wrapped payload.
+		if ( isset( $payload['_wch_version'] ) && 2 === (int) $payload['_wch_version'] ) {
+			// Log wrapped payload for debugging.
+			do_action(
+				'wch_log_debug',
+				'[ReengagementServiceProvider] Unwrapping v2 payload',
+				[
+					'has_args'    => isset( $payload['args'] ),
+					'has_meta'    => isset( $payload['_wch_meta'] ),
+					'meta_keys'   => isset( $payload['_wch_meta'] ) ? array_keys( $payload['_wch_meta'] ) : [],
+				]
+			);
+
+			return $payload['args'] ?? [];
+		}
+
+		// Legacy unwrapped payload or unexpected format - return as-is.
+		do_action(
+			'wch_log_debug',
+			'[ReengagementServiceProvider] Using legacy/unwrapped payload',
+			[
+				'payload_keys' => array_keys( $payload ),
+			]
+		);
+
+		return $payload;
 	}
 
 }

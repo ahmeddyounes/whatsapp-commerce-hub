@@ -145,8 +145,33 @@ class InventorySyncService {
 
 	/**
 	 * Process debounced stock sync
+	 *
+	 * @param array $args Job arguments (wrapped payload containing product_id).
 	 */
-	public function processStockSync( int $productId ): void {
+	public function processStockSync( array $args ): void {
+		// Unwrap v2 payload format if present.
+		if ( isset( $args['_wch_version'] ) && 2 === (int) $args['_wch_version'] ) {
+			$this->logger->debug(
+				'Unwrapping v2 payload for stock sync',
+				[
+					'has_args' => isset( $args['args'] ),
+					'has_meta' => isset( $args['_wch_meta'] ),
+				]
+			);
+			$args = $args['args'] ?? [];
+		}
+
+		// Extract product_id from args.
+		$productId = $args['product_id'] ?? null;
+
+		if ( ! $productId ) {
+			$this->logger->error(
+				'Missing product_id in stock sync payload',
+				[ 'payload_keys' => array_keys( $args ) ]
+			);
+			return;
+		}
+
 		$transientKey = self::DEBOUNCE_TRANSIENT_PREFIX . $productId;
 		$syncData     = get_transient( $transientKey );
 

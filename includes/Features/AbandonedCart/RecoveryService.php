@@ -143,9 +143,21 @@ class RecoveryService {
 	/**
 	 * Process recovery message job
 	 *
-	 * @param array<string, mixed> $args Job arguments containing cart_id and sequence
+	 * @param array<string, mixed> $args Job arguments (may be wrapped v2 payload) containing cart_id and sequence
 	 */
 	public function processRecoveryMessage( array $args ): void {
+		// Unwrap v2 payload format if present.
+		if ( isset( $args['_wch_version'] ) && 2 === (int) $args['_wch_version'] ) {
+			$this->logger->debug(
+				'Unwrapping v2 payload for recovery message',
+				[
+					'has_args' => isset( $args['args'] ),
+					'has_meta' => isset( $args['_wch_meta'] ),
+				]
+			);
+			$args = $args['args'] ?? [];
+		}
+
 		$cartId   = $args['cart_id'] ?? null;
 		$sequence = $args['sequence'] ?? null;
 
