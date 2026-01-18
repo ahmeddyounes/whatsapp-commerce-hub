@@ -396,19 +396,28 @@ register_deactivation_hook( __FILE__, 'wch_deactivate_plugin' );
  * Priority 20 ensures it runs after WooCommerce (priority 10), allowing
  * us to safely access WooCommerce functionality during initialization.
  *
+ * BOOTSTRAP PROCESS:
+ * 1. Check requirements (PHP/WP/WC versions)
+ * 2. If requirements not met: show admin notice and exit (no container/hooks)
+ * 3. If requirements met: initialize container and plugin class
+ *
  * @since 1.0.0
  * @return void
  */
 function wch_init_plugin() {
-	// Check requirements again before initializing.
+	// Check requirements BEFORE container boot.
+	// This ensures no WooCommerce-dependent services or hooks are registered
+	// when requirements are not met.
 	$requirements = wch_check_requirements();
 
 	if ( is_wp_error( $requirements ) ) {
 		// Show admin notice if requirements not met.
+		// Do NOT initialize container or register any hooks.
 		add_action( 'admin_notices', 'wch_requirements_notice' );
 		return;
 	}
 
+	// Requirements met - safe to boot container and register hooks.
 	// Initialize the DI container.
 	// This sets up all services, repositories, and providers.
 	wch_get_container();
