@@ -1,0 +1,14 @@
+[main b8bdd5c] C02-05: implement
+ 21 files changed, 2041 insertions(+), 87 deletions(-)
+ create mode 100644 .logs/C02-04.gitcommit.txt
+ create mode 100644 .logs/C02-05.claude.impl.last.md
+ create mode 100644 .logs/C02-05.claude.impl.raw.txt
+ create mode 100644 .logs/C02-05.implementation-summary.md
+ create mode 100644 .plans/C02-05.md
+ create mode 100644 .t2/handoff/C02-05.md
+ create mode 100644 docs/product-sync-architecture.md
+ create mode 100644 docs/product-sync-quick-reference.md
+ create mode 100644 includes/Contracts/Services/ProductSync/ProductSyncMetadata.php
+ create mode 100644 includes/Contracts/Services/ProductSync/ProductSyncSettings.php
+ create mode 100644 includes/Contracts/Services/ProductSync/ProductSyncStatus.php
+

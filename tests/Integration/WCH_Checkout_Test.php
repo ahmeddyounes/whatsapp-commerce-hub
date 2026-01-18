@@ -5,7 +5,7 @@
  * @package WhatsApp_Commerce_Hub
  */
 
-use WhatsAppCommerceHub\Contracts\Checkout\CheckoutOrchestratorInterface;
+use WhatsAppCommerceHub\Contracts\Services\Checkout\CheckoutOrchestratorInterface;
 
 /**
  * Test CheckoutOrchestrator integration.

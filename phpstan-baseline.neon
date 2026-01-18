@@ -811,31 +811,6 @@ parameters:
 			path: includes/Checkout/AbstractStep.php
 
 		-
-			message: "#^Call to an undefined method WhatsAppCommerceHub\\\\Contracts\\\\Services\\\\CustomerServiceInterface\\:\\:getProfile\\(\\)\\.$#"
-			count: 1
-			path: includes/Checkout/CheckoutOrchestrator.php
-
-		-
-			message: "#^Parameter \\#2 \\$context of static method WCH_Logger\\:\\:error\\(\\) expects array, string given\\.$#"
-			count: 1
-			path: includes/Checkout/CheckoutOrchestrator.php
-
-		-
-			message: "#^Parameter \\#2 \\$context of static method WCH_Logger\\:\\:info\\(\\) expects array, string given\\.$#"
-			count: 1
-			path: includes/Checkout/CheckoutOrchestrator.php
-
-		-
-			message: "#^Static method WCH_Logger\\:\\:error\\(\\) invoked with 3 parameters, 1\\-2 required\\.$#"
-			count: 1
-			path: includes/Checkout/CheckoutOrchestrator.php
-
-		-
-			message: "#^Static method WCH_Logger\\:\\:info\\(\\) invoked with 3 parameters, 1\\-2 required\\.$#"
-			count: 1
-			path: includes/Checkout/CheckoutOrchestrator.php
-
-		-
 			message: "#^Call to an undefined method WCH_Order_Sync_Service\\:\\:create_order_from_cart\\(\\)\\.$#"
 			count: 1
 			path: includes/Checkout/Steps/ConfirmationStep.php

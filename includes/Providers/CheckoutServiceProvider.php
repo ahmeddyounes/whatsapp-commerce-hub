@@ -132,6 +132,22 @@ class CheckoutServiceProvider extends AbstractServiceProvider {
 			}
 		);
 
+		// Alias for convenience (used by BusinessServiceProvider consumers).
+		$this->container->singleton(
+			'wch.checkout',
+			function ( $container ) {
+				return $container->get( CheckoutOrchestratorInterface::class );
+			}
+		);
+
+		// Concrete class alias.
+		$this->container->singleton(
+			CheckoutOrchestrator::class,
+			function ( $container ) {
+				return $container->get( CheckoutOrchestratorInterface::class );
+			}
+		);
+
 	}
 
 	/**
@@ -159,6 +175,8 @@ class CheckoutServiceProvider extends AbstractServiceProvider {
 			CheckoutTotalsCalculatorInterface::class,
 			CouponHandlerInterface::class,
 			CheckoutOrchestratorInterface::class,
+			CheckoutOrchestrator::class,
+			'wch.checkout',
 		];
 	}
 

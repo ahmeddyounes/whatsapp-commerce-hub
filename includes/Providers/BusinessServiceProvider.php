@@ -18,7 +18,6 @@ use WhatsAppCommerceHub\Contracts\Services\CartServiceInterface;
 use WhatsAppCommerceHub\Contracts\Services\CustomerServiceInterface;
 use WhatsAppCommerceHub\Contracts\Services\AddressServiceInterface;
 use WhatsAppCommerceHub\Contracts\Services\CatalogSyncServiceInterface;
-use WhatsAppCommerceHub\Contracts\Checkout\CheckoutOrchestratorInterface;
 use WhatsAppCommerceHub\Contracts\Payments\PaymentGatewayRegistryInterface;
 use WhatsAppCommerceHub\Contracts\Repositories\CartRepositoryInterface;
 use WhatsAppCommerceHub\Contracts\Repositories\CustomerRepositoryInterface;
@@ -31,7 +30,6 @@ use WhatsAppCommerceHub\Features\AbandonedCart\RecoveryService;
 use WhatsAppCommerceHub\Infrastructure\Configuration\SettingsManager;
 use WhatsAppCommerceHub\Infrastructure\Queue\QueueManager;
 use WhatsAppCommerceHub\Payments\PaymentGatewayRegistry;
-use WhatsAppCommerceHub\Checkout\CheckoutOrchestrator;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -122,32 +120,8 @@ class BusinessServiceProvider implements ServiceProviderInterface {
 			static fn( ContainerInterface $c ) => $c->get( MessageBuilderFactory::class )
 		);
 
-		// Register Checkout Orchestrator.
-		$container->singleton(
-			CheckoutOrchestratorInterface::class,
-			static fn( ContainerInterface $c ) => new CheckoutOrchestrator(
-				$c->get( CartServiceInterface::class ),
-				$c->get( CustomerServiceInterface::class ),
-				$c->get( MessageBuilderFactory::class ),
-				$c->get( AddressServiceInterface::class ),
-				$c->has( CartRepositoryInterface::class ) ? $c->get( CartRepositoryInterface::class ) : null,
-				$c->has( \WhatsAppCommerceHub\Contracts\Services\OrderSyncServiceInterface::class )
-					? $c->get( \WhatsAppCommerceHub\Contracts\Services\OrderSyncServiceInterface::class )
-					: null
-			)
-		);
-
-		// Alias for convenience.
-		$container->singleton(
-			CheckoutOrchestrator::class,
-			static fn( ContainerInterface $c ) => $c->get( CheckoutOrchestratorInterface::class )
-		);
-
-		// Convenience alias.
-		$container->singleton(
-			'wch.checkout',
-			static fn( ContainerInterface $c ) => $c->get( CheckoutOrchestratorInterface::class )
-		);
+		// Note: Checkout orchestrator is now registered in CheckoutServiceProvider.
+		// The 'wch.checkout' alias points to the Application\Services\Checkout\CheckoutOrchestrator.
 
 		// Register Catalog Sync Service.
 		$container->singleton(
@@ -249,9 +223,6 @@ class BusinessServiceProvider implements ServiceProviderInterface {
 			'wch.address',
 			MessageBuilderFactory::class,
 			'wch.message_builder',
-			CheckoutOrchestratorInterface::class,
-			CheckoutOrchestrator::class,
-			'wch.checkout',
 			CatalogSyncServiceInterface::class,
 			CatalogSyncService::class,
 			'wch.catalog_sync',

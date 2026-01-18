@@ -38,7 +38,7 @@ class WCH_E2E_Conversation_Test extends WCH_Integration_Test_Case {
 	/**
 	 * Checkout orchestrator instance.
 	 *
-	 * @var \WhatsAppCommerceHub\Contracts\Checkout\CheckoutOrchestratorInterface
+	 * @var \WhatsAppCommerceHub\Contracts\Services\Checkout\CheckoutOrchestratorInterface
 	 */
 	private $checkout;
 
