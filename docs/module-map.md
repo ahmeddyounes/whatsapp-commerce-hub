@@ -452,6 +452,8 @@ None (provides on-demand health checks)
 ## Related Documentation
 
 - [Boot Sequence](boot-sequence.md) - Plugin initialization flow
+- [Webhooks Ingestion Pipeline](webhooks-ingestion-pipeline.md) - Complete webhook flow documentation
+- [Queue System](queue-system.md) - Priority queue and payload format details
 - [API Reference](api-reference.md) - REST API endpoints
 - [Hooks Reference](hooks-reference.md) - WordPress actions and filters
 - [Architecture Improvement Plan](architecture-improvement-plan.md) - Planned enhancements
