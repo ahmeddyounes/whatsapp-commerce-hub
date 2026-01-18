@@ -126,20 +126,50 @@ class Container implements ContainerInterface {
 	 * {@inheritdoc}
 	 */
 	public function bind( string $abstract, callable|string|null $concrete = null, bool $shared = false ): void {
-		// Dev-only: Detect duplicate alias registrations.
+		// Dev-only: Detect accidental binding overrides.
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG && isset( $this->bindings[ $abstract ] ) ) {
-			// Only warn about string aliases (not class/interface rebindings).
-			if ( is_string( $abstract ) && ! class_exists( $abstract ) && ! interface_exists( $abstract ) ) {
-				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_trigger_error
-				trigger_error(
-					sprintf(
-						'Container binding collision detected: alias "%s" is being re-registered. ' .
-						'First binding will be overwritten. Check your service providers for duplicate aliases.',
-						$abstract
-					),
-					E_USER_WARNING
-				);
+			$existing = $this->bindings[ $abstract ];
+			$is_class = class_exists( $abstract );
+			$is_interface = interface_exists( $abstract );
+
+			// Build warning message with context.
+			$warning_parts = [
+				sprintf( 'Container binding override detected: "%s" is being re-registered.', $abstract ),
+			];
+
+			// Add type context.
+			if ( $is_interface ) {
+				$warning_parts[] = 'This is an interface binding.';
+			} elseif ( $is_class ) {
+				$warning_parts[] = 'This is a class binding.';
+			} else {
+				$warning_parts[] = 'This is an alias binding.';
 			}
+
+			// Add previous binding info.
+			$prev_concrete = $existing['concrete'];
+			if ( $prev_concrete instanceof \Closure ) {
+				$warning_parts[] = sprintf( 'Previous: Closure (%s)', $existing['shared'] ? 'singleton' : 'transient' );
+			} elseif ( is_string( $prev_concrete ) ) {
+				$warning_parts[] = sprintf( 'Previous: "%s" (%s)', $prev_concrete, $existing['shared'] ? 'singleton' : 'transient' );
+			}
+
+			// Add new binding info.
+			$new_concrete = $concrete ?? $abstract;
+			if ( $new_concrete instanceof \Closure ) {
+				$warning_parts[] = sprintf( 'New: Closure (%s)', $shared ? 'singleton' : 'transient' );
+			} elseif ( is_string( $new_concrete ) ) {
+				$warning_parts[] = sprintf( 'New: "%s" (%s)', $new_concrete, $shared ? 'singleton' : 'transient' );
+			}
+
+			$warning_parts[] = 'The previous binding will be overwritten.';
+			$warning_parts[] = 'Check your service providers for duplicate registrations.';
+
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_trigger_error
+			trigger_error(
+				implode( ' ', $warning_parts ),
+				E_USER_WARNING
+			);
 		}
 
 		// Remove any existing instance if rebinding.
@@ -162,6 +192,27 @@ class Container implements ContainerInterface {
 	 * {@inheritdoc}
 	 */
 	public function instance( string $abstract, mixed $instance ): mixed {
+		// Dev-only: Detect accidental instance overrides.
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG && isset( $this->instances[ $abstract ] ) ) {
+			$prev_instance = $this->instances[ $abstract ];
+			$prev_type = is_object( $prev_instance ) ? get_class( $prev_instance ) : gettype( $prev_instance );
+			$new_type = is_object( $instance ) ? get_class( $instance ) : gettype( $instance );
+
+			$warning_parts = [
+				sprintf( 'Container instance override detected: "%s" is being re-registered.', $abstract ),
+				sprintf( 'Previous instance type: %s', $prev_type ),
+				sprintf( 'New instance type: %s', $new_type ),
+				'The previous instance will be replaced.',
+				'Check your service providers for duplicate instance registrations.',
+			];
+
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_trigger_error
+			trigger_error(
+				implode( ' ', $warning_parts ),
+				E_USER_WARNING
+			);
+		}
+
 		$this->instances[ $abstract ] = $instance;
 		return $instance;
 	}
@@ -453,6 +504,34 @@ class Container implements ContainerInterface {
 	 * @return void
 	 */
 	public function alias( string $abstract, string $alias ): void {
+		// Dev-only: Detect accidental alias overrides.
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG && isset( $this->bindings[ $alias ] ) ) {
+			$existing = $this->bindings[ $alias ];
+			$prev_concrete = $existing['concrete'];
+
+			$warning_parts = [
+				sprintf( 'Container alias override detected: "%s" is being re-registered.', $alias ),
+			];
+
+			// Add previous alias info.
+			if ( $prev_concrete instanceof \Closure ) {
+				$warning_parts[] = sprintf( 'Previous: Closure (%s)', $existing['shared'] ? 'singleton' : 'transient' );
+			} elseif ( is_string( $prev_concrete ) ) {
+				$warning_parts[] = sprintf( 'Previous: "%s" (%s)', $prev_concrete, $existing['shared'] ? 'singleton' : 'transient' );
+			}
+
+			// Add new alias info.
+			$warning_parts[] = sprintf( 'New: "%s" (alias)', $abstract );
+			$warning_parts[] = 'The previous binding will be overwritten.';
+			$warning_parts[] = 'Check your service providers for duplicate alias registrations.';
+
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_trigger_error
+			trigger_error(
+				implode( ' ', $warning_parts ),
+				E_USER_WARNING
+			);
+		}
+
 		$this->bindings[ $alias ] = [
 			'concrete' => $abstract,
 			'shared'   => false, // Alias doesn't affect sharing, uses the target's setting.
