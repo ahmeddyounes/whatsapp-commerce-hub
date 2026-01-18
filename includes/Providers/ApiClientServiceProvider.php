@@ -18,6 +18,7 @@ use WhatsAppCommerceHub\Container\ContainerInterface;
 use WhatsAppCommerceHub\Container\ServiceProviderInterface;
 use WhatsAppCommerceHub\Contracts\Clients\WhatsAppClientInterface;
 use WhatsAppCommerceHub\Contracts\Clients\OpenAIClientInterface;
+use WhatsAppCommerceHub\Contracts\Services\SettingsInterface;
 use WhatsAppCommerceHub\Clients\WhatsAppApiClient;
 use WhatsAppCommerceHub\Clients\OpenAIClient;
 use WhatsAppCommerceHub\Resilience\CircuitBreakerRegistry;
@@ -41,42 +42,16 @@ class ApiClientServiceProvider implements ServiceProviderInterface {
 	 * @return void
 	 */
 	public function register( ContainerInterface $container ): void {
-		// Register WhatsApp API Client.
-		$container->singleton(
-			'wch.whatsapp.client',
-			static function ( ContainerInterface $c ) {
-				try {
-					return $c->get( WhatsAppApiClient::class );
-				} catch ( \Throwable ) {
-					return null;
-				}
-			}
-		);
-
-		// Register OpenAI Client.
-		$container->singleton(
-			'wch.openai.client',
-			static function ( ContainerInterface $c ) {
-				try {
-					return $c->get( OpenAIClient::class );
-				} catch ( \Throwable ) {
-					return null;
-				}
-			}
-		);
-
-		// Register new WhatsApp Client with CircuitBreaker (interface binding).
+		// Register WhatsApp Client with CircuitBreaker (interface binding).
 		$container->singleton(
 			WhatsAppClientInterface::class,
 			static function ( ContainerInterface $c ) {
-				// Note: wch.settings is deprecated, but still works via LegacySettingsAdapter.
-				// Future: Use SettingsInterface->getApiCredentials() instead.
-				$settings        = $c->get( 'wch.settings' );
-				$phone_number_id = $settings['phone_number_id'] ?? '';
-				$access_token    = $settings['access_token'] ?? '';
+				$settings        = $c->get( SettingsInterface::class );
+				$phone_number_id = $settings->get( 'api.whatsapp_phone_number_id', '' );
+				$access_token    = $settings->get( 'api.access_token', '' );
 
 				if ( empty( $phone_number_id ) || empty( $access_token ) ) {
-					throw new \RuntimeException( 'WhatsApp API credentials not configured' );
+					throw new \RuntimeException( 'WhatsApp API credentials not configured. Set api.whatsapp_phone_number_id and api.access_token in settings.' );
 				}
 
 				$registry        = $c->get( CircuitBreakerRegistry::class );
@@ -100,13 +75,11 @@ class ApiClientServiceProvider implements ServiceProviderInterface {
 		$container->singleton(
 			OpenAIClientInterface::class,
 			static function ( ContainerInterface $c ) {
-				// Note: wch.settings is deprecated, but still works via LegacySettingsAdapter.
-				// Future: Use SettingsInterface->get('ai.openai_api_key') instead.
-				$settings = $c->get( 'wch.settings' );
-				$api_key  = $settings['openai_api_key'] ?? '';
+				$settings = $c->get( SettingsInterface::class );
+				$api_key  = $settings->get( 'ai.openai_api_key', '' );
 
 				if ( empty( $api_key ) ) {
-					throw new \RuntimeException( 'OpenAI API key not configured' );
+					throw new \RuntimeException( 'OpenAI API key not configured. Set ai.openai_api_key in settings.' );
 				}
 
 				$registry        = $c->get( CircuitBreakerRegistry::class );
@@ -243,17 +216,16 @@ class ApiClientServiceProvider implements ServiceProviderInterface {
 			'wch.whatsapp.sender',
 			static function ( ContainerInterface $c ) {
 				$http     = $c->get( 'wch.http' );
-				// Note: wch.settings is deprecated, but still works via LegacySettingsAdapter.
-				$settings = $c->get( 'wch.settings' );
+				$settings = $c->get( SettingsInterface::class );
 				$logger   = $c->get( 'wch.logger' );
 
 				return new class( $http, $settings, $logger ) {
 					private object $http;
-					private object $settings;
+					private SettingsInterface $settings;
 					private object $logger;
 					private string $api_url = 'https://graph.facebook.com/v18.0';
 
-					public function __construct( object $http, object $settings, object $logger ) {
+					public function __construct( object $http, SettingsInterface $settings, object $logger ) {
 						$this->http     = $http;
 						$this->settings = $settings;
 						$this->logger   = $logger;
@@ -334,14 +306,14 @@ class ApiClientServiceProvider implements ServiceProviderInterface {
 					 * @return array{success: bool, message_id: string|null, error: string|null}
 					 */
 					private function send( string $to, array $message ): array {
-						$phone_number_id = $this->settings['phone_number_id'] ?? '';
-						$access_token    = $this->settings['access_token'] ?? '';
+						$phone_number_id = $this->settings->get( 'api.whatsapp_phone_number_id', '' );
+						$access_token    = $this->settings->get( 'api.access_token', '' );
 
 						if ( empty( $phone_number_id ) || empty( $access_token ) ) {
 							return [
 								'success'    => false,
 								'message_id' => null,
-								'error'      => 'WhatsApp API not configured',
+								'error'      => 'WhatsApp API not configured. Set api.whatsapp_phone_number_id and api.access_token in settings.',
 							];
 						}
 
@@ -416,8 +388,6 @@ class ApiClientServiceProvider implements ServiceProviderInterface {
 	 */
 	public function provides(): array {
 		return [
-			'wch.whatsapp.client',
-			'wch.openai.client',
 			WhatsAppClientInterface::class,
 			WhatsAppApiClient::class,
 			OpenAIClientInterface::class,

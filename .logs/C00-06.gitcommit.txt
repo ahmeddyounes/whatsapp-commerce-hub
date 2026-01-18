@@ -1,0 +1,11 @@
+[main 777bdfe] C00-06: implement
+ 13 files changed, 878 insertions(+), 39 deletions(-)
+ create mode 100644 .logs/C00-05.gitcommit.txt
+ create mode 100644 .logs/C00-06-implementation.md
+ create mode 100644 .logs/C00-06.claude.impl.last.md
+ create mode 100644 .logs/C00-06.claude.impl.raw.txt
+ create mode 100644 .plans/C00-06.md
+ create mode 100644 .t2/handoff/C00-06.md
+ create mode 100644 docs/SETTINGS-DEPRECATION.md
+ create mode 100644 includes/Infrastructure/Configuration/LegacySettingsAdapter.php
+
