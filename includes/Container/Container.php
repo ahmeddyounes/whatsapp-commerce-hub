@@ -126,6 +126,22 @@ class Container implements ContainerInterface {
 	 * {@inheritdoc}
 	 */
 	public function bind( string $abstract, callable|string|null $concrete = null, bool $shared = false ): void {
+		// Dev-only: Detect duplicate alias registrations.
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG && isset( $this->bindings[ $abstract ] ) ) {
+			// Only warn about string aliases (not class/interface rebindings).
+			if ( is_string( $abstract ) && ! class_exists( $abstract ) && ! interface_exists( $abstract ) ) {
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_trigger_error
+				trigger_error(
+					sprintf(
+						'Container binding collision detected: alias "%s" is being re-registered. ' .
+						'First binding will be overwritten. Check your service providers for duplicate aliases.',
+						$abstract
+					),
+					E_USER_WARNING
+				);
+			}
+		}
+
 		// Remove any existing instance if rebinding.
 		unset( $this->instances[ $abstract ] );
 

@@ -64,7 +64,7 @@ class SagaServiceProvider implements ServiceProviderInterface {
 
 		// Convenience alias.
 		$container->singleton(
-			'wch.checkout',
+			'wch.checkout.saga',
 			static fn( ContainerInterface $c ) => $c->get( CheckoutSaga::class )
 		);
 	}
@@ -132,7 +132,7 @@ class SagaServiceProvider implements ServiceProviderInterface {
 			SagaOrchestrator::class,
 			'wch.saga',
 			CheckoutSaga::class,
-			'wch.checkout',
+			'wch.checkout.saga',
 		];
 	}
 }
