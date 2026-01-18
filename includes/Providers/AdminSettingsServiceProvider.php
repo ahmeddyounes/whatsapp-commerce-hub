@@ -106,11 +106,19 @@ class AdminSettingsServiceProvider extends AbstractServiceProvider {
 	 * @return void
 	 */
 	protected function doBoot(): void {
-		// Only initialize in admin context.
-		if ( is_admin() ) {
-			$controller = $this->container->get( AdminSettingsController::class );
-			$controller->init();
-		}
+		$controller = $this->container->get( AdminSettingsController::class );
+		$controller->init();
+	}
+
+	/**
+	 * Determine if this provider should boot in the current context.
+	 *
+	 * Admin settings should only boot in WordPress admin context or AJAX (for settings saves).
+	 *
+	 * @return bool True if in admin or AJAX context.
+	 */
+	public function shouldBoot(): bool {
+		return $this->isAdmin() || $this->isAjax();
 	}
 
 	/**

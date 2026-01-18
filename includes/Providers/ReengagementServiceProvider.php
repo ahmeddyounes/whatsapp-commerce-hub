@@ -184,6 +184,21 @@ class ReengagementServiceProvider extends AbstractServiceProvider {
 	}
 
 	/**
+	 * Determine if this provider should boot in the current context.
+	 *
+	 * Reengagement services need to boot in:
+	 * - Admin (for UI and manual triggers)
+	 * - Cron (for scheduled campaign processing)
+	 *
+	 * Skip on frontend and REST requests to reduce overhead.
+	 *
+	 * @return bool True if provider should boot.
+	 */
+	public function shouldBoot(): bool {
+		return $this->isAdmin() || $this->isCron();
+	}
+
+	/**
 	 * Get services provided by this provider.
 	 *
 	 * @return array

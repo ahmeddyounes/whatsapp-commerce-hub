@@ -90,11 +90,69 @@ abstract class AbstractServiceProvider implements ServiceProviderInterface {
 	}
 
 	/**
+	 * Determine if this provider should boot in the current context.
+	 *
+	 * Override this method in child classes to implement context-aware boot gating.
+	 * By default, all providers boot in all contexts.
+	 *
+	 * @return bool True if the provider should boot, false otherwise.
+	 */
+	public function shouldBoot(): bool {
+		// Default: boot in all contexts
+		return true;
+	}
+
+	/**
 	 * Get the services provided by this provider.
 	 *
 	 * @return array<string>
 	 */
 	public function provides(): array {
 		return $this->provides;
+	}
+
+	/**
+	 * Check if the current context is the WordPress admin area.
+	 *
+	 * @return bool True if in admin context.
+	 */
+	protected function isAdmin(): bool {
+		return is_admin() && ! $this->isAjax() && ! $this->isCron();
+	}
+
+	/**
+	 * Check if the current context is a REST API request.
+	 *
+	 * @return bool True if REST API request.
+	 */
+	protected function isRest(): bool {
+		return defined( 'REST_REQUEST' ) && REST_REQUEST;
+	}
+
+	/**
+	 * Check if the current context is an AJAX request.
+	 *
+	 * @return bool True if AJAX request.
+	 */
+	protected function isAjax(): bool {
+		return defined( 'DOING_AJAX' ) && DOING_AJAX;
+	}
+
+	/**
+	 * Check if the current context is a cron job.
+	 *
+	 * @return bool True if cron context.
+	 */
+	protected function isCron(): bool {
+		return defined( 'DOING_CRON' ) && DOING_CRON;
+	}
+
+	/**
+	 * Check if the current context is a frontend request.
+	 *
+	 * @return bool True if frontend context.
+	 */
+	protected function isFrontend(): bool {
+		return ! $this->isAdmin() && ! $this->isRest() && ! $this->isCron();
 	}
 }

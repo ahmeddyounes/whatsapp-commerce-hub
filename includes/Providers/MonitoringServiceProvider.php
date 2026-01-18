@@ -29,6 +29,24 @@ if ( ! defined( 'ABSPATH' ) ) {
 class MonitoringServiceProvider implements ServiceProviderInterface {
 
 	/**
+	 * Determine if this provider should boot in the current context.
+	 *
+	 * Monitoring services need to boot in:
+	 * - Admin (for dashboard widget)
+	 * - REST (for health check endpoints)
+	 *
+	 * Skip on frontend and cron to reduce overhead.
+	 *
+	 * @return bool True if provider should boot.
+	 */
+	public function shouldBoot(): bool {
+		$isAdmin = is_admin() && ! ( defined( 'DOING_AJAX' ) && DOING_AJAX ) && ! ( defined( 'DOING_CRON' ) && DOING_CRON );
+		$isRest  = defined( 'REST_REQUEST' ) && REST_REQUEST;
+
+		return $isAdmin || $isRest;
+	}
+
+	/**
 	 * {@inheritdoc}
 	 */
 	public function register( ContainerInterface $container ): void {

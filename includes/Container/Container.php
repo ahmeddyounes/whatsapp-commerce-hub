@@ -177,6 +177,10 @@ class Container implements ContainerInterface {
 	/**
 	 * Boot all registered service providers.
 	 *
+	 * Respects context-aware boot gating by checking shouldBoot() on each provider.
+	 * Providers that return false from shouldBoot() will skip boot initialization,
+	 * reducing overhead and avoiding unintended side effects in inappropriate contexts.
+	 *
 	 * @return void
 	 */
 	public function boot(): void {
@@ -185,6 +189,11 @@ class Container implements ContainerInterface {
 		}
 
 		foreach ( $this->providers as $provider ) {
+			// Check if provider should boot in current context.
+			if ( method_exists( $provider, 'shouldBoot' ) && ! $provider->shouldBoot() ) {
+				continue;
+			}
+
 			$provider->boot( $this );
 		}
 

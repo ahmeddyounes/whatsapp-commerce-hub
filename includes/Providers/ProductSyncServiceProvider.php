@@ -147,7 +147,7 @@ class ProductSyncServiceProvider extends AbstractServiceProvider {
 	 * @return void
 	 */
 	protected function doBoot(): void {
-		// Initialize admin UI hooks.
+		// Initialize admin UI hooks if in admin context.
 		if ( is_admin() ) {
 			$adminUI = $this->container->get( ProductSyncAdminUI::class );
 			$adminUI->init();
@@ -158,6 +158,41 @@ class ProductSyncServiceProvider extends AbstractServiceProvider {
 
 		// Register queue job handlers.
 		$this->registerQueueHandlers();
+	}
+
+	/**
+	 * Determine if this provider should boot in the current context.
+	 *
+	 * Product sync needs to boot in:
+	 * - Admin (for UI and WooCommerce product hooks)
+	 * - Cron (for scheduled batch syncs)
+	 * - Frontend (for WooCommerce product update hooks that may fire there)
+	 *
+	 * Skip on pure REST API requests to reduce overhead.
+	 *
+	 * @return bool True if provider should boot.
+	 */
+	public function shouldBoot(): bool {
+		// Don't boot on REST requests (except WooCommerce REST API which may trigger product updates)
+		if ( $this->isRest() && ! $this->isWooCommerceRestRequest() ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check if current request is a WooCommerce REST API request.
+	 *
+	 * @return bool True if WooCommerce REST request.
+	 */
+	private function isWooCommerceRestRequest(): bool {
+		if ( ! $this->isRest() ) {
+			return false;
+		}
+
+		$rest_route = $_SERVER['REQUEST_URI'] ?? '';
+		return strpos( $rest_route, '/wc/' ) !== false;
 	}
 
 	/**

@@ -156,11 +156,26 @@ class BroadcastsServiceProvider extends AbstractServiceProvider {
 			1
 		);
 
-		// Only initialize in admin context.
+		// Initialize admin UI if in admin context.
 		if ( is_admin() ) {
 			$controller = $this->container->get( AdminBroadcastsController::class );
 			$controller->init();
 		}
+	}
+
+	/**
+	 * Determine if this provider should boot in the current context.
+	 *
+	 * Broadcasts services need to boot in:
+	 * - Admin (for broadcast UI and campaign management)
+	 * - Cron (for batch sending via Action Scheduler)
+	 *
+	 * Skip on frontend and REST requests to reduce overhead.
+	 *
+	 * @return bool True if provider should boot.
+	 */
+	public function shouldBoot(): bool {
+		return $this->isAdmin() || $this->isCron();
 	}
 
 	/**

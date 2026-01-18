@@ -33,100 +33,99 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * Provides admin UI services including pages and dashboard widgets.
  */
-class AdminServiceProvider implements ServiceProviderInterface {
+class AdminServiceProvider extends AbstractServiceProvider {
 
 	/**
 	 * Register services.
 	 *
-	 * @param ContainerInterface $container The DI container.
 	 * @return void
 	 */
-	public function register( ContainerInterface $container ): void {
+	protected function doRegister(): void {
 		// Register Logs Page.
-		$container->singleton(
+		$this->container->singleton(
 			LogsPage::class,
 			static fn() => new LogsPage()
 		);
 
 		// Register Jobs Page.
-		$container->singleton(
+		$this->container->singleton(
 			JobsPage::class,
 			static fn() => new JobsPage()
 		);
 
 		// Register Inbox Page.
-		$container->singleton(
+		$this->container->singleton(
 			InboxPage::class,
 			static fn() => new InboxPage()
 		);
 
 		// Register Analytics Page.
-		$container->singleton(
+		$this->container->singleton(
 			AnalyticsPage::class,
 			static fn() => new AnalyticsPage()
 		);
 
 		// Register Templates Page.
-		$container->singleton(
+		$this->container->singleton(
 			TemplatesPage::class,
 			static fn() => new TemplatesPage()
 		);
 
 		// Register Catalog Sync Page.
-		$container->singleton(
+		$this->container->singleton(
 			CatalogSyncPage::class,
 			static fn() => new CatalogSyncPage()
 		);
 
 		// Register Diagnostics Page.
-		$container->singleton(
+		$this->container->singleton(
 			DiagnosticsPage::class,
 			static fn() => new DiagnosticsPage()
 		);
 
 		// Register Dashboard Widgets.
-		$container->singleton(
+		$this->container->singleton(
 			DashboardWidgets::class,
 			static fn() => new DashboardWidgets()
 		);
 
 		// Convenience aliases.
-		$container->singleton(
+		$this->container->singleton(
 			'wch.admin.logs',
 			static fn( ContainerInterface $c ) => $c->get( LogsPage::class )
 		);
 
-		$container->singleton(
+		$this->container->singleton(
 			'wch.admin.jobs',
 			static fn( ContainerInterface $c ) => $c->get( JobsPage::class )
 		);
 
-		$container->singleton(
+		$this->container->singleton(
 			'wch.admin.inbox',
 			static fn( ContainerInterface $c ) => $c->get( InboxPage::class )
 		);
 
-		$container->singleton(
+		$this->container->singleton(
 			'wch.admin.analytics',
 			static fn( ContainerInterface $c ) => $c->get( AnalyticsPage::class )
 		);
 
-		$container->singleton(
+		$this->container->singleton(
 			'wch.admin.templates',
 			static fn( ContainerInterface $c ) => $c->get( TemplatesPage::class )
 		);
 
-		$container->singleton(
+		$this->container->singleton(
 			'wch.admin.catalog_sync',
 			static fn( ContainerInterface $c ) => $c->get( CatalogSyncPage::class )
 		);
 
-		$container->singleton(
+		$this->container->singleton(
 			'wch.admin.diagnostics',
 			static fn( ContainerInterface $c ) => $c->get( DiagnosticsPage::class )
 		);
 
-		$container->singleton(
+		$this->container->singleton(
 			'wch.admin.dashboard_widgets',
 			static fn( ContainerInterface $c ) => $c->get( DashboardWidgets::class )
 		);
@@ -135,35 +134,29 @@ class AdminServiceProvider implements ServiceProviderInterface {
 	/**
 	 * Boot services.
 	 *
-	 * @param ContainerInterface $container The DI container.
 	 * @return void
 	 */
-	public function boot( ContainerInterface $container ): void {
-		// Only initialize admin pages in the admin context.
-		if ( ! is_admin() ) {
-			return;
-		}
-
+	protected function doBoot(): void {
 		// Initialize all admin pages.
-		$container->get( LogsPage::class )->init();
-		$container->get( JobsPage::class )->init();
-		$container->get( InboxPage::class )->init();
-		$container->get( AnalyticsPage::class )->init();
-		$container->get( TemplatesPage::class )->init();
-		$container->get( CatalogSyncPage::class )->init();
-		$container->get( DiagnosticsPage::class )->init();
-		$container->get( DashboardWidgets::class )->init();
+		$this->container->get( LogsPage::class )->init();
+		$this->container->get( JobsPage::class )->init();
+		$this->container->get( InboxPage::class )->init();
+		$this->container->get( AnalyticsPage::class )->init();
+		$this->container->get( TemplatesPage::class )->init();
+		$this->container->get( CatalogSyncPage::class )->init();
+		$this->container->get( DiagnosticsPage::class )->init();
+		$this->container->get( DashboardWidgets::class )->init();
 	}
 
 	/**
-	 * Get the service providers this provider depends on.
+	 * Determine if this provider should boot in the current context.
 	 *
-	 * @return array<class-string<\WhatsAppCommerceHub\Container\ServiceProviderInterface>>
+	 * Admin pages should only boot in WordPress admin context.
+	 *
+	 * @return bool True if in admin context.
 	 */
-	public function dependsOn(): array {
-		return [
-			\WhatsAppCommerceHub\Providers\CoreServiceProvider::class,
-		];
+	public function shouldBoot(): bool {
+		return $this->isAdmin();
 	}
 
 	/**

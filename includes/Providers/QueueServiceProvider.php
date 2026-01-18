@@ -150,6 +150,25 @@ class QueueServiceProvider implements ServiceProviderInterface {
 	}
 
 	/**
+	 * Determine if this provider should boot in the current context.
+	 *
+	 * Queue services need to boot in all contexts except pure frontend requests,
+	 * since they handle webhook processing, admin job monitoring, and cron execution.
+	 *
+	 * @return bool True if provider should boot.
+	 */
+	public function shouldBoot(): bool {
+		// Skip on frontend requests - queues not needed for customer-facing pages
+		$isAdmin = is_admin() && ! ( defined( 'DOING_AJAX' ) && DOING_AJAX ) && ! ( defined( 'DOING_CRON' ) && DOING_CRON );
+		$isRest  = defined( 'REST_REQUEST' ) && REST_REQUEST;
+		$isCron  = defined( 'DOING_CRON' ) && DOING_CRON;
+		$isAjax  = defined( 'DOING_AJAX' ) && DOING_AJAX;
+
+		// Boot if in admin, REST, cron, or AJAX context
+		return $isAdmin || $isRest || $isCron || $isAjax;
+	}
+
+	/**
 	 * Boot services.
 	 *
 	 * @param ContainerInterface $container The DI container.
