@@ -1,0 +1,10 @@
+[main 928c19c] C02-09: implement
+ 15 files changed, 1196 insertions(+), 91 deletions(-)
+ create mode 100644 .logs/C02-08.gitcommit.txt
+ create mode 100644 .logs/C02-09.claude.impl.last.md
+ create mode 100644 .logs/C02-09.claude.impl.raw.txt
+ create mode 100644 .plans/C02-09.md
+ create mode 100644 .t2/handoff/C02-09.md
+ create mode 100644 includes/Application/Services/Reengagement/JOBS_DOCUMENTATION.md
+ create mode 100644 tests/Unit/Services/Reengagement/ReengagementOrchestratorTest.php
+
