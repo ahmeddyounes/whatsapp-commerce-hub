@@ -195,9 +195,10 @@ Objective: “plugin can boot in all contexts with one consistent initialization
   - Audit all Action Scheduler hooks to ensure callback signatures match actual scheduled payload format.
 
 Deliverables:
-- A single “boot path” diagram in docs.
+- A single "boot path" diagram in docs.
 - A migration list of required tables with ownership.
 - A settings schema document that matches the code.
+- ✅ ADR-001: Canonical Model Layer decision documented
 
 ### Phase 1 — Remove duplication and define canonical models
 
@@ -215,7 +216,7 @@ Objective: “clear boundaries and canonical representations for core concepts.�
   - Remove ad-hoc “anonymous logger” variants where possible.
 
 Deliverables:
-- “Canonical model” decisions (ADR-style notes).
+- ✅ "Canonical model" decisions documented in ADR-001 (see `docs/adr-001-canonical-model-layer.md`)
 - A small PHPStan rule set that forbids WordPress calls in Domain.
 
 ### Phase 2 — Feature modularity & explicit dependencies

@@ -65,6 +65,11 @@ For detailed installation instructions, see [Installation Guide](installation.md
 - **[API Reference](api-reference.md)**: REST API endpoints, authentication, and examples
 - **[Hooks Reference](hooks-reference.md)**: WordPress actions and filters for customization
 - **[Extending the Plugin](extending.md)**: Build custom intents, payment gateways, and add-ons
+- **[Architecture Improvement Plan](architecture-improvement-plan.md)**: Roadmap for architectural enhancements
+
+### Architecture Decision Records (ADRs)
+
+- **[ADR-001: Canonical Model Layer](adr-001-canonical-model-layer.md)**: Decision on Domain vs Entities/ValueObjects ownership
 
 ## Core Concepts
 
