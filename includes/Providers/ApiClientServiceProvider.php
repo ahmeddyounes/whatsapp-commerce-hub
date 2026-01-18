@@ -69,6 +69,8 @@ class ApiClientServiceProvider implements ServiceProviderInterface {
 		$container->singleton(
 			WhatsAppClientInterface::class,
 			static function ( ContainerInterface $c ) {
+				// Note: wch.settings is deprecated, but still works via LegacySettingsAdapter.
+				// Future: Use SettingsInterface->getApiCredentials() instead.
 				$settings        = $c->get( 'wch.settings' );
 				$phone_number_id = $settings['phone_number_id'] ?? '';
 				$access_token    = $settings['access_token'] ?? '';
@@ -98,6 +100,8 @@ class ApiClientServiceProvider implements ServiceProviderInterface {
 		$container->singleton(
 			OpenAIClientInterface::class,
 			static function ( ContainerInterface $c ) {
+				// Note: wch.settings is deprecated, but still works via LegacySettingsAdapter.
+				// Future: Use SettingsInterface->get('ai.openai_api_key') instead.
 				$settings = $c->get( 'wch.settings' );
 				$api_key  = $settings['openai_api_key'] ?? '';
 
@@ -239,16 +243,17 @@ class ApiClientServiceProvider implements ServiceProviderInterface {
 			'wch.whatsapp.sender',
 			static function ( ContainerInterface $c ) {
 				$http     = $c->get( 'wch.http' );
+				// Note: wch.settings is deprecated, but still works via LegacySettingsAdapter.
 				$settings = $c->get( 'wch.settings' );
 				$logger   = $c->get( 'wch.logger' );
 
 				return new class( $http, $settings, $logger ) {
 					private object $http;
-					private array $settings;
+					private object $settings;
 					private object $logger;
 					private string $api_url = 'https://graph.facebook.com/v18.0';
 
-					public function __construct( object $http, array $settings, object $logger ) {
+					public function __construct( object $http, object $settings, object $logger ) {
 						$this->http     = $http;
 						$this->settings = $settings;
 						$this->logger   = $logger;

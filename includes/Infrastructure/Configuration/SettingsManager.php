@@ -4,8 +4,13 @@
  *
  * Centralized settings management with encryption support and validation.
  *
+ * This class uses a sectioned key format (e.g., 'api.access_token', 'ai.openai_api_key')
+ * to organize settings by domain. This replaces the deprecated flat 'wch.settings' array.
+ *
  * @package WhatsApp_Commerce_Hub
  * @since 2.0.0
+ * @see LegacySettingsAdapter For backward compatibility with old flat schema.
+ * @see docs/SETTINGS-DEPRECATION.md For migration guide.
  */
 
 declare(strict_types=1);
@@ -294,6 +299,16 @@ class SettingsManager {
 	}
 
 	/**
+	 * Get settings for a specific group (alias for getSection for SettingsInterface).
+	 *
+	 * @param string $group Group name (e.g., 'api', 'notifications', 'checkout').
+	 * @return array<string, mixed> Group settings.
+	 */
+	public function getGroup( string $group ): array {
+		return $this->getSection( $group );
+	}
+
+	/**
 	 * Check if a setting exists.
 	 *
 	 * @param string $key Setting key in format 'section.key'.
@@ -339,6 +354,15 @@ class SettingsManager {
 	 */
 	public function clearCache(): void {
 		$this->cache = null;
+	}
+
+	/**
+	 * Refresh cached settings (alias for clearCache for SettingsInterface).
+	 *
+	 * @return void
+	 */
+	public function refresh(): void {
+		$this->clearCache();
 	}
 
 	/**

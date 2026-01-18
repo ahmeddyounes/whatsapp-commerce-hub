@@ -21,6 +21,7 @@ use WhatsAppCommerceHub\Core\ErrorHandler;
 use WhatsAppCommerceHub\Infrastructure\Security\Encryption;
 use WhatsAppCommerceHub\Infrastructure\Database\DatabaseManager;
 use WhatsAppCommerceHub\Infrastructure\Configuration\SettingsManager;
+use WhatsAppCommerceHub\Infrastructure\Configuration\LegacySettingsAdapter;
 use WhatsAppCommerceHub\Application\Services\LoggerService;
 use WhatsAppCommerceHub\Application\Services\OrderSyncService;
 use WhatsAppCommerceHub\Application\Services\SettingsService;
@@ -63,35 +64,19 @@ class CoreServiceProvider implements ServiceProviderInterface {
 		);
 
 		// Register plugin settings.
+		// DEPRECATED: Use SettingsInterface directly instead of wch.settings.
+		// This adapter provides backward compatibility during the transition period.
 		$container->singleton(
 			'wch.settings',
-			static function () {
-				$defaults = [
-					'phone_number_id'       => '',
-					'business_account_id'   => '',
-					'access_token'          => '',
-					'verify_token'          => '',
-					'webhook_secret'        => '',
-					'openai_api_key'        => '',
-					'enable_ai_chat'        => true,
-					'ai_model'              => 'gpt-4o-mini',
-					'store_currency'        => 'USD',
-					'enable_cart_recovery'  => true,
-					'cart_expiry_hours'     => 72,
-					'reminder_1_delay'      => 1,
-					'reminder_2_delay'      => 24,
-					'reminder_3_delay'      => 72,
-					'enable_order_tracking' => true,
-					'enable_debug_logging'  => false,
-				];
-
-				$settings = get_option( 'wch_settings', [] );
-
-				return array_merge( $defaults, $settings );
+			static function ( ContainerInterface $c ) {
+				$settingsInterface = $c->get( SettingsInterface::class );
+				return new LegacySettingsAdapter( $settingsInterface );
 			}
 		);
 
 		// Register settings accessor.
+		// DEPRECATED: Use SettingsInterface->get() instead of wch.setting.
+		// This helper provides backward compatibility during the transition period.
 		$container->singleton(
 			'wch.setting',
 			static function ( ContainerInterface $c ) {

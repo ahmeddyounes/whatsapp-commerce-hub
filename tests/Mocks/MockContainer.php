@@ -10,6 +10,7 @@
 namespace WhatsAppCommerceHub\Tests\Mocks;
 
 use WhatsAppCommerceHub\Container\ContainerInterface;
+use WhatsAppCommerceHub\Infrastructure\Configuration\LegacySettingsAdapter;
 
 /**
  * Class MockContainer
@@ -174,19 +175,23 @@ class MockContainer implements ContainerInterface {
 		$container->set( \wpdb::class, self::createMockWpdb() );
 		$container->set( 'wpdb', $container->get( \wpdb::class ) );
 
-		// Mock settings.
+		// Mock SettingsInterface with test data.
+		$mockSettings = new MockSettings();
+		$mockSettings->set( 'api.whatsapp_phone_number_id', 'test_phone_id' );
+		$mockSettings->set( 'api.whatsapp_business_account_id', 'test_business_id' );
+		$mockSettings->set( 'api.access_token', 'test_token' );
+		$mockSettings->set( 'api.webhook_verify_token', 'test_verify' );
+		$mockSettings->set( 'catalog.currency_symbol', 'USD' );
+		$mockSettings->set( 'ai.enable_ai', true );
+		$mockSettings->set( 'recovery.enabled', true );
+		$mockSettings->set( 'recovery.delay_sequence_3', 72 );
+
+		$container->set( \WhatsAppCommerceHub\Contracts\Services\SettingsInterface::class, $mockSettings );
+
+		// Mock settings (deprecated - now uses adapter).
 		$container->set(
 			'wch.settings',
-			[
-				'phone_number_id'       => 'test_phone_id',
-				'business_account_id'   => 'test_business_id',
-				'access_token'          => 'test_token',
-				'verify_token'          => 'test_verify',
-				'store_currency'        => 'USD',
-				'enable_ai_chat'        => true,
-				'enable_cart_recovery'  => true,
-				'cart_expiry_hours'     => 72,
-			]
+			new LegacySettingsAdapter( $mockSettings )
 		);
 
 		// Mock logger.
@@ -342,5 +347,61 @@ class MockCache {
 				}
 			}
 		}
+	}
+}
+
+/**
+ * Mock Settings for testing.
+ */
+class MockSettings implements \WhatsAppCommerceHub\Contracts\Services\SettingsInterface {
+	private array $settings = [];
+
+	public function get( string $key, mixed $default = null ): mixed {
+		return $this->settings[ $key ] ?? $default;
+	}
+
+	public function set( string $key, $value ): bool {
+		$this->settings[ $key ] = $value;
+		return true;
+	}
+
+	public function delete( string $key ): bool {
+		unset( $this->settings[ $key ] );
+		return true;
+	}
+
+	public function has( string $key ): bool {
+		return isset( $this->settings[ $key ] );
+	}
+
+	public function all(): array {
+		return $this->settings;
+	}
+
+	public function getGroup( string $group ): array {
+		$result = [];
+		foreach ( $this->settings as $key => $value ) {
+			if ( str_starts_with( $key, $group . '.' ) ) {
+				$subKey           = substr( $key, strlen( $group ) + 1 );
+				$result[ $subKey ] = $value;
+			}
+		}
+		return $result;
+	}
+
+	public function isConfigured(): bool {
+		return ! empty( $this->get( 'api.access_token' ) ) && ! empty( $this->get( 'api.whatsapp_phone_number_id' ) );
+	}
+
+	public function getApiCredentials(): array {
+		return [
+			'access_token'        => $this->get( 'api.access_token', '' ),
+			'phone_number_id'     => $this->get( 'api.whatsapp_phone_number_id', '' ),
+			'business_account_id' => $this->get( 'api.whatsapp_business_account_id', '' ),
+		];
+	}
+
+	public function refresh(): void {
+		// No-op for testing.
 	}
 }
