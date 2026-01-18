@@ -6,6 +6,7 @@ includes:
 rules:
 	- WhatsAppCommerceHub\PHPStan\Rules\NoWordPressFunctionsInDomainRule
 	- WhatsAppCommerceHub\PHPStan\Rules\NoWordPressGlobalsInDomainRule
+	- WhatsAppCommerceHub\PHPStan\Rules\NoWchCallsInProvidersRule
 
 parameters:
 	level: 5
